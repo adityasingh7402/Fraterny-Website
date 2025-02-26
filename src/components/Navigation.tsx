@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Menu, X } from 'lucide-react';
 
 const Navigation = () => {
@@ -7,26 +7,28 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPastHero, setIsPastHero] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-      // Using a fixed pixel height that works across all pages
-      setIsPastHero(window.scrollY > 100);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  const handleScroll = useCallback(() => {
+    const scrollPosition = window.scrollY;
+    requestAnimationFrame(() => {
+      setIsScrolled(scrollPosition > 20);
+      setIsPastHero(scrollPosition > 100);
+    });
   }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   const iconColor = isScrolled ? '#0A1A2F' : '#FFFFFF';
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-200 ease-out ${
       isScrolled ? 'glass shadow-lg' : ''
     }`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="/" className="animate-fade-in">
+          <a href="/" className="transition-opacity duration-200 ease-out">
             {isPastHero ? (
               <img 
                 src="/lovable-uploads/d4a85eda-3e95-443e-8dbc-5c34e20c9723.png" 
@@ -44,21 +46,21 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="/experience" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
+            <a href="/experience" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
               The Experience
             </a>
-            <a href="/process" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
+            <a href="/process" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
               How It Works
             </a>
-            <a href="/pricing" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
+            <a href="/pricing" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
               Pricing
             </a>
-            <a href="/faq" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
+            <a href="/faq" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
               FAQ
             </a>
             <a
               href="/apply"
-              className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all font-medium"
+              className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
             >
               Apply Now
             </a>
@@ -79,35 +81,35 @@ const Navigation = () => {
           <div className="md:hidden py-4 space-y-4">
             <a
               href="/experience"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
               The Experience
             </a>
             <a
               href="/process"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
               How It Works
             </a>
             <a
               href="/pricing"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
               Pricing
             </a>
             <a
               href="/faq"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
               FAQ
             </a>
             <a
               href="/apply"
-              className="block text-sm font-medium text-terracotta hover:text-opacity-80 transition-colors"
+              className="block text-sm font-medium text-terracotta hover:text-opacity-80 transition-colors duration-200"
               onClick={() => setIsMenuOpen(false)}
             >
               Apply Now
