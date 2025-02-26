@@ -5,10 +5,13 @@ import { Menu, X } from 'lucide-react';
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isPastHero, setIsPastHero] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
+      // Assuming hero section is roughly 100vh (adjust this value based on actual hero height)
+      setIsPastHero(window.scrollY > window.innerHeight);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -24,11 +27,19 @@ const Navigation = () => {
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <a href="/" className="animate-fade-in">
-            <img 
-              src="/lovable-uploads/ffcba562-8c6d-44dc-8607-53afc45d3a57.png" 
-              alt="Press Logo" 
-              className="h-8 md:h-10"
-            />
+            {isPastHero ? (
+              <img 
+                src="/lovable-uploads/d4a85eda-3e95-443e-8dbc-5c34e20c9723.png" 
+                alt="FRAT Logo" 
+                className="h-8 md:h-10"
+              />
+            ) : (
+              <img 
+                src="/lovable-uploads/ffcba562-8c6d-44dc-8607-53afc45d3a57.png" 
+                alt="Press Logo" 
+                className="h-8 md:h-10"
+              />
+            )}
           </a>
 
           {/* Desktop Navigation */}
