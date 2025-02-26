@@ -1,27 +1,20 @@
+
 import { useState, useEffect } from 'react';
+
 const Hero = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0
-  });
+  const [daysLeft, setDaysLeft] = useState(0);
+
   useEffect(() => {
     const targetDate = new Date('2024-12-31');
-    const calculateTimeLeft = () => {
+    const calculateDaysLeft = () => {
       const difference = targetDate.getTime() - new Date().getTime();
       if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor(difference / (1000 * 60 * 60) % 24),
-          minutes: Math.floor(difference / 1000 / 60 % 60),
-          seconds: Math.floor(difference / 1000 % 60)
-        });
+        setDaysLeft(Math.floor(difference / (1000 * 60 * 60 * 24)));
       }
     };
-    const timer = setInterval(calculateTimeLeft, 1000);
-    return () => clearInterval(timer);
+    calculateDaysLeft();
   }, []);
+
   return <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
@@ -59,10 +52,7 @@ const Hero = () => {
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-6 py-4 inline-block w-fit">
               <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
               <div className="text-xl font-mono">
-                <span>{timeLeft.days} Days </span>
-                <span>{timeLeft.hours.toString().padStart(2, '0')}:</span>
-                <span>{timeLeft.minutes.toString().padStart(2, '0')}:</span>
-                <span>{timeLeft.seconds.toString().padStart(2, '0')}</span>
+                {daysLeft} Days
               </div>
             </div>
           </div>
@@ -70,4 +60,5 @@ const Hero = () => {
       </div>
     </section>;
 };
+
 export default Hero;
