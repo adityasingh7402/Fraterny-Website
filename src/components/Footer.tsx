@@ -16,7 +16,7 @@ const Footer = () => {
               />
             </a>
             <p className="text-gray-400">
-              Join the elite community of ambitious professionals.
+              Shared Ambitions
             </p>
           </div>
 
