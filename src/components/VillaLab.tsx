@@ -13,29 +13,26 @@ const VillaLab = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 bg-white"> {/* Reduced from py-24 */}
       <div className="container mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-2">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-2">
           The Villa Lab
         </h2>
-        <p className="text-xl text-gray-600 mb-12">
+        <p className="text-xl text-gray-600 mb-8"> {/* Reduced from mb-12 */}
           Work hard. Bond harder.
         </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3"> {/* Reduced gaps */}
           {activities.slice(0, window.innerWidth < 768 ? 6 : 9).map((activity, index) => (
             <div 
               key={index}
-              className="aspect-square bg-navy text-white rounded-lg overflow-hidden relative group"
+              className="aspect-square bg-navy rounded-lg overflow-hidden"
             >
               <img
                 src={activity.image}
                 alt={activity.title}
-                className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 flex items-center justify-center p-4 text-center">
-                <h3 className="text-lg md:text-xl font-medium">{activity.title}</h3>
-              </div>
             </div>
           ))}
         </div>
