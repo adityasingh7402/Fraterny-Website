@@ -5,17 +5,17 @@ const HowItWorks = () => {
   const steps = [
     {
       title: "Apply",
-      description: "Submit your application",
+      description: "Submit your profile",
       icon: Send,
     },
     {
       title: "Screen",
-      description: "Interview process",
+      description: "A brief conversation with a councilor",
       icon: UserCheck,
     },
     {
       title: "Join",
-      description: "Join the community",
+      description: "Welcome to the community",
       icon: Users,
     }
   ];
@@ -39,15 +39,6 @@ const HowItWorks = () => {
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <a
-            href="/apply"
-            className="inline-flex items-center px-8 py-3 bg-navy text-white rounded-lg hover:bg-opacity-90 transition-all text-lg font-medium"
-          >
-            Apply Now <span className="ml-2">→</span>
-          </a>
         </div>
       </div>
     </section>
