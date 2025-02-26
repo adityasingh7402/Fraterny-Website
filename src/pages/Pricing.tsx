@@ -3,6 +3,18 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from '@tanstack/react-query';
+
+// Placeholder API call - replace with actual API endpoint
+const fetchPrices = async () => {
+  // This would be replaced with actual API call
+  return {
+    insiderAccess: "₹499/month",
+    mainExperience: "₹45,000 - ₹60,000",
+    executiveEscape: "₹1,50,000+",
+    spotsRemaining: 5
+  };
+};
 
 const PricingTier = ({ 
   name, 
@@ -57,6 +69,16 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
 );
 
 const Pricing = () => {
+  const { data: prices = {
+    insiderAccess: "Loading...",
+    mainExperience: "Loading...",
+    executiveEscape: "Loading...",
+    spotsRemaining: "--"
+  }} = useQuery({
+    queryKey: ['prices'],
+    queryFn: fetchPrices,
+  });
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -65,8 +87,8 @@ const Pricing = () => {
       <section className="pt-32 pb-16 bg-navy text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <img
-            src="/public/lovable-uploads/c3c39cbe-951e-41b0-ae77-d34014eff27a.png"
-            alt="Luxury Villa Background"
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
+            alt="Luxury Work-Vacation Setting"
             className="w-full h-full object-cover"
           />
         </div>
@@ -75,15 +97,9 @@ const Pricing = () => {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
               Choose Your Experience
             </h1>
-            <p className="text-xl text-gray-300 mb-8">
+            <p className="text-xl text-gray-300">
               Each offering is designed for a different kind of individual. Find the one that fits you best.
             </p>
-            <a
-              href="/apply"
-              className="inline-block px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors"
-            >
-              Apply Now
-            </a>
           </div>
         </div>
       </section>
@@ -94,7 +110,7 @@ const Pricing = () => {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <PricingTier
               name="Insider Access"
-              price="₹499/month"
+              price={prices.insiderAccess}
               features={[
                 "Digital Content Only",
                 "Digital Resources",
@@ -107,7 +123,7 @@ const Pricing = () => {
             />
             <PricingTier
               name="The Main Experience"
-              price="₹45,000 - ₹60,000"
+              price={prices.mainExperience}
               features={[
                 "In-Person Retreat",
                 "Exclusive Cohort (20 People)",
@@ -121,7 +137,7 @@ const Pricing = () => {
             />
             <PricingTier
               name="Executive Escape"
-              price="₹1,50,000+"
+              price={prices.executiveEscape}
               features={[
                 "Private Luxury Experience",
                 "8-10 People Only",
@@ -246,7 +262,7 @@ const Pricing = () => {
               Apply Now
             </a>
             <p className="text-sm text-gray-300">
-              Only 5 spots remaining
+              Only {prices.spotsRemaining} spots remaining
             </p>
           </div>
         </div>
