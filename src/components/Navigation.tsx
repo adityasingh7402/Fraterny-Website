@@ -36,7 +36,7 @@ const Navigation = () => {
             <a href="/experience" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               The Experience
             </a>
-            <a href="/how-it-works" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
+            <a href="/process" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               How It Works
             </a>
             <a href="/pricing" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
@@ -77,7 +77,7 @@ const Navigation = () => {
               The Experience
             </a>
             <a
-              href="/how-it-works"
+              href="/process"
               className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >

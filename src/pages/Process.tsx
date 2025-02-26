@@ -13,10 +13,10 @@ const Process = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
-              Join Your Elite Tribe
+              It's not special if everyone has it
             </h1>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-              It's not special if everyone has it - We make sure you interact with only ambitious, likeminded and interesting people.
+              We make sure you interact with only ambitious, likeminded and interesting people.
             </p>
             
             {/* Application Status */}
