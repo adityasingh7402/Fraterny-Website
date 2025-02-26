@@ -196,7 +196,7 @@ const Pricing = () => {
               >
                 Apply Now
               </a>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mt-4">
                 Currently accepting applications for March 2025
               </p>
             </div>
