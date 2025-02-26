@@ -55,7 +55,12 @@ const Footer = () => {
 
           {/* CTA Section */}
           <div className="flex flex-col items-start">
-            <a href="/apply" className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium">
+            <a 
+              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium"
+            >
               Apply Now
             </a>
           </div>
