@@ -13,7 +13,7 @@ const fetchPrices = async () => {
   };
 };
 
-const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
+const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit";
 const EXECUTIVE_ESCAPE_MAIL = "mailto:support@fraterny.com?subject=Exclusive%20Escape%20Inquiry";
 
 const PricingTier = ({ 
@@ -185,10 +185,10 @@ const Pricing = () => {
 
             <div className="text-center">
               <a
-                href={APPLICATION_FORM_URL}
+                href="https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors mb-4"
+                className="mt-6 inline-block px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
               >
                 Apply Now
               </a>
