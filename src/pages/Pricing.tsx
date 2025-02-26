@@ -4,9 +4,7 @@ import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 
-// Placeholder API call - replace with actual API endpoint
 const fetchPrices = async () => {
-  // This would be replaced with actual API call
   return {
     insiderAccess: "₹499/month",
     mainExperience: "₹45,000 - ₹60,000",
@@ -16,6 +14,7 @@ const fetchPrices = async () => {
 };
 
 const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
+const EXECUTIVE_ESCAPE_MAIL = "mailto:support@fraterny.com?subject=Exclusive%20Escape%20Inquiry";
 
 const PricingTier = ({ 
   name, 
@@ -86,7 +85,6 @@ const Pricing = () => {
     <div className="min-h-screen bg-white">
       <Navigation />
       
-      {/* Hero Section */}
       <section className="pt-32 pb-16 bg-navy text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <img
@@ -107,7 +105,6 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Pricing Comparison */}
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -149,13 +146,12 @@ const Pricing = () => {
                 "Exclusive Networking"
               ]}
               ctaText="Apply for Consideration"
-              ctaLink={APPLICATION_FORM_URL}
+              ctaLink={EXECUTIVE_ESCAPE_MAIL}
             />
           </div>
         </div>
       </section>
 
-      {/* Main Experience Details */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto">
@@ -204,7 +200,6 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Executive Escape */}
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto">
@@ -240,9 +235,7 @@ const Pricing = () => {
 
             <div className="text-center">
               <a
-                href={APPLICATION_FORM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={EXECUTIVE_ESCAPE_MAIL}
                 className="inline-block px-8 py-3 border-2 border-navy text-navy hover:bg-navy hover:text-white rounded-lg transition-colors"
               >
                 Apply for Consideration
@@ -252,7 +245,6 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Final CTA Section */}
       <section className="py-20 bg-navy text-white">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-2xl mx-auto">
