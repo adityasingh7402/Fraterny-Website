@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Mail, Phone } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -105,6 +105,32 @@ const FAQ = () => {
               </AccordionItem>
             ))}
           </Accordion>
+
+          {/* Contact Information */}
+          <div className="mt-16 p-8 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 className="text-2xl font-playfair text-navy mb-6">Still have questions?</h2>
+            <p className="text-gray-600 mb-6">
+              We're here to help! Reach out to us through any of these channels:
+            </p>
+            <div className="space-y-4">
+              <a 
+                href="mailto:support@fraterny.com" 
+                className="flex items-center gap-3 text-gray-600 hover:text-terracotta transition-colors"
+              >
+                <Mail size={20} />
+                <span>support@fraterny.com</span>
+              </a>
+              <a 
+                href="https://wa.me/919004809251" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center gap-3 text-gray-600 hover:text-terracotta transition-colors"
+              >
+                <Phone size={20} />
+                <span>WhatsApp: +91 9004809251</span>
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 

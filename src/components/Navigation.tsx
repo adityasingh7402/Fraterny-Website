@@ -45,9 +45,6 @@ const Navigation = () => {
             <a href="/faq" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               FAQ
             </a>
-            <a href="/contact" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
-              Contact
-            </a>
             <a
               href="/apply"
               className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all font-medium"
@@ -96,13 +93,6 @@ const Navigation = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               FAQ
-            </a>
-            <a
-              href="/contact"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
             </a>
             <a
               href="/apply"
