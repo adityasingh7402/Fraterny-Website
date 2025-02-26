@@ -4,6 +4,7 @@ import Hero from '../components/Hero';
 import NavalQuote from '../components/NavalQuote';
 import VillaLab from '../components/VillaLab';
 import HowItWorks from '../components/HowItWorks';
+import Footer from '../components/Footer';
 
 const Index = () => {
   return (
@@ -13,6 +14,7 @@ const Index = () => {
       <NavalQuote />
       <VillaLab />
       <HowItWorks />
+      <Footer />
     </div>
   );
 };
