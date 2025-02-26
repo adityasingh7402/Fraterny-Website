@@ -1,3 +1,4 @@
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
@@ -54,7 +55,7 @@ const Process = () => {
       </section>
 
       {/* Who is this for? Section */}
-      <section className="py-20 bg-white">
+      <section className="pt-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-8 text-center">
@@ -71,7 +72,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed text-lg">
                         You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and scale them.
                       </p>
                     </div>
@@ -80,7 +81,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed text-lg">
                         You believe in execution over excuses. You are not here for inspiration; you are here to build, collaborate, and accelerate.
                       </p>
                     </div>
@@ -89,7 +90,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed text-lg">
                         You don't follow trends; you create them. Whether you are an entrepreneur, investor, or innovator, you want to be in a space where real things happen.
                       </p>
                     </div>
@@ -100,7 +101,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed text-lg">
                         You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.
                       </p>
                     </div>
@@ -109,7 +110,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed text-lg">
                         You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.
                       </p>
                     </div>
@@ -118,19 +119,37 @@ const Process = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-8 rounded-xl">
-              <h3 className="text-2xl font-playfair text-navy mb-6">
+            <div className="mb-20">
+              <h3 className="text-3xl md:text-4xl font-playfair text-navy mb-8 text-center">
                 Who this is not for:
               </h3>
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 border-l-2 border-terracotta pl-4">
-                  <p className="text-gray-700">Those looking for a typical networking event.</p>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
+                    <p className="text-gray-700 leading-relaxed text-lg">
+                      Those looking for a typical networking event.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 border-l-2 border-terracotta pl-4">
-                  <p className="text-gray-700">Anyone expecting a passive experience.</p>
+
+                <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
+                    <p className="text-gray-700 leading-relaxed text-lg">
+                      Anyone expecting a passive experience.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 border-l-2 border-terracotta pl-4">
-                  <p className="text-gray-700">People who are just exploring—this is for doers, not spectators.</p>
+
+                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
+                    <p className="text-gray-700 leading-relaxed text-lg">
+                      People who are just exploring—this is for doers, not spectators.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
