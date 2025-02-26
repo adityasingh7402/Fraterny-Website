@@ -1,4 +1,3 @@
-
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -187,7 +186,7 @@ const Pricing = () => {
 
             <div className="text-center">
               <a
-                href="https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit"
+                href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 inline-block px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
