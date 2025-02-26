@@ -21,8 +21,12 @@ const Navigation = () => {
     }`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-playfair font-bold tracking-tight text-navy animate-fade-in">
-            Fraterny
+          <a href="/" className="animate-fade-in">
+            <img 
+              src="/lovable-uploads/ffcba562-8c6d-44dc-8607-53afc45d3a57.png" 
+              alt="Fraterny Logo" 
+              className="h-8 md:h-10"
+            />
           </a>
 
           {/* Desktop Navigation */}
