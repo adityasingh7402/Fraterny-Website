@@ -1,3 +1,4 @@
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -130,7 +131,8 @@ const Pricing = () => {
                 "Exclusive Cohort (20 People)",
                 "Interactive & Hands-on Workshops",
                 "Shared 10+BHK Luxury Villa",
-                "Gourmet Meals and Activities"
+                "Gourmet Meals and Activities",
+                "Lifetime access to the exclusive Fraterny Community"
               ]}
               ctaText="Apply Now"
               ctaLink={APPLICATION_FORM_URL}
