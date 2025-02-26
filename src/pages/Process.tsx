@@ -160,6 +160,9 @@ const Process = () => {
       {/* Steps Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">
+            The Process
+          </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Step 1: Apply */}
             <div className="bg-white p-8 rounded-lg border border-gray-100">
