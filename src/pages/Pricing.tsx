@@ -131,7 +131,7 @@ const Pricing = () => {
                 "Exclusive Cohort (20 People)",
                 "Interactive & Hands-on Workshops",
                 "Shared 10+BHK Luxury Villa",
-                "Gourmet Meals and Activities",
+                "Gourmet Meals and Group Activities",
                 "Lifetime access to the exclusive Fraterny Community"
               ]}
               ctaText="Apply Now"
@@ -145,8 +145,9 @@ const Pricing = () => {
                 "Private Luxury Experience",
                 "8-10 People Only",
                 "Complete Flexibility",
-                "Private Room",
-                "Exclusive Networking"
+                "Private Master Bedrooms",
+                "Exclusive Networking",
+                "Personalized Gourmet Meals"
               ]}
               ctaText="Apply for Consideration"
               ctaLink={EXECUTIVE_ESCAPE_MAIL}
