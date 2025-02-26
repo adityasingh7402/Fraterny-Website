@@ -1,4 +1,3 @@
-
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -15,6 +14,8 @@ const fetchPrices = async () => {
     spotsRemaining: 5
   };
 };
+
+const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
 
 const PricingTier = ({ 
   name, 
@@ -45,6 +46,8 @@ const PricingTier = ({
     </ul>
     <a
       href={ctaLink}
+      target="_blank"
+      rel="noopener noreferrer"
       className={`block text-center py-2 px-4 rounded-lg transition-colors ${
         isPopular 
           ? 'bg-terracotta text-white hover:bg-opacity-90' 
@@ -119,7 +122,7 @@ const Pricing = () => {
                 "No Dining & Activities"
               ]}
               ctaText="Learn More"
-              ctaLink="#insider"
+              ctaLink={APPLICATION_FORM_URL}
             />
             <PricingTier
               name="The Main Experience"
@@ -132,7 +135,7 @@ const Pricing = () => {
                 "Gourmet Meals and Activities"
               ]}
               ctaText="Apply Now"
-              ctaLink="/apply"
+              ctaLink={APPLICATION_FORM_URL}
               isPopular={true}
             />
             <PricingTier
@@ -146,7 +149,7 @@ const Pricing = () => {
                 "Exclusive Networking"
               ]}
               ctaText="Apply for Consideration"
-              ctaLink="/apply"
+              ctaLink={APPLICATION_FORM_URL}
             />
           </div>
         </div>
@@ -186,7 +189,9 @@ const Pricing = () => {
 
             <div className="text-center">
               <a
-                href="/apply"
+                href={APPLICATION_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors mb-4"
               >
                 Apply Now
@@ -235,7 +240,9 @@ const Pricing = () => {
 
             <div className="text-center">
               <a
-                href="/apply"
+                href={APPLICATION_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block px-8 py-3 border-2 border-navy text-navy hover:bg-navy hover:text-white rounded-lg transition-colors"
               >
                 Apply for Consideration
@@ -256,7 +263,9 @@ const Pricing = () => {
               We keep the group small and highly curated. If you're ready to experience a network that will change your trajectory, apply now.
             </p>
             <a
-              href="/apply"
+              href={APPLICATION_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors mb-4"
             >
               Apply Now
