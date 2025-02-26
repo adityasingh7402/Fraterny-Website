@@ -1,10 +1,10 @@
 
 const NavalQuote = () => {
   return (
-    <section className="py-12 bg-white"> {/* Reduced from py-24 */}
+    <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto space-y-8"> {/* Added space-y for consistent spacing */}
-          <div className="space-y-2"> {/* Group heading elements closer together */}
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="space-y-2">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy">
               "The closer you want to get to me, the better your values have to be."
             </h2>
@@ -19,15 +19,15 @@ const NavalQuote = () => {
           
           <div className="grid md:grid-cols-2 gap-8 bg-gradient-to-br from-navy/5 to-navy/10 rounded-2xl p-8">
             <div className="space-y-4">
-              <div className="text-5xl md:text-7xl font-bold text-navy">50%</div>
+              <div className="text-5xl md:text-7xl font-bold text-navy">73%</div>
               <p className="text-lg md:text-xl text-gray-600">
-                more effective at completing tasks in collaborative settings
+                report improved performance in collaborative work
               </p>
             </div>
             <div className="space-y-4">
-              <div className="text-5xl md:text-7xl font-bold text-terracotta">92%</div>
+              <div className="text-5xl md:text-7xl font-bold text-terracotta">49%</div>
               <p className="text-lg md:text-xl text-gray-600">
-                of participants found lifelong collaborators through our program
+                potential achievers are deterred from starting a venture due to inability to take action caused by fear of failure
               </p>
             </div>
           </div>
