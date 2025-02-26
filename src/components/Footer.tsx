@@ -1,4 +1,6 @@
-import { Instagram, Linkedin, Twitter } from 'lucide-react';
+
+import { Instagram, Mail, X } from 'lucide-react';
+
 const Footer = () => {
   return <footer className="bg-navy text-white py-12">
       <div className="container mx-auto px-6">
@@ -26,14 +28,27 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-medium mb-4">Connect</h3>
             <div className="flex space-x-4">
-              <a href="https://instagram.com" className="text-gray-400 hover:text-white transition-colors">
-                <Instagram size={24} />
+              <a 
+                href="https://www.instagram.com/join.fraterny/?hl=en" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
+              >
+                <Instagram size={20} />
               </a>
-              <a href="https://linkedin.com" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin size={24} />
+              <a 
+                href="https://x.com/frat_erny" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
+              >
+                <X size={20} />
               </a>
-              <a href="https://twitter.com" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter size={24} />
+              <a 
+                href="mailto:support@fraterny.com?subject=User%20Query" 
+                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
+              >
+                <Mail size={20} />
               </a>
             </div>
           </div>
@@ -48,4 +63,5 @@ const Footer = () => {
       </div>
     </footer>;
 };
+
 export default Footer;
