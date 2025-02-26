@@ -1,3 +1,4 @@
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -13,7 +14,8 @@ const fetchPrices = async () => {
   };
 };
 
-const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit";
+const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
+const LEARN_MORE_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit";
 const EXECUTIVE_ESCAPE_MAIL = "mailto:support@fraterny.com?subject=Exclusive%20Escape%20Inquiry";
 
 const PricingTier = ({ 
@@ -119,7 +121,7 @@ const Pricing = () => {
                 "No Dining & Activities"
               ]}
               ctaText="Learn More"
-              ctaLink={APPLICATION_FORM_URL}
+              ctaLink={LEARN_MORE_URL}
             />
             <PricingTier
               name="The Main Experience"
