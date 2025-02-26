@@ -16,29 +16,28 @@ const Navigation = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all ${isScrolled ? 'glass shadow-lg' : ''}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all ${
+      isScrolled ? 'glass shadow-lg' : ''
+    }`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="/" className="text-xl font-semibold tracking-tight animate-fade-in">
-            CompanyName
+          <a href="/" className="text-2xl font-playfair font-bold tracking-tight text-navy animate-fade-in">
+            Fraterny
           </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {['About', 'Services', 'Portfolio', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-all"
-              >
-                {item}
-              </a>
-            ))}
+            <a
+              href="/apply"
+              className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all font-medium"
+            >
+              Apply Now
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden"
+            className="md:hidden text-navy"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -49,16 +48,13 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden py-4">
-            {['About', 'Services', 'Portfolio', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-all"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item}
-              </a>
-            ))}
+            <a
+              href="/apply"
+              className="block py-2 text-sm font-medium text-terracotta hover:text-opacity-80 transition-all"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Apply Now
+            </a>
           </div>
         )}
       </div>

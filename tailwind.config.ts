@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,6 +24,9 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        navy: "#0A1A2F",
+        terracotta: "#E07A5F",
+        gold: "#D4AF37",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -56,6 +58,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
+        playfair: ["Playfair Display", "serif"],
       },
       keyframes: {
         "fade-up": {
