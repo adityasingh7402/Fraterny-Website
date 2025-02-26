@@ -9,8 +9,28 @@ const Process = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-navy text-white">
-        <div className="container mx-auto px-6">
+      <section className="pt-32 pb-16 bg-navy text-white relative">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb')`,
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to right, 
+              rgba(10, 26, 47, 0.95) 0%,
+              rgba(10, 26, 47, 0.8) 50%,
+              rgba(10, 26, 47, 0.6) 100%
+            )`
+          }}
+        />
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
               It's not special if everyone has it
