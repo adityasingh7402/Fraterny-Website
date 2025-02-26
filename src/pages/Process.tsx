@@ -1,0 +1,124 @@
+
+import Navigation from '../components/Navigation';
+import Footer from '../components/Footer';
+import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
+
+const Process = () => {
+  return (
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
+      {/* Hero Section */}
+      <section className="pt-32 pb-16 bg-navy text-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
+              Join Your Elite Tribe
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+              It's not special if everyone has it - We make sure you interact with only ambitious, likeminded and interesting people.
+            </p>
+            
+            {/* Application Status */}
+            <div className="flex flex-wrap gap-8 items-center">
+              <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-sm text-gray-400">Available Seats</div>
+                <div className="text-2xl font-mono">20</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400">Applications Close</div>
+                <div className="text-xl">March 2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Steps Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Step 1: Apply */}
+            <div className="bg-white p-8 rounded-lg border border-gray-100">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium">
+                  1
+                </div>
+                <h3 className="text-xl font-medium text-navy">Apply</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we believe we will be able to add value to your life.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Personal Details</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>LinkedIn Profile</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Vision Statement</span>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-gray-500">
+                We encourage group applications with 1-2 friends. Only 1 registration is needed for friend groups.
+              </p>
+            </div>
+
+            {/* Step 2: Screening Call */}
+            <div className="bg-white p-8 rounded-lg border border-gray-100">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium">
+                  2
+                </div>
+                <h3 className="text-xl font-medium text-navy">Screening Call</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Have a brief conversation - A Fraterny councilor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Phone size={16} className="text-terracotta" />
+                <span>15 Minutes</span>
+              </div>
+            </div>
+
+            {/* Step 3: Join */}
+            <div className="bg-white p-8 rounded-lg border border-gray-100">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium">
+                  3
+                </div>
+                <h3 className="text-xl font-medium text-navy">Join</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Welcome to the Ecosystem - We will send you a confirmation email for your acceptance in Fraterny.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Applying with friends?</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Group applications welcome</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Security Notice */}
+          <div className="mt-12 text-center text-sm text-gray-500">
+            Your data is 100% secure. Not selected? Get priority access for 2025 cohorts.
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Process;
