@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { Calendar, Users, BookOpen, Coffee, Brain, Heart, Code, FileCheck, ChefHat } from 'lucide-react';
 import Navigation from '../components/Navigation';
@@ -15,12 +14,36 @@ const Experience = () => {
   ];
 
   const peers = [
-    { title: "The Visionary", description: "Sees possibilities others don't" },
-    { title: "The Hustler", description: "Gets things done, period" },
-    { title: "The Workaholic", description: "Lives and breathes excellence" },
-    { title: "The Experienced", description: "Been there, done that" },
-    { title: "The Optimist", description: "Finds silver linings" },
-    { title: "The Guardian", description: "Keeps the ship steady" },
+    { 
+      title: "The Visionary", 
+      description: "Sees possibilities others don't",
+      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7"
+    },
+    { 
+      title: "The Hustler", 
+      description: "Gets things done, period",
+      image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+    },
+    { 
+      title: "The Workaholic", 
+      description: "Lives and breathes excellence",
+      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+    },
+    { 
+      title: "The Experienced", 
+      description: "Been there, done that",
+      image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952"
+    },
+    { 
+      title: "The Optimist", 
+      description: "Finds silver linings",
+      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7"
+    },
+    { 
+      title: "The Guardian", 
+      description: "Keeps the ship steady",
+      image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+    }
   ];
 
   const depthFeatures = [
@@ -102,7 +125,13 @@ const Experience = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {peers.map((peer, index) => (
               <div key={index} className="text-center">
-                <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-full overflow-hidden" />
+                <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-full overflow-hidden">
+                  <img 
+                    src={peer.image} 
+                    alt={peer.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <h3 className="font-medium text-navy mb-2">{peer.title}</h3>
                 <p className="text-gray-600 text-sm">{peer.description}</p>
               </div>
