@@ -21,9 +21,9 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 bg-white"> {/* Reduced from py-24 */}
       <div className="container mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-12"> {/* Increased heading size */}
           How It Works
         </h2>
 
