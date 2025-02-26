@@ -41,23 +41,23 @@ const Hero = () => {
             Finds Its Tribe
           </h1>
           
-          <p className="text-lg md:text-xl mb-6 text-gray-200">
-            A 7-day retreat for India's most driven minds. Only 20 seats. No tourists, just founders.
+          <p className="text-lg md:text-xl mb-8 text-gray-200">
+            Authenticity, Community, Growth, and Shared Aspirations
           </p>
 
-          <div className="animate-fade-up space-y-6">
+          <div className="animate-fade-up space-y-12">
             <button className="px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-lg font-medium">
-              Apply Now →
+              Claim your spot →
             </button>
             
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-6 py-4 inline-block">
-              <p className="text-sm md:text-base text-gray-300 mb-1">Applications Close in:</p>
+              <p className="text-sm md:text-base text-gray-300 mb-1">Registrations for Cohort #24 close in:</p>
               <div className="text-xl font-mono">
+                <span>{timeLeft.days} Days </span>
                 <span>{timeLeft.hours.toString().padStart(2, '0')}:</span>
                 <span>{timeLeft.minutes.toString().padStart(2, '0')}:</span>
                 <span>{timeLeft.seconds.toString().padStart(2, '0')}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-1">Will You Be Cohort #24?</p>
             </div>
           </div>
         </div>

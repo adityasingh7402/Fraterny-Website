@@ -15,6 +15,8 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const iconColor = isScrolled ? '#0A1A2F' : '#FFFFFF';
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all ${
       isScrolled ? 'glass shadow-lg' : ''
@@ -24,26 +26,26 @@ const Navigation = () => {
           <a href="/" className="animate-fade-in">
             <img 
               src="/lovable-uploads/ffcba562-8c6d-44dc-8607-53afc45d3a57.png" 
-              alt="Fraterny Logo" 
+              alt="Press Logo" 
               className="h-8 md:h-10"
             />
           </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="/experience" className="text-navy hover:text-terracotta transition-colors">
+            <a href="/experience" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               The Experience
             </a>
-            <a href="/how-it-works" className="text-navy hover:text-terracotta transition-colors">
+            <a href="/how-it-works" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               How It Works
             </a>
-            <a href="/pricing" className="text-navy hover:text-terracotta transition-colors">
+            <a href="/pricing" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               Pricing
             </a>
-            <a href="/faq" className="text-navy hover:text-terracotta transition-colors">
+            <a href="/faq" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               FAQ
             </a>
-            <a href="/contact" className="text-navy hover:text-terracotta transition-colors">
+            <a href="/contact" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}>
               Contact
             </a>
             <a
@@ -56,11 +58,11 @@ const Navigation = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-navy"
+            className={`md:hidden ${isScrolled ? 'text-navy' : 'text-white'}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMenuOpen ? <X size={24} color={iconColor} /> : <Menu size={24} color={iconColor} />}
           </button>
         </div>
 
@@ -69,35 +71,35 @@ const Navigation = () => {
           <div className="md:hidden py-4 space-y-4">
             <a
               href="/experience"
-              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >
               The Experience
             </a>
             <a
               href="/how-it-works"
-              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >
               How It Works
             </a>
             <a
               href="/pricing"
-              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >
               Pricing
             </a>
             <a
               href="/faq"
-              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >
               FAQ
             </a>
             <a
               href="/contact"
-              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors`}
               onClick={() => setIsMenuOpen(false)}
             >
               Contact
