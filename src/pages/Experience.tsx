@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { Calendar, Users, BookOpen, Coffee, Brain, Heart, Code, FileCheck, ChefHat } from 'lucide-react';
 import Navigation from '../components/Navigation';
@@ -91,7 +90,12 @@ const Experience = () => {
             <p className="text-xl md:text-2xl mb-8 text-gray-300">
               20 people. 7 days. 1 life-changing experience
             </p>
-            <a href="mailto:support@fraterny.com?subject=Exclusive%20Escape%20Inquiry" className="text-sm italic underline text-terracotta hover:text-opacity-80 transition-colors">
+            <a 
+              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm italic underline text-terracotta hover:text-opacity-80 transition-colors"
+            >
               See if you fit →
             </a>
           </div>
