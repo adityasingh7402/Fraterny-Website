@@ -31,6 +31,21 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <a href="/experience" className="text-navy hover:text-terracotta transition-colors">
+              The Experience
+            </a>
+            <a href="/how-it-works" className="text-navy hover:text-terracotta transition-colors">
+              How It Works
+            </a>
+            <a href="/pricing" className="text-navy hover:text-terracotta transition-colors">
+              Pricing
+            </a>
+            <a href="/faq" className="text-navy hover:text-terracotta transition-colors">
+              FAQ
+            </a>
+            <a href="/contact" className="text-navy hover:text-terracotta transition-colors">
+              Contact
+            </a>
             <a
               href="/apply"
               className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all font-medium"
@@ -51,10 +66,45 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4">
+          <div className="md:hidden py-4 space-y-4">
+            <a
+              href="/experience"
+              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              The Experience
+            </a>
+            <a
+              href="/how-it-works"
+              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              How It Works
+            </a>
+            <a
+              href="/pricing"
+              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Pricing
+            </a>
+            <a
+              href="/faq"
+              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              FAQ
+            </a>
+            <a
+              href="/contact"
+              className="block text-sm font-medium text-navy hover:text-terracotta transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contact
+            </a>
             <a
               href="/apply"
-              className="block py-2 text-sm font-medium text-terracotta hover:text-opacity-80 transition-all"
+              className="block text-sm font-medium text-terracotta hover:text-opacity-80 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Apply Now
