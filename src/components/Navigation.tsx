@@ -10,8 +10,8 @@ const Navigation = () => {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
-      // Assuming hero section is roughly 100vh (adjust this value based on actual hero height)
-      setIsPastHero(window.scrollY > window.innerHeight);
+      // Using a fixed pixel height that works across all pages
+      setIsPastHero(window.scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll);
