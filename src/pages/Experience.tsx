@@ -1,3 +1,4 @@
+
 import { useRef } from 'react';
 import { Calendar, Users, BookOpen, Coffee, Brain, Heart, Code, FileCheck, ChefHat } from 'lucide-react';
 import Navigation from '../components/Navigation';
@@ -147,16 +148,19 @@ const Experience = () => {
       {/* Depth Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12">Designed for Depth</h2>
+          <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">Designed for Depth</h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {depthFeatures.map((feature, index) => (
-              <div key={index} className="flex items-start space-x-4">
-                <div className="text-terracotta">{feature.icon}</div>
-                <div>
-                  <h3 className="font-medium text-navy mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
+              <div 
+                key={index} 
+                className="flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="bg-terracotta bg-opacity-10 p-4 rounded-full mb-4">
+                  <div className="text-terracotta">{feature.icon}</div>
                 </div>
+                <h3 className="font-medium text-navy text-lg mb-3">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
