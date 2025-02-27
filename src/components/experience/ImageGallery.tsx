@@ -1,10 +1,5 @@
+import React, { useEffect, useState } from 'react';
 
-import React from 'react';
-
-// CUSTOMIZATION: Experience Gallery Images
-// Replace these images with your own by changing the URL and alt text
-// Current images show various natural landscapes and architecture
-// Format: url - the image URL, alt - accessible description of the image
 const experienceImages = [
   {
     url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=80&w=2000",
@@ -33,14 +28,47 @@ const experienceImages = [
 ];
 
 const ImageGallery = () => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollPosition(window.pageYOffset);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
-    <section className="w-full">
-      {/* CUSTOMIZATION: Experience Gallery Grid
-      // This is a responsive grid layout - 1 column on mobile, 2 columns on larger screens
-      // Each image maintains a 4:3 aspect ratio
-      // Images are displayed in the order they appear in the array above
-      */}
-      <div className="grid grid-cols-1 md:grid-cols-2">
+    <section className="w-full relative">
+      {/* Mobile layout with parallax */}
+      <div className="md:hidden relative h-[150vh] overflow-hidden">
+        <div 
+          className="fixed top-0 left-0 w-full h-screen grid grid-cols-2 opacity-60"
+          style={{
+            transform: `translateY(${scrollPosition * 0.5}px)`,
+          }}
+        >
+          {experienceImages.map((image, index) => (
+            <div key={index} className="relative h-[50vh]">
+              <img 
+                src={image.url} 
+                alt={image.alt}
+                className="w-full h-full object-cover"
+                loading={index < 2 ? "eager" : "lazy"}
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-navy/40" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop layout (unchanged) */}
+      <div className="hidden md:grid md:grid-cols-2">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
             <img 
