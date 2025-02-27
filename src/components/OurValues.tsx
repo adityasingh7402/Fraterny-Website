@@ -3,7 +3,7 @@ import React from 'react';
 
 const OurValues = () => {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-playfair text-navy mb-10">
           Our Values
