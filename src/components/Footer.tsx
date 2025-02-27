@@ -1,4 +1,7 @@
+
 import { Instagram, Mail, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
   return <footer className="bg-navy text-white py-12">
       <div className="container mx-auto px-6">
@@ -25,7 +28,7 @@ const Footer = () => {
           {/* Connect Section */}
           <div>
             <h3 className="text-lg font-medium mb-4">Connect</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mb-4">
               <a href="https://www.instagram.com/join.fraterny/?hl=en" target="_blank" rel="noopener noreferrer" className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors">
                 <Instagram size={20} />
               </a>
@@ -36,6 +39,9 @@ const Footer = () => {
                 <Mail size={20} />
               </a>
             </div>
+            <ul className="space-y-2">
+              <li><Link to="/terms-and-conditions" className="text-gray-400 hover:text-white transition-colors">Terms and Conditions</Link></li>
+            </ul>
           </div>
 
           {/* CTA Section */}
