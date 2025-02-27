@@ -73,7 +73,7 @@ const DepthSection = () => {
   const isMobile = useIsMobile();
   
   return (
-    <section className="py-16 bg-white">
+    <section className={`${isMobile ? 'pt-6 pb-16' : 'py-16'} bg-white`}>
       <div className="container mx-auto px-6">
         <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">
           Designed for Depth
