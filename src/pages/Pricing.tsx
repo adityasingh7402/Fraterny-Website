@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
+import { lazy, Suspense } from 'react';
 
 const fetchPrices = async () => {
   return {
@@ -72,6 +73,9 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
   </div>
 );
 
+// Lazy load lower sections for better initial performance
+const LowerSections = lazy(() => import('../components/pricing/LowerSections'));
+
 const Pricing = () => {
   const { data: prices = {
     insiderAccess: "Loading...",
@@ -90,26 +94,27 @@ const Pricing = () => {
       <section className="pt-32 pb-16 bg-navy text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <img
-            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=75&w=1920"
             alt="Luxury Work-Vacation Setting"
             className="w-full h-full object-cover"
+            fetchpriority="high"
           />
         </div>
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair mb-4 sm:mb-6">
               Choose Your Experience
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-lg sm:text-xl text-gray-300">
               Each offering is designed for a different kind of individual. Find the one that fits you best.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <section className="py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             <PricingTier
               name="Insider Access"
               price={prices.insiderAccess}
@@ -156,122 +161,13 @@ const Pricing = () => {
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-playfair mb-4">The Ultimate 7-Day Retreat</h2>
-            <p className="text-xl text-gray-600 mb-12">
-              Curated experiences, deep conversations, and a high-value network that will stay with you for life.
-            </p>
-            
-            <div className="grid md:grid-cols-2 gap-8 mb-12">
-              <FeatureCard
-                icon={Users}
-                title="Curated Group"
-                description="Small, highly curated group of 20 individuals"
-              />
-              <FeatureCard
-                icon={Hotel}
-                title="Luxury Stay"
-                description="Luxury villa stay with gourmet meals"
-              />
-              <FeatureCard
-                icon={Coffee}
-                title="High-Impact Sessions"
-                description="Workshops, simulations, and strategy sessions"
-              />
-              <FeatureCard
-                icon={Award}
-                title="Premium Access"
-                description="Direct access to frameworks and templates"
-              />
-            </div>
-
-            <div className="text-center">
-              <a
-                href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-block px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
-              >
-                Apply Now
-              </a>
-              <p className="text-sm text-gray-600 mt-4">
-                Currently accepting applications for March 2025
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-playfair mb-4">
-              Private, High-Level Conversations
-            </h2>
-            <p className="text-xl text-gray-600 mb-12">
-              No structured sessions, no group activities – just a space for networking and deep discussions.
-            </p>
-            
-            <div className="grid md:grid-cols-2 gap-8 mb-12">
-              <FeatureCard
-                icon={Users}
-                title="Exclusive Group"
-                description="Limited to 8-10 high-level individuals per villa"
-              />
-              <FeatureCard
-                icon={Hotel}
-                title="Private Rooms"
-                description="Private rooms in a luxury villa"
-              />
-              <FeatureCard
-                icon={Coffee}
-                title="Flexible Schedule"
-                description="No structured workshops - pure networking"
-              />
-              <FeatureCard
-                icon={Award}
-                title="Elite Access"
-                description="Invitation-only experience"
-              />
-            </div>
-
-            <div className="text-center">
-              <a
-                href={EXECUTIVE_ESCAPE_MAIL}
-                className="inline-block px-8 py-3 border-2 border-navy text-navy hover:bg-navy hover:text-white rounded-lg transition-colors"
-              >
-                Apply for Consideration
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-navy text-white">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-playfair mb-4">
-              Limited Spots, Lifetime Impact
-            </h2>
-            <p className="text-xl mb-8">
-              We keep the group small and highly curated. If you're ready to experience a network that will change your trajectory, apply now.
-            </p>
-            <a
-              href={APPLICATION_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors mb-4"
-            >
-              Apply Now
-            </a>
-            <p className="text-sm text-gray-300">
-              Only {prices.spotsRemaining} spots remaining
-            </p>
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading...</div>}>
+        <LowerSections 
+          APPLICATION_FORM_URL={APPLICATION_FORM_URL}
+          EXECUTIVE_ESCAPE_MAIL={EXECUTIVE_ESCAPE_MAIL}
+          prices={prices}
+        />
+      </Suspense>
 
       <Footer />
     </div>
