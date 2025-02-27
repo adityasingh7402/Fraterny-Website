@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
+import OurValues from '../components/OurValues';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -21,6 +22,7 @@ const Index = () => {
       <Suspense fallback={<LoadingFallback />}>
         <NavalQuote />
         <VillaLab />
+        <OurValues />
         <HowItWorks />
       </Suspense>
       
