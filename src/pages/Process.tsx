@@ -92,63 +92,63 @@ const Process = () => {
         </div>
       </section>
 
-      {/* Who is this for? Section */}
-      <section className="pt-20 bg-white">
-        <div className="container mx-auto px-6">
+      {/* Who is this for? Section - MOBILE OPTIMIZED */}
+      <section className="pt-16 md:pt-20 pb-10 md:pb-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-6 md:mb-8 text-center">
               Who is this for?
             </h2>
             
-            <div className="mb-16">
-              <p className="text-xl text-gray-600 italic mb-12 text-center max-w-2xl mx-auto">
+            <div className="mb-12 md:mb-16">
+              <p className="text-xl text-gray-600 italic mb-8 md:mb-12 text-center max-w-2xl mx-auto">
                 This is not for everyone. But if you are the right fit, you will know.
               </p>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-8">
-                  <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-4">
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed text-lg">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+                <div className="space-y-4 md:space-y-8">
+                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                         You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and scale them.
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-4">
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                         You believe in execution over excuses. You are not here for inspiration; you are here to build, collaborate, and accelerate.
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-4">
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                         You don't follow trends; you create them. Whether you are an entrepreneur, investor, or innovator, you want to be in a space where real things happen.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-8">
-                  <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-4">
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                <div className="space-y-4 md:space-y-8">
+                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                         You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-4">
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                         You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.
                       </p>
                     </div>
@@ -157,34 +157,34 @@ const Process = () => {
               </div>
             </div>
 
-            <div className="mb-20">
-              <h3 className="text-3xl md:text-4xl font-playfair text-navy mb-8 text-center">
+            <div className="mb-12 md:mb-20">
+              <h3 className="text-2xl md:text-3xl font-playfair text-navy mb-6 md:mb-8 text-center">
                 Who this is not for:
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                    <p className="text-gray-700 leading-relaxed text-lg">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                       Those looking for a typical networking event.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                    <p className="text-gray-700 leading-relaxed text-lg">
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                       Anyone expecting a passive experience.
                     </p>
                   </div>
                 </div>
 
-                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-6 h-6" />
-                    <p className="text-gray-700 leading-relaxed text-lg">
+                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">
                       People who are just exploring—this is for doers, not spectators.
                     </p>
                   </div>
