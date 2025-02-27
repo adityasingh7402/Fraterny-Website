@@ -1,6 +1,4 @@
-
 import { Instagram, Mail, X } from 'lucide-react';
-
 const Footer = () => {
   return <footer className="bg-navy text-white py-12">
       <div className="container mx-auto px-6">
@@ -10,7 +8,7 @@ const Footer = () => {
             <a href="/" className="block">
               <img src="/lovable-uploads/ffcba562-8c6d-44dc-8607-53afc45d3a57.png" alt="Fraternity Logo" className="h-8 brightness-0 invert" />
             </a>
-            <p className="text-gray-400">Shared Aspirations</p>
+            <p className="text-gray-400">Shared Ambitions</p>
           </div>
 
           {/* Navigation Section */}
@@ -28,26 +26,13 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-medium mb-4">Connect</h3>
             <div className="flex space-x-4">
-              <a 
-                href="https://www.instagram.com/join.fraterny/?hl=en" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
-              >
+              <a href="https://www.instagram.com/join.fraterny/?hl=en" target="_blank" rel="noopener noreferrer" className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors">
                 <Instagram size={20} />
               </a>
-              <a 
-                href="https://x.com/frat_erny" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
-              >
+              <a href="https://x.com/frat_erny" target="_blank" rel="noopener noreferrer" className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors">
                 <X size={20} />
               </a>
-              <a 
-                href="mailto:support@fraterny.com?subject=User%20Query" 
-                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors"
-              >
+              <a href="mailto:support@fraterny.com?subject=User%20Query" className="bg-gray-700 hover:bg-gray-600 p-2 rounded-lg text-white transition-colors">
                 <Mail size={20} />
               </a>
             </div>
@@ -55,12 +40,7 @@ const Footer = () => {
 
           {/* CTA Section */}
           <div className="flex flex-col items-start">
-            <a 
-              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium"
-            >
+            <a href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" target="_blank" rel="noopener noreferrer" className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium">
               Apply Now
             </a>
           </div>
@@ -68,5 +48,4 @@ const Footer = () => {
       </div>
     </footer>;
 };
-
 export default Footer;
