@@ -1,3 +1,4 @@
+
 const NavalQuote = () => {
   return <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
@@ -17,13 +18,13 @@ const NavalQuote = () => {
           
           <div className="grid md:grid-cols-2 gap-8 bg-gradient-to-br from-navy/5 to-navy/10 rounded-2xl p-8">
             <div className="space-y-4">
-              <div className="text-5xl md:text-7xl font-bold text-navy">73%</div>
+              <div className="text-5xl md:text-7xl font-bold text-navy">73% individuals</div>
               <p className="text-lg md:text-xl text-gray-600">
                 report improved performance in collaborative work
               </p>
             </div>
             <div className="space-y-4">
-              <div className="text-5xl md:text-7xl font-bold text-terracotta">individuals report improved performance in collaborative work</div>
+              <div className="text-5xl md:text-7xl font-bold text-terracotta">49%</div>
               <p className="text-lg md:text-xl text-gray-600">
                 potential achievers are deterred from starting a venture due to inability to take action caused by fear of failure
               </p>
