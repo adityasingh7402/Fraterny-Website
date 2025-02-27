@@ -1,5 +1,5 @@
 
-import { Instagram, Mail, X } from 'lucide-react';
+import { Instagram, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -33,8 +33,8 @@ const Footer = () => {
               <a href="https://www.instagram.com/join.fraterny/?hl=en" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg transition-colors" style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}>
                 <Instagram size={20} color="white" />
               </a>
-              <a href="https://x.com/frat_erny" target="_blank" rel="noopener noreferrer" className="bg-black p-2 rounded-lg transition-colors">
-                <X size={20} color="white" />
+              <a href="https://x.com/frat_erny" target="_blank" rel="noopener noreferrer" className="bg-black p-2 rounded-lg transition-colors flex items-center justify-center" style={{ width: '36px', height: '36px' }}>
+                <img src="/lovable-uploads/61ec65a3-b814-47bf-95c0-67d3091504ad.png" alt="X Logo" className="w-5 h-5" />
               </a>
               <a href="mailto:support@fraterny.com?subject=User%20Query" className="bg-[#0EA5E9] p-2 rounded-lg transition-colors">
                 <Mail size={20} color="white" />
