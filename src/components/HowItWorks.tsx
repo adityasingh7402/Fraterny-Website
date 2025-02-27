@@ -21,21 +21,21 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-12 bg-white"> {/* Reduced from py-24 */}
+    <section className="py-20 bg-white mb-20"> {/* Increased overall padding and added bottom margin */}
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-12"> {/* Increased heading size */}
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16"> {/* Increased bottom margin */}
           How It Works
         </h2>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12">
+        <div className="max-w-5xl mx-auto"> {/* Increased max width from 4xl to 5xl */}
+          <div className="grid md:grid-cols-3 gap-12 lg:gap-16">
             {steps.map((Step, index) => (
               <div key={index} className="text-center">
-                <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-full bg-navy text-white">
-                  <Step.icon size={24} />
+                <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy text-white"> {/* Increased icon size and margin */}
+                  <Step.icon size={32} /> {/* Increased icon size from 24 to 32 */}
                 </div>
-                <h3 className="text-xl font-medium text-navy mb-2">{Step.title}</h3>
-                <p className="text-gray-600">{Step.description}</p>
+                <h3 className="text-2xl font-medium text-navy mb-3">{Step.title}</h3> {/* Increased text size from xl to 2xl */}
+                <p className="text-lg text-gray-600">{Step.description}</p> {/* Increased text size */}
               </div>
             ))}
           </div>
