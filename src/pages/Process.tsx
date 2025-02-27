@@ -1,9 +1,35 @@
 
+import { useState, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+// This should match the same fetch function used in Pricing
+const fetchApplicationData = async () => {
+  // This would be replaced with an actual API call
+  return {
+    spotsRemaining: 20,
+    applicationCloseDate: new Date('2025-03-31') // March 2025
+  };
+};
 
 const Process = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['applicationData'],
+    queryFn: fetchApplicationData
+  });
+  
+  // Format the application close date
+  const formattedCloseDate = useMemo(() => {
+    if (!data?.applicationCloseDate) return 'March 2025';
+    
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric'
+    }).format(data.applicationCloseDate);
+  }, [data?.applicationCloseDate]);
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -43,11 +69,23 @@ const Process = () => {
             <div className="flex flex-wrap gap-8 items-center">
               <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-lg p-4">
                 <div className="text-sm text-gray-400">Available Seats</div>
-                <div className="text-2xl font-mono">20</div>
+                <div className="text-2xl font-mono">
+                  {isLoading ? (
+                    <span className="opacity-50">Loading...</span>
+                  ) : (
+                    data?.spotsRemaining || 20
+                  )}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-400">Applications Close</div>
-                <div className="text-xl">March 2025</div>
+                <div className="text-xl">
+                  {isLoading ? (
+                    <span className="opacity-50">Loading...</span>
+                  ) : (
+                    formattedCloseDate
+                  )}
+                </div>
               </div>
             </div>
           </div>
