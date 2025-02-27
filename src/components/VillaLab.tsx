@@ -42,16 +42,18 @@ const VillaLab = () => {
   ];
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-2">
-          The Villa Lab
-        </h2>
-        <p className="text-xl text-gray-600 mb-8">
-          Work hard. Bond harder.
-        </p>
+        <div className="mb-12">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-4">
+            The Villa Lab
+          </h2>
+          <p className="text-xl text-gray-600">
+            Work hard. Bond harder.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
           {activities.slice(0, window.innerWidth < 768 ? 6 : 9).map((activity, index) => (
             <div 
               key={index}
@@ -69,7 +71,7 @@ const VillaLab = () => {
           ))}
         </div>
 
-        <div className="mt-8 text-right">
+        <div className="mt-12 text-right">
           <a 
             href="https://www.instagram.com/join.fraterny/?hl=en" 
             target="_blank" 
