@@ -1,5 +1,6 @@
+
 import { useRef } from 'react';
-import { Calendar, Users, BookOpen, Coffee, Brain, Heart, Code, FileCheck, ChefHat } from 'lucide-react';
+import { Calendar, Users, BookOpen, Coffee, Brain, Heart, Code, FileCheck, ChefHat, Users2 } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 
@@ -54,6 +55,8 @@ const Experience = () => {
     { icon: <Users className="w-6 h-6" />, title: "Group Think", description: "Collaborative thinking and team activities to broaden your perspective" },
     { icon: <Heart className="w-6 h-6" />, title: "Lifelong memories", description: "Feel amazing while on the grind" },
     { icon: <ChefHat className="w-6 h-6" />, title: "Great Food, Good Coffee and more", description: "Caffeine is the secret of my energy" },
+    { icon: <Users2 className="w-6 h-6" />, title: "Post Program Community", description: "The Fraterny is not a one week experience, it is a constantly growing ecosystem." },
+    { icon: <Brain className="w-6 h-6" />, title: "Soft Skills", description: "Critical Thinking, Effective Communication, Logical Reasoning, Leadership and Empathy. Everyone has principles, no one offers practice" },
   ];
 
   return (

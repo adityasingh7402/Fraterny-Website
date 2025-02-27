@@ -1,5 +1,5 @@
 
-import { Send, UserCheck, Users, Users2, Brain } from 'lucide-react';
+import { Send, UserCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
@@ -18,16 +18,6 @@ const HowItWorks = () => {
       title: "Join",
       description: "Welcome to the community",
       icon: Users,
-    },
-    {
-      title: "Post Program Community",
-      description: "The Fraterny is not a one week experience, it is a constantly growing ecosystem.",
-      icon: Users2,
-    },
-    {
-      title: "Soft Skills",
-      description: "Critical Thinking, Effective Communication, Logical Reasoning, Leadership and Empathy. Everyone has principles, no one offers practice",
-      icon: Brain,
     }
   ];
 
