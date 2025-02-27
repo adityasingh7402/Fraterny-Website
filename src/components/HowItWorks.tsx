@@ -1,5 +1,6 @@
 
 import { Send, UserCheck, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
   const steps = [
@@ -38,6 +39,16 @@ const HowItWorks = () => {
                 <p className="text-lg text-gray-600">{Step.description}</p> {/* Increased text size */}
               </div>
             ))}
+          </div>
+          
+          {/* Added Know More button with hover animation */}
+          <div className="flex justify-center mt-16">
+            <Link 
+              to="/process" 
+              className="px-6 py-3 bg-navy text-white rounded-lg transition-all duration-300 hover:bg-terracotta hover:scale-105 hover:shadow-lg"
+            >
+              Know More
+            </Link>
           </div>
         </div>
       </div>
