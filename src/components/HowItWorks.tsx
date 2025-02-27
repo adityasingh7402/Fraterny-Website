@@ -3,6 +3,9 @@ import { Send, UserCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
+  // CUSTOMIZATION: Process Steps
+  // Modify this array to change the steps in the process
+  // Each step has: title, description, and an icon (from Lucide React)
   const steps = [
     {
       title: "Apply",
@@ -22,26 +25,29 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-20 bg-white mb-20"> {/* Increased overall padding and added bottom margin */}
+    <section className="py-20 bg-white mb-20">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16"> {/* Increased bottom margin */}
+        {/* CUSTOMIZATION: Section Title */}
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16">
           How It Works
         </h2>
 
-        <div className="max-w-5xl mx-auto"> {/* Increased max width from 4xl to 5xl */}
+        <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-3 gap-12 lg:gap-16">
             {steps.map((Step, index) => (
               <div key={index} className="text-center">
-                <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy text-white"> {/* Increased icon size and margin */}
-                  <Step.icon size={32} /> {/* Increased icon size from 24 to 32 */}
+                <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy text-white">
+                  <Step.icon size={32} />
                 </div>
-                <h3 className="text-2xl font-medium text-navy mb-3">{Step.title}</h3> {/* Increased text size from xl to 2xl */}
-                <p className="text-lg text-gray-600">{Step.description}</p> {/* Increased text size */}
+                <h3 className="text-2xl font-medium text-navy mb-3">{Step.title}</h3>
+                <p className="text-lg text-gray-600">{Step.description}</p>
               </div>
             ))}
           </div>
           
-          {/* Added Know More button with hover animation */}
+          {/* CUSTOMIZATION: Call-to-Action Button 
+          // Links to the /process page for more detailed information
+          */}
           <div className="flex justify-center mt-16">
             <Link 
               to="/process" 

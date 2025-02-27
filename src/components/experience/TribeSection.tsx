@@ -1,6 +1,10 @@
 
 import React from 'react';
 
+// CUSTOMIZATION: Peer Profile Images and Descriptions
+// Modify this array to change the peer profiles
+// Each peer has: title, description, and profile image URL
+// Current images show various people in professional/creative settings
 const peers = [
   { 
     title: "The Visionary", 
@@ -38,6 +42,7 @@ const TribeSection = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-6">
+        {/* CUSTOMIZATION: Tribe Section Title */}
         <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">Your Tribe Awaits</h2>
         
         <div className="grid md:grid-cols-3 gap-8 mb-12">
@@ -58,6 +63,7 @@ const TribeSection = () => {
           ))}
         </div>
         
+        {/* CUSTOMIZATION: Tribe Section Tagline */}
         <p className="text-center text-lg text-gray-600">
           Divided by Circumstance, United by Fraterny
         </p>

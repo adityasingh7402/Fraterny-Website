@@ -3,7 +3,10 @@ import { ArrowRight } from 'lucide-react';
 import { useMemo } from 'react';
 
 const VillaLab = () => {
-  // Memoize the activities array to prevent recreation on each render
+  // CUSTOMIZATION: Villa Lab Activities
+  // Modify this array to change the activities displayed in the Villa Lab section
+  // Each activity has: title and image URL
+  // Current images show various indoor and outdoor spaces
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
@@ -50,9 +53,11 @@ const VillaLab = () => {
     <section className="py-16 sm:py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="mb-8 sm:mb-12">
+          {/* CUSTOMIZATION: Villa Lab Section Title */}
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4">
             The Villa Lab
           </h2>
+          {/* CUSTOMIZATION: Villa Lab Section Tagline */}
           <p className="text-lg sm:text-xl text-gray-600">
             Work hard. Bond harder.
           </p>
@@ -78,6 +83,9 @@ const VillaLab = () => {
         </div>
 
         <div className="mt-8 sm:mt-12 text-right">
+          {/* CUSTOMIZATION: Villa Lab "See More" Link
+          // Replace with your own Instagram or social media link
+          */}
           <a 
             href="https://www.instagram.com/join.fraterny/?hl=en" 
             target="_blank" 

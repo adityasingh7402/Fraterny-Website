@@ -2,6 +2,9 @@
 import React from 'react';
 import { Code, Brain, BookOpen, FileCheck, Users, Heart, ChefHat, Users2 } from 'lucide-react';
 
+// CUSTOMIZATION: Depth Features
+// Modify this array to change the features displayed in the "Designed for Depth" section
+// Each feature has: icon (Lucide React component), title, and description
 const depthFeatures = [
   { icon: <Code className="w-6 h-6" />, title: "Ingrained House Code", description: "Crafted house rules to boost engagement, clarity of thought and productivity" },
   { icon: <Brain className="w-6 h-6" />, title: "Startup Simulations", description: "Building a startup from ground up in a team environment" },
@@ -18,6 +21,7 @@ const DepthSection = () => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-6">
+        {/* CUSTOMIZATION: Depth Section Title */}
         <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">Designed for Depth</h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

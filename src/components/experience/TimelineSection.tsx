@@ -1,6 +1,9 @@
 
 import React from 'react';
 
+// CUSTOMIZATION: Timeline Events
+// Modify the array below to change the timeline events
+// Each event has: time, title, and description
 const timelineEvents = [
   { time: "11:30 AM", title: "Brainstorming Breakfasts", description: "Start your day with engaging discussions" },
   { time: "1:00 PM", title: "Team Activity Afternoons", description: "Collaborative sessions and workshops" },
@@ -12,7 +15,10 @@ const TimelineSection = () => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-6">
+        {/* CUSTOMIZATION: Timeline Section Title */}
         <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-4">A Day in the Villa</h2>
+        
+        {/* CUSTOMIZATION: Timeline Section Description */}
         <p className="text-lg text-gray-600 mb-12 max-w-3xl">
           We create the perfect conditions for you to have the most insightful conversations, amazing memories and take action towards your goals
         </p>

@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
 
-  // Memoize the target date to prevent unnecessary recalculations
+  // CUSTOMIZATION: Registration Deadline
+  // Change the target date to your registration deadline
+  // Format: 'YYYY-MM-DD'
   const targetDate = useMemo(() => new Date('2024-12-31').getTime(), []);
 
   useEffect(() => {
@@ -33,6 +35,8 @@ const Hero = () => {
     )`
   }), []);
 
+  // CUSTOMIZATION: Hero Background Image
+  // Replace this URL with your own hero background image
   const backgroundImageStyle = useMemo(() => ({
     backgroundImage: `url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&q=80&w=1920')`
   }), []);
@@ -48,18 +52,23 @@ const Hero = () => {
       <div className="container px-4 sm:px-6 py-24 sm:py-32 mx-auto relative z-10">
         <div className="animate-fade-down max-w-2xl flex flex-col gap-6 sm:gap-8">
           <div>
+            {/* CUSTOMIZATION: Main Hero Heading */}
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-playfair font-bold tracking-tight mb-3 sm:mb-4">
               Where Ambition
               <br />
               Finds Its Tribe
             </h1>
             
+            {/* CUSTOMIZATION: Hero Subtitle */}
             <p className="text-base sm:text-lg md:text-xl text-gray-200">
               Authenticity, Community, Growth, and Shared Aspirations
             </p>
           </div>
 
           <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
+            {/* CUSTOMIZATION: Hero CTA Button 
+            // Replace with your own application form link
+            */}
             <a 
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
               target="_blank" 
@@ -69,6 +78,9 @@ const Hero = () => {
               Claim your spot →
             </a>
             
+            {/* CUSTOMIZATION: Countdown Timer 
+            // The target date is set above in the "targetDate" variable
+            */}
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
               <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
               <div className="text-xl font-mono">

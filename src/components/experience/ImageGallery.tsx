@@ -1,6 +1,10 @@
 
 import React from 'react';
 
+// CUSTOMIZATION: Experience Gallery Images
+// Replace these images with your own by changing the URL and alt text
+// Current images show various natural landscapes and architecture
+// Format: url - the image URL, alt - accessible description of the image
 const experienceImages = [
   {
     url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=80&w=2000",
@@ -31,6 +35,11 @@ const experienceImages = [
 const ImageGallery = () => {
   return (
     <section className="w-full">
+      {/* CUSTOMIZATION: Experience Gallery Grid
+      // This is a responsive grid layout - 1 column on mobile, 2 columns on larger screens
+      // Each image maintains a 4:3 aspect ratio
+      // Images are displayed in the order they appear in the array above
+      */}
       <div className="grid grid-cols-1 md:grid-cols-2">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
