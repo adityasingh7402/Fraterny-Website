@@ -21,13 +21,13 @@ const Experience = () => {
       {/* Timeline Section */}
       <TimelineSection />
 
-      {/* Combined Image Gallery and Depth Section for mobile */}
-      <div className="relative">
-        <ImageGallery />
-        <Suspense fallback={<div className="h-48 flex items-center justify-center">Loading...</div>}>
-          <DepthSection />
-        </Suspense>
-      </div>
+      {/* Image Gallery */}
+      <ImageGallery />
+      
+      {/* Depth Section */}
+      <Suspense fallback={<div className="h-48 flex items-center justify-center">Loading...</div>}>
+        <DepthSection />
+      </Suspense>
 
       {/* Tribe Section */}
       <Suspense fallback={<div className="h-48 flex items-center justify-center">Loading...</div>}>
