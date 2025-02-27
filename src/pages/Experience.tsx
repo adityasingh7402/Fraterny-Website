@@ -14,6 +14,15 @@ const Experience = () => {
     { time: "12:00 AM", title: "Midnight Momentum", description: "Deep conversations and connections" },
   ];
 
+  const experienceImages = [
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb", // body of water surrounded by trees
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05", // foggy mountain summit
+    "https://images.unsplash.com/photo-1500375592092-40eb2168fd21", // ocean wave at beach
+    "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151", // photo of desert sand
+    "https://images.unsplash.com/photo-1501854140801-50d01698950b", // bird's eye view of green mountains
+    "https://images.unsplash.com/photo-1487958449943-2429e8be8625", // white concrete building
+  ];
+
   const peers = [
     { 
       title: "The Visionary", 
@@ -122,6 +131,21 @@ const Experience = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Experience Images Section - New Section */}
+      <section className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {experienceImages.map((image, index) => (
+            <div key={index} className="aspect-[4/3] w-full">
+              <img 
+                src={image} 
+                alt={`Experience moment ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
         </div>
       </section>
 
