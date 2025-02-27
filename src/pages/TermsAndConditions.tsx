@@ -305,7 +305,7 @@ const TermsAndConditions = () => {
             </p>
             
             <p className="text-sm text-gray-500 mt-12 italic">
-              Last updated: May 2024
+              Last updated: February 2025
             </p>
           </div>
         </div>
