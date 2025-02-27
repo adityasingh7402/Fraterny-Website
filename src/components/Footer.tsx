@@ -65,7 +65,10 @@ const Footer = () => {
               <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link> / <Link to="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link> / <Link to="/refund-policy" className="hover:text-white transition-colors">Refund & Cancellation Policy</Link>
             </p>
           </div>
-          <p className="text-gray-400">All Rights Reserved 2025</p>
+          <p className="text-gray-400">
+            All Rights Reserved 2025
+            <Link to="/admin" className="ml-2 text-xs text-gray-600 hover:text-gray-400 transition-colors">Admin</Link>
+          </p>
         </div>
       </div>
     </footer>
