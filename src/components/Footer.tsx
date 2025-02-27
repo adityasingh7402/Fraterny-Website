@@ -67,7 +67,6 @@ const Footer = () => {
           </div>
           <p className="text-gray-400">
             All Rights Reserved 2025
-            <Link to="/admin" className="ml-2 text-xs text-gray-600 hover:text-gray-400 transition-colors">Admin</Link>
           </p>
         </div>
       </div>

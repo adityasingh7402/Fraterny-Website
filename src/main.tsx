@@ -20,7 +20,6 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import RefundPolicy from './pages/RefundPolicy';
-import Admin from './pages/Admin';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -66,10 +65,6 @@ const router = createBrowserRouter([
       {
         path: "refund-policy",
         element: <RefundPolicy />,
-      },
-      {
-        path: "admin",
-        element: <Admin />,
       },
     ],
   },
