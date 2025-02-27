@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Code, Brain, BookOpen, FileCheck, Users, Heart, ChefHat, Users2 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/use-mobile';
@@ -28,8 +29,8 @@ const depthFeatures = [
     icon: <FileCheck className="w-6 h-6" />, 
     title: "Curated frameworks & templates", 
     description: "Carefully crafted Frameworks for personal and career growth",
-    imageSrc: "https://images.unsplash.com/photo-1501286353178-1ec871214838?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Monkey with banana peel"
+    imageSrc: "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?auto=format&fit=crop&w=800&q=80",
+    imageAlt: "Organized workspace with notebooks"
   },
   { 
     icon: <Users className="w-6 h-6" />, 
