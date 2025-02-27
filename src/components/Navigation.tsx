@@ -96,31 +96,31 @@ const Navigation = () => {
 
         {/* Mobile Navigation - Only rendered when open */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-4">
+          <div className="md:hidden py-4 space-y-4 glass backdrop-blur-md bg-black bg-opacity-40 rounded-lg mt-2 px-4">
             <a
               href="/experience"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+              className="block text-sm font-medium text-white hover:text-terracotta transition-colors duration-200"
               onClick={toggleMenu}
             >
               The Experience
             </a>
             <a
               href="/process"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+              className="block text-sm font-medium text-white hover:text-terracotta transition-colors duration-200"
               onClick={toggleMenu}
             >
               How It Works
             </a>
             <a
               href="/pricing"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+              className="block text-sm font-medium text-white hover:text-terracotta transition-colors duration-200"
               onClick={toggleMenu}
             >
               Pricing
             </a>
             <a
               href="/faq"
-              className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+              className="block text-sm font-medium text-white hover:text-terracotta transition-colors duration-200"
               onClick={toggleMenu}
             >
               FAQ
