@@ -17,6 +17,9 @@ import Pricing from './pages/Pricing';
 import FAQ from './pages/FAQ';
 import NotFound from './pages/NotFound';
 import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import RefundPolicy from './pages/RefundPolicy';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -50,6 +53,18 @@ const router = createBrowserRouter([
       {
         path: "terms-and-conditions",
         element: <TermsAndConditions />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "terms-of-use",
+        element: <TermsOfUse />,
+      },
+      {
+        path: "refund-policy",
+        element: <RefundPolicy />,
       },
     ],
   },

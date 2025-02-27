@@ -3,7 +3,8 @@ import { Instagram, Mail, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
-  return <footer className="bg-navy text-white py-12">
+  return (
+    <footer className="bg-navy text-white py-12">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Section */}
@@ -41,6 +42,8 @@ const Footer = () => {
             </div>
             <ul className="space-y-2">
               <li><Link to="/terms-and-conditions" className="text-gray-400 hover:text-white transition-colors">Terms and Conditions</Link></li>
+              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-use" className="text-gray-400 hover:text-white transition-colors">Terms of Use</Link></li>
             </ul>
           </div>
 
@@ -51,7 +54,21 @@ const Footer = () => {
             </a>
           </div>
         </div>
+        
+        {/* Copyright Section */}
+        <div className="text-center mt-12 pt-8 border-t border-gray-800">
+          <div className="mb-2">
+            <p className="text-gray-400">
+              Fraterny
+            </p>
+            <p className="text-gray-400">
+              <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link> / <Link to="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link> / <Link to="/refund-policy" className="hover:text-white transition-colors">Refund & Cancellation Policy</Link>
+            </p>
+          </div>
+          <p className="text-gray-400">All Rights Reserved 2025</p>
+        </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
 export default Footer;
