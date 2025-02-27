@@ -11,7 +11,7 @@ const HowItWorks = () => {
     },
     {
       title: "Screen",
-      description: "A brief conversation with a councilor",
+      description: "A brief conversation with a counselor",
       icon: UserCheck,
     },
     {

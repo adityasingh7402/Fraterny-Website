@@ -241,7 +241,7 @@ const Process = () => {
                 <h3 className="text-xl font-medium text-navy">Screening Call</h3>
               </div>
               <p className="text-gray-600 mb-6">
-                Have a brief conversation - A Fraterny councilor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
+                Have a brief conversation - A Fraterny counselor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
               </p>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Phone size={16} className="text-terracotta" />
