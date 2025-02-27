@@ -97,7 +97,7 @@ const Pricing = () => {
             src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=75&w=1920"
             alt="Luxury Work-Vacation Setting"
             className="w-full h-full object-cover"
-            fetchpriority="high"
+            fetchPriority="high"
           />
         </div>
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
