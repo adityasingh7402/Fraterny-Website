@@ -29,8 +29,8 @@ const ResponsiveImage = ({
   // Use tablet image if provided, otherwise fall back to desktop
   const tabletSrc = src.tablet || src.desktop;
   
-  // Fallback image in case the source doesn't load
-  const fallbackImage = "/placeholder.svg";
+  // Inline fallback image as a data URI of a simple placeholder
+  const fallbackImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YxZjFmMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjODg4ODg4Ij5JbWFnZSB1bmF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=";
   
   // Handle image loading error
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {

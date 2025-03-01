@@ -1,8 +1,16 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 
 const HeroSection = () => {
+  // Log to debug if images are loading
+  useEffect(() => {
+    console.log('Experience HeroSection mounted. Image paths:');
+    console.log('Mobile:', '/images/hero/experience-hero-mobile.webp');
+    console.log('Tablet:', '/images/hero/experience-hero-tablet.webp');
+    console.log('Desktop:', '/images/hero/experience-hero-desktop.webp');
+  }, []);
+
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
       {/* Optimized background hero image with responsive sizes */}
