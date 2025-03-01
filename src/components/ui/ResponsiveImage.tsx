@@ -38,20 +38,27 @@ const ResponsiveImage = ({
     e.currentTarget.src = fallbackImage;
   };
   
+  // Create a props object for the img element and conditionally add fetchPriority
+  const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
+    src: src.desktop, // Fallback for browsers that don't support <picture>
+    alt,
+    className,
+    loading,
+    decoding: "async",
+    onError: handleError
+  };
+  
+  // Only add fetchPriority if it exists (TypeScript will handle this correctly)
+  if (fetchPriority) {
+    imgProps.fetchPriority = fetchPriority;
+  }
+  
   return (
     <picture onClick={onClick}>
       <source media="(max-width: 640px)" srcSet={src.mobile} />
       <source media="(max-width: 1024px)" srcSet={tabletSrc} />
       <source media="(min-width: 1025px)" srcSet={src.desktop} />
-      <img
-        src={src.desktop} // Fallback for browsers that don't support <picture>
-        alt={alt}
-        className={className}
-        loading={loading}
-        fetchpriority={fetchPriority as any}
-        decoding="async"
-        onError={handleError}
-      />
+      <img {...imgProps} />
     </picture>
   );
 };
