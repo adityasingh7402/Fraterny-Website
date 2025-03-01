@@ -36,14 +36,6 @@ const Hero = () => {
     )`
   }), []);
 
-  // Log to debug if images are loading
-  useEffect(() => {
-    console.log('Hero component mounted. Image paths:');
-    console.log('Mobile:', '/images/hero/luxury-villa-mobile.webp');
-    console.log('Tablet:', '/images/hero/luxury-villa-tablet.webp');
-    console.log('Desktop:', '/images/hero/luxury-villa-desktop.webp');
-  }, []);
-
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
       {/* Background Image - Changed to use ResponsiveImage component for better performance */}
