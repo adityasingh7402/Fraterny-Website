@@ -29,6 +29,15 @@ const ResponsiveImage = ({
   // Use tablet image if provided, otherwise fall back to desktop
   const tabletSrc = src.tablet || src.desktop;
   
+  // Fallback image in case the source doesn't load
+  const fallbackImage = "/placeholder.svg";
+  
+  // Handle image loading error
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.warn(`Failed to load image: ${e.currentTarget.src}`);
+    e.currentTarget.src = fallbackImage;
+  };
+  
   return (
     <picture onClick={onClick}>
       <source media="(max-width: 640px)" srcSet={src.mobile} />
@@ -39,8 +48,9 @@ const ResponsiveImage = ({
         alt={alt}
         className={className}
         loading={loading}
-        fetchPriority={fetchPriority}
+        fetchpriority={fetchPriority as any}
         decoding="async"
+        onError={handleError}
       />
     </picture>
   );

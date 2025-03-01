@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
+import ResponsiveImage from './ui/ResponsiveImage';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -37,20 +38,19 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image with picture element for better responsiveness */}
+      {/* Background Image - Changed to use ResponsiveImage component for better performance */}
       <div className="absolute inset-0">
-        <picture>
-          <source media="(max-width: 640px)" srcSet="/images/hero/luxury-villa-mobile.webp" />
-          <source media="(max-width: 1024px)" srcSet="/images/hero/luxury-villa-tablet.webp" />
-          <source media="(min-width: 1025px)" srcSet="/images/hero/luxury-villa-desktop.webp" />
-          <img 
-            src="/images/hero/luxury-villa-desktop.webp" 
-            alt="Stunning luxury villa with breathtaking views" 
-            className="w-full h-full object-cover"
-            fetchPriority="high"
-            decoding="async"
-          />
-        </picture>
+        <ResponsiveImage
+          src={{
+            mobile: "/images/hero/luxury-villa-mobile.webp",
+            tablet: "/images/hero/luxury-villa-tablet.webp",
+            desktop: "/images/hero/luxury-villa-desktop.webp"
+          }}
+          alt="Stunning luxury villa with breathtaking views"
+          className="w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+        />
       </div>
       
       {/* Gradient Overlay */}
