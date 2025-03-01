@@ -5,22 +5,32 @@ const HeroSection = () => {
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
       {/* 
-      // CUSTOMIZATION: Background Hero Image 
-      // Replace the URL below with your own image
-      // Current image: Villa exterior - luxury property
+      // Optimized background hero image with responsive sizes
+      // Replace with your actual marketing images
       */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ 
-          backgroundImage: `url('https://images.unsplash.com/photo-1439337153520-7082a56a81f4?auto=format&q=80&w=2400')`,
-        }}
       >
-        <img 
-          src="https://images.unsplash.com/photo-1439337153520-7082a56a81f4?auto=format&q=80&w=2400"
-          alt="Luxury villa exterior"
-          className="hidden"
-          fetchPriority="high"
-        />
+        <picture>
+          <source 
+            media="(max-width: 640px)" 
+            srcSet="/images/hero/villa-mobile.webp" 
+          />
+          <source 
+            media="(max-width: 1024px)" 
+            srcSet="/images/hero/villa-tablet.webp" 
+          />
+          <source 
+            media="(min-width: 1025px)" 
+            srcSet="/images/hero/villa-desktop.webp" 
+          />
+          <img 
+            src="/images/hero/villa-desktop.webp"
+            alt="Luxury villa exterior"
+            className="h-full w-full object-cover"
+            fetchPriority="high"
+          />
+        </picture>
       </div>
       
       {/* Gradient Overlay - you can modify the colors and opacity to match your image */}

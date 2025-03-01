@@ -1,29 +1,55 @@
 
 import React from 'react';
+import ResponsiveImage from '../ui/ResponsiveImage';
 
+// Replace these with your actual optimized marketing images
 const experienceImages = [
   {
-    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/lakeside-mobile.webp",
+      tablet: "/images/experience/lakeside-tablet.webp",
+      desktop: "/images/experience/lakeside-desktop.webp"
+    },
     alt: "Serene lakeside retreat surrounded by lush forest"
   },
   {
-    url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/mountain-mobile.webp",
+      tablet: "/images/experience/mountain-tablet.webp",
+      desktop: "/images/experience/mountain-desktop.webp"
+    },
     alt: "Misty mountain peak at sunrise"
   },
   {
-    url: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/ocean-mobile.webp",
+      tablet: "/images/experience/ocean-tablet.webp",
+      desktop: "/images/experience/ocean-desktop.webp"
+    },
     alt: "Rolling ocean waves meeting the shore"
   },
   {
-    url: "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/desert-mobile.webp",
+      tablet: "/images/experience/desert-tablet.webp",
+      desktop: "/images/experience/desert-desktop.webp"
+    },
     alt: "Golden desert dunes at sunset"
   },
   {
-    url: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/aerial-mobile.webp",
+      tablet: "/images/experience/aerial-tablet.webp",
+      desktop: "/images/experience/aerial-desktop.webp"
+    },
     alt: "Aerial view of verdant mountain landscape"
   },
   {
-    url: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&q=80&w=2000",
+    src: {
+      mobile: "/images/experience/architecture-mobile.webp",
+      tablet: "/images/experience/architecture-tablet.webp",
+      desktop: "/images/experience/architecture-desktop.webp"
+    },
     alt: "Modern architectural marvel in white"
   }
 ];
@@ -34,12 +60,11 @@ const ImageGallery = () => {
       <div className="grid grid-cols-2 md:grid-cols-2">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
-            <img 
-              src={image.url} 
+            <ResponsiveImage 
+              src={image.src}
               alt={image.alt}
               className="w-full h-full object-cover"
               loading={index < 2 ? "eager" : "lazy"}
-              decoding="async"
             />
           </div>
         ))}
