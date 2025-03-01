@@ -1,39 +1,25 @@
 
 import React from 'react';
+import ResponsiveImage from '../ui/ResponsiveImage';
 
 const HeroSection = () => {
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
-      {/* 
-      // Optimized background hero image with responsive sizes
-      // Replace with your actual marketing images
-      */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-      >
-        <picture>
-          <source 
-            media="(max-width: 640px)" 
-            srcSet="/images/hero/villa-mobile.webp" 
-          />
-          <source 
-            media="(max-width: 1024px)" 
-            srcSet="/images/hero/villa-tablet.webp" 
-          />
-          <source 
-            media="(min-width: 1025px)" 
-            srcSet="/images/hero/villa-desktop.webp" 
-          />
-          <img 
-            src="/images/hero/villa-desktop.webp"
-            alt="Luxury villa exterior"
-            className="h-full w-full object-cover"
-            fetchPriority="high"
-          />
-        </picture>
+      {/* Optimized background hero image with responsive sizes */}
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
+        <ResponsiveImage 
+          src={{
+            mobile: "/images/hero/experience-hero-mobile.webp",
+            tablet: "/images/hero/experience-hero-tablet.webp",
+            desktop: "/images/hero/experience-hero-desktop.webp"
+          }}
+          alt="Luxury villa experience setting"
+          className="h-full w-full object-cover"
+          loading="eager"
+        />
       </div>
       
-      {/* Gradient Overlay - you can modify the colors and opacity to match your image */}
+      {/* Gradient Overlay */}
       <div 
         className="absolute inset-0"
         style={{
@@ -57,9 +43,7 @@ const HeroSection = () => {
             20 people. 7 days. 1 life-changing experience
           </p>
           
-          {/* CUSTOMIZATION: Hero Section CTA Link 
-          // Replace the Google Form URL below with your own form/application link
-          */}
+          {/* CUSTOMIZATION: Hero Section CTA Link */}
           <a 
             href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
             target="_blank"

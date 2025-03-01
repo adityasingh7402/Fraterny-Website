@@ -2,62 +2,62 @@
 import React from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 
-// Replace these with your actual optimized marketing images
+// Updated with more relevant optimized marketing images
 const experienceImages = [
   {
     src: {
-      mobile: "/images/experience/lakeside-mobile.webp",
-      tablet: "/images/experience/lakeside-tablet.webp",
-      desktop: "/images/experience/lakeside-desktop.webp"
+      mobile: "/images/experience/villa-retreat-mobile.webp",
+      tablet: "/images/experience/villa-retreat-tablet.webp",
+      desktop: "/images/experience/villa-retreat-desktop.webp"
     },
-    alt: "Serene lakeside retreat surrounded by lush forest"
+    alt: "Luxury villa retreat where entrepreneurs gather for deep connections"
   },
   {
     src: {
-      mobile: "/images/experience/mountain-mobile.webp",
-      tablet: "/images/experience/mountain-tablet.webp",
-      desktop: "/images/experience/mountain-desktop.webp"
+      mobile: "/images/experience/workshop-mobile.webp",
+      tablet: "/images/experience/workshop-tablet.webp",
+      desktop: "/images/experience/workshop-desktop.webp"
     },
-    alt: "Misty mountain peak at sunrise"
+    alt: "Interactive workshop session with driven professionals"
   },
   {
     src: {
-      mobile: "/images/experience/ocean-mobile.webp",
-      tablet: "/images/experience/ocean-tablet.webp",
-      desktop: "/images/experience/ocean-desktop.webp"
+      mobile: "/images/experience/networking-mobile.webp",
+      tablet: "/images/experience/networking-tablet.webp",
+      desktop: "/images/experience/networking-desktop.webp"
     },
-    alt: "Rolling ocean waves meeting the shore"
+    alt: "Meaningful networking among ambitious individuals"
   },
   {
     src: {
-      mobile: "/images/experience/desert-mobile.webp",
-      tablet: "/images/experience/desert-tablet.webp",
-      desktop: "/images/experience/desert-desktop.webp"
+      mobile: "/images/experience/collaboration-mobile.webp",
+      tablet: "/images/experience/collaboration-tablet.webp",
+      desktop: "/images/experience/collaboration-desktop.webp"
     },
-    alt: "Golden desert dunes at sunset"
+    alt: "Collaborative problem-solving in a premium environment"
   },
   {
     src: {
-      mobile: "/images/experience/aerial-mobile.webp",
-      tablet: "/images/experience/aerial-tablet.webp",
-      desktop: "/images/experience/aerial-desktop.webp"
+      mobile: "/images/experience/evening-session-mobile.webp",
+      tablet: "/images/experience/evening-session-tablet.webp",
+      desktop: "/images/experience/evening-session-desktop.webp"
     },
-    alt: "Aerial view of verdant mountain landscape"
+    alt: "Evening mastermind session with panoramic views"
   },
   {
     src: {
-      mobile: "/images/experience/architecture-mobile.webp",
-      tablet: "/images/experience/architecture-tablet.webp",
-      desktop: "/images/experience/architecture-desktop.webp"
+      mobile: "/images/experience/gourmet-dining-mobile.webp",
+      tablet: "/images/experience/gourmet-dining-tablet.webp",
+      desktop: "/images/experience/gourmet-dining-desktop.webp"
     },
-    alt: "Modern architectural marvel in white"
+    alt: "Gourmet dining experience bringing people together"
   }
 ];
 
 const ImageGallery = () => {
   return (
     <section className="w-full">
-      <div className="grid grid-cols-2 md:grid-cols-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 

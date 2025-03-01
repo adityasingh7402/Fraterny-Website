@@ -1,48 +1,82 @@
 
 import { ArrowRight } from 'lucide-react';
 import { useMemo } from 'react';
+import ResponsiveImage from './ui/ResponsiveImage';
 
 const VillaLab = () => {
-  // CUSTOMIZATION: Villa Lab Activities
-  // Modify this array to change the activities displayed in the Villa Lab section
-  // Each activity has: title and image URL
-  // Current images show various indoor and outdoor spaces
+  // Updated with more relevant activity images
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
-      image: "https://images.unsplash.com/photo-1439337153520-7082a56a81f4?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/workshop-mobile.webp",
+        desktop: "/images/villalab/workshop-desktop.webp"
+      },
+      alt: "Interactive workshop session" 
     },
     { 
       title: "Gourmet Meals", 
-      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/gourmet-mobile.webp",
+        desktop: "/images/villalab/gourmet-desktop.webp"
+      },
+      alt: "Premium dining experience" 
     },
     { 
       title: "Group Activities", 
-      image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/group-mobile.webp",
+        desktop: "/images/villalab/group-desktop.webp"
+      },
+      alt: "Team-building activity in progress" 
     },
     { 
       title: "Candid Interactions", 
-      image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/candid-mobile.webp",
+        desktop: "/images/villalab/candid-desktop.webp"
+      },
+      alt: "Natural conversation between participants" 
     },
     { 
       title: "Networking", 
-      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/networking-mobile.webp",
+        desktop: "/images/villalab/networking-desktop.webp"
+      },
+      alt: "Professional connections being formed" 
     },
     { 
       title: "Evening Sessions", 
-      image: "https://images.unsplash.com/photo-1615729947596-a598e5de0ab3?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/evening-mobile.webp",
+        desktop: "/images/villalab/evening-desktop.webp"
+      },
+      alt: "Deep discussions in evening setting" 
     },
     { 
       title: "Brainstorming", 
-      image: "https://images.unsplash.com/photo-1439337153520-7082a56a81f4?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/brainstorm-mobile.webp",
+        desktop: "/images/villalab/brainstorm-desktop.webp"
+      },
+      alt: "Collaborative ideation session" 
     },
     { 
       title: "Mentorship", 
-      image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/mentorship-mobile.webp",
+        desktop: "/images/villalab/mentorship-desktop.webp"
+      },
+      alt: "One-on-one guidance session" 
     },
     { 
       title: "Social Events", 
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=75&w=800" 
+      imageSrc: {
+        mobile: "/images/villalab/social-mobile.webp",
+        desktop: "/images/villalab/social-desktop.webp"
+      },
+      alt: "Relaxed social gathering" 
     }
   ], []);
 
@@ -69,9 +103,9 @@ const VillaLab = () => {
               key={index}
               className="aspect-square bg-navy rounded-lg overflow-hidden relative group"
             >
-              <img
-                src={activity.image}
-                alt={activity.title}
+              <ResponsiveImage
+                src={activity.imageSrc}
+                alt={activity.alt}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 loading={index < 4 ? "eager" : "lazy"}
               />
@@ -83,9 +117,7 @@ const VillaLab = () => {
         </div>
 
         <div className="mt-8 sm:mt-12 text-right">
-          {/* CUSTOMIZATION: Villa Lab "See More" Link
-          // Replace with your own Instagram or social media link
-          */}
+          {/* CUSTOMIZATION: Villa Lab "See More" Link */}
           <a 
             href="https://www.instagram.com/join.fraterny/?hl=en" 
             target="_blank" 

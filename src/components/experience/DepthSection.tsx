@@ -2,70 +2,98 @@
 import React from 'react';
 import { Code, Brain, BookOpen, FileCheck, Users, Heart, ChefHat, Users2 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/use-mobile';
+import ResponsiveImage from '../ui/ResponsiveImage';
 
 const depthFeatures = [
   { 
     icon: <Code className="w-6 h-6" />, 
     title: "Ingrained House Code", 
     description: "Crafted house rules to boost engagement, clarity of thought and productivity",
-    imageSrc: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Workspace with modern laptop"
+    imageSrc: {
+      mobile: "/images/depth/house-code-mobile.webp",
+      desktop: "/images/depth/house-code-desktop.webp"
+    },
+    imageAlt: "Entrepreneurs discussing house rules in a premium workspace"
   },
   { 
     icon: <Brain className="w-6 h-6" />, 
     title: "Startup Simulations", 
     description: "Building a startup from ground up in a team environment",
-    imageSrc: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Person using laptop in creative space"
+    imageSrc: {
+      mobile: "/images/depth/startup-mobile.webp", 
+      desktop: "/images/depth/startup-desktop.webp"
+    },
+    imageAlt: "Team engaging in startup simulation exercises"
   },
   { 
     icon: <BookOpen className="w-6 h-6" />, 
     title: "Learning Experience", 
     description: "Business Knowledge is not even a unique proposition, its a given",
-    imageSrc: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Code on computer screen"
+    imageSrc: {
+      mobile: "/images/depth/learning-mobile.webp",
+      desktop: "/images/depth/learning-desktop.webp"
+    },
+    imageAlt: "Knowledge sharing session among entrepreneurs"
   },
   { 
     icon: <FileCheck className="w-6 h-6" />, 
     title: "Curated frameworks & templates", 
     description: "Carefully crafted Frameworks for personal and career growth",
-    imageSrc: "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Organized workspace with notebooks"
+    imageSrc: {
+      mobile: "/images/depth/frameworks-mobile.webp",
+      desktop: "/images/depth/frameworks-desktop.webp"
+    },
+    imageAlt: "Organized workspace with growth framework materials"
   },
   { 
     icon: <Users className="w-6 h-6" />, 
     title: "Group Think", 
     description: "Collaborative thinking and team activities to broaden your perspective",
-    imageSrc: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Team collaboration session"
+    imageSrc: {
+      mobile: "/images/depth/group-think-mobile.webp",
+      desktop: "/images/depth/group-think-desktop.webp"
+    },
+    imageAlt: "Collaborative brainstorming session in progress"
   },
   { 
     icon: <Heart className="w-6 h-6" />, 
     title: "Lifelong memories", 
     description: "Feel amazing while on the grind",
-    imageSrc: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Friends enjoying a moment together"
+    imageSrc: {
+      mobile: "/images/depth/memories-mobile.webp",
+      desktop: "/images/depth/memories-desktop.webp"
+    },
+    imageAlt: "Participants sharing meaningful moments together"
   },
   { 
     icon: <ChefHat className="w-6 h-6" />, 
     title: "Great Food, Good Coffee and more", 
     description: "Caffeine is the secret of my energy",
-    imageSrc: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Coffee cup on wooden table"
+    imageSrc: {
+      mobile: "/images/depth/food-mobile.webp",
+      desktop: "/images/depth/food-desktop.webp"
+    },
+    imageAlt: "Premium dining experience with gourmet food"
   },
   { 
     icon: <Users2 className="w-6 h-6" />, 
     title: "Post Program Community", 
     description: "Fraterny is not a one week experience, it is a constantly growing ecosystem.",
-    imageSrc: "https://images.unsplash.com/photo-1520333789090-1afc82db536a?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "Community gathering"
+    imageSrc: {
+      mobile: "/images/depth/community-mobile.webp",
+      desktop: "/images/depth/community-desktop.webp"
+    },
+    imageAlt: "Alumni networking and continued community building"
   },
   { 
     icon: <Brain className="w-6 h-6" />, 
     title: "Soft Skills", 
     description: "Critical Thinking, Effective Communication and Empathy. Everyone has principles, no one offers practice",
-    imageSrc: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
-    imageAlt: "People discussing ideas"
+    imageSrc: {
+      mobile: "/images/depth/soft-skills-mobile.webp",
+      desktop: "/images/depth/soft-skills-desktop.webp"
+    },
+    imageAlt: "Soft skills workshop in an elegant setting"
   },
 ];
 
@@ -94,7 +122,7 @@ const DepthSection = () => {
                 </div>
                 
                 <div className="aspect-[16/9] w-full overflow-hidden rounded-xl shadow-md">
-                  <img 
+                  <ResponsiveImage 
                     src={feature.imageSrc}
                     alt={feature.imageAlt}
                     className="w-full h-full object-cover"

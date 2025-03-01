@@ -10,6 +10,7 @@ interface ResponsiveImageProps {
   alt: string;
   className?: string;
   loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
 }
 
@@ -22,6 +23,7 @@ const ResponsiveImage = ({
   alt,
   className = '',
   loading = 'lazy',
+  fetchPriority,
   onClick
 }: ResponsiveImageProps) => {
   // Use tablet image if provided, otherwise fall back to desktop
@@ -37,6 +39,7 @@ const ResponsiveImage = ({
         alt={alt}
         className={className}
         loading={loading}
+        fetchPriority={fetchPriority}
         decoding="async"
       />
     </picture>

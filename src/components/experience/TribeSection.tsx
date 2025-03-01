@@ -1,40 +1,56 @@
 
 import React from 'react';
+import ResponsiveImage from '../ui/ResponsiveImage';
 
-// CUSTOMIZATION: Peer Profile Images and Descriptions
-// Modify this array to change the peer profiles
-// Each peer has: title, description, and profile image URL
-// Current images show various people in professional/creative settings
+// Updated with more relevant peer profile images
 const peers = [
   { 
     title: "The Visionary", 
     description: "Sees possibilities others don't",
-    image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/visionary-mobile.webp",
+      desktop: "/images/tribe/visionary-desktop.webp"
+    }
   },
   { 
     title: "The Hustler", 
     description: "Gets things done, period",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/hustler-mobile.webp",
+      desktop: "/images/tribe/hustler-desktop.webp"
+    }
   },
   { 
     title: "The Workaholic", 
     description: "Lives and breathes excellence",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/workaholic-mobile.webp",
+      desktop: "/images/tribe/workaholic-desktop.webp"
+    }
   },
   { 
     title: "The Experienced", 
     description: "Been there, done that",
-    image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/experienced-mobile.webp",
+      desktop: "/images/tribe/experienced-desktop.webp"
+    }
   },
   { 
     title: "The Optimist", 
     description: "Finds silver linings",
-    image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/optimist-mobile.webp",
+      desktop: "/images/tribe/optimist-desktop.webp"
+    }
   },
   { 
     title: "The Guardian", 
     description: "Keeps the ship steady",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&q=80&w=400"
+    imageSrc: {
+      mobile: "/images/tribe/guardian-mobile.webp",
+      desktop: "/images/tribe/guardian-desktop.webp"
+    }
   }
 ];
 
@@ -42,19 +58,18 @@ const TribeSection = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-6">
-        {/* CUSTOMIZATION: Tribe Section Title */}
+        {/* Tribe Section Title */}
         <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center">Your Tribe Awaits</h2>
         
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {peers.map((peer, index) => (
             <div key={index} className="text-center">
               <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-full overflow-hidden">
-                <img 
-                  src={peer.image} 
+                <ResponsiveImage 
+                  src={peer.imageSrc} 
                   alt={peer.title}
                   className="w-full h-full object-cover"
-                  loading="lazy"
-                  decoding="async"
+                  loading={index < 3 ? "eager" : "lazy"}
                 />
               </div>
               <h3 className="font-medium text-navy mb-2">{peer.title}</h3>
@@ -63,7 +78,7 @@ const TribeSection = () => {
           ))}
         </div>
         
-        {/* CUSTOMIZATION: Tribe Section Tagline */}
+        {/* Tribe Section Tagline */}
         <p className="text-center text-lg text-gray-600">
           Divided by Circumstance, United by Fraterny
         </p>

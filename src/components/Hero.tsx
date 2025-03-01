@@ -35,16 +35,23 @@ const Hero = () => {
     )`
   }), []);
 
-  // CUSTOMIZATION: Hero Background Image
-  // Replace this URL with your own hero background image
-  const backgroundImageStyle = useMemo(() => ({
-    backgroundImage: `url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&q=80&w=1920')`
-  }), []);
-
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image with loading optimization */}
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={backgroundImageStyle} />
+      {/* Background Image with picture element for better responsiveness */}
+      <div className="absolute inset-0">
+        <picture>
+          <source media="(max-width: 640px)" srcSet="/images/hero/luxury-villa-mobile.webp" />
+          <source media="(max-width: 1024px)" srcSet="/images/hero/luxury-villa-tablet.webp" />
+          <source media="(min-width: 1025px)" srcSet="/images/hero/luxury-villa-desktop.webp" />
+          <img 
+            src="/images/hero/luxury-villa-desktop.webp" 
+            alt="Stunning luxury villa with breathtaking views" 
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
+      </div>
       
       {/* Gradient Overlay */}
       <div className="absolute inset-0" style={gradientStyle} />
@@ -66,9 +73,7 @@ const Hero = () => {
           </div>
 
           <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
-            {/* CUSTOMIZATION: Hero CTA Button 
-            // Replace with your own application form link
-            */}
+            {/* CUSTOMIZATION: Hero CTA Button */}
             <a 
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
               target="_blank" 
@@ -78,9 +83,7 @@ const Hero = () => {
               Claim your spot →
             </a>
             
-            {/* CUSTOMIZATION: Countdown Timer 
-            // The target date is set above in the "targetDate" variable
-            */}
+            {/* CUSTOMIZATION: Countdown Timer */}
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
               <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
               <div className="text-xl font-mono">
