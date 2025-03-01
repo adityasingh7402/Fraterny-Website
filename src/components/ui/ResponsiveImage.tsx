@@ -29,8 +29,8 @@ const ResponsiveImage = ({
   // Use tablet image if provided, otherwise fall back to desktop
   const tabletSrc = src.tablet || src.desktop;
   
-  // Inline data URI fallback image to prevent network requests when images fail
-  const fallbackImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzBBMUEyRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjZmZmZmZmIj5JbWFnZTwvdGV4dD48L3N2Zz4=";
+  // Fallback image as a placeholder
+  const fallbackImage = "/placeholder.svg";
   
   // Handle image loading error
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -38,7 +38,7 @@ const ResponsiveImage = ({
     e.currentTarget.src = fallbackImage;
   };
   
-  // Create a props object for the img element
+  // Create a props object for the img element and conditionally add fetchPriority
   const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
     src: src.desktop, // Fallback for browsers that don't support <picture>
     alt,
@@ -50,7 +50,6 @@ const ResponsiveImage = ({
   
   // Only add fetchPriority if it exists (TypeScript will handle this correctly)
   if (fetchPriority) {
-    // Use lowercase for proper HTML attribute name
     imgProps.fetchPriority = fetchPriority;
   }
   
