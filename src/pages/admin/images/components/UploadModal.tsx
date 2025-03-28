@@ -1,8 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Upload, Info } from 'lucide-react';
+import { X, Upload, Info, Crop, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react';
 import { uploadImage } from '@/services/images';
+import ReactCrop, { type Crop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 // Available image categories
 const IMAGE_CATEGORIES = [
@@ -44,7 +46,23 @@ interface UploadModalProps {
 const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
+  
+  // Image cropping state
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 80,
+    height: 80,
+    x: 10,
+    y: 10
+  });
+  const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [isCropping, setIsCropping] = useState(false);
   
   // Form state for upload
   const [uploadForm, setUploadForm] = useState({
@@ -84,14 +102,32 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    
+    setImageSrc(null);
+    setCrop({
+      unit: '%',
+      width: 80,
+      height: 80,
+      x: 10,
+      y: 10
+    });
+    setCompletedCrop(null);
+    setZoom(1);
+    setRotation(0);
+    setIsCropping(false);
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
       setUploadForm(prev => ({
         ...prev,
-        file: e.target.files![0]
+        file
       }));
+      
+      // Create preview URL for the image
+      const imageUrl = URL.createObjectURL(file);
+      setImageSrc(imageUrl);
     }
   };
   
@@ -103,6 +139,22 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
       return;
     }
     
+    // If crop is complete, use the cropped image
+    if (completedCrop && isCropping) {
+      const croppedFile = getCroppedImg(uploadForm.file.name, uploadForm.file.type);
+      if (croppedFile) {
+        uploadMutation.mutate({
+          file: croppedFile,
+          key: uploadForm.key,
+          description: uploadForm.description,
+          alt_text: uploadForm.alt_text,
+          category: uploadForm.category || undefined
+        });
+        return;
+      }
+    }
+    
+    // Otherwise use the original file
     uploadMutation.mutate({
       file: uploadForm.file,
       key: uploadForm.key,
@@ -121,11 +173,108 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     setShowPredefinedKeys(false);
   };
   
+  // Image cropping functions
+  const getCroppedImg = (fileName: string, fileType: string): File | null => {
+    if (!imgRef.current || !completedCrop || !canvasRef.current) {
+      return null;
+    }
+    
+    const canvas = canvasRef.current;
+    const image = imgRef.current;
+    const crop = completedCrop;
+    
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      return null;
+    }
+    
+    // Set canvas size to the dimensions of the crop
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+    
+    // Apply rotation and crop
+    ctx.save();
+    
+    // Move the crop origin to the canvas center
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    
+    // Apply rotation
+    ctx.rotate((rotation * Math.PI) / 180);
+    
+    // Apply zoom
+    ctx.scale(zoom, zoom);
+    
+    // Move back to the top left corner
+    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    
+    // Draw the image with the crop applied
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width * scaleX,
+      crop.height * scaleY
+    );
+    
+    ctx.restore();
+    
+    // Convert canvas to file
+    return new Promise<File | null>((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(null);
+            return;
+          }
+          
+          const file = new File([blob], fileName, {
+            type: fileType,
+            lastModified: Date.now(),
+          });
+          
+          resolve(file);
+        },
+        fileType,
+        0.95
+      );
+    }) as unknown as File | null;
+  };
+  
+  const handleToggleCrop = () => {
+    setIsCropping(!isCropping);
+  };
+  
+  const increaseZoom = () => {
+    setZoom(prev => Math.min(prev + 0.1, 3));
+  };
+  
+  const decreaseZoom = () => {
+    setZoom(prev => Math.max(prev - 0.1, 0.1));
+  };
+  
+  const rotateImage = () => {
+    setRotation(prev => (prev + 90) % 360);
+  };
+  
+  const applyChanges = () => {
+    if (completedCrop && imgRef.current && canvasRef.current && uploadForm.file) {
+      setIsCropping(false);
+      toast.success('Crop applied successfully');
+    }
+  };
+  
   if (!isOpen) return null;
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-medium text-navy">Add New Image</h2>
           <button
@@ -140,6 +289,103 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
         </div>
         
         <form onSubmit={handleUploadSubmit} className="p-6 space-y-6">
+          {/* Image Preview and Cropping */}
+          {imageSrc && (
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium text-navy">Image Preview</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleCrop}
+                    className={`p-2 rounded-full ${isCropping ? 'bg-navy text-white' : 'bg-gray-100 text-navy'}`}
+                    title={isCropping ? "Exit crop mode" : "Enter crop mode"}
+                  >
+                    <Crop className="w-4 h-4" />
+                  </button>
+                  
+                  {isCropping && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={increaseZoom}
+                        className="p-2 bg-gray-100 rounded-full text-navy"
+                        title="Zoom in"
+                      >
+                        <ZoomIn className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={decreaseZoom}
+                        className="p-2 bg-gray-100 rounded-full text-navy"
+                        title="Zoom out"
+                      >
+                        <ZoomOut className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={rotateImage}
+                        className="p-2 bg-gray-100 rounded-full text-navy"
+                        title="Rotate"
+                      >
+                        <RotateCw className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyChanges}
+                        className="p-2 bg-navy rounded-full text-white"
+                        title="Apply changes"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                {isCropping ? (
+                  <ReactCrop
+                    crop={crop}
+                    onChange={(c) => setCrop(c)}
+                    onComplete={(c) => setCompletedCrop(c)}
+                    aspect={undefined}
+                    className="max-h-[400px] object-contain"
+                  >
+                    <img
+                      ref={imgRef}
+                      src={imageSrc}
+                      alt="Preview"
+                      style={{
+                        maxHeight: '400px',
+                        transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                        transition: 'transform 0.2s ease-in-out'
+                      }}
+                    />
+                  </ReactCrop>
+                ) : (
+                  <img
+                    src={imageSrc}
+                    alt="Preview"
+                    className="max-h-[400px] object-contain"
+                  />
+                )}
+              </div>
+              
+              {/* Hidden canvas for cropping */}
+              <canvas
+                ref={canvasRef}
+                style={{ display: 'none' }}
+              />
+              
+              {isCropping && (
+                <p className="text-sm text-gray-500 text-center mt-2">
+                  Drag to crop the image. Use the controls above to zoom and rotate.
+                </p>
+              )}
+            </div>
+          )}
+          
           {/* Placeholder Replacement Information */}
           <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
@@ -179,6 +425,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
             </div>
           )}
           
+          {/* Form fields */}
           <div>
             <label htmlFor="key" className="block text-sm font-medium text-gray-700 mb-1">
               Image Key <span className="text-red-500">*</span>

@@ -84,6 +84,9 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       timestamp: Date.now()
     });
     
+    // Add console log for debugging
+    console.log(`Retrieved image URL for key "${key}":`, urlData.publicUrl);
+    
     return urlData.publicUrl;
   } catch (error) {
     console.error(`Failed to get image with key "${key}"`, error);

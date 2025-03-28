@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
+import { invalidateImageCache } from "./fetchService";
 
 /**
  * Get image dimensions from a File
@@ -105,8 +106,11 @@ export const uploadImage = async (
   category?: string
 ): Promise<WebsiteImage | null> => {
   try {
+    console.log(`Starting upload for image with key: ${key}`);
+    
     // Generate a unique filename
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    const timestamp = Date.now();
+    const filename = `${timestamp}-${file.name.replace(/\s+/g, '-')}`;
     // Fix: Don't include the key in the storage path, just use it as a database identifier
     const storagePath = filename;
     
@@ -116,27 +120,66 @@ export const uploadImage = async (
     if (file.type.startsWith('image/')) {
       try {
         dimensions = await getImageDimensions(file);
+        console.log(`Image dimensions: ${dimensions.width}x${dimensions.height}`);
       } catch (err) {
         console.error('Could not get image dimensions:', err);
       }
     }
     
+    // Check if an image with this key already exists - if so, remove it
+    const { data: existingImage } = await supabase
+      .from('website_images')
+      .select('*')
+      .eq('key', key)
+      .maybeSingle();
+      
+    if (existingImage) {
+      console.log(`Found existing image with key: ${key}, will replace it`);
+      
+      // Remove the existing file from storage
+      if (existingImage.storage_path) {
+        await supabase.storage.from('website-images').remove([existingImage.storage_path]);
+        
+        // Also remove any optimized versions
+        if (existingImage.sizes && typeof existingImage.sizes === 'object') {
+          const sizes = existingImage.sizes as Record<string, string>;
+          await Promise.all(
+            Object.values(sizes).map(path => 
+              supabase.storage.from('website-images').remove([path])
+            )
+          );
+        }
+      }
+      
+      // Delete the existing record
+      await supabase.from('website_images').delete().eq('id', existingImage.id);
+    }
+    
     // Upload the file to storage
+    console.log(`Uploading file to storage: ${storagePath}`);
     const { error: uploadError } = await supabase.storage
       .from('website-images')
-      .upload(storagePath, file);
+      .upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
     
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       return handleApiError(uploadError, 'Error uploading image', false) as null;
     }
     
     // Create optimized versions if it's an image
+    console.log('Creating optimized versions...');
     const optimizedSizes = await createOptimizedVersions(file, storagePath);
+    console.log('Optimized sizes:', optimizedSizes);
     
     // Get the public URL for the uploaded file
     const { data: { publicUrl } } = supabase.storage
       .from('website-images')
       .getPublicUrl(storagePath);
+    
+    console.log(`Public URL: ${publicUrl}`);
     
     // Create an entry in the website_images table
     const { data, error: insertError } = await supabase
@@ -155,6 +198,8 @@ export const uploadImage = async (
       .single();
     
     if (insertError) {
+      console.error('Insert error:', insertError);
+      
       // Clean up the uploaded file if we couldn't create the record
       await supabase.storage.from('website-images').remove([storagePath]);
       
@@ -166,8 +211,13 @@ export const uploadImage = async (
       return handleApiError(insertError, 'Error creating image record', false) as null;
     }
     
+    // Invalidate cache for this key to ensure fresh data
+    invalidateImageCache(key);
+    
+    console.log(`Successfully uploaded and created record for image with key: ${key}`);
     return data;
   } catch (error) {
+    console.error('Error in upload process:', error);
     return handleApiError(error, 'Error in image upload process', false) as null;
   }
 };
