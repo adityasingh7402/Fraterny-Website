@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +20,7 @@ const Navigation = () => {
   // Admin links only shown to admin users
   const adminLinks = [
     { name: 'Dashboard', href: '/admin/dashboard' },
+    { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },
   ];

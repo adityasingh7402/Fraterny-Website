@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { Settings, Image, FileText } from 'lucide-react';
+import { Settings, Image, FileText, BarChart } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: settings, isLoading, error, refetch } = useQuery({
@@ -111,6 +111,19 @@ const AdminDashboard = () => {
             <div>
               <h2 className="text-lg font-medium text-navy">Website Settings</h2>
               <p className="text-gray-600 text-sm">Manage counters and dates</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/analytics" 
+            className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
+              <BarChart className="w-6 h-6 text-navy" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-navy">Analytics</h2>
+              <p className="text-gray-600 text-sm">Website traffic and engagement</p>
             </div>
           </Link>
           
