@@ -32,6 +32,7 @@ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 // Create a client
 const queryClient = new QueryClient();
 
+// Modified to wrap the App component with AuthProvider instead of the entire router
 const router = createBrowserRouter([
   {
     path: "/",
@@ -116,9 +117,7 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </React.StrictMode>,
 )

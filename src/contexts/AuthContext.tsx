@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize Supabase auth and set up listener
   useEffect(() => {
@@ -69,7 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate('/');
+      
+      // Use navigate only if we're not on the home page already
+      if (location.pathname === '/auth') {
+        navigate('/');
+      }
+      
       toast.success('Signed in successfully');
     } catch (error: any) {
       toast.error(error.message || 'Error signing in');
@@ -103,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Navigate to auth page after sign out
       navigate('/auth');
       toast.success('Signed out successfully');
     } catch (error: any) {
