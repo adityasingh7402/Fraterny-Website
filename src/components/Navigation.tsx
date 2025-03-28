@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Menu, X, User, LogOut, Home } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
@@ -86,10 +86,7 @@ const Navigation = () => {
           </a>
 
           <div className="hidden md:flex items-center space-x-8">
-            {/* Home icon link */}
-            <a href="/" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
-              <Home size={20} />
-            </a>
+            {/* Home icon link removed */}
             
             {navLinks.map(link => (
               <a key={link.name} href={link.href} className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
@@ -178,15 +175,7 @@ const Navigation = () => {
 
         {isMenuOpen && (
           <div className="md:hidden py-4 space-y-4 backdrop-blur-md bg-black bg-opacity-20 rounded-lg mt-2 px-4">
-            {/* Home link in mobile menu */}
-            <a
-              href="/"
-              className={`flex items-center text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
-              onClick={toggleMenu}
-            >
-              <Home size={18} className="mr-2" />
-              Home
-            </a>
+            {/* Home link in mobile menu removed */}
             
             {navLinks.map(link => (
               <a
