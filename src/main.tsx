@@ -25,6 +25,9 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import RefundPolicy from './pages/RefundPolicy';
+import Auth from './pages/Auth';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -64,16 +67,8 @@ const router = createBrowserRouter([
         element: <BlogPost />,
       },
       {
-        path: "admin/dashboard",
-        element: <AdminDashboard />,
-      },
-      {
-        path: "admin/blog",
-        element: <AdminBlog />,
-      },
-      {
-        path: "admin/images",
-        element: <AdminImages />,
+        path: "auth",
+        element: <Auth />,
       },
       {
         path: "terms-and-conditions",
@@ -91,6 +86,29 @@ const router = createBrowserRouter([
         path: "refund-policy",
         element: <RefundPolicy />,
       },
+      // Protected admin routes
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            element: <AdminRoute />,
+            children: [
+              {
+                path: "admin/dashboard",
+                element: <AdminDashboard />,
+              },
+              {
+                path: "admin/blog",
+                element: <AdminBlog />,
+              },
+              {
+                path: "admin/images",
+                element: <AdminImages />,
+              },
+            ],
+          },
+        ],
+      },
     ],
   },
 ]);
@@ -98,7 +116,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 )

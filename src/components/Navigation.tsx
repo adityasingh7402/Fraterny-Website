@@ -1,10 +1,14 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
+  const { user, signOut, isAdmin } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPastHero, setIsPastHero] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -13,6 +17,13 @@ const Navigation = () => {
     { name: 'Pricing', href: '/pricing' },
     { name: 'Blog', href: '/blog' },
     { name: 'FAQ', href: '/faq' },
+  ];
+
+  // Admin links only shown to admin users
+  const adminLinks = [
+    { name: 'Dashboard', href: '/admin/dashboard' },
+    { name: 'Blog Management', href: '/admin/blog' },
+    { name: 'Image Management', href: '/admin/images' },
   ];
 
   const handleScroll = useCallback(() => {
@@ -37,6 +48,15 @@ const Navigation = () => {
   const toggleMenu = useCallback(() => {
     setIsMenuOpen(prev => !prev);
   }, []);
+
+  const toggleUserMenu = useCallback(() => {
+    setIsUserMenuOpen(prev => !prev);
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+    setIsUserMenuOpen(false);
+  }, [signOut]);
 
   return (
     <nav className={navClasses}>
@@ -68,6 +88,49 @@ const Navigation = () => {
                 {link.name}
               </a>
             ))}
+            
+            {user ? (
+              <div className="relative">
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 focus:outline-none"
+                >
+                  <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
+                    <User size={18} />
+                  </div>
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    {isAdmin && adminLinks.map(link => (
+                      <a 
+                        key={link.name} 
+                        href={link.href}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        {link.name}
+                      </a>
+                    ))}
+                    <button 
+                      onClick={handleSignOut}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <a
+                href="/auth"
+                className="px-6 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
+              >
+                Sign In
+              </a>
+            )}
+            
             <a
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
               target="_blank"
@@ -99,6 +162,39 @@ const Navigation = () => {
                 {link.name}
               </a>
             ))}
+            
+            {user ? (
+              <>
+                {isAdmin && adminLinks.map(link => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className={`block text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+                    onClick={toggleMenu}
+                  >
+                    {link.name}
+                  </a>
+                ))}
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    toggleMenu();
+                  }}
+                  className="block w-full text-left text-sm font-medium text-red-400 hover:text-red-300 transition-colors duration-200"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <a
+                href="/auth"
+                className="block text-sm font-medium text-terracotta hover:text-opacity-80 transition-colors duration-200"
+                onClick={toggleMenu}
+              >
+                Sign In
+              </a>
+            )}
+            
             <a
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
               target="_blank"
