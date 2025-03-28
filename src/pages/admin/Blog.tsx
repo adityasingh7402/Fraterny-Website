@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { PlusCircle, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Blog post type
 type BlogPost = {
@@ -170,12 +171,12 @@ const AdminBlog = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-playfair text-navy">Blog Management</h1>
-          <a 
-            href="/admin/dashboard" 
-            className="text-navy underline"
+          <Link 
+            to="/admin" 
+            className="px-4 py-2 border border-navy text-navy rounded-md hover:bg-navy hover:text-white transition-colors"
           >
             Back to Dashboard
-          </a>
+          </Link>
         </div>
         
         <div className="bg-white shadow rounded-lg overflow-hidden mb-8">

@@ -25,7 +25,15 @@ import AdminImages from './pages/admin/images';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false
+    }
+  }
+});
 
 const router = createBrowserRouter([
   {

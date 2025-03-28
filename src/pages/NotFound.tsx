@@ -5,10 +5,13 @@ import { useEffect } from "react";
 const NotFound = () => {
   // Check if we're in a router context before using router hooks
   let location;
+  let navigate;
+  
   try {
     location = useLocation();
+    navigate = useNavigate();
   } catch (e) {
-    // If useLocation fails, we're outside router context
+    // If hooks fail, we're outside router context
     console.error("404 page rendered outside Router context");
   }
 
@@ -21,30 +24,27 @@ const NotFound = () => {
     }
   }, [location]);
 
-  // Use standard navigation instead of useNavigate for better compatibility
   const handleHomeClick = (e) => {
     e.preventDefault();
-    try {
-      // Try to use navigate if available
-      const navigate = useNavigate();
+    if (navigate) {
       navigate("/");
-    } catch (e) {
+    } else {
       // Fallback to regular navigation
       window.location.href = "/";
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 text-navy">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center bg-white p-10 rounded-lg shadow-lg max-w-md">
+        <h1 className="text-6xl font-bold mb-4 text-navy">404</h1>
+        <p className="text-xl text-gray-600 mb-6">The page you're looking for doesn't exist.</p>
         <a 
           href="/" 
           onClick={handleHomeClick} 
-          className="text-terracotta hover:text-navy underline transition-colors"
+          className="px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors inline-block"
         >
-          Return to Home
+          Return Home
         </a>
       </div>
     </div>

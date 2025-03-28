@@ -1,9 +1,17 @@
 
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 export const ProtectedRoute = () => {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, isLoading, navigate]);
 
   // Show loading state if still checking authentication
   if (isLoading) {
@@ -25,6 +33,17 @@ export const ProtectedRoute = () => {
 
 export const AdminRoute = () => {
   const { user, isAdmin, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        navigate('/auth', { replace: true });
+      } else if (!isAdmin) {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, isAdmin, isLoading, navigate]);
 
   // Show loading state if still checking authentication
   if (isLoading) {

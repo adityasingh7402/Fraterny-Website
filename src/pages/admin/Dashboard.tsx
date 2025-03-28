@@ -1,11 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { Settings, Image, FileText, BarChart } from 'lucide-react';
+import { Settings, Image, FileText, BarChart, Users } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: settings, isLoading, error, refetch } = useQuery({
@@ -21,14 +21,14 @@ const AdminDashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form values when settings are loaded
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       setFormValues({
         available_seats: settings.available_seats.toString(),
         registration_close_date: settings.registration_close_date
       });
     }
-  });
+  }, [settings]);
 
   const calculateDaysLeft = (dateString: string) => {
     const targetDate = new Date(dateString).getTime();
@@ -102,7 +102,7 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Link 
-            to="/admin/dashboard" 
+            to="/admin" 
             className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
           >
             <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
@@ -150,6 +150,19 @@ const AdminDashboard = () => {
             <div>
               <h2 className="text-lg font-medium text-navy">Image Management</h2>
               <p className="text-gray-600 text-sm">Upload and manage website images</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/newsletter" 
+            className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
+              <Users className="w-6 h-6 text-navy" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-navy">Newsletter Subscribers</h2>
+              <p className="text-gray-600 text-sm">Manage subscriber list</p>
             </div>
           </Link>
         </div>
