@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { WebsiteImage } from './types';
 import { urlCache } from './cacheService';
@@ -21,17 +20,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     console.log(`Attempting to get image URL for key: "${sanitizedKey}"`);
 
-    // For production environment, skip defaults and always try to fetch from Supabase
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Production environment detected, skipping default images');
-    }
-    // For other environments, use defaults if available
-    else if (defaultImagesMap[sanitizedKey]) {
-      console.log(`Using default image for key: ${sanitizedKey}`);
-      return defaultImagesMap[sanitizedKey];
-    }
-
-    // Check cache first
+    // Check cache first (before defaultImagesMap to ensure fresh uploads are used)
     const cacheKey = `key:${sanitizedKey}`;
     const cached = urlCache.get(cacheKey);
     if (cached) {
@@ -42,30 +31,34 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Fetch the image record from the database
     const imageRecord = await fetchImageByKey(sanitizedKey);
     
-    if (!imageRecord) {
-      console.warn(`Image with key "${sanitizedKey}" not found in database`);
-      // Return placeholder image
-      return '/placeholder.svg';
+    if (imageRecord) {
+      // Get the public URL from storage
+      const { data: urlData } = supabase.storage
+        .from('website-images')
+        .getPublicUrl(imageRecord.storage_path);
+      
+      if (urlData.publicUrl) {
+        // Cache the result
+        urlCache.set(cacheKey, urlData.publicUrl);
+        
+        // Add console log for debugging
+        console.log(`Retrieved image URL for key "${sanitizedKey}":`, urlData.publicUrl);
+        
+        return urlData.publicUrl;
+      }
     }
     
-    // Get the public URL from storage
-    const { data: urlData } = supabase.storage
-      .from('website-images')
-      .getPublicUrl(imageRecord.storage_path);
+    // If we reach here, the image was not found in the database or failed to get URL
+    console.warn(`Image with key "${sanitizedKey}" not found in database or failed to get URL`);
     
-    if (!urlData.publicUrl) {
-      console.warn(`Failed to get public URL for image with key "${sanitizedKey}"`);
-      // Return placeholder image
-      return '/placeholder.svg';
+    // For non-production environment, use defaults if available
+    if (process.env.NODE_ENV !== 'production' && defaultImagesMap[sanitizedKey]) {
+      console.log(`Using default image for key: ${sanitizedKey}`);
+      return defaultImagesMap[sanitizedKey];
     }
     
-    // Cache the result
-    urlCache.set(cacheKey, urlData.publicUrl);
-    
-    // Add console log for debugging
-    console.log(`Retrieved image URL for key "${sanitizedKey}":`, urlData.publicUrl);
-    
-    return urlData.publicUrl;
+    // Return placeholder image
+    return '/placeholder.svg';
   } catch (error) {
     console.error(`Failed to get image with key "${key}"`, error);
     // Return placeholder image instead of throwing error

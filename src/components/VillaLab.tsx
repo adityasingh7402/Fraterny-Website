@@ -98,7 +98,7 @@ const VillaLab = () => {
       title: "Social Events", 
       dynamicKey: "villalab-social",
       fallbackSrc: {
-        mobile: "/images/villalab/social-mobile.webp",
+        mobile: "/images/villalab/social-mobile.webp", 
         desktop: "/images/villalab/social-desktop.webp"
       },
       alt: "Relaxed social gathering",

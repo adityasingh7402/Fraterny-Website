@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { uploadImage } from '@/services/images';
+import { uploadImage, clearImageCache, clearImageUrlCache } from '@/services/images';
 import PredefinedKeysSection from './PredefinedKeysSection';
 import UploadForm from './UploadForm';
 import { useUploadForm } from './useUploadForm';
@@ -33,10 +33,19 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   const uploadMutation = useMutation({
     mutationFn: (data: { file: File, key: string, description: string, alt_text: string, category?: string }) => 
       uploadImage(data.file, data.key, data.description, data.alt_text, data.category),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      // Clear caches to ensure fresh data
+      clearImageCache();
+      clearImageUrlCache();
+      
+      // Clear specific cache for this image key
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
+      
+      // Show success message with key
       handleClose();
-      toast.success('Image uploaded successfully');
+      toast.success(`Image "${variables.key}" uploaded successfully`, {
+        description: "The image will be available throughout the website where it's used.",
+      });
     },
     onError: (error) => {
       toast.error('Failed to upload image');

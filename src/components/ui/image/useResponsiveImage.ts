@@ -31,20 +31,20 @@ export const useResponsiveImage = (
         // If size is specified, try to get that specific size
         if (size) {
           const url = await getImageUrlByKeyAndSize(dynamicKey, size);
-          console.log(`Fetched image URL: ${url}`);
+          console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
           setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
         } else {
           // Otherwise get the original image
           const url = await getImageUrlByKey(dynamicKey);
-          console.log(`Fetched image URL: ${url}`);
+          console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
           setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
         }
       } catch (error) {
         console.error(`Failed to load image with key ${dynamicKey}:`, error);
         setState(prev => ({ ...prev, error: true, isLoading: false }));
         
-        // Don't show toast for development placeholder images
-        if (!dynamicKey.includes('villalab-') && !dynamicKey.includes('hero-')) {
+        // Don't show toast for development placeholder images or expected fallbacks
+        if (!dynamicKey.includes('villalab-') && !dynamicKey.includes('hero-') && !dynamicKey.includes('experience-')) {
           toast.error(`Failed to load image: ${dynamicKey}`, {
             description: "Please check if this image exists in your storage.",
             duration: 3000,

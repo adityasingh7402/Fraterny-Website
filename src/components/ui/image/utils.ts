@@ -27,7 +27,9 @@ export const createImageProps = (
     height,
     onError: (e) => {
       console.warn(`Failed to load image: ${e.currentTarget.src}`);
-      e.currentTarget.src = fallbackSrc;
+      if (e.currentTarget.src !== fallbackSrc) {
+        e.currentTarget.src = fallbackSrc;
+      }
     }
   };
   

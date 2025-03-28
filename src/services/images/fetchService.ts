@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
-import { imageCache } from "./cacheService";
+import { imageCache, urlCache } from "./cacheService";
 
 /**
  * Fetch image metadata by key with improved caching
@@ -16,6 +16,9 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     // Normalize the key by trimming whitespace
     const normalizedKey = key.trim();
     console.log(`Fetching image with normalized key: "${normalizedKey}"`);
+
+    // Invalidate any URL cache for this key to ensure we get fresh data
+    urlCache.invalidate(`key:${normalizedKey}`);
 
     // Check cache first
     const cacheKey = `image:${normalizedKey}`;

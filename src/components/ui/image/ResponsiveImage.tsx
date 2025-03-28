@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring, createImageProps } from './utils';
@@ -35,7 +34,7 @@ const ResponsiveImage = ({
         className={`bg-gray-200 animate-pulse ${className}`} 
         aria-label={`Loading ${alt}`}
         style={{ 
-          aspectRatio: '16/9',
+          aspectRatio: width && height ? `${width}/${height}` : '16/9',
           width: width,
           height: height 
         }}
@@ -43,18 +42,36 @@ const ResponsiveImage = ({
     );
   }
   
-  // If there was an error loading the image, show a placeholder
+  // If there was an error loading the image or no dynamic source found, use fallback
   if (error || (!dynamicSrc && dynamicKey)) {
+    console.log(`Using fallback for ${dynamicKey} - error: ${error}, no dynamicSrc: ${!dynamicSrc}`);
+    
+    // If src is provided as a fallback, use it instead of showing error state
+    if (src) {
+      return renderImage(src, {
+        alt,
+        className,
+        loading, 
+        fetchPriority,
+        onClick,
+        fallbackSrc,
+        width,
+        height,
+        sizes
+      });
+    }
+    
+    // Otherwise show placeholder/error state
     return (
       <div 
         className={`bg-gray-100 flex items-center justify-center ${className}`}
         style={{ 
-          aspectRatio: '16/9',
+          aspectRatio: width && height ? `${width}/${height}` : '16/9',
           width: width,
           height: height 
         }}
       >
-        {fallbackSrc ? (
+        {typeof fallbackSrc === 'string' ? (
           <img 
             src={fallbackSrc} 
             alt={`Placeholder for ${alt}`} 
@@ -104,7 +121,9 @@ function renderImage(
   if (typeof imageSrc === 'string') {
     const imgProps = createImageProps(
       imageSrc, alt, className, loading, sizes,
-      width, height, fallbackSrc, fetchPriority
+      width, height, 
+      typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg', 
+      fetchPriority
     );
     
     return <img {...imgProps} onClick={onClick} />;
@@ -118,7 +137,9 @@ function renderImage(
     // Create common image props
     const imgProps = createImageProps(
       imageSrc.desktop, alt, className, loading, sizes,
-      width, height, fallbackSrc, fetchPriority
+      width, height, 
+      typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg',
+      fetchPriority
     );
     
     return (
@@ -136,7 +157,7 @@ function renderImage(
     <div 
       className={`bg-gray-100 flex items-center justify-center ${className}`}
       style={{ 
-        aspectRatio: '16/9',
+        aspectRatio: width && height ? `${width}/${height}` : '16/9',
         width, 
         height 
       }}

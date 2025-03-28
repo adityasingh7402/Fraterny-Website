@@ -1,16 +1,21 @@
-
 // Default placeholder images for development
 export const defaultImagesMap: Record<string, string> = {
   'hero-background': '/images/hero/experience-hero-desktop.webp',
-  'villalab-social': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-mentorship': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-brainstorm': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-group': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-networking': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-candid': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-gourmet': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-workshop': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-evening': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-social': '/images/villalab/social-desktop.webp',
+  'villalab-mentorship': '/images/villalab/mentorship-desktop.webp',
+  'villalab-brainstorm': '/images/villalab/brainstorm-desktop.webp',
+  'villalab-group': '/images/villalab/group-desktop.webp',
+  'villalab-networking': '/images/villalab/networking-desktop.webp',
+  'villalab-candid': '/images/villalab/candid-desktop.webp',
+  'villalab-gourmet': '/images/villalab/gourmet-desktop.webp',
+  'villalab-workshop': '/images/villalab/workshop-desktop.webp',
+  'villalab-evening': '/images/villalab/evening-desktop.webp',
+  'experience-villa-retreat': '/images/experience/villa-retreat-desktop.webp',
+  'experience-workshop': '/images/experience/workshop-desktop.webp',
+  'experience-networking': '/images/experience/networking-desktop.webp',
+  'experience-collaboration': '/images/experience/collaboration-desktop.webp',
+  'experience-evening-session': '/images/experience/evening-session-desktop.webp',
+  'experience-gourmet-dining': '/images/experience/gourmet-dining-desktop.webp',
 };
 
 // Image categories for the UI
