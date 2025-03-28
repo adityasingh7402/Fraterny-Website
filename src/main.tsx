@@ -30,10 +30,10 @@ import Auth from './pages/Auth';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
-// Create a client
+// Create a query client
 const queryClient = new QueryClient();
 
-// Modified to wrap the App component with AuthProvider instead of the entire router
+// Create the router configuration
 const router = createBrowserRouter([
   {
     path: "/",
@@ -119,10 +119,16 @@ const router = createBrowserRouter([
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Create the root element
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+// Render the app with proper provider wrapping
+root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
