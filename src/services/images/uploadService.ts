@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
@@ -18,10 +17,10 @@ export const uploadImage = async (
   try {
     console.log(`Starting upload for image with key: ${key}`);
     
-    // Generate a unique filename
+    // Generate a unique filename with proper sanitization
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name.replace(/\s+/g, '-')}`;
-    // Fix: Don't include the key in the storage path, just use it as a database identifier
+    const sanitizedFilename = sanitizeFilename(file.name);
+    const filename = `${timestamp}-${sanitizedFilename}`;
     const storagePath = filename;
     
     // Get image dimensions if it's an image file
@@ -96,6 +95,33 @@ export const uploadImage = async (
     console.error('Error in upload process:', error);
     return handleApiError(error, 'Error in image upload process', false) as null;
   }
+};
+
+/**
+ * Sanitize a filename to ensure it works with Supabase storage
+ * Remove special characters, spaces, and other problematic characters
+ */
+const sanitizeFilename = (filename: string): string => {
+  // Remove characters that might cause problems in URLs or file paths
+  let sanitized = filename
+    // Replace spaces, commas and special characters with hyphens
+    .replace(/[,\s·]+/g, '-')
+    // Remove all other special characters and keep only alphanumerics, hyphens, and dots
+    .replace(/[^a-zA-Z0-9\-_.]/g, '')
+    // Remove consecutive hyphens
+    .replace(/-+/g, '-')
+    // Trim hyphens from beginning and end
+    .replace(/^-+|-+$/g, '');
+  
+  // Ensure the filename is not too long (max 100 chars)
+  if (sanitized.length > 100) {
+    const extension = sanitized.lastIndexOf('.') > 0 
+      ? sanitized.substring(sanitized.lastIndexOf('.'))
+      : '';
+    sanitized = sanitized.substring(0, 100 - extension.length) + extension;
+  }
+  
+  return sanitized;
 };
 
 /**

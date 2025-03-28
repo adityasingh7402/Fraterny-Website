@@ -97,9 +97,17 @@ const resizeImage = async (
       return null;
     }
     
+    // Create a sanitized path for the optimized version
+    const sanitizedFilename = file.name
+      .replace(/[,\s·]+/g, '-')
+      .replace(/[^a-zA-Z0-9\-_.]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+      
+    const optimizedPath = `optimized/${sizeName}/${sanitizedFilename}`;
+    
     // Upload optimized version
-    const optimizedFile = new File([blob], `${sizeName}-${file.name}`, { type: 'image/jpeg' });
-    const optimizedPath = `optimized/${sizeName}/${file.name.replace(/\s+/g, '-')}`;
+    const optimizedFile = new File([blob], `${sizeName}-${sanitizedFilename}`, { type: 'image/jpeg' });
     
     const { error, data } = await import('@/integrations/supabase/client').then(module => {
       const { supabase } = module;
