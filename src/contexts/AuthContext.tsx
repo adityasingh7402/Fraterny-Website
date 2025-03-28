@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
+// Define admin emails in a separate array for easier management
+const ADMIN_EMAILS = ['admin@example.com']; 
+
 type AuthContextType = {
   user: User | null;
   session: Session | null;
@@ -47,10 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Check if this is an admin user
         if (newSession?.user?.email) {
-          // For this simple implementation, we'll check if the email matches an admin email
-          // In a production app, you would check against a roles table
-          const adminEmails = ['admin@example.com']; // Replace with your admin emails
-          setIsAdmin(adminEmails.includes(newSession.user.email));
+          // Check if user email is in the admin emails list
+          setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
         } else {
           setIsAdmin(false);
         }
@@ -63,8 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Check initial admin status
       if (initialSession?.user?.email) {
-        const adminEmails = ['admin@example.com']; // Replace with your admin emails
-        setIsAdmin(adminEmails.includes(initialSession.user.email));
+        setIsAdmin(ADMIN_EMAILS.includes(initialSession.user.email));
       }
 
       setIsLoading(false);
