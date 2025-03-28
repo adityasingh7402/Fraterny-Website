@@ -34,7 +34,9 @@ export function initPerformanceMonitoring() {
     const fidObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       entries.forEach((entry) => {
-        const fid = entry.processingStart - entry.startTime;
+        // Cast to PerformanceEventTiming to access processingStart
+        const fidEntry = entry as PerformanceEventTiming;
+        const fid = fidEntry.processingStart - fidEntry.startTime;
         const fidGood = fid < FID_THRESHOLD;
         
         console.log(`FID: ${fid.toFixed(1)}ms - ${fidGood ? 'Good ✅' : 'Needs improvement ⚠️'}`);
@@ -48,25 +50,28 @@ export function initPerformanceMonitoring() {
     
     // CLS monitoring
     let clsValue = 0;
-    let clsEntries = [];
+    let clsEntries: LayoutShift[] = [];
     
     const clsObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       
       entries.forEach((entry) => {
+        // Cast to LayoutShift to access hadRecentInput and value
+        const layoutShift = entry as LayoutShift;
+        
         // Only count layout shifts without recent user input
-        if (!entry.hadRecentInput) {
+        if (!layoutShift.hadRecentInput) {
           const firstSessionEntry = clsEntries.length === 0;
-          const timestampDelta = firstSessionEntry ? 0 : entry.startTime - clsEntries[clsEntries.length - 1].startTime;
+          const timestampDelta = firstSessionEntry ? 0 : layoutShift.startTime - clsEntries[clsEntries.length - 1].startTime;
           
           // If entry is within 1 second of the previous entry, add to current session
           if (firstSessionEntry || timestampDelta < 1000) {
-            clsEntries.push(entry);
-            clsValue += entry.value;
+            clsEntries.push(layoutShift);
+            clsValue += layoutShift.value;
           } else {
             // Start a new session
-            clsEntries = [entry];
-            clsValue = entry.value;
+            clsEntries = [layoutShift];
+            clsValue = layoutShift.value;
           }
         }
       });
@@ -139,4 +144,10 @@ export function trackResourceTiming(resourceType: string) {
   } catch (error) {
     console.error('Error tracking resource timing:', error);
   }
+}
+
+// Define missing types from the Performance API
+interface LayoutShift extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
 }
