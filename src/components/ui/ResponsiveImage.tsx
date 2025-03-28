@@ -1,6 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
+import { toast } from 'sonner';
 
 interface ResponsiveImageProps {
   src?: {
@@ -15,6 +15,7 @@ interface ResponsiveImageProps {
   onClick?: () => void;
   dynamicKey?: string; // Key for fetching from Supabase by key
   size?: 'small' | 'medium' | 'large'; // Optional size for optimized images
+  fallbackSrc?: string; // New prop for fallback image
 }
 
 /**
@@ -30,7 +31,8 @@ const ResponsiveImage = ({
   fetchPriority,
   onClick,
   dynamicKey,
-  size
+  size,
+  fallbackSrc = "/placeholder.svg"
 }: ResponsiveImageProps) => {
   const [dynamicSrc, setDynamicSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(!!dynamicKey);
@@ -38,31 +40,38 @@ const ResponsiveImage = ({
   
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
-    if (dynamicKey) {
-      setIsLoading(true);
-      setError(false);
-      
-      const fetchImage = async () => {
-        try {
-          // If size is specified, try to get that specific size
-          if (size) {
-            const url = await getImageUrlByKeyAndSize(dynamicKey, size);
-            setDynamicSrc(url);
-          } else {
-            // Otherwise get the original image
-            const url = await getImageUrlByKey(dynamicKey);
-            setDynamicSrc(url);
-          }
-        } catch (error) {
-          console.error(`Failed to load image with key ${dynamicKey}:`, error);
-          setError(true);
-        } finally {
-          setIsLoading(false);
+    if (!dynamicKey) return;
+    
+    setIsLoading(true);
+    setError(false);
+    
+    const fetchImage = async () => {
+      try {
+        // If size is specified, try to get that specific size
+        if (size) {
+          const url = await getImageUrlByKeyAndSize(dynamicKey, size);
+          setDynamicSrc(url);
+        } else {
+          // Otherwise get the original image
+          const url = await getImageUrlByKey(dynamicKey);
+          setDynamicSrc(url);
         }
-      };
-      
-      fetchImage();
-    }
+      } catch (error) {
+        console.error(`Failed to load image with key ${dynamicKey}:`, error);
+        setError(true);
+        // Don't show toast for development placeholder images
+        if (!dynamicKey.startsWith('villalab-') && !dynamicKey.startsWith('hero-')) {
+          toast.error(`Failed to load image: ${dynamicKey}`, {
+            description: "Please check if this image exists in your storage.",
+            duration: 3000,
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchImage();
   }, [dynamicKey, size]);
   
   // If we're still loading a dynamic image, show a loading placeholder
@@ -83,9 +92,17 @@ const ResponsiveImage = ({
         className={`bg-gray-100 flex items-center justify-center ${className}`}
         style={{ aspectRatio: '16/9' }}
       >
-        <div className="text-gray-400 text-sm text-center p-4">
-          Image not found
-        </div>
+        {fallbackSrc ? (
+          <img 
+            src={fallbackSrc} 
+            alt={`Placeholder for ${alt}`} 
+            className="max-h-full max-w-full p-4 opacity-30"
+          />
+        ) : (
+          <div className="text-gray-400 text-sm text-center p-4">
+            Image not found
+          </div>
+        )}
       </div>
     );
   }
@@ -104,7 +121,7 @@ const ResponsiveImage = ({
       decoding: "async",
       onError: (e) => {
         console.warn(`Failed to load image: ${e.currentTarget.src}`);
-        e.currentTarget.src = "/placeholder.svg";
+        e.currentTarget.src = fallbackSrc;
       }
     };
     
@@ -121,7 +138,7 @@ const ResponsiveImage = ({
   // Handle image loading error
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.warn(`Failed to load image: ${e.currentTarget.src}`);
-    e.currentTarget.src = "/placeholder.svg";
+    e.currentTarget.src = fallbackSrc;
   };
   
   // Create a props object for the img element and conditionally add fetchPriority

@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
@@ -39,8 +40,8 @@ const Navigation = () => {
 
   const iconColor = useMemo(() => isScrolled ? '#0A1A2F' : '#FFFFFF', [isScrolled]);
 
-  const navClasses = useMemo(() => `fixed top-0 left-0 right-0 z-50 transition-transform duration-200 ease-out ${
-    isScrolled ? 'glass shadow-lg' : ''
+  const navClasses = useMemo(() => `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+    isScrolled ? 'glass shadow-lg py-2' : 'py-4'
   }`, [isScrolled]);
 
   const toggleMenu = useCallback(() => {
@@ -52,13 +53,17 @@ const Navigation = () => {
   }, []);
 
   const handleSignOut = useCallback(async () => {
-    await signOut();
-    setIsUserMenuOpen(false);
+    try {
+      await signOut();
+      setIsUserMenuOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   }, [signOut]);
 
   return (
     <nav className={navClasses}>
-      <div className="container mx-auto px-4 sm:px-6 py-4">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between">
           <a href="/" className="transition-opacity duration-200 ease-out">
             {isPastHero ? (
@@ -81,6 +86,11 @@ const Navigation = () => {
           </a>
 
           <div className="hidden md:flex items-center space-x-8">
+            {/* Home icon link */}
+            <a href="/" className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
+              <Home size={20} />
+            </a>
+            
             {navLinks.map(link => (
               <a key={link.name} href={link.href} className={`${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}>
                 {link.name}
@@ -92,14 +102,31 @@ const Navigation = () => {
                 <button 
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 focus:outline-none"
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="true"
                 >
                   <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
-                    <User size={18} />
+                    {user.user_metadata?.first_name ? (
+                      <span className="text-white font-medium">
+                        {user.user_metadata.first_name.charAt(0)}
+                      </span>
+                    ) : (
+                      <User size={18} />
+                    )}
                   </div>
                 </button>
                 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user.email}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {isAdmin ? 'Administrator' : 'User'}
+                      </p>
+                    </div>
+                    
                     {isAdmin && adminLinks.map(link => (
                       <a 
                         key={link.name} 
@@ -143,6 +170,7 @@ const Navigation = () => {
             className={`md:hidden ${isScrolled ? 'text-navy' : 'text-white'}`}
             onClick={toggleMenu}
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X size={24} color={iconColor} /> : <Menu size={24} color={iconColor} />}
           </button>
@@ -150,6 +178,16 @@ const Navigation = () => {
 
         {isMenuOpen && (
           <div className="md:hidden py-4 space-y-4 backdrop-blur-md bg-black bg-opacity-20 rounded-lg mt-2 px-4">
+            {/* Home link in mobile menu */}
+            <a
+              href="/"
+              className={`flex items-center text-sm font-medium ${isScrolled ? 'text-navy' : 'text-white'} hover:text-terracotta transition-colors duration-200`}
+              onClick={toggleMenu}
+            >
+              <Home size={18} className="mr-2" />
+              Home
+            </a>
+            
             {navLinks.map(link => (
               <a
                 key={link.name}

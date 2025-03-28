@@ -7,6 +7,20 @@ import { handleApiError } from '@/utils/errorHandling';
 const urlCache = new Map<string, {url: string, timestamp: number}>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+// Default placeholder images for development
+const DEFAULT_IMAGES: Record<string, string> = {
+  'hero-background': '/images/hero/experience-hero-desktop.webp',
+  'villalab-social': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-mentorship': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-brainstorm': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-group': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-networking': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-candid': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-gourmet': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-workshop': '/images/hero/luxury-villa-desktop.webp',
+  'villalab-evening': '/images/hero/luxury-villa-desktop.webp',
+};
+
 /**
  * Get the URL of an image by its key with caching
  * @param key Unique key to identify the image
@@ -18,8 +32,15 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       throw new Error('Image key is required');
     }
 
+    // Check if we have a default image for development
+    if (DEFAULT_IMAGES[key]) {
+      console.log(`Using default image for key: ${key}`);
+      return DEFAULT_IMAGES[key];
+    }
+
     // Check cache first
-    const cached = urlCache.get(`key:${key}`);
+    const cacheKey = `key:${key}`;
+    const cached = urlCache.get(cacheKey);
     if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
       console.log(`Cache hit for image key: ${key}`);
       return cached.url;
@@ -33,11 +54,15 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .single();
     
     if (error) {
-      throw new Error(`Image with key "${key}" not found: ${error.message}`);
+      console.warn(`Image with key "${key}" not found: ${error.message}`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     if (!data) {
-      throw new Error(`Image with key "${key}" not found`);
+      console.warn(`Image with key "${key}" not found`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     const imageRecord = data as WebsiteImage;
@@ -48,18 +73,22 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .getPublicUrl(imageRecord.storage_path);
     
     if (!urlData.publicUrl) {
-      throw new Error(`Failed to get public URL for image with key "${key}"`);
+      console.warn(`Failed to get public URL for image with key "${key}"`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     // Cache the result
-    urlCache.set(`key:${key}`, {
+    urlCache.set(cacheKey, {
       url: urlData.publicUrl,
       timestamp: Date.now()
     });
     
     return urlData.publicUrl;
   } catch (error) {
-    return handleApiError(error, `Failed to get image with key "${key}"`, true).message;
+    console.error(`Failed to get image with key "${key}"`, error);
+    // Return placeholder image instead of throwing error
+    return '/placeholder.svg';
   }
 };
 
@@ -78,6 +107,12 @@ export const getImageUrlByKeyAndSize = async (
       throw new Error('Image key is required');
     }
 
+    // Check if we have a default image for development
+    if (DEFAULT_IMAGES[key]) {
+      console.log(`Using default image for key: ${key} and size: ${size}`);
+      return DEFAULT_IMAGES[key];
+    }
+
     // Check cache first
     const cacheKey = `key:${key}:size:${size}`;
     const cached = urlCache.get(cacheKey);
@@ -94,11 +129,15 @@ export const getImageUrlByKeyAndSize = async (
       .single();
     
     if (error) {
-      throw new Error(`Image with key "${key}" not found: ${error.message}`);
+      console.warn(`Image with key "${key}" not found: ${error.message}`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     if (!data) {
-      throw new Error(`Image with key "${key}" not found`);
+      console.warn(`Image with key "${key}" not found`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     const imageRecord = data as WebsiteImage;
@@ -131,7 +170,9 @@ export const getImageUrlByKeyAndSize = async (
       .getPublicUrl(imageRecord.storage_path);
     
     if (!urlData.publicUrl) {
-      throw new Error(`Failed to get public URL for image with key "${key}"`);
+      console.warn(`Failed to get public URL for image with key "${key}"`);
+      // Return placeholder image
+      return '/placeholder.svg';
     }
     
     // Cache the result
@@ -142,7 +183,9 @@ export const getImageUrlByKeyAndSize = async (
     
     return urlData.publicUrl;
   } catch (error) {
-    return handleApiError(error, `Failed to get image with key "${key}" and size ${size}`, true).message;
+    console.error(`Failed to get image with key "${key}" and size ${size}`, error);
+    // Return placeholder image instead of throwing error
+    return '/placeholder.svg';
   }
 };
 
