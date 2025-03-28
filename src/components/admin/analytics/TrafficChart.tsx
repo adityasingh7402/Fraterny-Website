@@ -15,10 +15,15 @@ import {
   Legend 
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrafficDataPoint } from '@/services/analyticsService';
 
 interface TrafficChartProps {
-  data: TrafficDataPoint[];
+  data: Array<{
+    name: string;
+    visits: number;
+    signups: number;
+    conversion?: number;
+    [key: string]: string | number | undefined;
+  }>;
   title: string;
 }
 
