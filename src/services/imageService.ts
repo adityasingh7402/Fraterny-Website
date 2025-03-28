@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 export interface WebsiteImage {
   id: string;
@@ -7,7 +8,7 @@ export interface WebsiteImage {
   storage_path: string;
   alt_text: string;
   category: string | null;
-  sizes: Record<string, string> | null;
+  sizes: Record<string, string> | Json | null;
   width: number | null;
   height: number | null;
   created_at: string;
