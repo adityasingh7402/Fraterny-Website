@@ -1,42 +1,56 @@
 
-import { ImageIcon, Upload } from 'lucide-react';
+import { PlusCircle, FilterX } from 'lucide-react';
 
 interface EmptyStateProps {
   selectedCategory: string | null;
+  searchTerm?: string;
   onClearFilter: () => void;
   onUploadClick: () => void;
 }
 
-const EmptyState = ({ selectedCategory, onClearFilter, onUploadClick }: EmptyStateProps) => {
+const EmptyState = ({ selectedCategory, searchTerm, onClearFilter, onUploadClick }: EmptyStateProps) => {
+  const isFiltered = selectedCategory !== null || (searchTerm && searchTerm.length > 0);
+  
   return (
-    <div className="p-12 text-center">
-      <ImageIcon className="w-12 h-12 mx-auto text-gray-400" />
-      <h3 className="mt-4 text-lg font-medium text-gray-900">
-        {selectedCategory ? 'No images in this category' : 'No images yet'}
-      </h3>
-      <p className="mt-1 text-gray-500">
-        {selectedCategory ? (
-          <>
-            No images found in the "{selectedCategory}" category.
-            <button 
-              onClick={onClearFilter}
-              className="ml-2 text-navy hover:underline"
-            >
-              View all images
-            </button>
-          </>
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+      <div className="bg-gray-100 rounded-full p-3 mb-4">
+        {isFiltered ? (
+          <FilterX className="h-8 w-8 text-gray-500" />
         ) : (
-          'Get started by adding your first image.'
+          <PlusCircle className="h-8 w-8 text-gray-500" />
         )}
-      </p>
-      {!selectedCategory && (
-        <button
-          onClick={onUploadClick}
-          className="mt-6 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors inline-flex items-center gap-2"
-        >
-          <Upload className="w-4 h-4" />
-          Upload Image
-        </button>
+      </div>
+      
+      {isFiltered ? (
+        <>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No images found</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            {selectedCategory && searchTerm 
+              ? `No images found in category "${selectedCategory}" matching "${searchTerm}"`
+              : selectedCategory 
+                ? `No images found in category "${selectedCategory}"`
+                : `No images found matching "${searchTerm}"`}
+          </p>
+          <button
+            onClick={onClearFilter}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <FilterX className="mr-2 h-4 w-4" />
+            Clear filters
+          </button>
+        </>
+      ) : (
+        <>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No images yet</h3>
+          <p className="text-sm text-gray-500 mb-6">Upload your first image to get started</p>
+          <button
+            onClick={onUploadClick}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-navy hover:bg-navy-dark"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Upload image
+          </button>
+        </>
       )}
     </div>
   );

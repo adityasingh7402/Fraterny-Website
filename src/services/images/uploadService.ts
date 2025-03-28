@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
+import { handleApiError } from "@/utils/errorHandling";
 
 /**
  * Get image dimensions from a File
@@ -14,6 +15,83 @@ const getImageDimensions = (file: File): Promise<{width: number, height: number}
     };
     img.src = URL.createObjectURL(file);
   });
+};
+
+/**
+ * Create optimized versions of an image
+ */
+const createOptimizedVersions = async (
+  file: File,
+  originalPath: string
+): Promise<Record<string, string>> => {
+  if (!file.type.startsWith('image/')) {
+    return {};
+  }
+
+  try {
+    const sizes: Record<string, string> = {};
+    const sizeConfigs = [
+      { name: 'small', maxWidth: 400 },
+      { name: 'medium', maxWidth: 800 },
+      { name: 'large', maxWidth: 1200 }
+    ];
+
+    // For images under threshold size, create optimized versions
+    // In a production setup, you would use a proper image processing library
+    // This is a simplified example - in a real app, use a proper image service
+    if (file.size < 5 * 1024 * 1024) { // Only process files under 5MB
+      for (const config of sizeConfigs) {
+        const canvas = document.createElement('canvas');
+        const img = new Image();
+        
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            // Calculate dimensions maintaining aspect ratio
+            const aspectRatio = img.width / img.height;
+            const width = Math.min(img.width, config.maxWidth);
+            const height = width / aspectRatio;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw resized image to canvas
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+            }
+            
+            resolve();
+          };
+          img.src = URL.createObjectURL(file);
+        });
+        
+        // Convert canvas to blob with quality adjustment based on size
+        const quality = config.name === 'small' ? 0.7 : 0.85;
+        const blob = await new Promise<Blob | null>(resolve => {
+          canvas.toBlob(resolve, 'image/jpeg', quality);
+        });
+        
+        if (blob) {
+          // Upload optimized version
+          const optimizedFile = new File([blob], `${config.name}-${file.name}`, { type: 'image/jpeg' });
+          const optimizedPath = `${originalPath.split('/')[0]}/optimized/${config.name}/${file.name.replace(/\s+/g, '-')}`;
+          
+          const { error } = await supabase.storage
+            .from('website-images')
+            .upload(optimizedPath, optimizedFile);
+            
+          if (!error) {
+            sizes[config.name] = optimizedPath;
+          }
+        }
+      }
+    }
+    
+    return sizes;
+  } catch (error) {
+    console.error('Error creating optimized versions:', error);
+    return {};
+  }
 };
 
 /**
@@ -48,9 +126,11 @@ export const uploadImage = async (
       .upload(storagePath, file);
     
     if (uploadError) {
-      console.error('Error uploading image:', uploadError);
-      return null;
+      return handleApiError(uploadError, 'Error uploading image', false) as null;
     }
+    
+    // Create optimized versions if it's an image
+    const optimizedSizes = await createOptimizedVersions(file, storagePath);
     
     // Get the public URL for the uploaded file
     const { data: { publicUrl } } = supabase.storage
@@ -67,21 +147,26 @@ export const uploadImage = async (
         alt_text,
         category: category || null,
         width: dimensions.width,
-        height: dimensions.height
+        height: dimensions.height,
+        sizes: optimizedSizes
       })
       .select()
       .single();
     
     if (insertError) {
-      console.error('Error creating image record:', insertError);
       // Clean up the uploaded file if we couldn't create the record
       await supabase.storage.from('website-images').remove([storagePath]);
-      return null;
+      
+      // Also clean up any optimized versions
+      Object.values(optimizedSizes).forEach(async (path) => {
+        await supabase.storage.from('website-images').remove([path]);
+      });
+      
+      return handleApiError(insertError, 'Error creating image record', false) as null;
     }
     
     return data;
   } catch (error) {
-    console.error('Error in image upload process:', error);
-    return null;
+    return handleApiError(error, 'Error in image upload process', false) as null;
   }
 };
