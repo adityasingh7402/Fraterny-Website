@@ -1,27 +1,7 @@
-
 import { WebsiteImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
 import { Edit, Trash2, Link } from 'lucide-react';
-
-// Map of image keys to their usage locations on the website
-const IMAGE_USAGE_MAP: Record<string, string> = {
-  'hero-background': 'Main Hero Section',
-  'villalab-social': 'Villa Lab - Social Events',
-  'villalab-mentorship': 'Villa Lab - Mentorship',
-  'villalab-brainstorm': 'Villa Lab - Brainstorming',
-  'villalab-group': 'Villa Lab - Group Activities',
-  'villalab-networking': 'Villa Lab - Networking',
-  'villalab-candid': 'Villa Lab - Candid Interactions',
-  'villalab-gourmet': 'Villa Lab - Gourmet Meals',
-  'villalab-workshop': 'Villa Lab - Workshops',
-  'villalab-evening': 'Villa Lab - Evening Sessions',
-  'experience-villa-retreat': 'Experience Page - Villa Retreat',
-  'experience-workshop': 'Experience Page - Workshop',
-  'experience-networking': 'Experience Page - Networking',
-  'experience-collaboration': 'Experience Page - Collaboration',
-  'experience-evening-session': 'Experience Page - Evening Session',
-  'experience-gourmet-dining': 'Experience Page - Gourmet Dining'
-};
+import { IMAGE_USAGE_MAP } from '@/services/images/constants';
 
 interface ImageGalleryProps {
   images: WebsiteImage[];
@@ -57,7 +37,6 @@ const ImageGallery = ({ images, onEdit, onDelete }: ImageGalleryProps) => {
                 className="w-full h-full object-cover"
               />
               
-              {/* Tag for website images */}
               {isWebsiteImage && (
                 <div className="absolute top-2 right-2 bg-navy text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                   <Link className="w-3 h-3" />
@@ -75,7 +54,6 @@ const ImageGallery = ({ images, onEdit, onDelete }: ImageGalleryProps) => {
                 )}
               </div>
               
-              {/* Show usage location if this is a website image */}
               {isWebsiteImage && (
                 <div className="mb-2 bg-navy bg-opacity-5 px-2 py-1 rounded text-xs text-navy">
                   Used in: {IMAGE_USAGE_MAP[image.key]}

@@ -1,42 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { X, Check, Info } from 'lucide-react';
 import { updateImage, WebsiteImage, getImageUrlByKey } from '@/services/images';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
-
-// Available image categories
-const IMAGE_CATEGORIES = [
-  'Hero',
-  'Background',
-  'Banner',
-  'Icon',
-  'Profile',
-  'Thumbnail',
-  'Gallery',
-  'Product'
-];
-
-// Map of image keys to their usage locations on the website
-const IMAGE_USAGE_MAP: Record<string, string> = {
-  'hero-background': 'Main Hero Section - Homepage',
-  'villalab-social': 'Villa Lab Section - Social Events',
-  'villalab-mentorship': 'Villa Lab Section - Mentorship',
-  'villalab-brainstorm': 'Villa Lab Section - Brainstorming',
-  'villalab-group': 'Villa Lab Section - Group Activities',
-  'villalab-networking': 'Villa Lab Section - Networking',
-  'villalab-candid': 'Villa Lab Section - Candid Interactions',
-  'villalab-gourmet': 'Villa Lab Section - Gourmet Meals',
-  'villalab-workshop': 'Villa Lab Section - Workshops',
-  'villalab-evening': 'Villa Lab Section - Evening Sessions',
-  'experience-villa-retreat': 'Experience Page - Villa Retreat',
-  'experience-workshop': 'Experience Page - Workshop',
-  'experience-networking': 'Experience Page - Networking',
-  'experience-collaboration': 'Experience Page - Collaboration',
-  'experience-evening-session': 'Experience Page - Evening Session',
-  'experience-gourmet-dining': 'Experience Page - Gourmet Dining'
-};
+import { IMAGE_CATEGORIES, IMAGE_USAGE_MAP } from '@/services/images/constants';
 
 interface EditModalProps {
   isOpen: boolean;
@@ -48,7 +16,6 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   const queryClient = useQueryClient();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  // Form state for edit
   const [editForm, setEditForm] = useState({
     key: image.key,
     description: image.description,
@@ -56,7 +23,6 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
     category: image.category || ''
   });
   
-  // Get image preview URL
   useEffect(() => {
     if (isOpen) {
       const fetchImageUrl = async () => {
@@ -72,10 +38,8 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
     }
   }, [isOpen, image.key]);
   
-  // Get usage information for this image
   const usageLocation = IMAGE_USAGE_MAP[image.key] || 'Custom image (not tied to a specific website section)';
   
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: { id: string, updates: Partial<WebsiteImage> }) => 
       updateImage(data.id, data.updates),
@@ -120,7 +84,6 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
         </div>
         
         <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
-          {/* Image Preview */}
           {previewUrl && (
             <div className="border rounded-lg overflow-hidden">
               <img 
@@ -131,7 +94,6 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
             </div>
           )}
           
-          {/* Usage Information */}
           <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
             <div>

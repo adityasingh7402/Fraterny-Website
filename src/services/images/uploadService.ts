@@ -3,97 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { invalidateImageCache } from "./fetchService";
-
-/**
- * Get image dimensions from a File
- */
-const getImageDimensions = (file: File): Promise<{width: number, height: number}> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(img.src); // Clean up
-      resolve({ width: img.width, height: img.height });
-    };
-    img.src = URL.createObjectURL(file);
-  });
-};
-
-/**
- * Create optimized versions of an image
- */
-const createOptimizedVersions = async (
-  file: File,
-  originalPath: string
-): Promise<Record<string, string>> => {
-  if (!file.type.startsWith('image/')) {
-    return {};
-  }
-
-  try {
-    const sizes: Record<string, string> = {};
-    const sizeConfigs = [
-      { name: 'small', maxWidth: 400 },
-      { name: 'medium', maxWidth: 800 },
-      { name: 'large', maxWidth: 1200 }
-    ];
-
-    // For images under threshold size, create optimized versions
-    // In a production setup, you would use a proper image processing library
-    // This is a simplified example - in a real app, use a proper image service
-    if (file.size < 5 * 1024 * 1024) { // Only process files under 5MB
-      for (const config of sizeConfigs) {
-        const canvas = document.createElement('canvas');
-        const img = new Image();
-        
-        await new Promise<void>((resolve) => {
-          img.onload = () => {
-            // Calculate dimensions maintaining aspect ratio
-            const aspectRatio = img.width / img.height;
-            const width = Math.min(img.width, config.maxWidth);
-            const height = width / aspectRatio;
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Draw resized image to canvas
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-            }
-            
-            resolve();
-          };
-          img.src = URL.createObjectURL(file);
-        });
-        
-        // Convert canvas to blob with quality adjustment based on size
-        const quality = config.name === 'small' ? 0.7 : 0.85;
-        const blob = await new Promise<Blob | null>(resolve => {
-          canvas.toBlob(resolve, 'image/jpeg', quality);
-        });
-        
-        if (blob) {
-          // Upload optimized version
-          const optimizedFile = new File([blob], `${config.name}-${file.name}`, { type: 'image/jpeg' });
-          const optimizedPath = `optimized/${config.name}/${file.name.replace(/\s+/g, '-')}`;
-          
-          const { error } = await supabase.storage
-            .from('website-images')
-            .upload(optimizedPath, optimizedFile);
-            
-          if (!error) {
-            sizes[config.name] = optimizedPath;
-          }
-        }
-      }
-    }
-    
-    return sizes;
-  } catch (error) {
-    console.error('Error creating optimized versions:', error);
-    return {};
-  }
-};
+import { getImageDimensions, createOptimizedVersions } from "./utils/imageProcessing";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
@@ -135,24 +45,7 @@ export const uploadImage = async (
       
     if (existingImage) {
       console.log(`Found existing image with key: ${key}, will replace it`);
-      
-      // Remove the existing file from storage
-      if (existingImage.storage_path) {
-        await supabase.storage.from('website-images').remove([existingImage.storage_path]);
-        
-        // Also remove any optimized versions
-        if (existingImage.sizes && typeof existingImage.sizes === 'object') {
-          const sizes = existingImage.sizes as Record<string, string>;
-          await Promise.all(
-            Object.values(sizes).map(path => 
-              supabase.storage.from('website-images').remove([path])
-            )
-          );
-        }
-      }
-      
-      // Delete the existing record
-      await supabase.from('website_images').delete().eq('id', existingImage.id);
+      await removeExistingImage(existingImage);
     }
     
     // Upload the file to storage
@@ -174,39 +67,22 @@ export const uploadImage = async (
     const optimizedSizes = await createOptimizedVersions(file, storagePath);
     console.log('Optimized sizes:', optimizedSizes);
     
-    // Get the public URL for the uploaded file
-    const { data: { publicUrl } } = supabase.storage
-      .from('website-images')
-      .getPublicUrl(storagePath);
-    
-    console.log(`Public URL: ${publicUrl}`);
-    
     // Create an entry in the website_images table
-    const { data, error: insertError } = await supabase
-      .from('website_images')
-      .insert({
-        key,
-        description,
-        storage_path: storagePath,
-        alt_text,
-        category: category || null,
-        width: dimensions.width,
-        height: dimensions.height,
-        sizes: optimizedSizes
-      })
-      .select()
-      .single();
+    const { data, error: insertError } = await createImageRecord(
+      key, 
+      description, 
+      storagePath, 
+      alt_text, 
+      category, 
+      dimensions, 
+      optimizedSizes
+    );
     
     if (insertError) {
       console.error('Insert error:', insertError);
       
       // Clean up the uploaded file if we couldn't create the record
-      await supabase.storage.from('website-images').remove([storagePath]);
-      
-      // Also clean up any optimized versions
-      Object.values(optimizedSizes).forEach(async (path) => {
-        await supabase.storage.from('website-images').remove([path]);
-      });
+      await cleanupUploadedFiles(storagePath, optimizedSizes);
       
       return handleApiError(insertError, 'Error creating image record', false) as null;
     }
@@ -219,5 +95,83 @@ export const uploadImage = async (
   } catch (error) {
     console.error('Error in upload process:', error);
     return handleApiError(error, 'Error in image upload process', false) as null;
+  }
+};
+
+/**
+ * Remove an existing image and its optimized versions
+ */
+const removeExistingImage = async (existingImage: WebsiteImage): Promise<void> => {
+  try {
+    // Remove the existing file from storage
+    if (existingImage.storage_path) {
+      await supabase.storage.from('website-images').remove([existingImage.storage_path]);
+      
+      // Also remove any optimized versions
+      if (existingImage.sizes && typeof existingImage.sizes === 'object') {
+        const sizes = existingImage.sizes as Record<string, string>;
+        await Promise.all(
+          Object.values(sizes).map(path => 
+            supabase.storage.from('website-images').remove([path])
+          )
+        );
+      }
+    }
+    
+    // Delete the existing record
+    await supabase.from('website_images').delete().eq('id', existingImage.id);
+  } catch (error) {
+    console.error('Error removing existing image:', error);
+    // Continue with the upload process even if cleanup fails
+  }
+};
+
+/**
+ * Create a new image record in the database
+ */
+const createImageRecord = async (
+  key: string,
+  description: string,
+  storagePath: string,
+  altText: string,
+  category: string | undefined,
+  dimensions: { width: number | null, height: number | null },
+  optimizedSizes: Record<string, string>
+) => {
+  return await supabase
+    .from('website_images')
+    .insert({
+      key,
+      description,
+      storage_path: storagePath,
+      alt_text: altText,
+      category: category || null,
+      width: dimensions.width,
+      height: dimensions.height,
+      sizes: optimizedSizes
+    })
+    .select()
+    .single();
+};
+
+/**
+ * Clean up uploaded files if record creation fails
+ */
+const cleanupUploadedFiles = async (
+  storagePath: string,
+  optimizedSizes: Record<string, string>
+): Promise<void> => {
+  try {
+    // Clean up the uploaded file if we couldn't create the record
+    await supabase.storage.from('website-images').remove([storagePath]);
+    
+    // Also clean up any optimized versions
+    await Promise.all(
+      Object.values(optimizedSizes).map(path => 
+        supabase.storage.from('website-images').remove([path])
+      )
+    );
+  } catch (error) {
+    console.error('Error cleaning up uploaded files:', error);
   }
 };

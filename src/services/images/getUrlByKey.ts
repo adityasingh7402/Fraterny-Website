@@ -1,25 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { WebsiteImage } from './types';
-import { handleApiError } from '@/utils/errorHandling';
-
-// Simple in-memory cache for image URLs
-const urlCache = new Map<string, {url: string, timestamp: number}>();
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds (reduced from 5 minutes for faster updates)
-
-// Default placeholder images for development
-const DEFAULT_IMAGES: Record<string, string> = {
-  'hero-background': '/images/hero/experience-hero-desktop.webp',
-  'villalab-social': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-mentorship': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-brainstorm': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-group': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-networking': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-candid': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-gourmet': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-workshop': '/images/hero/luxury-villa-desktop.webp',
-  'villalab-evening': '/images/hero/luxury-villa-desktop.webp',
-};
+import { urlCache } from './cacheService';
+import { fetchImageByKey } from './fetchService';
+import { defaultImagesMap } from './constants';
 
 /**
  * Get the URL of an image by its key with caching
@@ -37,39 +21,27 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       console.log('Production environment detected, skipping default images');
     }
     // For other environments, use defaults if available
-    else if (DEFAULT_IMAGES[key]) {
+    else if (defaultImagesMap[key]) {
       console.log(`Using default image for key: ${key}`);
-      return DEFAULT_IMAGES[key];
+      return defaultImagesMap[key];
     }
 
     // Check cache first
     const cacheKey = `key:${key}`;
     const cached = urlCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+    if (cached) {
       console.log(`Cache hit for image key: ${key}`);
-      return cached.url;
+      return cached;
     }
     
     // Fetch the image record from the database
-    const { data, error } = await supabase
-      .from('website_images')
-      .select('*')
-      .eq('key', key)
-      .single();
+    const imageRecord = await fetchImageByKey(key);
     
-    if (error) {
-      console.warn(`Image with key "${key}" not found: ${error.message}`);
-      // Return placeholder image
-      return '/placeholder.svg';
-    }
-    
-    if (!data) {
+    if (!imageRecord) {
       console.warn(`Image with key "${key}" not found`);
       // Return placeholder image
       return '/placeholder.svg';
     }
-    
-    const imageRecord = data as WebsiteImage;
     
     // Get the public URL from storage
     const { data: urlData } = supabase.storage
@@ -83,10 +55,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     }
     
     // Cache the result
-    urlCache.set(cacheKey, {
-      url: urlData.publicUrl,
-      timestamp: Date.now()
-    });
+    urlCache.set(cacheKey, urlData.publicUrl);
     
     // Add console log for debugging
     console.log(`Retrieved image URL for key "${key}":`, urlData.publicUrl);
@@ -119,39 +88,27 @@ export const getImageUrlByKeyAndSize = async (
       console.log('Production environment detected, skipping default images');
     }
     // For other environments, use defaults if available
-    else if (DEFAULT_IMAGES[key]) {
+    else if (defaultImagesMap[key]) {
       console.log(`Using default image for key: ${key} and size: ${size}`);
-      return DEFAULT_IMAGES[key];
+      return defaultImagesMap[key];
     }
 
     // Check cache first
     const cacheKey = `key:${key}:size:${size}`;
     const cached = urlCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+    if (cached) {
       console.log(`Cache hit for image key: ${key}, size: ${size}`);
-      return cached.url;
+      return cached;
     }
     
     // Fetch the image record from the database
-    const { data, error } = await supabase
-      .from('website_images')
-      .select('*')
-      .eq('key', key)
-      .single();
+    const imageRecord = await fetchImageByKey(key);
     
-    if (error) {
-      console.warn(`Image with key "${key}" not found: ${error.message}`);
-      // Return placeholder image
-      return '/placeholder.svg';
-    }
-    
-    if (!data) {
+    if (!imageRecord) {
       console.warn(`Image with key "${key}" not found`);
       // Return placeholder image
       return '/placeholder.svg';
     }
-    
-    const imageRecord = data as WebsiteImage;
     
     // Check if the requested size exists
     if (imageRecord.sizes && typeof imageRecord.sizes === 'object') {
@@ -165,10 +122,7 @@ export const getImageUrlByKeyAndSize = async (
         
         if (urlData.publicUrl) {
           // Cache the result
-          urlCache.set(cacheKey, {
-            url: urlData.publicUrl,
-            timestamp: Date.now()
-          });
+          urlCache.set(cacheKey, urlData.publicUrl);
           
           return urlData.publicUrl;
         }
@@ -187,10 +141,7 @@ export const getImageUrlByKeyAndSize = async (
     }
     
     // Cache the result
-    urlCache.set(cacheKey, {
-      url: urlData.publicUrl,
-      timestamp: Date.now()
-    });
+    urlCache.set(cacheKey, urlData.publicUrl);
     
     return urlData.publicUrl;
   } catch (error) {
@@ -200,19 +151,19 @@ export const getImageUrlByKeyAndSize = async (
   }
 };
 
-// Function to clear the cache if needed
+/**
+ * Clear the URL cache
+ */
 export const clearImageUrlCache = (): void => {
   urlCache.clear();
   console.log('Image URL cache cleared');
 };
 
-// Function to clear the cache for a specific key
+/**
+ * Clear the URL cache for a specific key
+ */
 export const clearImageUrlCacheForKey = (key: string): void => {
   // Clear all entries related to this key (including sized versions)
-  for (const cacheKey of urlCache.keys()) {
-    if (cacheKey.startsWith(`key:${key}`)) {
-      urlCache.delete(cacheKey);
-    }
-  }
+  urlCache.invalidate(`key:${key}`);
   console.log(`Image URL cache cleared for key: ${key}`);
 };
