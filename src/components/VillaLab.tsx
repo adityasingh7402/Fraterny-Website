@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 
 const VillaLab = () => {
-  // Updated to use dynamic image keys where applicable
+  // Updated to use dynamic image keys and include width/height for CLS optimization
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
@@ -13,7 +13,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/workshop-mobile.webp",
         desktop: "/images/villalab/workshop-desktop.webp"
       },
-      alt: "Interactive workshop session" 
+      alt: "Interactive workshop session",
+      width: 600,
+      height: 600
     },
     { 
       title: "Gourmet Meals", 
@@ -22,7 +24,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/gourmet-mobile.webp",
         desktop: "/images/villalab/gourmet-desktop.webp"
       },
-      alt: "Premium dining experience" 
+      alt: "Premium dining experience",
+      width: 600,
+      height: 600
     },
     { 
       title: "Group Activities", 
@@ -31,7 +35,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/group-mobile.webp",
         desktop: "/images/villalab/group-desktop.webp"
       },
-      alt: "Team-building activity in progress" 
+      alt: "Team-building activity in progress",
+      width: 600,
+      height: 600
     },
     { 
       title: "Candid Interactions", 
@@ -40,7 +46,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/candid-mobile.webp",
         desktop: "/images/villalab/candid-desktop.webp"
       },
-      alt: "Natural conversation between participants" 
+      alt: "Natural conversation between participants",
+      width: 600,
+      height: 600
     },
     { 
       title: "Networking", 
@@ -49,7 +57,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/networking-mobile.webp",
         desktop: "/images/villalab/networking-desktop.webp"
       },
-      alt: "Professional connections being formed" 
+      alt: "Professional connections being formed",
+      width: 600,
+      height: 600
     },
     { 
       title: "Evening Sessions", 
@@ -58,7 +68,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/evening-mobile.webp",
         desktop: "/images/villalab/evening-desktop.webp"
       },
-      alt: "Deep discussions in evening setting" 
+      alt: "Deep discussions in evening setting",
+      width: 600,
+      height: 600
     },
     { 
       title: "Brainstorming", 
@@ -67,7 +79,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/brainstorm-mobile.webp",
         desktop: "/images/villalab/brainstorm-desktop.webp"
       },
-      alt: "Collaborative ideation session" 
+      alt: "Collaborative ideation session",
+      width: 600,
+      height: 600
     },
     { 
       title: "Mentorship", 
@@ -76,7 +90,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/mentorship-mobile.webp",
         desktop: "/images/villalab/mentorship-desktop.webp"
       },
-      alt: "One-on-one guidance session" 
+      alt: "One-on-one guidance session",
+      width: 600,
+      height: 600
     },
     { 
       title: "Social Events", 
@@ -85,7 +101,9 @@ const VillaLab = () => {
         mobile: "/images/villalab/social-mobile.webp",
         desktop: "/images/villalab/social-desktop.webp"
       },
-      alt: "Relaxed social gathering" 
+      alt: "Relaxed social gathering",
+      width: 600,
+      height: 600
     }
   ], []);
 
@@ -118,6 +136,9 @@ const VillaLab = () => {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 loading={index < 4 ? "eager" : "lazy"}
                 dynamicKey={activity.dynamicKey}
+                width={activity.width}
+                height={activity.height}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                 <span className="text-white p-4 font-medium">{activity.title}</span>

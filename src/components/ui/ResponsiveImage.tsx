@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
 import { toast } from 'sonner';
@@ -15,13 +16,15 @@ interface ResponsiveImageProps {
   onClick?: () => void;
   dynamicKey?: string; // Key for fetching from Supabase by key
   size?: 'small' | 'medium' | 'large'; // Optional size for optimized images
-  fallbackSrc?: string; // New prop for fallback image
+  fallbackSrc?: string; // Fallback image
+  width?: number; // Optional width attribute for better CLS handling
+  height?: number; // Optional height attribute for better CLS handling
+  sizes?: string; // Optional sizes attribute for responsive images
 }
 
 /**
  * ResponsiveImage component that serves different image sizes based on screen width
- * For best performance, provide WebP images with proper sizes
- * Can now load images from Supabase storage by providing a dynamicKey
+ * Enhanced with width/height attributes to prevent CLS and sizes attribute for responsive loading
  */
 const ResponsiveImage = ({
   src,
@@ -32,11 +35,35 @@ const ResponsiveImage = ({
   onClick,
   dynamicKey,
   size,
-  fallbackSrc = "/placeholder.svg"
+  fallbackSrc = "/placeholder.svg",
+  width,
+  height,
+  sizes = '100vw'
 }: ResponsiveImageProps) => {
   const [dynamicSrc, setDynamicSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(!!dynamicKey);
   const [error, setError] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<string | undefined>(undefined);
+  
+  // Performance monitoring for image loading
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
+      // Report image loading performance
+      const imgUrl = typeof src === 'string' ? src : (src?.desktop || dynamicSrc || '');
+      
+      const loadStart = performance.now();
+      
+      return () => {
+        if (imgUrl) {
+          // Only log significant image loads (not placeholders)
+          if (!imgUrl.includes('placeholder')) {
+            const loadTime = performance.now() - loadStart;
+            console.debug(`Image load time (${imgUrl.split('/').pop()}): ${loadTime.toFixed(0)}ms`);
+          }
+        }
+      };
+    }
+  }, [src, dynamicSrc]);
   
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
@@ -80,7 +107,11 @@ const ResponsiveImage = ({
       <div 
         className={`bg-gray-200 animate-pulse ${className}`} 
         aria-label={`Loading ${alt}`}
-        style={{ aspectRatio: '16/9' }}
+        style={{ 
+          aspectRatio: aspectRatio || '16/9',
+          width: width,
+          height: height 
+        }}
       ></div>
     );
   }
@@ -90,13 +121,19 @@ const ResponsiveImage = ({
     return (
       <div 
         className={`bg-gray-100 flex items-center justify-center ${className}`}
-        style={{ aspectRatio: '16/9' }}
+        style={{ 
+          aspectRatio: aspectRatio || '16/9',
+          width: width,
+          height: height 
+        }}
       >
         {fallbackSrc ? (
           <img 
             src={fallbackSrc} 
             alt={`Placeholder for ${alt}`} 
             className="max-h-full max-w-full p-4 opacity-30"
+            width={width}
+            height={height}
           />
         ) : (
           <div className="text-gray-400 text-sm text-center p-4">
@@ -119,6 +156,9 @@ const ResponsiveImage = ({
       className,
       loading,
       decoding: "async",
+      sizes,
+      width,
+      height,
       onError: (e) => {
         console.warn(`Failed to load image: ${e.currentTarget.src}`);
         e.currentTarget.src = fallbackSrc;
@@ -148,6 +188,9 @@ const ResponsiveImage = ({
     className,
     loading,
     decoding: "async",
+    sizes,
+    width,
+    height,
     onError: handleError
   };
   
