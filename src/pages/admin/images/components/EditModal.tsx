@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Check } from 'lucide-react';
-import { updateImage, WebsiteImage } from '@/services/images';
+import { X, Check, Info } from 'lucide-react';
+import { updateImage, WebsiteImage, getImageUrlByKey } from '@/services/images';
+import ResponsiveImage from '@/components/ui/ResponsiveImage';
 
 // Available image categories
 const IMAGE_CATEGORIES = [
@@ -17,6 +18,26 @@ const IMAGE_CATEGORIES = [
   'Product'
 ];
 
+// Map of image keys to their usage locations on the website
+const IMAGE_USAGE_MAP: Record<string, string> = {
+  'hero-background': 'Main Hero Section - Homepage',
+  'villalab-social': 'Villa Lab Section - Social Events',
+  'villalab-mentorship': 'Villa Lab Section - Mentorship',
+  'villalab-brainstorm': 'Villa Lab Section - Brainstorming',
+  'villalab-group': 'Villa Lab Section - Group Activities',
+  'villalab-networking': 'Villa Lab Section - Networking',
+  'villalab-candid': 'Villa Lab Section - Candid Interactions',
+  'villalab-gourmet': 'Villa Lab Section - Gourmet Meals',
+  'villalab-workshop': 'Villa Lab Section - Workshops',
+  'villalab-evening': 'Villa Lab Section - Evening Sessions',
+  'experience-villa-retreat': 'Experience Page - Villa Retreat',
+  'experience-workshop': 'Experience Page - Workshop',
+  'experience-networking': 'Experience Page - Networking',
+  'experience-collaboration': 'Experience Page - Collaboration',
+  'experience-evening-session': 'Experience Page - Evening Session',
+  'experience-gourmet-dining': 'Experience Page - Gourmet Dining'
+};
+
 interface EditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,6 +46,7 @@ interface EditModalProps {
 
 const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   const queryClient = useQueryClient();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   // Form state for edit
   const [editForm, setEditForm] = useState({
@@ -33,6 +55,25 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
     alt_text: image.alt_text,
     category: image.category || ''
   });
+  
+  // Get image preview URL
+  useEffect(() => {
+    if (isOpen) {
+      const fetchImageUrl = async () => {
+        try {
+          const url = await getImageUrlByKey(image.key);
+          setPreviewUrl(url);
+        } catch (error) {
+          console.error('Failed to load image preview:', error);
+        }
+      };
+      
+      fetchImageUrl();
+    }
+  }, [isOpen, image.key]);
+  
+  // Get usage information for this image
+  const usageLocation = IMAGE_USAGE_MAP[image.key] || 'Custom image (not tied to a specific website section)';
   
   // Update mutation
   const updateMutation = useMutation({
@@ -67,7 +108,7 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-medium text-navy">Edit Image</h2>
           <button
@@ -79,6 +120,29 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
         </div>
         
         <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
+          {/* Image Preview */}
+          {previewUrl && (
+            <div className="border rounded-lg overflow-hidden">
+              <img 
+                src={previewUrl} 
+                alt={image.alt_text} 
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          )}
+          
+          {/* Usage Information */}
+          <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
+            <Info className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-navy">Usage Location:</h3>
+              <p className="text-sm text-gray-700">{usageLocation}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Images with fixed keys replace placeholder images throughout the website.
+              </p>
+            </div>
+          </div>
+          
           <div>
             <label htmlFor="edit_key" className="block text-sm font-medium text-gray-700 mb-1">
               Image Key <span className="text-red-500">*</span>
@@ -91,6 +155,9 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
               className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
               required
             />
+            <p className="mt-1 text-xs text-gray-500">
+              Changing this key can break website image references.
+            </p>
           </div>
 
           <div>

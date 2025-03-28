@@ -1,8 +1,7 @@
-
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Upload } from 'lucide-react';
+import { X, Upload, Info } from 'lucide-react';
 import { uploadImage } from '@/services/images';
 
 // Available image categories
@@ -17,6 +16,26 @@ const IMAGE_CATEGORIES = [
   'Product'
 ];
 
+// Common website image keys that replace placeholders
+const COMMON_IMAGE_KEYS = [
+  { key: 'hero-background', description: 'Main Hero Section - Homepage' },
+  { key: 'villalab-social', description: 'Villa Lab Section - Social Events' },
+  { key: 'villalab-mentorship', description: 'Villa Lab Section - Mentorship' },
+  { key: 'villalab-brainstorm', description: 'Villa Lab Section - Brainstorming' },
+  { key: 'villalab-group', description: 'Villa Lab Section - Group Activities' },
+  { key: 'villalab-networking', description: 'Villa Lab Section - Networking' },
+  { key: 'villalab-candid', description: 'Villa Lab Section - Candid Interactions' },
+  { key: 'villalab-gourmet', description: 'Villa Lab Section - Gourmet Meals' },
+  { key: 'villalab-workshop', description: 'Villa Lab Section - Workshops' },
+  { key: 'villalab-evening', description: 'Villa Lab Section - Evening Sessions' },
+  { key: 'experience-villa-retreat', description: 'Experience Page - Villa Retreat' },
+  { key: 'experience-workshop', description: 'Experience Page - Workshop' },
+  { key: 'experience-networking', description: 'Experience Page - Networking' },
+  { key: 'experience-collaboration', description: 'Experience Page - Collaboration' },
+  { key: 'experience-evening-session', description: 'Experience Page - Evening Session' },
+  { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' }
+];
+
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,6 +44,7 @@ interface UploadModalProps {
 const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
   
   // Form state for upload
   const [uploadForm, setUploadForm] = useState({
@@ -92,11 +112,20 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     });
   };
   
+  const selectPredefinedKey = (key: string, description: string) => {
+    setUploadForm(prev => ({
+      ...prev,
+      key: key,
+      description: description
+    }));
+    setShowPredefinedKeys(false);
+  };
+  
   if (!isOpen) return null;
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-medium text-navy">Add New Image</h2>
           <button
@@ -111,6 +140,45 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
         </div>
         
         <form onSubmit={handleUploadSubmit} className="p-6 space-y-6">
+          {/* Placeholder Replacement Information */}
+          <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
+            <Info className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-navy">Replace Website Images</h3>
+              <p className="text-sm text-gray-700">
+                To replace placeholder images on the website, use one of the predefined keys. 
+                Custom keys will be available for use but won't automatically replace website images.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowPredefinedKeys(!showPredefinedKeys)}
+                className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
+              >
+                {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
+              </button>
+            </div>
+          </div>
+          
+          {/* Predefined Keys List */}
+          {showPredefinedKeys && (
+            <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+              <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {COMMON_IMAGE_KEYS.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => selectPredefinedKey(item.key, item.description)}
+                    className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
+                  >
+                    <span className="font-medium text-navy block">{item.key}</span>
+                    <span className="text-xs text-gray-600">{item.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div>
             <label htmlFor="key" className="block text-sm font-medium text-gray-700 mb-1">
               Image Key <span className="text-red-500">*</span>
@@ -124,7 +192,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
               placeholder="e.g., hero-background, team-photo-1"
               required
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               A unique identifier used to fetch this image later
             </p>
           </div>
@@ -192,7 +260,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
               accept="image/*"
               required
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               Upload file (PNG, JPG, WEBP or SVG format, max 50MB)
             </p>
           </div>
