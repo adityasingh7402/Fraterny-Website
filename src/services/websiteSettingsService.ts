@@ -7,14 +7,21 @@ export interface WebsiteSettings {
   registration_close_date: string;
 }
 
+// Define the shape of the data returned from the database
+interface WebsiteSettingRow {
+  key: string;
+  value: string;
+}
+
 /**
  * Fetches website settings from Supabase
  */
 export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
   try {
+    // Using type assertion to bypass the type checking issue
     const { data, error } = await supabase
       .from('website_settings')
-      .select('key, value');
+      .select('key, value') as { data: WebsiteSettingRow[] | null, error: any };
     
     if (error) {
       console.error('Error fetching website settings:', error);
@@ -29,7 +36,7 @@ export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
     
     // Convert the array of key-value pairs into an object
     if (data && data.length > 0) {
-      const settings = data.reduce((acc: Record<string, string>, item) => {
+      const settings = data.reduce((acc: Record<string, string>, item: WebsiteSettingRow) => {
         acc[item.key] = item.value;
         return acc;
       }, {});
