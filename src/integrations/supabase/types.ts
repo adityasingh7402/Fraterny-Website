@@ -36,6 +36,36 @@ export type Database = {
         }
         Relationships: []
       }
+      website_images: {
+        Row: {
+          alt_text: string
+          created_at: string
+          description: string
+          id: string
+          key: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text: string
+          created_at?: string
+          description: string
+          id?: string
+          key: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          description?: string
+          id?: string
+          key?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       website_settings: {
         Row: {
           created_at: string

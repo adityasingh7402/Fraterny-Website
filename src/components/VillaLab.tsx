@@ -4,11 +4,12 @@ import { useMemo } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 
 const VillaLab = () => {
-  // Updated with more relevant activity images
+  // Updated to use dynamic image keys where applicable
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
-      imageSrc: {
+      dynamicKey: "villalab-workshop",
+      fallbackSrc: {
         mobile: "/images/villalab/workshop-mobile.webp",
         desktop: "/images/villalab/workshop-desktop.webp"
       },
@@ -16,7 +17,8 @@ const VillaLab = () => {
     },
     { 
       title: "Gourmet Meals", 
-      imageSrc: {
+      dynamicKey: "villalab-gourmet",
+      fallbackSrc: {
         mobile: "/images/villalab/gourmet-mobile.webp",
         desktop: "/images/villalab/gourmet-desktop.webp"
       },
@@ -24,7 +26,8 @@ const VillaLab = () => {
     },
     { 
       title: "Group Activities", 
-      imageSrc: {
+      dynamicKey: "villalab-group",
+      fallbackSrc: {
         mobile: "/images/villalab/group-mobile.webp",
         desktop: "/images/villalab/group-desktop.webp"
       },
@@ -32,7 +35,8 @@ const VillaLab = () => {
     },
     { 
       title: "Candid Interactions", 
-      imageSrc: {
+      dynamicKey: "villalab-candid",
+      fallbackSrc: {
         mobile: "/images/villalab/candid-mobile.webp",
         desktop: "/images/villalab/candid-desktop.webp"
       },
@@ -40,7 +44,8 @@ const VillaLab = () => {
     },
     { 
       title: "Networking", 
-      imageSrc: {
+      dynamicKey: "villalab-networking",
+      fallbackSrc: {
         mobile: "/images/villalab/networking-mobile.webp",
         desktop: "/images/villalab/networking-desktop.webp"
       },
@@ -48,7 +53,8 @@ const VillaLab = () => {
     },
     { 
       title: "Evening Sessions", 
-      imageSrc: {
+      dynamicKey: "villalab-evening",
+      fallbackSrc: {
         mobile: "/images/villalab/evening-mobile.webp",
         desktop: "/images/villalab/evening-desktop.webp"
       },
@@ -56,7 +62,8 @@ const VillaLab = () => {
     },
     { 
       title: "Brainstorming", 
-      imageSrc: {
+      dynamicKey: "villalab-brainstorm",
+      fallbackSrc: {
         mobile: "/images/villalab/brainstorm-mobile.webp",
         desktop: "/images/villalab/brainstorm-desktop.webp"
       },
@@ -64,7 +71,8 @@ const VillaLab = () => {
     },
     { 
       title: "Mentorship", 
-      imageSrc: {
+      dynamicKey: "villalab-mentorship",
+      fallbackSrc: {
         mobile: "/images/villalab/mentorship-mobile.webp",
         desktop: "/images/villalab/mentorship-desktop.webp"
       },
@@ -72,7 +80,8 @@ const VillaLab = () => {
     },
     { 
       title: "Social Events", 
-      imageSrc: {
+      dynamicKey: "villalab-social",
+      fallbackSrc: {
         mobile: "/images/villalab/social-mobile.webp",
         desktop: "/images/villalab/social-desktop.webp"
       },
@@ -104,10 +113,11 @@ const VillaLab = () => {
               className="aspect-square bg-navy rounded-lg overflow-hidden relative group"
             >
               <ResponsiveImage
-                src={activity.imageSrc}
+                src={activity.fallbackSrc}
                 alt={activity.alt}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 loading={index < 4 ? "eager" : "lazy"}
+                dynamicKey={activity.dynamicKey}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                 <span className="text-white p-4 font-medium">{activity.title}</span>

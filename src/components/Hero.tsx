@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
@@ -47,7 +48,7 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image */}
+      {/* Background Image - now supports dynamic image from Supabase */}
       <div className="absolute inset-0">
         <ResponsiveImage
           src={{
@@ -59,6 +60,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
+          dynamicKey="hero-background"
         />
       </div>
       

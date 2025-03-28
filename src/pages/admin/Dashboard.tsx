@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { Settings, Image, FileText } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: settings, isLoading, error, refetch } = useQuery({
@@ -98,7 +100,48 @@ const AdminDashboard = () => {
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-playfair text-navy mb-8">Admin Dashboard</h1>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Link 
+            to="/admin/dashboard" 
+            className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
+              <Settings className="w-6 h-6 text-navy" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-navy">Website Settings</h2>
+              <p className="text-gray-600 text-sm">Manage counters and dates</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/blog" 
+            className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
+              <FileText className="w-6 h-6 text-navy" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-navy">Blog Management</h2>
+              <p className="text-gray-600 text-sm">Publish and edit blog posts</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/images" 
+            className="flex items-center p-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="bg-navy bg-opacity-10 p-3 rounded-full mr-4">
+              <Image className="w-6 h-6 text-navy" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-navy">Image Management</h2>
+              <p className="text-gray-600 text-sm">Upload and manage website images</p>
+            </div>
+          </Link>
+        </div>
+
+        <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-medium text-navy">Website Settings</h2>
             <p className="text-gray-600 mt-1">Manage dynamic content and counters</p>
@@ -149,17 +192,6 @@ const AdminDashboard = () => {
               </button>
             </div>
           </form>
-        </div>
-
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-medium text-navy">Blog Management</h2>
-            <p className="text-gray-600 mt-1">Coming soon - Manage blog posts</p>
-          </div>
-          <div className="p-6">
-            <p className="text-gray-600">Blog management interface will be added here.</p>
-            <a href="/admin/blog" className="text-navy underline">Go to blog management</a>
-          </div>
         </div>
       </div>
     </div>

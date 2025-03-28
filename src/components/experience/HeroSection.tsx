@@ -5,7 +5,7 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 const HeroSection = () => {
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
-      {/* Optimized background hero image with responsive sizes */}
+      {/* Optimized background hero image with responsive sizes - now supports dynamic image */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
         <ResponsiveImage 
           src={{
@@ -16,6 +16,7 @@ const HeroSection = () => {
           alt="Luxury villa experience setting"
           className="h-full w-full object-cover"
           loading="eager"
+          dynamicKey="experience-hero"
         />
       </div>
       

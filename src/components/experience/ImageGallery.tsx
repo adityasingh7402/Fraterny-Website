@@ -2,10 +2,11 @@
 import React from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 
-// Updated with more relevant optimized marketing images
+// Updated to use dynamic keys where possible
 const experienceImages = [
   {
-    src: {
+    dynamicKey: "experience-villa-retreat",
+    fallback: {
       mobile: "/images/experience/villa-retreat-mobile.webp",
       tablet: "/images/experience/villa-retreat-tablet.webp",
       desktop: "/images/experience/villa-retreat-desktop.webp"
@@ -13,7 +14,8 @@ const experienceImages = [
     alt: "Luxury villa retreat where entrepreneurs gather for deep connections"
   },
   {
-    src: {
+    dynamicKey: "experience-workshop",
+    fallback: {
       mobile: "/images/experience/workshop-mobile.webp",
       tablet: "/images/experience/workshop-tablet.webp",
       desktop: "/images/experience/workshop-desktop.webp"
@@ -21,7 +23,8 @@ const experienceImages = [
     alt: "Interactive workshop session with driven professionals"
   },
   {
-    src: {
+    dynamicKey: "experience-networking",
+    fallback: {
       mobile: "/images/experience/networking-mobile.webp",
       tablet: "/images/experience/networking-tablet.webp",
       desktop: "/images/experience/networking-desktop.webp"
@@ -29,7 +32,8 @@ const experienceImages = [
     alt: "Meaningful networking among ambitious individuals"
   },
   {
-    src: {
+    dynamicKey: "experience-collaboration",
+    fallback: {
       mobile: "/images/experience/collaboration-mobile.webp",
       tablet: "/images/experience/collaboration-tablet.webp",
       desktop: "/images/experience/collaboration-desktop.webp"
@@ -37,7 +41,8 @@ const experienceImages = [
     alt: "Collaborative problem-solving in a premium environment"
   },
   {
-    src: {
+    dynamicKey: "experience-evening-session",
+    fallback: {
       mobile: "/images/experience/evening-session-mobile.webp",
       tablet: "/images/experience/evening-session-tablet.webp",
       desktop: "/images/experience/evening-session-desktop.webp"
@@ -45,7 +50,8 @@ const experienceImages = [
     alt: "Evening mastermind session with panoramic views"
   },
   {
-    src: {
+    dynamicKey: "experience-gourmet-dining",
+    fallback: {
       mobile: "/images/experience/gourmet-dining-mobile.webp",
       tablet: "/images/experience/gourmet-dining-tablet.webp",
       desktop: "/images/experience/gourmet-dining-desktop.webp"
@@ -61,10 +67,11 @@ const ImageGallery = () => {
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 
-              src={image.src}
+              src={image.fallback}
               alt={image.alt}
               className="w-full h-full object-cover"
               loading={index < 2 ? "eager" : "lazy"}
+              dynamicKey={image.dynamicKey}
             />
           </div>
         ))}
