@@ -6,7 +6,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 // Define admin emails in a separate array for easier management
-const ADMIN_EMAILS = ['admin@example.com']; 
+const ADMIN_EMAILS = ['admin@example.com', 'malhotrayash1900@gmail.com']; 
 
 type AuthContextType = {
   user: User | null;
