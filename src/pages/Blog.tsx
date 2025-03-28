@@ -165,7 +165,7 @@ const Blog = () => {
               <p className="text-gray-600">
                 {selectedCategory || selectedTag ? 
                   'Try changing your filters to see more content.' : 
-                  'We\'re working on our first blog posts. Check back soon!'}
+                  "We're working on our first blog posts. Check back soon!"}
               </p>
               {(selectedCategory || selectedTag) && (
                 <button 
