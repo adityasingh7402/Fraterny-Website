@@ -5,6 +5,8 @@ import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
 import AdminMenu from './components/AdminMenu';
 import SettingsForm from './components/SettingsForm';
 import { calculateDaysLeft } from './utils/dateUtils';
+import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { data: settings, isLoading, error, refetch } = useQuery({
@@ -45,7 +47,16 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-playfair text-navy mb-8">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-playfair text-navy">Admin Dashboard</h1>
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all"
+          >
+            <ArrowLeft size={16} />
+            Back to Website
+          </Link>
+        </div>
         
         <AdminMenu />
         

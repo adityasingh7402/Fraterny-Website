@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Users, Clock, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { Users, Clock, ArrowDownRight, TrendingUp, ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Link } from 'react-router-dom';
 
 import { 
   analyticsPeriods, 
@@ -55,6 +56,13 @@ export default function AnalyticsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all"
+          >
+            <ArrowLeft size={16} />
+            Back to Website
+          </Link>
           <Select
             value={period}
             onValueChange={(value) => setPeriod(value)}

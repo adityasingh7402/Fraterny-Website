@@ -11,7 +11,8 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { AlertCircle, Trash2, Download, Mail } from 'lucide-react';
+import { AlertCircle, Trash2, Download, Mail, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Subscriber {
   id: string;
@@ -144,7 +145,14 @@ const NewsletterSubscribers = () => {
             Manage your newsletter subscription list
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
+        <div className="mt-4 md:mt-0 flex gap-2">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all"
+          >
+            <ArrowLeft size={16} />
+            Back to Website
+          </Link>
           <Button 
             onClick={exportSubscribers}
             className="flex items-center gap-2"
