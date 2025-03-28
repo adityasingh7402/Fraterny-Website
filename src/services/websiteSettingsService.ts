@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 export interface WebsiteSettings {
   registration_days_left: number;
@@ -8,20 +9,16 @@ export interface WebsiteSettings {
 }
 
 // Define the shape of the data returned from the database
-interface WebsiteSettingRow {
-  key: string;
-  value: string;
-}
+type WebsiteSettingRow = Database['public']['Tables']['website_settings']['Row'];
 
 /**
  * Fetches website settings from Supabase
  */
 export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
   try {
-    // Using type assertion to bypass the type checking issue
     const { data, error } = await supabase
       .from('website_settings')
-      .select('key, value') as { data: WebsiteSettingRow[] | null, error: any };
+      .select('key, value');
     
     if (error) {
       console.error('Error fetching website settings:', error);
@@ -36,7 +33,7 @@ export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
     
     // Convert the array of key-value pairs into an object
     if (data && data.length > 0) {
-      const settings = data.reduce((acc: Record<string, string>, item: WebsiteSettingRow) => {
+      const settings = data.reduce((acc: Record<string, string>, item) => {
         acc[item.key] = item.value;
         return acc;
       }, {});
