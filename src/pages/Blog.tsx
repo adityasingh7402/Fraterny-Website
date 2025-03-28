@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '../components/Navigation';
@@ -9,24 +9,53 @@ import BlogFilter from '../components/blog/BlogFilter';
 import BlogList from '../components/blog/BlogList';
 import { BlogPost } from '../components/blog/BlogCard';
 
+// Number of posts to display per page
+const POSTS_PER_PAGE = 9;
+
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPosts, setTotalPosts] = useState(0);
 
-  // Fetch published blog posts
+  // Fetch published blog posts with pagination
   const { data: blogPosts, isLoading, error } = useQuery({
-    queryKey: ['publicBlogPosts'],
+    queryKey: ['publicBlogPosts', currentPage, selectedCategory, selectedTag],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Start with a base query for published posts
+      let query = supabase
         .from('blog_posts')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .eq('published', true);
+      
+      // Apply category filter if selected
+      if (selectedCategory) {
+        query = query.eq('category', selectedCategory);
+      }
+      
+      // Apply tag filter if selected
+      if (selectedTag) {
+        query = query.contains('tags', [selectedTag]);
+      }
+      
+      // First get the count
+      const { count } = await query;
+      setTotalPosts(count || 0);
+      
+      // Then get the paginated data
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE - 1);
       
       if (error) throw error;
       return data as BlogPost[];
     }
   });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedTag]);
 
   // Extract all unique categories and tags from blog posts
   const categories = blogPosts ? [...new Set(blogPosts.filter(post => post.category).map(post => post.category))] : [];
@@ -41,18 +70,21 @@ const Blog = () => {
   
   const uniqueTags = [...new Set(allTags)];
 
-  // Filter blog posts based on selected category and tag
-  const filteredPosts = blogPosts?.filter(post => {
-    const matchesCategory = !selectedCategory || post.category === selectedCategory;
-    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
-    return matchesCategory && matchesTag;
-  });
+  // Calculate total pages
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen">
       <Navigation />
       
-      <BlogHero />
+      <BlogHero totalPosts={totalPosts} />
       
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
@@ -67,13 +99,16 @@ const Blog = () => {
           />
           
           <BlogList 
-            posts={filteredPosts}
+            posts={blogPosts}
             isLoading={isLoading}
             error={error}
             selectedCategory={selectedCategory}
             selectedTag={selectedTag}
             setSelectedCategory={setSelectedCategory}
             setSelectedTag={setSelectedTag}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
         </div>
       </section>

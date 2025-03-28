@@ -1,6 +1,7 @@
 
 import React from 'react';
 import BlogCard, { BlogPost } from './BlogCard';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface BlogListProps {
   posts: BlogPost[] | null | undefined;
@@ -10,6 +11,9 @@ interface BlogListProps {
   selectedTag: string | null;
   setSelectedCategory: (category: string | null) => void;
   setSelectedTag: (tag: string | null) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 const BlogList: React.FC<BlogListProps> = ({ 
@@ -19,7 +23,10 @@ const BlogList: React.FC<BlogListProps> = ({
   selectedCategory, 
   selectedTag, 
   setSelectedCategory, 
-  setSelectedTag 
+  setSelectedTag,
+  currentPage,
+  totalPages,
+  onPageChange
 }) => {
   if (isLoading) {
     return (
@@ -69,10 +76,57 @@ const BlogList: React.FC<BlogListProps> = ({
   }
   
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {posts.map((post) => (
-        <BlogCard key={post.id} post={post} />
-      ))}
+    <div className="space-y-10">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
+          <BlogCard key={post.id} post={post} />
+        ))}
+      </div>
+      
+      {totalPages > 1 && (
+        <Pagination className="my-8">
+          <PaginationContent>
+            {currentPage > 1 && (
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onPageChange(currentPage - 1);
+                  }} 
+                />
+              </PaginationItem>
+            )}
+            
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <PaginationItem key={index}>
+                <PaginationLink 
+                  href="#" 
+                  isActive={currentPage === index + 1}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onPageChange(index + 1);
+                  }}
+                >
+                  {index + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            
+            {currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationNext 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onPageChange(currentPage + 1);
+                  }} 
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };

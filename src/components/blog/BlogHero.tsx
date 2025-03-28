@@ -1,7 +1,11 @@
 
 import React from 'react';
 
-const BlogHero = () => {
+interface BlogHeroProps {
+  totalPosts?: number;
+}
+
+const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
       {/* Background with gradient overlay */}
@@ -27,6 +31,9 @@ const BlogHero = () => {
           </h1>
           <p className="text-xl md:text-2xl text-gray-300">
             Insights, stories, and perspectives from our community
+            {totalPosts !== undefined && (
+              <span className="ml-2 text-lg text-terracotta">({totalPosts} posts)</span>
+            )}
           </p>
         </div>
       </div>

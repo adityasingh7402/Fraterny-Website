@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import ResponsiveImage from '../components/ui/ResponsiveImage';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 
 // Blog post type
@@ -17,6 +18,7 @@ type BlogPost = {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
+  image_key?: string | null;
 };
 
 const BlogPost = () => {
@@ -99,6 +101,19 @@ const BlogPost = () => {
               day: 'numeric'
             })}
           </div>
+          
+          {/* Featured image */}
+          {post?.image_key && (
+            <div className="mb-8 rounded-lg overflow-hidden">
+              <ResponsiveImage
+                dynamicKey={post.image_key}
+                alt={post.title}
+                size="large"
+                className="w-full h-auto"
+                fetchPriority="high"
+              />
+            </div>
+          )}
           
           {post?.tags && post.tags.length > 0 && (
             <div className="mb-8 flex flex-wrap gap-2">
