@@ -11,7 +11,7 @@ const PageHeader = ({ onUploadClick }: PageHeaderProps) => {
       <h1 className="text-3xl font-playfair text-navy">Image Management</h1>
       <div className="flex gap-4">
         <a 
-          href="/admin/dashboard" 
+          href="/admin" 
           className="px-4 py-2 border border-navy text-navy rounded-md hover:bg-navy hover:text-white transition-colors"
         >
           Back to Dashboard
