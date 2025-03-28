@@ -17,6 +17,7 @@ const AdminBlog = () => {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState<boolean>(false);
 
   // Fetch blog posts
   const { data: blogPosts, isLoading, error, refetch } = useQuery({
@@ -41,21 +42,40 @@ const AdminBlog = () => {
       published: post.published
     });
     setEditingId(post.id);
+    setShowForm(true);
+    window.scrollTo(0, 0);
+  };
+
+  const handleNewPost = () => {
+    setFormValues({
+      title: '',
+      content: '',
+      category: '',
+      tags: [],
+      published: true
+    });
+    setEditingId(null);
+    setShowForm(true);
     window.scrollTo(0, 0);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <PageHeader />
+        <PageHeader onNewPostClick={handleNewPost} />
         
-        <BlogForm 
-          editingId={editingId}
-          formValues={formValues}
-          setFormValues={setFormValues}
-          setEditingId={setEditingId}
-          onSuccess={refetch}
-        />
+        {showForm && (
+          <BlogForm 
+            editingId={editingId}
+            formValues={formValues}
+            setFormValues={setFormValues}
+            setEditingId={setEditingId}
+            onSuccess={() => {
+              refetch();
+              setShowForm(false);
+            }}
+          />
+        )}
 
         <BlogList 
           blogPosts={blogPosts}
