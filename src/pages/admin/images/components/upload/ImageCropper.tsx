@@ -30,15 +30,21 @@ const ImageCropper = ({
   const imgRef = useRef<HTMLImageElement>(null);
   
   const increaseZoom = () => {
-    setZoom(prev => Math.min(prev + 0.1, 3));
+    // Fix: Instead of using a callback function, calculate the new value and pass it directly
+    const newZoom = Math.min(zoom + 0.1, 3);
+    setZoom(newZoom);
   };
   
   const decreaseZoom = () => {
-    setZoom(prev => Math.max(prev - 0.1, 0.1));
+    // Fix: Instead of using a callback function, calculate the new value and pass it directly
+    const newZoom = Math.max(zoom - 0.1, 0.1);
+    setZoom(newZoom);
   };
   
   const rotateImage = () => {
-    setRotation(prev => (prev + 90) % 360);
+    // Fix: Instead of using a callback function, calculate the new value and pass it directly
+    const newRotation = (rotation + 90) % 360;
+    setRotation(newRotation);
   };
   
   return (
