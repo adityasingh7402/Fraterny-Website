@@ -23,7 +23,7 @@ export const useUploadForm = () => {
   // Image cropping state
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<CropArea>({
-    unit: '%',
+    unit: 'px',
     width: 80,
     height: 80,
     x: 10,
@@ -45,7 +45,7 @@ export const useUploadForm = () => {
     
     setImageSrc(null);
     setCrop({
-      unit: '%',
+      unit: 'px',
       width: 80,
       height: 80,
       x: 10,

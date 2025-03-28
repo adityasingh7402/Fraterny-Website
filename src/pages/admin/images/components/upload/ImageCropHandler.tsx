@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import ImagePreview from './ImagePreview';
 import ImageCropper from './ImageCropper';
+import { type Crop as CropArea } from 'react-image-crop';
 
 interface ImageCropHandlerProps {
   imageSrc: string | null;
@@ -13,14 +14,14 @@ interface ImageCropHandlerProps {
 const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile }: ImageCropHandlerProps) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const [isCropping, setIsCropping] = useState(false);
-  const [crop, setCrop] = useState({
-    unit: 'px' as const,
+  const [crop, setCrop] = useState<CropArea>({
+    unit: 'px',
     width: 80,
     height: 80,
     x: 10,
     y: 10
   });
-  const [completedCrop, setCompletedCrop] = useState<any>(null);
+  const [completedCrop, setCompletedCrop] = useState<CropArea | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
