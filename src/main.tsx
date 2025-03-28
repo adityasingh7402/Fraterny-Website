@@ -1,145 +1,79 @@
-
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import './index.css';
+import App from './App';
+import Index from './pages/Index';
+import Auth from './pages/Auth';
+import Experience from './pages/Experience';
+import Process from './pages/Process';
+import Pricing from './pages/Pricing';
+import FAQ from './pages/FAQ';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import TermsAndConditions from './pages/TermsAndConditions';
+import RefundPolicy from './pages/RefundPolicy';
+import NotFound from './pages/NotFound';
+import Dashboard from './pages/admin/Dashboard';
+import ProtectedRoute from './components/admin/ProtectedRoute';
+import AdminBlog from './pages/admin/Blog';
+import Analytics from './pages/admin/Analytics';
+import AdminImages from './pages/admin/Images';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App.tsx'
-import './index.css'
-import './App.css'
+import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
-// Create a query client
 const queryClient = new QueryClient();
 
-// Import the Index page eagerly (since it's the landing page)
-import Index from './pages/Index';
-
-// Lazy-load all other pages
-const Experience = React.lazy(() => import('./pages/Experience'));
-const Process = React.lazy(() => import('./pages/Process'));
-const Pricing = React.lazy(() => import('./pages/Pricing'));
-const FAQ = React.lazy(() => import('./pages/FAQ'));
-const Blog = React.lazy(() => import('./pages/Blog'));
-const BlogPost = React.lazy(() => import('./pages/BlogPost'));
-const Auth = React.lazy(() => import('./pages/Auth'));
-const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions'));
-const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfUse = React.lazy(() => import('./pages/TermsOfUse'));
-const RefundPolicy = React.lazy(() => import('./pages/RefundPolicy'));
-const NotFound = React.lazy(() => import('./pages/NotFound'));
-
-// Admin pages (grouped together)
-const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'));
-const AdminBlog = React.lazy(() => import('./pages/admin/Blog'));
-const AdminImages = React.lazy(() => import('./pages/admin/images'));
-const AnalyticsDashboard = React.lazy(() => import('./pages/admin/Analytics'));
-
-// Loading fallback component
-const PageLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-white">
-    <div className="w-12 h-12 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
-  </div>
-);
-
-// Create the router configuration
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    errorElement: <React.Suspense fallback={<PageLoader />}><NotFound /></React.Suspense>,
+    errorElement: <NotFound />,
     children: [
+      { index: true, element: <Index /> },
+      { path: "auth", element: <Auth /> },
+      { path: "experience", element: <Experience /> },
+      { path: "process", element: <Process /> },
+      { path: "pricing", element: <Pricing /> },
+      { path: "faq", element: <FAQ /> },
+      { path: "blog", element: <Blog /> },
+      { path: "blog/:id", element: <BlogPost /> },
+      { path: "privacy-policy", element: <PrivacyPolicy /> },
+      { path: "terms-of-use", element: <TermsOfUse /> },
+      { path: "terms-and-conditions", element: <TermsAndConditions /> },
+      { path: "refund-policy", element: <RefundPolicy /> },
+      // Admin routes
       {
-        index: true,
-        element: <Index />,
+        path: "admin",
+        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
       },
       {
-        path: "experience",
-        element: <React.Suspense fallback={<PageLoader />}><Experience /></React.Suspense>,
+        path: "admin/blog",
+        element: <ProtectedRoute><AdminBlog /></ProtectedRoute>,
       },
       {
-        path: "process",
-        element: <React.Suspense fallback={<PageLoader />}><Process /></React.Suspense>,
+        path: "admin/analytics",
+        element: <ProtectedRoute><Analytics /></ProtectedRoute>,
       },
       {
-        path: "pricing",
-        element: <React.Suspense fallback={<PageLoader />}><Pricing /></React.Suspense>,
+        path: "admin/images",
+        element: <ProtectedRoute><AdminImages /></ProtectedRoute>,
       },
+      // Add the new Newsletter Subscribers admin route
       {
-        path: "faq",
-        element: <React.Suspense fallback={<PageLoader />}><FAQ /></React.Suspense>,
-      },
-      {
-        path: "blog",
-        element: <React.Suspense fallback={<PageLoader />}><Blog /></React.Suspense>,
-      },
-      {
-        path: "blog/:id",
-        element: <React.Suspense fallback={<PageLoader />}><BlogPost /></React.Suspense>,
-      },
-      {
-        path: "auth",
-        element: <React.Suspense fallback={<PageLoader />}><Auth /></React.Suspense>,
-      },
-      {
-        path: "terms-and-conditions",
-        element: <React.Suspense fallback={<PageLoader />}><TermsAndConditions /></React.Suspense>,
-      },
-      {
-        path: "privacy-policy",
-        element: <React.Suspense fallback={<PageLoader />}><PrivacyPolicy /></React.Suspense>,
-      },
-      {
-        path: "terms-of-use",
-        element: <React.Suspense fallback={<PageLoader />}><TermsOfUse /></React.Suspense>,
-      },
-      {
-        path: "refund-policy",
-        element: <React.Suspense fallback={<PageLoader />}><RefundPolicy /></React.Suspense>,
-      },
-      // Protected admin routes
-      {
-        element: <React.Suspense fallback={<PageLoader />}><ProtectedRoute /></React.Suspense>,
-        children: [
-          {
-            element: <React.Suspense fallback={<PageLoader />}><AdminRoute /></React.Suspense>,
-            children: [
-              {
-                path: "admin/dashboard",
-                element: <React.Suspense fallback={<PageLoader />}><AdminDashboard /></React.Suspense>,
-              },
-              {
-                path: "admin/blog",
-                element: <React.Suspense fallback={<PageLoader />}><AdminBlog /></React.Suspense>,
-              },
-              {
-                path: "admin/images",
-                element: <React.Suspense fallback={<PageLoader />}><AdminImages /></React.Suspense>,
-              },
-              {
-                path: "admin/analytics",
-                element: <React.Suspense fallback={<PageLoader />}><AnalyticsDashboard /></React.Suspense>,
-              },
-            ],
-          },
-        ],
+        path: "admin/newsletter",
+        element: <ProtectedRoute><NewsletterSubscribers /></ProtectedRoute>,
       },
     ],
   },
 ]);
 
-// Import ProtectedRoute components after setting up the router to avoid import cycles
-import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
-
-// Create the root element
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-
-// Render the app with proper provider wrapping - RouterProvider must come after QueryClientProvider
-root.render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
   </React.StrictMode>
-);
+)

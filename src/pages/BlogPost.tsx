@@ -7,6 +7,8 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import ResponsiveImage from '../components/ui/ResponsiveImage';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import CommentSection from '../components/blog/CommentSection';
+import NewsletterSignup from '../components/blog/NewsletterSignup';
 
 // Blog post type
 type BlogPost = {
@@ -74,7 +76,7 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      <article className="container mx-auto px-6 pt-40 pb-20">
+      <article className="container mx-auto px-6 pt-40 pb-10">
         <div className="max-w-3xl mx-auto">
           <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
             <ArrowLeft size={16} className="mr-2" />
@@ -129,8 +131,18 @@ const BlogPost = () => {
           <div className="prose prose-lg max-w-none text-gray-700">
             {post && formatContent(post.content)}
           </div>
+          
+          {/* Add Comment Section */}
+          {id && <CommentSection postId={id} />}
         </div>
       </article>
+      
+      {/* Add Newsletter Section */}
+      <div className="container mx-auto px-6 pb-20">
+        <div className="max-w-3xl mx-auto">
+          <NewsletterSignup />
+        </div>
+      </div>
       
       <Footer />
     </div>
