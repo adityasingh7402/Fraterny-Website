@@ -18,7 +18,7 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import NotFound from './pages/NotFound';
 import Dashboard from './pages/admin/Dashboard';
-import ProtectedRoute from './components/admin/ProtectedRoute';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import AdminBlog from './pages/admin/Blog';
 import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
@@ -45,27 +45,18 @@ const router = createBrowserRouter([
       { path: "terms-of-use", element: <TermsOfUse /> },
       { path: "terms-and-conditions", element: <TermsAndConditions /> },
       { path: "refund-policy", element: <RefundPolicy /> },
-      // Admin routes
+      
+      // Admin routes with proper nesting
       {
         path: "admin",
-        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
-      },
-      {
-        path: "admin/blog",
-        element: <ProtectedRoute><AdminBlog /></ProtectedRoute>,
-      },
-      {
-        path: "admin/analytics",
-        element: <ProtectedRoute><Analytics /></ProtectedRoute>,
-      },
-      {
-        path: "admin/images",
-        element: <ProtectedRoute><AdminImages /></ProtectedRoute>,
-      },
-      // Add the new Newsletter Subscribers admin route
-      {
-        path: "admin/newsletter",
-        element: <ProtectedRoute><NewsletterSubscribers /></ProtectedRoute>,
+        element: <AdminRoute />,
+        children: [
+          { index: true, element: <Dashboard /> },
+          { path: "blog", element: <AdminBlog /> },
+          { path: "analytics", element: <Analytics /> },
+          { path: "images", element: <AdminImages /> },
+          { path: "newsletter", element: <NewsletterSubscribers /> },
+        ],
       },
     ],
   },

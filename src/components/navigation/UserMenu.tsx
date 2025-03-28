@@ -12,10 +12,11 @@ const UserMenu = ({ isScrolled }: UserMenuProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin/dashboard' },
+    { name: 'Dashboard', href: '/admin' },
     { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },
+    { name: 'Newsletter', href: '/admin/newsletter' },
   ];
 
   const toggleUserMenu = () => {

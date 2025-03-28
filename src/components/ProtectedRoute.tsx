@@ -24,7 +24,7 @@ export const ProtectedRoute = () => {
 };
 
 export const AdminRoute = () => {
-  const { isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isLoading } = useAuth();
 
   // Show loading state if still checking authentication
   if (isLoading) {
@@ -33,6 +33,11 @@ export const AdminRoute = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy"></div>
       </div>
     );
+  }
+
+  // If not authenticated, redirect to auth page
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
   // If not admin, redirect to home page

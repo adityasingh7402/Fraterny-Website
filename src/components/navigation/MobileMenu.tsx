@@ -15,10 +15,11 @@ const MobileMenu = ({ isOpen, isScrolled, toggleMenu, navLinks, onSignOut }: Mob
   const { user, isAdmin } = useAuth();
   
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin/dashboard' },
+    { name: 'Dashboard', href: '/admin' },
     { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },
+    { name: 'Newsletter', href: '/admin/newsletter' },
   ];
 
   if (!isOpen) return null;

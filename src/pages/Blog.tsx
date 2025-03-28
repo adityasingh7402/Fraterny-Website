@@ -89,9 +89,7 @@ const BlogPage = () => {
   } = useQuery({
     queryKey: ['blogPosts', selectedCategory, selectedTag, searchQuery, currentPage, pageSize],
     queryFn: () => fetchBlogPosts(selectedCategory, selectedTag, searchQuery, currentPage, pageSize),
-    onError: (err) => {
-      console.error('Error fetching blog posts:', err);
-    }
+    // Remove the onError option as it's not supported in this version of react-query
   });
   
   const posts = data?.posts;
@@ -117,6 +115,13 @@ const BlogPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, selectedTag, searchQuery]);
+
+  // Log any errors to the console
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching blog posts:', error);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen">
