@@ -3,23 +3,25 @@ import React from 'react';
 import { Tag } from 'lucide-react';
 
 interface BlogFilterProps {
-  categories: (string | null)[];
-  uniqueTags: string[];
+  categories: string[];
+  tags: string[];
   selectedCategory: string | null;
   selectedTag: string | null;
-  setSelectedCategory: (category: string | null) => void;
-  setSelectedTag: (tag: string | null) => void;
+  onSelectCategory: (category: string | null) => void;
+  onSelectTag: (tag: string | null) => void;
+  onSearch: (query: string) => void;
 }
 
 const BlogFilter: React.FC<BlogFilterProps> = ({
   categories,
-  uniqueTags,
+  tags,
   selectedCategory,
   selectedTag,
-  setSelectedCategory,
-  setSelectedTag
+  onSelectCategory,
+  onSelectTag,
+  onSearch
 }) => {
-  if (categories.length === 0 && uniqueTags.length === 0) {
+  if (categories.length === 0 && tags.length === 0) {
     return null;
   }
   
@@ -32,7 +34,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
           <div className="flex flex-wrap gap-2">
             <button 
               className={`px-3 py-1 rounded-full text-sm ${!selectedCategory ? 'bg-navy text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => onSelectCategory(null)}
             >
               All Categories
             </button>
@@ -40,7 +42,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
               <button 
                 key={category} 
                 className={`px-3 py-1 rounded-full text-sm ${selectedCategory === category ? 'bg-navy text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => onSelectCategory(category)}
               >
                 {category}
               </button>
@@ -49,20 +51,20 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
         </div>
       )}
       
-      {uniqueTags.length > 0 && (
+      {tags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-700">Tags:</span>
           <button 
             className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${!selectedTag ? 'bg-terracotta text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-            onClick={() => setSelectedTag(null)}
+            onClick={() => onSelectTag(null)}
           >
             All
           </button>
-          {uniqueTags.map(tag => (
+          {tags.map(tag => (
             <button 
               key={tag} 
               className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${selectedTag === tag ? 'bg-terracotta text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-              onClick={() => setSelectedTag(tag)}
+              onClick={() => onSelectTag(tag)}
             >
               <Tag size={12} className="mr-1" />
               {tag}
