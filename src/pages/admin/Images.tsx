@@ -2,9 +2,21 @@
 import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { PlusCircle, Trash2, Edit, Upload, X, Check, Image as ImageIcon } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Upload, X, Check, Image as ImageIcon, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchAllImages, uploadImage, updateImage, deleteImage, WebsiteImage } from '@/services/imageService';
+
+// Available image categories
+const IMAGE_CATEGORIES = [
+  'Hero',
+  'Background',
+  'Banner',
+  'Icon',
+  'Profile',
+  'Thumbnail',
+  'Gallery',
+  'Product'
+];
 
 const AdminImages = () => {
   const queryClient = useQueryClient();
@@ -13,12 +25,14 @@ const AdminImages = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   // Form state for upload
   const [uploadForm, setUploadForm] = useState({
     key: '',
     description: '',
     alt_text: '',
+    category: '',
     file: null as File | null
   });
   
@@ -26,7 +40,8 @@ const AdminImages = () => {
   const [editForm, setEditForm] = useState({
     key: '',
     description: '',
-    alt_text: ''
+    alt_text: '',
+    category: ''
   });
   
   // Fetch all images
@@ -37,8 +52,8 @@ const AdminImages = () => {
   
   // Upload mutation
   const uploadMutation = useMutation({
-    mutationFn: (data: { file: File, key: string, description: string, alt_text: string }) => 
-      uploadImage(data.file, data.key, data.description, data.alt_text),
+    mutationFn: (data: { file: File, key: string, description: string, alt_text: string, category?: string }) => 
+      uploadImage(data.file, data.key, data.description, data.alt_text, data.category),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
       setIsUploadModalOpen(false);
@@ -87,6 +102,7 @@ const AdminImages = () => {
       key: '',
       description: '',
       alt_text: '',
+      category: '',
       file: null
     });
     
@@ -116,7 +132,8 @@ const AdminImages = () => {
       file: uploadForm.file,
       key: uploadForm.key,
       description: uploadForm.description,
-      alt_text: uploadForm.alt_text
+      alt_text: uploadForm.alt_text,
+      category: uploadForm.category || undefined
     });
   };
   
@@ -130,7 +147,8 @@ const AdminImages = () => {
       updates: {
         key: editForm.key,
         description: editForm.description,
-        alt_text: editForm.alt_text
+        alt_text: editForm.alt_text,
+        category: editForm.category || null
       }
     });
   };
@@ -140,7 +158,8 @@ const AdminImages = () => {
     setEditForm({
       key: image.key,
       description: image.description,
-      alt_text: image.alt_text
+      alt_text: image.alt_text,
+      category: image.category || ''
     });
     setIsEditModalOpen(true);
   };
@@ -162,6 +181,16 @@ const AdminImages = () => {
       .getPublicUrl(path);
     return data.publicUrl;
   }, []);
+
+  // Extract all unique categories from images
+  const categories = images
+    ? [...new Set(images.filter(img => img.category).map(img => img.category))]
+    : [];
+
+  // Filter images based on selected category
+  const filteredImages = selectedCategory
+    ? images?.filter(img => img.category === selectedCategory)
+    : images;
   
   if (isLoading) {
     return (
@@ -198,24 +227,50 @@ const AdminImages = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-playfair text-navy">Image Management</h1>
-          <button 
-            onClick={() => setIsUploadModalOpen(true)}
-            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
-          >
-            <PlusCircle className="w-5 h-5" />
-            Add New Image
-          </button>
+          <div className="flex gap-4">
+            <a 
+              href="/admin/dashboard" 
+              className="px-4 py-2 border border-navy text-navy rounded-md hover:bg-navy hover:text-white transition-colors"
+            >
+              Back to Dashboard
+            </a>
+            <button 
+              onClick={() => setIsUploadModalOpen(true)}
+              className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
+            >
+              <PlusCircle className="w-5 h-5" />
+              Add New Image
+            </button>
+          </div>
         </div>
         
         <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-medium text-navy">Website Images</h2>
-            <p className="text-gray-600 mt-1">Manage the images used throughout the website</p>
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-medium text-navy">Website Images</h2>
+              <p className="text-gray-600 mt-1">Manage the images used throughout the website</p>
+            </div>
+            
+            {categories.length > 0 && (
+              <div className="flex items-center">
+                <Filter className="w-4 h-4 text-gray-500 mr-2" />
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  className="border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           
-          {images && images.length > 0 ? (
+          {filteredImages && filteredImages.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-              {images.map((image) => (
+              {filteredImages.map((image) => (
                 <div key={image.id} className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
                   <div className="aspect-video bg-gray-200 relative">
                     <img 
@@ -225,8 +280,20 @@ const AdminImages = () => {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-medium text-navy">{image.key}</h3>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-navy">{image.key}</h3>
+                      {image.category && (
+                        <span className="px-2 py-1 bg-navy bg-opacity-10 text-navy text-xs rounded">
+                          {image.category}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{image.description}</p>
+                    {(image.width && image.height) && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {image.width} × {image.height}px
+                      </p>
+                    )}
                     <div className="flex justify-between items-center mt-4">
                       <span className="text-xs text-gray-500">
                         Added: {new Date(image.created_at).toLocaleDateString()}
@@ -255,15 +322,33 @@ const AdminImages = () => {
           ) : (
             <div className="p-12 text-center">
               <ImageIcon className="w-12 h-12 mx-auto text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No images yet</h3>
-              <p className="mt-1 text-gray-500">Get started by adding your first image.</p>
-              <button
-                onClick={() => setIsUploadModalOpen(true)}
-                className="mt-6 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors inline-flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                Upload Image
-              </button>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                {selectedCategory ? 'No images in this category' : 'No images yet'}
+              </h3>
+              <p className="mt-1 text-gray-500">
+                {selectedCategory ? (
+                  <>
+                    No images found in the "{selectedCategory}" category.
+                    <button 
+                      onClick={() => setSelectedCategory(null)}
+                      className="ml-2 text-navy hover:underline"
+                    >
+                      View all images
+                    </button>
+                  </>
+                ) : (
+                  'Get started by adding your first image.'
+                )}
+              </p>
+              {!selectedCategory && (
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="mt-6 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors inline-flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload Image
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -302,6 +387,23 @@ const AdminImages = () => {
                   <p className="mt-1 text-sm text-gray-500">
                     A unique identifier used to fetch this image later
                   </p>
+                </div>
+                
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    value={uploadForm.category}
+                    onChange={(e) => setUploadForm(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+                  >
+                    <option value="">Select a category</option>
+                    {IMAGE_CATEGORIES.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -417,6 +519,23 @@ const AdminImages = () => {
                     required
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="edit_category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    id="edit_category"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+                  >
+                    <option value="">Select a category</option>
+                    {IMAGE_CATEGORIES.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
                 
                 <div>
                   <label htmlFor="edit_description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -445,6 +564,12 @@ const AdminImages = () => {
                     required
                   />
                 </div>
+
+                {(selectedImage.width && selectedImage.height) && (
+                  <div className="text-sm text-gray-600">
+                    Image dimensions: {selectedImage.width} × {selectedImage.height}px
+                  </div>
+                )}
                 
                 <div className="flex justify-end gap-3">
                   <button

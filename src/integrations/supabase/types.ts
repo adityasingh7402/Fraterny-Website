@@ -11,26 +11,32 @@ export type Database = {
     Tables: {
       blog_posts: {
         Row: {
+          category: string | null
           content: string
           created_at: string
           id: string
           published: boolean
+          tags: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
+          category?: string | null
           content: string
           created_at?: string
           id?: string
           published?: boolean
+          tags?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
+          category?: string | null
           content?: string
           created_at?: string
           id?: string
           published?: boolean
+          tags?: string[] | null
           title?: string
           updated_at?: string
         }
@@ -39,30 +45,42 @@ export type Database = {
       website_images: {
         Row: {
           alt_text: string
+          category: string | null
           created_at: string
           description: string
+          height: number | null
           id: string
           key: string
+          sizes: Json | null
           storage_path: string
           updated_at: string
+          width: number | null
         }
         Insert: {
           alt_text: string
+          category?: string | null
           created_at?: string
           description: string
+          height?: number | null
           id?: string
           key: string
+          sizes?: Json | null
           storage_path: string
           updated_at?: string
+          width?: number | null
         }
         Update: {
           alt_text?: string
+          category?: string | null
           created_at?: string
           description?: string
+          height?: number | null
           id?: string
           key?: string
+          sizes?: Json | null
           storage_path?: string
           updated_at?: string
+          width?: number | null
         }
         Relationships: []
       }

@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { getImageUrlByKey } from '@/services/imageService';
+import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/imageService';
 
 interface ResponsiveImageProps {
   src: {
@@ -13,7 +12,8 @@ interface ResponsiveImageProps {
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  dynamicKey?: string; // New prop for fetching from Supabase by key
+  dynamicKey?: string; // Key for fetching from Supabase by key
+  size?: 'small' | 'medium' | 'large'; // Optional size for optimized images
 }
 
 /**
@@ -28,31 +28,64 @@ const ResponsiveImage = ({
   loading = 'lazy',
   fetchPriority,
   onClick,
-  dynamicKey
+  dynamicKey,
+  size
 }: ResponsiveImageProps) => {
   const [dynamicSrc, setDynamicSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(!!dynamicKey);
+  const [error, setError] = useState(false);
   
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
     if (dynamicKey) {
       setIsLoading(true);
-      getImageUrlByKey(dynamicKey)
-        .then(url => {
-          setDynamicSrc(url);
-          setIsLoading(false);
-        })
-        .catch(error => {
+      setError(false);
+      
+      const fetchImage = async () => {
+        try {
+          // If size is specified, try to get that specific size
+          if (size) {
+            const url = await getImageUrlByKeyAndSize(dynamicKey, size);
+            setDynamicSrc(url);
+          } else {
+            // Otherwise get the original image
+            const url = await getImageUrlByKey(dynamicKey);
+            setDynamicSrc(url);
+          }
+        } catch (error) {
           console.error(`Failed to load image with key ${dynamicKey}:`, error);
+          setError(true);
+        } finally {
           setIsLoading(false);
-        });
+        }
+      };
+      
+      fetchImage();
     }
-  }, [dynamicKey]);
+  }, [dynamicKey, size]);
   
   // If we're still loading a dynamic image, show a loading placeholder
   if (isLoading) {
     return (
-      <div className={`bg-gray-200 animate-pulse ${className}`} aria-label={`Loading ${alt}`}></div>
+      <div 
+        className={`bg-gray-200 animate-pulse ${className}`} 
+        aria-label={`Loading ${alt}`}
+        style={{ aspectRatio: '16/9' }}
+      ></div>
+    );
+  }
+  
+  // If there was an error loading the image, show a placeholder
+  if (error || (!dynamicSrc && dynamicKey)) {
+    return (
+      <div 
+        className={`bg-gray-100 flex items-center justify-center ${className}`}
+        style={{ aspectRatio: '16/9' }}
+      >
+        <div className="text-gray-400 text-sm text-center p-4">
+          Image not found
+        </div>
+      </div>
     );
   }
   

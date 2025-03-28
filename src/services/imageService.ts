@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface WebsiteImage {
@@ -7,6 +6,10 @@ export interface WebsiteImage {
   description: string;
   storage_path: string;
   alt_text: string;
+  category: string | null;
+  sizes: Record<string, string> | null;
+  width: number | null;
+  height: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,18 +50,62 @@ export const fetchAllImages = async (): Promise<WebsiteImage[]> => {
 };
 
 /**
+ * Fetch images by category
+ */
+export const fetchImagesByCategory = async (category: string): Promise<WebsiteImage[]> => {
+  const { data, error } = await supabase
+    .from('website_images')
+    .select('*')
+    .eq('category', category)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching images by category:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+/**
+ * Get image dimensions from a File
+ */
+const getImageDimensions = (file: File): Promise<{width: number, height: number}> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(img.src); // Clean up
+      resolve({ width: img.width, height: img.height });
+    };
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+/**
  * Upload a new image to storage and create an entry in the website_images table
  */
 export const uploadImage = async (
   file: File,
   key: string,
   description: string,
-  alt_text: string
+  alt_text: string,
+  category?: string
 ): Promise<WebsiteImage | null> => {
   try {
     // Generate a unique filename
     const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
     const storagePath = `${key}/${filename}`;
+    
+    // Get image dimensions if it's an image file
+    let dimensions = { width: null, height: null };
+    
+    if (file.type.startsWith('image/')) {
+      try {
+        dimensions = await getImageDimensions(file);
+      } catch (err) {
+        console.error('Could not get image dimensions:', err);
+      }
+    }
     
     // Upload the file to storage
     const { error: uploadError } = await supabase.storage
@@ -82,7 +129,10 @@ export const uploadImage = async (
         key,
         description,
         storage_path: storagePath,
-        alt_text
+        alt_text,
+        category: category || null,
+        width: dimensions.width,
+        height: dimensions.height
       })
       .select()
       .single();
@@ -176,6 +226,30 @@ export const getImageUrlByKey = async (key: string): Promise<string | null> => {
     return null;
   }
   
+  const { data } = supabase.storage
+    .from('website-images')
+    .getPublicUrl(image.storage_path);
+  
+  return data.publicUrl;
+};
+
+/**
+ * Get public URL for a specific size of an image by its key
+ * If the requested size doesn't exist, returns the original image URL
+ */
+export const getImageUrlByKeyAndSize = async (key: string, size: string): Promise<string | null> => {
+  const image = await fetchImageByKey(key);
+  
+  if (!image) {
+    return null;
+  }
+  
+  // If the image has the requested size in its sizes object, return that URL
+  if (image.sizes && image.sizes[size]) {
+    return image.sizes[size];
+  }
+  
+  // Otherwise return the original image URL
   const { data } = supabase.storage
     .from('website-images')
     .getPublicUrl(image.storage_path);

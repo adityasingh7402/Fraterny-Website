@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 
 // Blog post type
 type BlogPost = {
@@ -13,6 +13,8 @@ type BlogPost = {
   title: string;
   content: string;
   published: boolean;
+  category: string | null;
+  tags: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -77,17 +79,37 @@ const BlogPost = () => {
             Back to all posts
           </Link>
           
+          {post?.category && (
+            <div className="mb-4">
+              <span className="inline-block px-3 py-1 bg-navy bg-opacity-10 text-navy text-sm rounded">
+                {post.category}
+              </span>
+            </div>
+          )}
+          
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair text-navy mb-6">
             {post?.title}
           </h1>
           
-          <div className="mb-8 text-gray-500">
-            Published on {new Date(post?.created_at || '').toLocaleDateString('en-US', {
+          <div className="mb-8 flex items-center text-gray-500">
+            <Calendar size={16} className="mr-2" />
+            {new Date(post?.created_at || '').toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
             })}
           </div>
+          
+          {post?.tags && post.tags.length > 0 && (
+            <div className="mb-8 flex flex-wrap gap-2">
+              {post.tags.map(tag => (
+                <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                  <Tag size={14} className="mr-1 text-terracotta" />
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           
           <div className="prose prose-lg max-w-none text-gray-700">
             {post && formatContent(post.content)}
