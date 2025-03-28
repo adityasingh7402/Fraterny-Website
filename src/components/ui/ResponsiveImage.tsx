@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
 
 interface ResponsiveImageProps {
-  src: {
+  src?: {
     mobile: string;
     tablet?: string;
     desktop: string;
