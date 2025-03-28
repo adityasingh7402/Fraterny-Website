@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { WebsiteImage } from './types';
+import { handleApiError } from '@/utils/errorHandling';
 
 // Simple in-memory cache for image URLs
 const urlCache = new Map<string, {url: string, timestamp: number}>();
@@ -13,6 +14,10 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
   try {
+    if (!key) {
+      throw new Error('Image key is required');
+    }
+
     // Check cache first
     const cached = urlCache.get(`key:${key}`);
     if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
@@ -28,12 +33,10 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .single();
     
     if (error) {
-      console.error(`Error fetching image with key "${key}":`, error);
       throw new Error(`Image with key "${key}" not found: ${error.message}`);
     }
     
     if (!data) {
-      console.warn(`No image found with key "${key}"`);
       throw new Error(`Image with key "${key}" not found`);
     }
     
@@ -56,8 +59,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Error in getImageUrlByKey:', error);
-    throw error;
+    return handleApiError(error, `Failed to get image with key "${key}"`, true).message;
   }
 };
 
@@ -72,6 +74,10 @@ export const getImageUrlByKeyAndSize = async (
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
   try {
+    if (!key) {
+      throw new Error('Image key is required');
+    }
+
     // Check cache first
     const cacheKey = `key:${key}:size:${size}`;
     const cached = urlCache.get(cacheKey);
@@ -88,12 +94,10 @@ export const getImageUrlByKeyAndSize = async (
       .single();
     
     if (error) {
-      console.error(`Error fetching image with key "${key}":`, error);
       throw new Error(`Image with key "${key}" not found: ${error.message}`);
     }
     
     if (!data) {
-      console.warn(`No image found with key "${key}"`);
       throw new Error(`Image with key "${key}" not found`);
     }
     
@@ -138,8 +142,7 @@ export const getImageUrlByKeyAndSize = async (
     
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Error in getImageUrlByKeyAndSize:', error);
-    throw error;
+    return handleApiError(error, `Failed to get image with key "${key}" and size ${size}`, true).message;
   }
 };
 

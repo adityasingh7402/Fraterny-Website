@@ -14,7 +14,7 @@ export function OverviewCard({ title, value, percentChange, icon }: OverviewCard
   const isNeutral = percentChange === 0;
   
   return (
-    <Card>
+    <Card className="border-navy/10 hover:shadow-md transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-navy">
           {title}

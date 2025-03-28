@@ -21,6 +21,7 @@ interface DistributionChartProps {
 }
 
 export function DistributionChart({ data, title }: DistributionChartProps) {
+  // Updated colors to match brand palette (navy, terracotta, gold + complementary colors)
   const COLORS = ['#0A1A2F', '#E07A5F', '#D4AF37', '#3B7A57', '#6A5ACD', '#FF7F50'];
   
   // Create chart config dynamically from data
@@ -38,7 +39,7 @@ export function DistributionChart({ data, title }: DistributionChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-navy">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
@@ -58,7 +59,7 @@ export function DistributionChart({ data, title }: DistributionChartProps) {
                   {data.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={`var(--color-${entry.name})`}
+                      fill={COLORS[index % COLORS.length]}
                     />
                   ))}
                 </Pie>
