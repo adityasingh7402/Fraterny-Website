@@ -19,7 +19,7 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminBlog from './pages/admin/Blog';
-import AdminImages from './pages/admin/Images';
+import AdminImages from './pages/admin/images';
 import NotFound from './pages/NotFound';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
