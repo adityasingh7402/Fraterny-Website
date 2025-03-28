@@ -1,8 +1,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { deleteImage, WebsiteImage } from '@/services/images';
+import { showSuccess, showError } from '@/utils/errorHandler';
 
 interface DeleteModalProps {
   isOpen: boolean;
@@ -19,11 +19,12 @@ const DeleteModal = ({ isOpen, onClose, image }: DeleteModalProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
       onClose();
-      toast.success('Image deleted successfully');
+      showSuccess('Image deleted successfully');
     },
     onError: (error) => {
-      toast.error('Failed to delete image');
-      console.error(error);
+      showError(error, 'Failed to delete image', {
+        title: 'Image Deletion Error'
+      });
     }
   });
   

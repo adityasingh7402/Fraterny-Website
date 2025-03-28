@@ -1,6 +1,7 @@
 
 import React from 'react';
 import BlogCard, { BlogPost } from './BlogCard';
+import BlogErrorState from './BlogErrorState';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface BlogListProps {
@@ -14,6 +15,7 @@ interface BlogListProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  refetch?: () => void;
 }
 
 const BlogList: React.FC<BlogListProps> = ({ 
@@ -26,7 +28,8 @@ const BlogList: React.FC<BlogListProps> = ({
   setSelectedTag,
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
+  refetch
 }) => {
   if (isLoading) {
     return (
@@ -39,15 +42,10 @@ const BlogList: React.FC<BlogListProps> = ({
   
   if (error) {
     return (
-      <div className="text-center py-20">
-        <p className="text-red-600">Failed to load blog posts</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90"
-        >
-          Retry
-        </button>
-      </div>
+      <BlogErrorState 
+        message="Failed to load blog posts" 
+        onRetry={refetch} 
+      />
     );
   }
   

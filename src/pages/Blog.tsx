@@ -8,6 +8,7 @@ import BlogHero from '../components/blog/BlogHero';
 import BlogFilter from '../components/blog/BlogFilter';
 import BlogList from '../components/blog/BlogList';
 import { BlogPost } from '../components/blog/BlogCard';
+import { showError } from '@/utils/errorHandler';
 
 // Number of posts to display per page
 const POSTS_PER_PAGE = 9;
@@ -19,7 +20,7 @@ const Blog = () => {
   const [totalPosts, setTotalPosts] = useState(0);
 
   // Fetch published blog posts with pagination
-  const { data: blogPosts, isLoading, error } = useQuery({
+  const { data: blogPosts, isLoading, error, refetch } = useQuery({
     queryKey: ['publicBlogPosts', currentPage, selectedCategory, selectedTag],
     queryFn: async () => {
       // Start with a base query for published posts
@@ -49,6 +50,12 @@ const Blog = () => {
       
       if (error) throw error;
       return data as BlogPost[];
+    },
+    onError: (error) => {
+      showError(error, 'Failed to load blog posts', {
+        title: 'Blog Error',
+        silent: false
+      });
     }
   });
 
@@ -109,6 +116,7 @@ const Blog = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
+            refetch={() => refetch()}
           />
         </div>
       </section>
