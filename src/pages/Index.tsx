@@ -4,6 +4,8 @@ import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
 import { initPerformanceMonitoring, trackResourceTiming } from '@/utils/performanceMonitoring';
+import { initializeAnalytics } from '@/utils/analyticsInitializer';
+import { trackPageView } from '@/services/analyticsService';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -19,8 +21,14 @@ const LoadingFallback = () => (
 );
 
 const Index = () => {
-  // Initialize performance monitoring
+  // Initialize analytics and performance monitoring
   useEffect(() => {
+    // Initialize analytics tracking
+    initializeAnalytics();
+    
+    // Track this specific page view
+    trackPageView('/');
+    
     // Track performance metrics
     const cleanup = initPerformanceMonitoring();
     

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Clock, ArrowDownRight, TrendingUp } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,11 +20,30 @@ import { DistributionChart } from '@/components/admin/analytics/DistributionChar
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState<string>('7d');
   const [tab, setTab] = useState<string>("overview");
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   
+  // Get the analytics data
   const trafficData = getTrafficData(period);
   const sourceData = getTrafficSourceData();
   const deviceData = getDeviceData();
   const overviewData = getAnalyticsOverview(period);
+
+  // Refresh data every 30 seconds if the page is visible
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        setRefreshKey(prev => prev + 1);
+      }
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  // Trigger refresh when period changes or refresh key changes
+  useEffect(() => {
+    // The state changes will trigger a re-render,
+    // which will refresh the analytics data
+  }, [period, refreshKey]);
 
   return (
     <div className="container px-4 py-6 md:py-10 mx-auto max-w-7xl">
