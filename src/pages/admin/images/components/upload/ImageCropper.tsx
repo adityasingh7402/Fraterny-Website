@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { RefObject } from 'react';
 import { ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react';
 import ReactCrop, { type Crop as CropArea } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -13,6 +13,7 @@ interface ImageCropperProps {
   setZoom: (zoom: number) => void;
   rotation: number;
   setRotation: (rotation: number) => void;
+  imgRef: RefObject<HTMLImageElement>;
   onApplyChanges: () => void;
 }
 
@@ -25,30 +26,26 @@ const ImageCropper = ({
   setZoom,
   rotation,
   setRotation,
+  imgRef,
   onApplyChanges
 }: ImageCropperProps) => {
-  const imgRef = useRef<HTMLImageElement>(null);
-  
   const increaseZoom = () => {
-    // Fix: Instead of using a callback function, calculate the new value and pass it directly
     const newZoom = Math.min(zoom + 0.1, 3);
     setZoom(newZoom);
   };
   
   const decreaseZoom = () => {
-    // Fix: Instead of using a callback function, calculate the new value and pass it directly
     const newZoom = Math.max(zoom - 0.1, 0.1);
     setZoom(newZoom);
   };
   
   const rotateImage = () => {
-    // Fix: Instead of using a callback function, calculate the new value and pass it directly
     const newRotation = (rotation + 90) % 360;
     setRotation(newRotation);
   };
   
   return (
-    <>
+    <div className="flex flex-col items-center">
       <div className="flex gap-2 mb-2 justify-center">
         <button
           type="button"
@@ -84,25 +81,47 @@ const ImageCropper = ({
         </button>
       </div>
       
-      <ReactCrop
-        crop={crop}
-        onChange={(c) => setCrop(c)}
-        onComplete={(c) => setCompletedCrop(c)}
-        aspect={undefined}
-        className="max-h-[400px] object-contain"
-      >
-        <img
-          ref={imgRef}
-          src={imageSrc}
-          alt="Crop Preview"
-          style={{
-            maxHeight: '400px',
-            transform: `scale(${zoom}) rotate(${rotation}deg)`,
-            transition: 'transform 0.2s ease-in-out'
-          }}
-        />
-      </ReactCrop>
-    </>
+      <div className="max-w-full overflow-hidden">
+        <ReactCrop
+          crop={crop}
+          onChange={(c) => setCrop(c)}
+          onComplete={(c) => setCompletedCrop(c)}
+          aspect={undefined}
+        >
+          <img
+            ref={imgRef}
+            src={imageSrc}
+            alt="Crop Preview"
+            style={{
+              maxHeight: '350px',
+              transform: `scale(${zoom}) rotate(${rotation}deg)`,
+              transformOrigin: 'center',
+              transition: 'transform 0.2s ease-in-out'
+            }}
+            onLoad={(e) => {
+              // Set initial crop to center of image
+              const { width, height } = e.currentTarget;
+              const cropWidth = width * 0.8;
+              const cropHeight = height * 0.8;
+              const x = (width - cropWidth) / 2;
+              const y = (height - cropHeight) / 2;
+              
+              setCrop({
+                unit: 'px',
+                x,
+                y,
+                width: cropWidth,
+                height: cropHeight
+              });
+            }}
+          />
+        </ReactCrop>
+      </div>
+      
+      <p className="text-sm text-gray-500 text-center mt-2">
+        Drag to adjust crop area, use controls to zoom and rotate.
+      </p>
+    </div>
   );
 };
 

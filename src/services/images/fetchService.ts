@@ -12,24 +12,35 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     if (!key) {
       throw new Error('Image key is required');
     }
+    
+    // Normalize the key by trimming whitespace
+    const normalizedKey = key.trim();
+    console.log(`Fetching image with normalized key: "${normalizedKey}"`);
 
     // Check cache first
-    const cacheKey = `image:${key}`;
+    const cacheKey = `image:${normalizedKey}`;
     const cached = imageCache.get(cacheKey);
     
     if (cached !== undefined) {
-      console.log(`Cache hit for fetchImageByKey: ${key}`);
+      console.log(`Cache hit for fetchImageByKey: ${normalizedKey}`);
       return cached;
     }
     
     const { data, error } = await supabase
       .from('website_images')
       .select('*')
-      .eq('key', key)
+      .eq('key', normalizedKey)
       .maybeSingle();
     
     if (error) {
-      return handleApiError(error, `Error fetching image with key "${key}"`, false) as null;
+      console.error(`Error fetching image with key "${normalizedKey}":`, error);
+      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, false) as null;
+    }
+    
+    if (!data) {
+      console.warn(`No image found with key "${normalizedKey}"`);
+    } else {
+      console.log(`Found image with key "${normalizedKey}":`, data.id);
     }
     
     // Cache the result

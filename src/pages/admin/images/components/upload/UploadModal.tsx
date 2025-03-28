@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { X, Upload } from 'lucide-react';
@@ -18,6 +18,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
   
   const { 
@@ -68,7 +69,67 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     }
   };
   
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  // Function to apply crop
+  const getCroppedImg = useCallback(async (): Promise<File | null> => {
+    if (!completedCrop || !uploadForm.file || !imgRef.current) {
+      toast.error('Unable to crop image, try again');
+      return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+    
+    // Account for zoom and rotation
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      toast.error('Unable to create canvas context');
+      return null;
+    }
+    
+    const pixelRatio = window.devicePixelRatio;
+    
+    // Set canvas size to the cropped area
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    
+    // Clear the canvas
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw cropped image
+    ctx.drawImage(
+      imgRef.current,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY
+    );
+    
+    // Create a blob from the canvas
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob || !uploadForm.file) {
+          resolve(null);
+          return;
+        }
+        
+        // Create a new file with the cropped image
+        const croppedFile = new File([blob], uploadForm.file.name, {
+          type: uploadForm.file.type,
+          lastModified: Date.now(),
+        });
+        
+        resolve(croppedFile);
+      }, uploadForm.file.type, 0.95);
+    });
+  }, [completedCrop, uploadForm.file]);
+  
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!uploadForm.file) {
@@ -77,31 +138,21 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     }
     
     // If crop is complete, use the cropped image
-    if (completedCrop && isCropping && canvasRef.current) {
-      const canvas = canvasRef.current;
-      canvas.toBlob(
-        (blob) => {
-          if (!blob || !uploadForm.file) {
-            toast.error('Failed to process cropped image');
-            return;
-          }
-          
-          const croppedFile = new File([blob], uploadForm.file.name, {
-            type: uploadForm.file.type,
-            lastModified: Date.now(),
-          });
-          
-          uploadMutation.mutate({
-            file: croppedFile,
-            key: uploadForm.key,
-            description: uploadForm.description,
-            alt_text: uploadForm.alt_text,
-            category: uploadForm.category || undefined
-          });
-        },
-        uploadForm.file.type,
-        0.95
-      );
+    if (isCropping && completedCrop) {
+      const croppedFile = await getCroppedImg();
+      
+      if (!croppedFile) {
+        toast.error('Failed to process cropped image');
+        return;
+      }
+      
+      uploadMutation.mutate({
+        file: croppedFile,
+        key: uploadForm.key,
+        description: uploadForm.description,
+        alt_text: uploadForm.alt_text,
+        category: uploadForm.category || undefined
+      });
       return;
     }
     
@@ -160,6 +211,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
                   setZoom={setZoom}
                   rotation={rotation}
                   setRotation={setRotation}
+                  imgRef={imgRef}
                   onApplyChanges={() => {
                     if (completedCrop) {
                       setIsCropping(false);
@@ -170,12 +222,6 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
               ) : null}
             </ImagePreview>
           )}
-          
-          {/* Hidden canvas for cropping */}
-          <canvas
-            ref={canvasRef}
-            style={{ display: 'none' }}
-          />
           
           {/* Placeholder Replacement Information */}
           <PredefinedKeysSection

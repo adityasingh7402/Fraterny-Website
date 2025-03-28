@@ -16,29 +16,34 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       throw new Error('Image key is required');
     }
 
+    // Check for any spaces or special characters in the key that might cause issues
+    const sanitizedKey = key.trim();
+    
+    console.log(`Attempting to get image URL for key: "${sanitizedKey}"`);
+
     // For production environment, skip defaults and always try to fetch from Supabase
     if (process.env.NODE_ENV === 'production') {
       console.log('Production environment detected, skipping default images');
     }
     // For other environments, use defaults if available
-    else if (defaultImagesMap[key]) {
-      console.log(`Using default image for key: ${key}`);
-      return defaultImagesMap[key];
+    else if (defaultImagesMap[sanitizedKey]) {
+      console.log(`Using default image for key: ${sanitizedKey}`);
+      return defaultImagesMap[sanitizedKey];
     }
 
     // Check cache first
-    const cacheKey = `key:${key}`;
+    const cacheKey = `key:${sanitizedKey}`;
     const cached = urlCache.get(cacheKey);
     if (cached) {
-      console.log(`Cache hit for image key: ${key}`);
+      console.log(`Cache hit for image key: ${sanitizedKey}`);
       return cached;
     }
     
     // Fetch the image record from the database
-    const imageRecord = await fetchImageByKey(key);
+    const imageRecord = await fetchImageByKey(sanitizedKey);
     
     if (!imageRecord) {
-      console.warn(`Image with key "${key}" not found`);
+      console.warn(`Image with key "${sanitizedKey}" not found in database`);
       // Return placeholder image
       return '/placeholder.svg';
     }
@@ -49,7 +54,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .getPublicUrl(imageRecord.storage_path);
     
     if (!urlData.publicUrl) {
-      console.warn(`Failed to get public URL for image with key "${key}"`);
+      console.warn(`Failed to get public URL for image with key "${sanitizedKey}"`);
       // Return placeholder image
       return '/placeholder.svg';
     }
@@ -58,7 +63,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     urlCache.set(cacheKey, urlData.publicUrl);
     
     // Add console log for debugging
-    console.log(`Retrieved image URL for key "${key}":`, urlData.publicUrl);
+    console.log(`Retrieved image URL for key "${sanitizedKey}":`, urlData.publicUrl);
     
     return urlData.publicUrl;
   } catch (error) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
 import { toast } from 'sonner';
@@ -25,13 +26,17 @@ export const useResponsiveImage = (
     
     const fetchImage = async () => {
       try {
+        console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
+        
         // If size is specified, try to get that specific size
         if (size) {
           const url = await getImageUrlByKeyAndSize(dynamicKey, size);
+          console.log(`Fetched image URL: ${url}`);
           setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
         } else {
           // Otherwise get the original image
           const url = await getImageUrlByKey(dynamicKey);
+          console.log(`Fetched image URL: ${url}`);
           setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
         }
       } catch (error) {
@@ -39,7 +44,7 @@ export const useResponsiveImage = (
         setState(prev => ({ ...prev, error: true, isLoading: false }));
         
         // Don't show toast for development placeholder images
-        if (!dynamicKey.startsWith('villalab-') && !dynamicKey.startsWith('hero-')) {
+        if (!dynamicKey.includes('villalab-') && !dynamicKey.includes('hero-')) {
           toast.error(`Failed to load image: ${dynamicKey}`, {
             description: "Please check if this image exists in your storage.",
             duration: 3000,
