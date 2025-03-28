@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchAllImages, WebsiteImage } from '@/services/images';
+import { fetchAllImages, fetchImagesByCategory, WebsiteImage } from '@/services/images';
 import ImageGallery from './components/ImageGallery';
 import ImageFilters from './components/ImageFilters';
 import PageHeader from './components/PageHeader';
@@ -18,22 +18,28 @@ const AdminImages = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
   
-  // Fetch all images
-  const { data: images, isLoading, error } = useQuery({
-    queryKey: ['website-images'],
-    queryFn: fetchAllImages
+  // Fetch images based on selected category
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['website-images', selectedCategory, page, pageSize],
+    queryFn: async () => {
+      if (selectedCategory) {
+        return fetchImagesByCategory(selectedCategory, page, pageSize);
+      }
+      return fetchAllImages(page, pageSize);
+    }
   });
   
+  // Extract images and total count from response
+  const images = data?.images || [];
+  const totalCount = data?.total || 0;
+  
   // Extract all unique categories from images
-  const categories = images
-    ? [...new Set(images.filter(img => img.category).map(img => img.category))]
+  const categories = images.length > 0
+    ? [...new Set(images.filter(img => img.category).map(img => img.category))] as string[]
     : [];
-
-  // Filter images based on selected category
-  const filteredImages = selectedCategory
-    ? images?.filter(img => img.category === selectedCategory)
-    : images;
   
   // Modal handlers
   const openEditModal = (image: WebsiteImage) => {
@@ -75,9 +81,9 @@ const AdminImages = () => {
             )}
           </div>
           
-          {filteredImages && filteredImages.length > 0 ? (
+          {images.length > 0 ? (
             <ImageGallery 
-              images={filteredImages} 
+              images={images} 
               onEdit={openEditModal} 
               onDelete={openDeleteModal} 
             />

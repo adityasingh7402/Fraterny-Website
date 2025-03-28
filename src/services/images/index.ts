@@ -10,7 +10,7 @@ export * from './deleteService';
 // Export getUrlByKey functions directly
 export { getImageUrlByKey, getImageUrlByKeyAndSize } from './getUrlByKey';
 
-// Export fetchService functions explicitly, excluding the duplicated functions
+// Export fetchService functions explicitly to avoid naming conflicts
 export { 
   fetchImageByKey,
   fetchAllImages,
