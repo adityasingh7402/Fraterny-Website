@@ -1,19 +1,10 @@
-
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
-
-const fetchPrices = async () => {
-  return {
-    insiderAccess: "₹499/month",
-    mainExperience: "₹45,000 - ₹60,000",
-    executiveEscape: "₹1,50,000+",
-    spotsRemaining: 5
-  };
-};
+import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/websiteSettingsService';
 
 const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
 const LEARN_MORE_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit";
@@ -77,15 +68,20 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
 const LowerSections = lazy(() => import('../components/pricing/LowerSections'));
 
 const Pricing = () => {
-  const { data: prices = {
-    insiderAccess: "Loading...",
-    mainExperience: "Loading...",
-    executiveEscape: "Loading...",
-    spotsRemaining: "--"
-  }} = useQuery({
-    queryKey: ['prices'],
-    queryFn: fetchPrices,
+  // Fetch website settings for the dynamic content
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['websiteSettings'],
+    queryFn: fetchWebsiteSettings
   });
+  
+  // Prepare pricing data with dynamic values
+  const prices = {
+    insiderAccess: "₹499/month",
+    mainExperience: "₹45,000 - ₹60,000",
+    executiveEscape: "₹1,50,000+",
+    spotsRemaining: isLoading ? "--" : settings?.available_seats || 5,
+    closeDate: isLoading ? "March 2025" : formatRegistrationCloseDate(settings?.registration_close_date || '2025-03-31')
+  };
 
   return (
     <div className="min-h-screen bg-white">

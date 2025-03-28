@@ -57,7 +57,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }) 
                 Apply Now
               </a>
               <p className="text-sm text-gray-600 mt-4">
-                Currently accepting applications for March 2025
+                Currently accepting applications for {prices.closeDate || 'March 2025'}
               </p>
             </div>
           </div>

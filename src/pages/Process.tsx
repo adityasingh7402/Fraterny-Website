@@ -1,34 +1,21 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-
-// This should match the same fetch function used in Pricing
-const fetchApplicationData = async () => {
-  // This would be replaced with an actual API call
-  return {
-    spotsRemaining: 20,
-    applicationCloseDate: new Date('2025-03-31') // March 2025
-  };
-};
+import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/websiteSettingsService';
 
 const Process = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['applicationData'],
-    queryFn: fetchApplicationData
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['websiteSettings'],
+    queryFn: fetchWebsiteSettings
   });
   
   // Format the application close date
   const formattedCloseDate = useMemo(() => {
-    if (!data?.applicationCloseDate) return 'March 2025';
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      year: 'numeric'
-    }).format(data.applicationCloseDate);
-  }, [data?.applicationCloseDate]);
+    if (isLoading || !settings?.registration_close_date) return 'March 2025';
+    return formatRegistrationCloseDate(settings.registration_close_date);
+  }, [settings?.registration_close_date, isLoading]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -73,7 +60,7 @@ const Process = () => {
                   {isLoading ? (
                     <span className="opacity-50">Loading...</span>
                   ) : (
-                    data?.spotsRemaining || 20
+                    settings?.available_seats || 20
                   )}
                 </div>
               </div>
@@ -211,7 +198,7 @@ const Process = () => {
                 <h3 className="text-xl font-medium text-navy">Apply</h3>
               </div>
               <p className="text-gray-600 mb-6">
-                Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we believe we will be able to add value to your life.
+                Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we will be able to add value to your life.
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
