@@ -1,4 +1,3 @@
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {
@@ -122,13 +121,11 @@ const router = createBrowserRouter([
 // Create the root element
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-// Render the app with proper provider wrapping
+// Render the app with proper provider wrapping - RouterProvider must come before AuthProvider
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </React.StrictMode>
 );

@@ -22,8 +22,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  
+  // Get navigate and location safely
+  let navigate;
+  let location;
+  
+  try {
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (e) {
+    // We're outside a router context, which can happen during initialization
+    console.warn('AuthProvider initialized outside router context');
+  }
 
   // Initialize Supabase auth and set up listener
   useEffect(() => {
@@ -35,8 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        // Check if this is an admin user (this is a simple check - you might want to implement 
-        // a more robust role-based system in the future)
+        // Check if this is an admin user
         if (newSession?.user?.email) {
           // For this simple implementation, we'll check if the email matches an admin email
           // In a production app, you would check against a roles table
@@ -71,8 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       
-      // Use navigate only if we're not on the home page already
-      if (location.pathname === '/auth') {
+      // Use navigate only if we're in a router context and not on the home page already
+      if (navigate && location?.pathname === '/auth') {
         navigate('/');
       }
       
@@ -110,8 +119,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Navigate to auth page after sign out
-      navigate('/auth');
+      // Navigate to auth page after sign out if navigate is available
+      if (navigate) {
+        navigate('/auth');
+      }
       toast.success('Signed out successfully');
     } catch (error: any) {
       toast.error(error.message || 'Error signing out');
