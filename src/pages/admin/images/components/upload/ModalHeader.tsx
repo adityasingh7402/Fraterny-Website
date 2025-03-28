@@ -12,7 +12,7 @@ const ModalHeader = ({ onClose, title }: ModalHeaderProps) => {
       <h2 className="text-xl font-medium text-navy">{title}</h2>
       <button
         onClick={onClose}
-        className="text-gray-400 hover:text-gray-600"
+        className="text-gray-400 hover:text-gray-600 transition-colors"
       >
         <X className="w-5 h-5" />
       </button>

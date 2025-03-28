@@ -22,7 +22,7 @@ const ImagePreview = ({
           <button
             type="button"
             onClick={onToggleCrop}
-            className={`p-2 rounded-full ${isCropping ? 'bg-navy text-white' : 'bg-gray-100 text-navy'}`}
+            className={`p-2 rounded-full ${isCropping ? 'bg-terracotta text-white' : 'bg-gray-100 text-navy hover:bg-gray-200'} transition-colors`}
             title={isCropping ? "Exit crop mode" : "Enter crop mode"}
           >
             <CropIcon className="w-4 h-4" />
@@ -32,17 +32,19 @@ const ImagePreview = ({
       
       <div className="flex justify-center">
         {children || (
-          <img
-            src={imageSrc}
-            alt="Preview"
-            className="max-h-[400px] object-contain"
-          />
+          <div className="border border-gray-200 rounded-lg p-2 bg-white">
+            <img
+              src={imageSrc}
+              alt="Preview"
+              className="max-h-[400px] object-contain"
+            />
+          </div>
         )}
       </div>
       
-      {isCropping && (
-        <p className="text-sm text-gray-500 text-center mt-2">
-          Drag to crop the image. Use the controls above to zoom and rotate.
+      {!isCropping && (
+        <p className="text-sm text-gray-500 text-center mt-4">
+          Click the crop icon to adjust and crop this image before uploading.
         </p>
       )}
     </div>

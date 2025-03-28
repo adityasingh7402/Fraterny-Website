@@ -18,7 +18,7 @@ const UploadFormSubmit = ({ onCancel, isPending }: UploadFormSubmitProps) => {
       </button>
       <button
         type="submit"
-        className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
+        className="px-4 py-2 bg-terracotta text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
         disabled={isPending}
       >
         {isPending ? (

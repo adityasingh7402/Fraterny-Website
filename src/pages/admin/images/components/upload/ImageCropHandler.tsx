@@ -14,7 +14,7 @@ const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile }: ImageCropHand
   const imgRef = useRef<HTMLImageElement>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [crop, setCrop] = useState({
-    unit: '%',
+    unit: 'px' as const,
     width: 80,
     height: 80,
     x: 10,
@@ -115,6 +115,7 @@ const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile }: ImageCropHand
           setRotation={setRotation}
           imgRef={imgRef}
           onApplyChanges={handleApplyCrop}
+          onCancelCrop={() => setIsCropping(false)}
         />
       ) : null}
     </ImagePreview>
