@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +10,6 @@ const Navigation = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Home', href: '/' },
     { name: 'The Experience', href: '/experience' },
     { name: 'Process', href: '/process' },
     { name: 'Pricing', href: '/pricing' },
