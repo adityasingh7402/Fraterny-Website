@@ -3,12 +3,12 @@ import { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
-import OurValues from '../components/OurValues';
 import { initPerformanceMonitoring, trackResourceTiming } from '@/utils/performanceMonitoring';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
 const VillaLab = lazy(() => import('../components/VillaLab'));
+const OurValues = lazy(() => import('../components/OurValues'));
 const HowItWorks = lazy(() => import('../components/HowItWorks'));
 
 // Simple loading fallback with better UX
@@ -22,12 +22,20 @@ const Index = () => {
   // Initialize performance monitoring
   useEffect(() => {
     // Track performance metrics
-    initPerformanceMonitoring();
+    const cleanup = initPerformanceMonitoring();
     
     // Track image resources specifically
-    trackResourceTiming('webp');
-    trackResourceTiming('png');
-    trackResourceTiming('jpg');
+    const imageCleanup = trackResourceTiming('webp');
+    const pngCleanup = trackResourceTiming('png');
+    const jpgCleanup = trackResourceTiming('jpg');
+    
+    // Return a composite cleanup function
+    return () => {
+      cleanup?.();
+      imageCleanup?.();
+      pngCleanup?.();
+      jpgCleanup?.();
+    };
   }, []);
 
   return (
@@ -35,10 +43,20 @@ const Index = () => {
       <Navigation />
       <Hero />
       
+      {/* Use Intersection Observer to lazy load components */}
       <Suspense fallback={<LoadingFallback />}>
         <NavalQuote />
+      </Suspense>
+      
+      <Suspense fallback={<LoadingFallback />}>
         <VillaLab />
+      </Suspense>
+      
+      <Suspense fallback={<LoadingFallback />}>
         <OurValues />
+      </Suspense>
+      
+      <Suspense fallback={<LoadingFallback />}>
         <HowItWorks />
       </Suspense>
       

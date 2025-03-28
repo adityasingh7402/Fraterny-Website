@@ -3,12 +3,12 @@ import { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import HeroSection from '../components/experience/HeroSection';
-import TimelineSection from '../components/experience/TimelineSection';
-import ImageGallery from '../components/experience/ImageGallery';
 import { useIsMobile } from '../hooks/use-mobile';
 import { initPerformanceMonitoring } from '@/utils/performanceMonitoring';
 
 // Lazy load components that are below the fold
+const TimelineSection = lazy(() => import('../components/experience/TimelineSection'));
+const ImageGallery = lazy(() => import('../components/experience/ImageGallery'));
 const TribeSection = lazy(() => import('../components/experience/TribeSection'));
 const DepthSection = lazy(() => import('../components/experience/DepthSection'));
 
@@ -24,21 +24,28 @@ const Experience = () => {
   
   // Initialize performance monitoring
   useEffect(() => {
-    initPerformanceMonitoring();
+    const cleanup = initPerformanceMonitoring();
+    return () => cleanup?.();
   }, []);
   
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
       
-      {/* Hero Section */}
+      {/* Hero Section - Critical path, load eagerly */}
       <HeroSection />
 
       {/* Timeline Section */}
-      <TimelineSection />
+      <Suspense fallback={<LoadingFallback />}>
+        <TimelineSection />
+      </Suspense>
 
       {/* Image Gallery - hidden on mobile */}
-      {!isMobile && <ImageGallery />}
+      {!isMobile && (
+        <Suspense fallback={<LoadingFallback />}>
+          <ImageGallery />
+        </Suspense>
+      )}
       
       {/* Depth Section */}
       <Suspense fallback={<LoadingFallback />}>

@@ -88,8 +88,9 @@ export function initPerformanceMonitoring() {
     // Navigation timing
     const pageLoadTime = () => {
       setTimeout(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        if (navigation) {
+        const navigations = performance.getEntriesByType('navigation');
+        if (navigations.length > 0) {
+          const navigation = navigations[0] as PerformanceNavigationTiming;
           // Total page load time
           const pageLoad = navigation.loadEventEnd - navigation.startTime;
           console.log(`Page load time: ${pageLoad.toFixed(0)}ms`);
@@ -107,6 +108,7 @@ export function initPerformanceMonitoring() {
     
     window.addEventListener('load', pageLoadTime);
     
+    // Return a cleanup function
     return () => {
       // Cleanup observers when component unmounts
       lcpObserver.disconnect();
@@ -140,9 +142,11 @@ export function trackResourceTiming(resourceType: string) {
     
     resourceObserver.observe({ type: 'resource', buffered: true });
     
+    // Return cleanup function
     return () => resourceObserver.disconnect();
   } catch (error) {
     console.error('Error tracking resource timing:', error);
+    return undefined;
   }
 }
 
