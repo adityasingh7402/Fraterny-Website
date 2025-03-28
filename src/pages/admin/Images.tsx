@@ -1,10 +1,15 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PlusCircle, Trash2, Edit, Upload, X, Check, Image as ImageIcon, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchAllImages, uploadImage, updateImage, deleteImage, WebsiteImage } from '@/services/imageService';
+import { 
+  fetchAllImages, 
+  uploadImage, 
+  updateImage, 
+  deleteImage, 
+  WebsiteImage 
+} from '@/services/images';
 
 // Available image categories
 const IMAGE_CATEGORIES = [

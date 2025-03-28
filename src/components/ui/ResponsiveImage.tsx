@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/imageService';
+import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
 
 interface ResponsiveImageProps {
   src: {
