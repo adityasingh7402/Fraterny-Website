@@ -15,6 +15,10 @@ import Experience from './pages/Experience';
 import Process from './pages/Process';
 import Pricing from './pages/Pricing';
 import FAQ from './pages/FAQ';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminBlog from './pages/admin/Blog';
 import NotFound from './pages/NotFound';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -49,6 +53,22 @@ const router = createBrowserRouter([
       {
         path: "faq",
         element: <FAQ />,
+      },
+      {
+        path: "blog",
+        element: <Blog />,
+      },
+      {
+        path: "blog/:id",
+        element: <BlogPost />,
+      },
+      {
+        path: "admin/dashboard",
+        element: <AdminDashboard />,
+      },
+      {
+        path: "admin/blog",
+        element: <AdminBlog />,
       },
       {
         path: "terms-and-conditions",

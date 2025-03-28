@@ -1,0 +1,103 @@
+
+import { useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import Navigation from '../components/Navigation';
+import Footer from '../components/Footer';
+import { ArrowLeft } from 'lucide-react';
+
+// Blog post type
+type BlogPost = {
+  id: string;
+  title: string;
+  content: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+const BlogPost = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  
+  // Fetch the specific blog post
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ['blogPost', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('id', id)
+        .eq('published', true)
+        .single();
+      
+      if (error) throw error;
+      return data as BlogPost;
+    },
+  });
+
+  // Redirect to the blog page if the post doesn't exist or isn't published
+  useEffect(() => {
+    if (error) {
+      navigate('/blog');
+    }
+  }, [error, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Navigation />
+        <div className="container mx-auto px-6 pt-40 pb-20">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+            <p className="mt-4 text-gray-600">Loading blog post...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Format the blog content with proper line breaks
+  const formatContent = (content: string) => {
+    return content.split('\n').map((paragraph, index) => (
+      <p key={index} className="mb-4">{paragraph}</p>
+    ));
+  };
+
+  return (
+    <div className="min-h-screen">
+      <Navigation />
+      
+      <article className="container mx-auto px-6 pt-40 pb-20">
+        <div className="max-w-3xl mx-auto">
+          <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
+            <ArrowLeft size={16} className="mr-2" />
+            Back to all posts
+          </Link>
+          
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair text-navy mb-6">
+            {post?.title}
+          </h1>
+          
+          <div className="mb-8 text-gray-500">
+            Published on {new Date(post?.created_at || '').toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </div>
+          
+          <div className="prose prose-lg max-w-none text-gray-700">
+            {post && formatContent(post.content)}
+          </div>
+        </div>
+      </article>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default BlogPost;
