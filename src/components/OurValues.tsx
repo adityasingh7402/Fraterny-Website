@@ -5,7 +5,7 @@ const OurValues = () => {
   return (
     <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-playfair text-navy mb-10">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-10">
           Our Values
         </h2>
         
