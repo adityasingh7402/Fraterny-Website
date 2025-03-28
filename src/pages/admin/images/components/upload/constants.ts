@@ -68,3 +68,22 @@ export const getRecommendedAspectRatio = (key: string) => {
   return IMAGE_ASPECT_RATIOS.default;
 };
 
+// Add export for IMAGE_USAGE_MAP
+export const IMAGE_USAGE_MAP: Record<string, string> = {
+  'hero-background': 'Homepage - Main hero background',
+  'villalab-social': 'Villa Lab - Social Events',
+  'villalab-mentorship': 'Villa Lab - Mentorship',
+  'villalab-brainstorm': 'Villa Lab - Brainstorming',
+  'villalab-group': 'Villa Lab - Group Activities',
+  'villalab-networking': 'Villa Lab - Networking',
+  'villalab-candid': 'Villa Lab - Candid Interactions',
+  'villalab-gourmet': 'Villa Lab - Gourmet Meals',
+  'villalab-workshop': 'Villa Lab - Workshops',
+  'villalab-evening': 'Villa Lab - Evening Sessions',
+  'experience-villa-retreat': 'Experience - Villa Retreat',
+  'experience-workshop': 'Experience - Workshop',
+  'experience-networking': 'Experience - Networking',
+  'experience-collaboration': 'Experience - Collaboration',
+  'experience-evening-session': 'Experience - Evening Session',
+  'experience-gourmet-dining': 'Experience - Gourmet Dining'
+};
