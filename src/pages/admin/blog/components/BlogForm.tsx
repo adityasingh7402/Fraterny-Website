@@ -1,0 +1,258 @@
+
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+// Available categories
+const CATEGORIES = [
+  'News',
+  'Announcement',
+  'Guide',
+  'Review',
+  'Feature',
+  'Interview',
+  'Case Study'
+];
+
+type BlogFormProps = {
+  editingId: string | null;
+  formValues: {
+    title: string;
+    content: string;
+    category: string;
+    tags: string[];
+    published: boolean;
+  };
+  setFormValues: (values: any) => void;
+  setEditingId: (id: string | null) => void;
+  onSuccess: () => void;
+};
+
+const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSuccess }: BlogFormProps) => {
+  const [tagInput, setTagInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormValues(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddTag = () => {
+    if (tagInput && !formValues.tags.includes(tagInput)) {
+      setFormValues(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput]
+      }));
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setFormValues(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (editingId) {
+        // Update existing post
+        const { error } = await supabase
+          .from('blog_posts')
+          .update({
+            title: formValues.title,
+            content: formValues.content,
+            category: formValues.category || null,
+            tags: formValues.tags.length > 0 ? formValues.tags : null,
+            published: formValues.published,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingId);
+
+        if (error) throw error;
+        toast.success('Blog post updated successfully');
+      } else {
+        // Create new post
+        const { error } = await supabase
+          .from('blog_posts')
+          .insert({
+            title: formValues.title,
+            content: formValues.content,
+            category: formValues.category || null,
+            tags: formValues.tags.length > 0 ? formValues.tags : null,
+            published: formValues.published
+          });
+
+        if (error) throw error;
+        toast.success('Blog post created successfully');
+      }
+
+      // Reset form and refresh data
+      setFormValues({ title: '', content: '', category: '', tags: [], published: true });
+      setEditingId(null);
+      onSuccess();
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+      toast.error('Failed to save blog post');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-medium text-navy">
+          {editingId ? 'Edit Blog Post' : 'Create New Blog Post'}
+        </h2>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            Title
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={formValues.title}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formValues.category}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+          >
+            <option value="">Select a category</option>
+            {CATEGORIES.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+            Tags
+          </label>
+          <div className="flex items-center">
+            <input
+              type="text"
+              id="tagInput"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              className="flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+              placeholder="Add a tag and press Enter or Add"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleAddTag}
+              className="ml-2 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+          {formValues.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formValues.tags.map(tag => (
+                <span 
+                  key={tag} 
+                  className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-terracotta bg-opacity-20 text-terracotta"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 text-terracotta hover:text-red-600"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+            Content
+          </label>
+          <textarea
+            id="content"
+            name="content"
+            value={formValues.content}
+            onChange={handleChange}
+            rows={8}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Markdown formatting is supported
+          </p>
+        </div>
+
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="published"
+            name="published"
+            checked={formValues.published}
+            onChange={handleChange}
+            className="h-4 w-4 text-navy focus:ring-navy border-gray-300 rounded"
+          />
+          <label htmlFor="published" className="ml-2 block text-sm text-gray-700">
+            Publish immediately
+          </label>
+        </div>
+
+        <div className="flex items-center justify-end space-x-4">
+          {editingId && (
+            <button
+              type="button"
+              onClick={() => {
+                setFormValues({ title: '', content: '', category: '', tags: [], published: true });
+                setEditingId(null);
+              }}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Saving...' : (editingId ? 'Update Post' : 'Create Post')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default BlogForm;
