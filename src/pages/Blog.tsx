@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { showError } from '@/utils/errorHandler';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import BlogCard, { BlogPost } from '@/components/blog/BlogCard';
@@ -18,33 +19,59 @@ const fetchBlogPosts = async (
   page: number,
   pageSize: number
 ): Promise<{ posts: BlogPost[]; total: number }> => {
-  let query = supabase
+  // First, get the total count with a separate query
+  let countQuery = supabase
     .from('blog_posts')
-    .select('*, total:count', { count: 'exact' })
+    .select('id', { count: 'exact' })
     .eq('published', true);
   
   if (category) {
-    query = query.eq('category', category);
+    countQuery = countQuery.eq('category', category);
   }
   if (tag) {
-    query = query.contains('tags', [tag]);
+    countQuery = countQuery.contains('tags', [tag]);
   }
   if (searchQuery) {
-    query = query.ilike('title', `%${searchQuery}%`);
+    countQuery = countQuery.ilike('title', `%${searchQuery}%`);
+  }
+  
+  const { count, error: countError } = await countQuery;
+  
+  if (countError) {
+    throw countError;
+  }
+  
+  // Then get the actual data
+  let dataQuery = supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true);
+  
+  if (category) {
+    dataQuery = dataQuery.eq('category', category);
+  }
+  if (tag) {
+    dataQuery = dataQuery.contains('tags', [tag]);
+  }
+  if (searchQuery) {
+    dataQuery = dataQuery.ilike('title', `%${searchQuery}%`);
   }
   
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   
-  query = query.range(from, to).order('created_at', { ascending: false });
+  dataQuery = dataQuery.range(from, to).order('created_at', { ascending: false });
   
-  const { data, error, count } = await query;
+  const { data, error } = await dataQuery;
   
   if (error) {
     throw error;
   }
   
-  return { posts: data as BlogPost[], total: count || 0 };
+  return { 
+    posts: data as BlogPost[], 
+    total: count || 0 
+  };
 };
 
 const BlogPage = () => {
@@ -62,6 +89,9 @@ const BlogPage = () => {
   } = useQuery({
     queryKey: ['blogPosts', selectedCategory, selectedTag, searchQuery, currentPage, pageSize],
     queryFn: () => fetchBlogPosts(selectedCategory, selectedTag, searchQuery, currentPage, pageSize),
+    onError: (err) => {
+      console.error('Error fetching blog posts:', err);
+    }
   });
   
   const posts = data?.posts;
@@ -83,8 +113,10 @@ const BlogPage = () => {
     return Array.from(tags);
   }, [posts]);
   
-  // Filter posts based on search query
-  const displayedPosts = posts;
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedTag, searchQuery]);
 
   return (
     <div className="min-h-screen">
@@ -106,7 +138,7 @@ const BlogPage = () => {
         
         {/* Blog listing */}
         <BlogList
-          posts={displayedPosts}
+          posts={posts}
           isLoading={isLoading}
           error={error}
           selectedCategory={selectedCategory}

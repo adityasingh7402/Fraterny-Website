@@ -44,7 +44,8 @@ const BlogList: React.FC<BlogListProps> = ({
     return (
       <BlogErrorState 
         message="Failed to load blog posts" 
-        onRetry={refetch} 
+        onRetry={refetch}
+        error={error}
       />
     );
   }
