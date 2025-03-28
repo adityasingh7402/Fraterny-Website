@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
+import { clearImageUrlCacheForKey } from '@/services/images';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -23,6 +24,9 @@ export const useResponsiveImage = (
     if (!dynamicKey) return;
     
     setState(prev => ({ ...prev, isLoading: true, error: false }));
+    
+    // Clear cache for this key to ensure we get fresh data
+    clearImageUrlCacheForKey(dynamicKey);
     
     const fetchImage = async () => {
       try {

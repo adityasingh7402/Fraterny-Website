@@ -9,9 +9,10 @@ interface ImageCropHandlerProps {
   imageSrc: string | null;
   uploadFile: File | null;
   onCroppedFile: (file: File) => void;
+  imageKey?: string;
 }
 
-const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile }: ImageCropHandlerProps) => {
+const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile, imageKey }: ImageCropHandlerProps) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [crop, setCrop] = useState<CropArea>({
@@ -117,6 +118,7 @@ const ImageCropHandler = ({ imageSrc, uploadFile, onCroppedFile }: ImageCropHand
           imgRef={imgRef}
           onApplyChanges={handleApplyCrop}
           onCancelCrop={() => setIsCropping(false)}
+          imageKey={imageKey}
         />
       ) : null}
     </ImagePreview>

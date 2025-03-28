@@ -1,5 +1,5 @@
 
-import { CropIcon } from 'lucide-react';
+import { CropIcon, Info } from 'lucide-react';
 
 interface ImagePreviewProps {
   imageSrc: string;
@@ -43,9 +43,18 @@ const ImagePreview = ({
       </div>
       
       {!isCropping && (
-        <p className="text-sm text-gray-500 text-center mt-4">
-          Click the crop icon to adjust and crop this image before uploading.
-        </p>
+        <div className="mt-4 flex flex-col items-center">
+          <div className="flex items-start gap-2 p-3 bg-navy bg-opacity-5 rounded-md border border-navy border-opacity-20 max-w-md">
+            <Info className="h-4 w-4 text-navy flex-shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1">
+              <p className="font-medium text-navy">Crop your image before uploading</p>
+              <p className="text-gray-700 text-xs">
+                Click the crop icon above to select which portion of your image will be displayed on the website.
+                For best results, use the recommended aspect ratio for your image type.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
