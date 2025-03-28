@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import ImagePreview from './ImagePreview';
-import ImageCropper from './ImageCropper';
+import { ImageCropper } from './cropper';
 import { type Crop as CropArea } from 'react-image-crop';
 
 interface ImageCropHandlerProps {

@@ -1,0 +1,24 @@
+
+import { RefObject } from 'react';
+import { type Crop as CropArea } from 'react-image-crop';
+
+export interface AspectRatioOption {
+  name: string;
+  value: number | undefined;
+  label: string;
+}
+
+export interface ImageCropperProps {
+  imageSrc: string;
+  crop: CropArea;
+  setCrop: (crop: CropArea) => void;
+  setCompletedCrop: (crop: CropArea) => void;
+  zoom: number;
+  setZoom: (zoom: number) => void;
+  rotation: number;
+  setRotation: (rotation: number) => void;
+  imgRef: RefObject<HTMLImageElement>;
+  onApplyChanges: () => void;
+  onCancelCrop?: () => void;
+  imageKey?: string;
+}
