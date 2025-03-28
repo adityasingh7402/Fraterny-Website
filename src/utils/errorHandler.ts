@@ -2,6 +2,8 @@
 import { toast as sonnerToast } from 'sonner';
 import { toast as shadcnToast } from '@/hooks/use-toast';
 import { handleApiError, ApiError } from './errorHandling';
+import { ReactNode } from 'react';
+import { ToastActionElement } from '@/components/ui/toast';
 
 // Determines which toast system to use
 const USE_SONNER = true; // Toggle between toast systems
@@ -10,7 +12,7 @@ interface ErrorOptions {
   title?: string;
   silent?: boolean;
   variant?: 'default' | 'destructive';
-  action?: React.ReactNode;
+  action?: ReactNode;
   duration?: number;
 }
 
@@ -38,7 +40,8 @@ export const showError = (
     sonnerToast.error(options.title || userMessage, {
       description: options.title ? userMessage : undefined,
       duration: options.duration || 5000,
-      action: options.action,
+      // Cast action to any to avoid type error with sonner
+      action: options.action as any,
     });
   } else {
     shadcnToast({
@@ -46,7 +49,8 @@ export const showError = (
       description: options.title ? userMessage : undefined,
       variant: options.variant || 'destructive',
       duration: options.duration || 5000,
-      action: options.action,
+      // Cast action to ToastActionElement to satisfy shadcn toast type
+      action: options.action as ToastActionElement | undefined,
     });
   }
   
@@ -66,7 +70,8 @@ export const showSuccess = (
     sonnerToast.success(options.title || message, {
       description: options.title ? message : undefined,
       duration: options.duration || 5000,
-      action: options.action,
+      // Cast action to any to avoid type error with sonner
+      action: options.action as any,
     });
   } else {
     shadcnToast({
@@ -74,7 +79,8 @@ export const showSuccess = (
       description: options.title ? message : undefined,
       variant: 'default',
       duration: options.duration || 5000,
-      action: options.action,
+      // Cast action to ToastActionElement to satisfy shadcn toast type
+      action: options.action as ToastActionElement | undefined,
     });
   }
 };

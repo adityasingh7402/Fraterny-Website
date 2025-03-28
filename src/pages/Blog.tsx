@@ -51,11 +51,13 @@ const Blog = () => {
       if (error) throw error;
       return data as BlogPost[];
     },
-    onError: (error) => {
-      showError(error, 'Failed to load blog posts', {
-        title: 'Blog Error',
-        silent: false
-      });
+    meta: {
+      onError: (error) => {
+        showError(error, 'Failed to load blog posts', {
+          title: 'Blog Error',
+          silent: false
+        });
+      }
     }
   });
 

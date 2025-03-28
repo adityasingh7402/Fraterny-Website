@@ -2,6 +2,7 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface BlogErrorStateProps {
   message?: string;
@@ -22,12 +23,12 @@ const BlogErrorState: React.FC<BlogErrorStateProps> = ({
       
       {onRetry && (
         <div className="text-center">
-          <button 
+          <Button
             onClick={onRetry}
-            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors"
+            className="bg-navy hover:bg-navy/90"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       )}
     </div>
