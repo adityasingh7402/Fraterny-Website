@@ -1,0 +1,123 @@
+
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+type SettingsFormProps = {
+  settings: {
+    available_seats: string;
+    registration_close_date: string;
+  };
+  refetch: () => void;
+  calculateDaysLeft: (dateString: string) => number;
+};
+
+const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProps) => {
+  const [formValues, setFormValues] = useState({
+    available_seats: settings.available_seats,
+    registration_close_date: settings.registration_close_date
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Calculate days left based on the registration close date
+      const daysLeft = calculateDaysLeft(formValues.registration_close_date);
+
+      // Update registration_days_left
+      await supabase
+        .from('website_settings')
+        .update({ value: daysLeft.toString() })
+        .eq('key', 'registration_days_left');
+
+      // Update available_seats
+      await supabase
+        .from('website_settings')
+        .update({ value: formValues.available_seats })
+        .eq('key', 'available_seats');
+
+      // Update registration_close_date
+      await supabase
+        .from('website_settings')
+        .update({ value: formValues.registration_close_date })
+        .eq('key', 'registration_close_date');
+
+      toast.success('Settings updated successfully');
+      refetch(); // Refresh the data
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      toast.error('Failed to update settings');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-medium text-navy">Website Settings</h2>
+        <p className="text-gray-600 mt-1">Manage dynamic content and counters</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div>
+          <label htmlFor="available_seats" className="block text-sm font-medium text-gray-700 mb-1">
+            Available Seats
+          </label>
+          <input
+            type="number"
+            id="available_seats"
+            name="available_seats"
+            value={formValues.available_seats}
+            onChange={handleChange}
+            min="0"
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="registration_close_date" className="block text-sm font-medium text-gray-700 mb-1">
+            Registration Close Date
+          </label>
+          <input
+            type="date"
+            id="registration_close_date"
+            name="registration_close_date"
+            value={formValues.registration_close_date.substring(0, 10)}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Days Remaining: {calculateDaysLeft(formValues.registration_close_date)} days
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default SettingsForm;

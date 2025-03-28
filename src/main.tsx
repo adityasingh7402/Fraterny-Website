@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -16,7 +17,7 @@ import TermsOfUse from './pages/TermsOfUse';
 import TermsAndConditions from './pages/TermsAndConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import NotFound from './pages/NotFound';
-import Dashboard from './pages/admin/Dashboard';
+import Dashboard from './pages/admin/dashboard';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import AdminBlog from './pages/admin/blog';
 import Analytics from './pages/admin/Analytics';
