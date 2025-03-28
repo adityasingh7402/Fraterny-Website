@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -20,7 +21,7 @@ import Dashboard from './pages/admin/Dashboard';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminBlog from './pages/admin/Blog';
 import Analytics from './pages/admin/Analytics';
-import AdminImages from './pages/admin/Images';
+import AdminImages from './pages/admin/images';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 

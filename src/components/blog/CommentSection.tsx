@@ -37,14 +37,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
     const fetchComments = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('blog_comments')
           .select('*')
           .eq('blog_post_id', postId)
           .order('created_at', { ascending: false });
         
-        if (error) throw error;
-        setComments(data || []);
+        if (fetchError) throw fetchError;
+        
+        setComments(data as Comment[] || []);
       } catch (err: any) {
         setError(err.message || 'Failed to load comments');
         console.error('Error fetching comments:', err);
@@ -71,17 +72,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
     setIsSubmitting(true);
     
     try {
-      const { data, error } = await supabase
+      const { data, error: insertError } = await supabase
         .from('blog_comments')
         .insert([
           { blog_post_id: postId, name, email, content }
         ])
         .select();
       
-      if (error) throw error;
+      if (insertError) throw insertError;
       
       if (data && data.length > 0) {
-        setComments([data[0], ...comments]);
+        setComments([data[0] as Comment, ...comments]);
         setContent('');
         toast({
           title: "Comment posted!",

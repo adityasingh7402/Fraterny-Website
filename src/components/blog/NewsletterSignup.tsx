@@ -27,11 +27,13 @@ const NewsletterSignup = () => {
     
     try {
       // Check if email already exists
-      const { data: existingSubscribers } = await supabase
+      const { data: existingSubscribers, error: checkError } = await supabase
         .from('newsletter_subscribers')
         .select('id')
         .eq('email', email.toLowerCase().trim())
         .limit(1);
+      
+      if (checkError) throw checkError;
       
       if (existingSubscribers && existingSubscribers.length > 0) {
         toast({
@@ -43,13 +45,13 @@ const NewsletterSignup = () => {
       }
       
       // Insert new subscriber
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('newsletter_subscribers')
         .insert([
           { email: email.toLowerCase().trim() }
         ]);
       
-      if (error) throw error;
+      if (insertError) throw insertError;
       
       toast({
         title: "Subscription successful!",

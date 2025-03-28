@@ -32,13 +32,13 @@ const NewsletterSubscribers = () => {
   const fetchSubscribers = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('newsletter_subscribers')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setSubscribers(data || []);
+      if (fetchError) throw fetchError;
+      setSubscribers(data as Subscriber[] || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load subscribers');
       console.error('Error fetching subscribers:', err);
@@ -53,12 +53,12 @@ const NewsletterSubscribers = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('newsletter_subscribers')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
       
       setSubscribers(subscribers.filter(sub => sub.id !== id));
       toast({

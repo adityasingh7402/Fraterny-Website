@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,7 +62,6 @@ const BlogPage = () => {
   } = useQuery({
     queryKey: ['blogPosts', selectedCategory, selectedTag, searchQuery, currentPage, pageSize],
     queryFn: () => fetchBlogPosts(selectedCategory, selectedTag, searchQuery, currentPage, pageSize),
-    keepPreviousData: true
   });
   
   const posts = data?.posts;
