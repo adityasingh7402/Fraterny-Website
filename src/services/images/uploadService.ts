@@ -74,7 +74,7 @@ const createOptimizedVersions = async (
         if (blob) {
           // Upload optimized version
           const optimizedFile = new File([blob], `${config.name}-${file.name}`, { type: 'image/jpeg' });
-          const optimizedPath = `${originalPath.split('/')[0]}/optimized/${config.name}/${file.name.replace(/\s+/g, '-')}`;
+          const optimizedPath = `optimized/${config.name}/${file.name.replace(/\s+/g, '-')}`;
           
           const { error } = await supabase.storage
             .from('website-images')
@@ -107,7 +107,8 @@ export const uploadImage = async (
   try {
     // Generate a unique filename
     const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-    const storagePath = `${key}/${filename}`;
+    // Fix: Don't include the key in the storage path, just use it as a database identifier
+    const storagePath = filename;
     
     // Get image dimensions if it's an image file
     let dimensions = { width: null, height: null };
