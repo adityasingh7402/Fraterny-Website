@@ -1,9 +1,10 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Upload, Info, Crop, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react';
+import { X, Upload, Info, CropIcon, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react';
 import { uploadImage } from '@/services/images';
-import ReactCrop, { type Crop } from 'react-image-crop';
+import ReactCrop, { type Crop as CropArea } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 // Available image categories
@@ -52,14 +53,14 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
   
   // Image cropping state
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState<Crop>({
+  const [crop, setCrop] = useState<CropArea>({
     unit: '%',
     width: 80,
     height: 80,
     x: 10,
     y: 10
   });
-  const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
+  const [completedCrop, setCompletedCrop] = useState<CropArea | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isCropping, setIsCropping] = useState(false);
@@ -301,7 +302,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
                     className={`p-2 rounded-full ${isCropping ? 'bg-navy text-white' : 'bg-gray-100 text-navy'}`}
                     title={isCropping ? "Exit crop mode" : "Enter crop mode"}
                   >
-                    <Crop className="w-4 h-4" />
+                    <CropIcon className="w-4 h-4" />
                   </button>
                   
                   {isCropping && (

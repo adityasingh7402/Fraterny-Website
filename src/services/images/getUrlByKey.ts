@@ -5,7 +5,7 @@ import { handleApiError } from '@/utils/errorHandling';
 
 // Simple in-memory cache for image URLs
 const urlCache = new Map<string, {url: string, timestamp: number}>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes in milliseconds (reduced from 5 minutes for faster updates)
 
 // Default placeholder images for development
 const DEFAULT_IMAGES: Record<string, string> = {
@@ -32,8 +32,12 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       throw new Error('Image key is required');
     }
 
-    // Check if we have a default image for development
-    if (DEFAULT_IMAGES[key]) {
+    // For production environment, skip defaults and always try to fetch from Supabase
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Production environment detected, skipping default images');
+    }
+    // For other environments, use defaults if available
+    else if (DEFAULT_IMAGES[key]) {
       console.log(`Using default image for key: ${key}`);
       return DEFAULT_IMAGES[key];
     }
@@ -110,8 +114,12 @@ export const getImageUrlByKeyAndSize = async (
       throw new Error('Image key is required');
     }
 
-    // Check if we have a default image for development
-    if (DEFAULT_IMAGES[key]) {
+    // For production environment, skip defaults and always try to fetch from Supabase
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Production environment detected, skipping default images');
+    }
+    // For other environments, use defaults if available
+    else if (DEFAULT_IMAGES[key]) {
       console.log(`Using default image for key: ${key} and size: ${size}`);
       return DEFAULT_IMAGES[key];
     }
@@ -196,4 +204,15 @@ export const getImageUrlByKeyAndSize = async (
 export const clearImageUrlCache = (): void => {
   urlCache.clear();
   console.log('Image URL cache cleared');
+};
+
+// Function to clear the cache for a specific key
+export const clearImageUrlCacheForKey = (key: string): void => {
+  // Clear all entries related to this key (including sized versions)
+  for (const cacheKey of urlCache.keys()) {
+    if (cacheKey.startsWith(`key:${key}`)) {
+      urlCache.delete(cacheKey);
+    }
+  }
+  console.log(`Image URL cache cleared for key: ${key}`);
 };
