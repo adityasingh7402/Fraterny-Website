@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllImages, fetchImagesByCategory, WebsiteImage } from '@/services/images';
@@ -6,7 +5,7 @@ import ImageGallery from './components/ImageGallery';
 import ImageFilters from './components/ImageFilters';
 import PageHeader from './components/PageHeader';
 import EmptyState from './components/EmptyState';
-import UploadModal from './components/UploadModal';
+import { UploadModal } from './components/upload';
 import EditModal from './components/EditModal';
 import DeleteModal from './components/DeleteModal';
 import LoadingState from './components/LoadingState';
@@ -23,7 +22,6 @@ const AdminImages = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   
-  // Fetch images based on selected category and search term
   const { data, isLoading, error } = useQuery({
     queryKey: ['website-images', selectedCategory, searchTerm, page, pageSize],
     queryFn: async () => {
@@ -34,16 +32,13 @@ const AdminImages = () => {
     }
   });
   
-  // Extract images and total count from response
   const images = data?.images || [];
   const totalCount = data?.total || 0;
   
-  // Extract all unique categories from images
   const categories = images.length > 0
     ? [...new Set(images.filter(img => img.category).map(img => img.category))] as string[]
     : [];
   
-  // Modal handlers
   const openEditModal = (image: WebsiteImage) => {
     setSelectedImage(image);
     setIsEditModalOpen(true);
@@ -54,17 +49,14 @@ const AdminImages = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Handle page change
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && (newPage - 1) * pageSize < totalCount) {
       setPage(newPage);
     }
   };
 
-  // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Reset to page 1 when searching
     setPage(1);
   };
   
@@ -90,7 +82,6 @@ const AdminImages = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                {/* Search bar */}
                 <form onSubmit={handleSearch} className="relative w-full sm:w-auto">
                   <input
                     type="text"
@@ -103,7 +94,6 @@ const AdminImages = () => {
                   <button type="submit" className="sr-only">Search</button>
                 </form>
                 
-                {/* Category filter */}
                 {categories.length > 0 && (
                   <ImageFilters 
                     categories={categories} 
@@ -115,7 +105,6 @@ const AdminImages = () => {
             </div>
           </div>
           
-          {/* Instructions Panel */}
           <div className="p-4 bg-navy bg-opacity-5 border-b border-navy border-opacity-20">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
@@ -138,7 +127,6 @@ const AdminImages = () => {
                 onDelete={openDeleteModal} 
               />
               
-              {/* Pagination */}
               {totalCount > pageSize && (
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
                   <button
@@ -176,7 +164,6 @@ const AdminImages = () => {
           )}
         </div>
         
-        {/* Modals */}
         <UploadModal 
           isOpen={isUploadModalOpen} 
           onClose={() => setIsUploadModalOpen(false)} 
