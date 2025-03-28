@@ -1,12 +1,13 @@
 
-import { Upload } from 'lucide-react';
+import { Upload, CheckCircle } from 'lucide-react';
 
 interface UploadFormSubmitProps {
   onCancel: () => void;
   isPending: boolean;
+  isSuccess?: boolean;
 }
 
-const UploadFormSubmit = ({ onCancel, isPending }: UploadFormSubmitProps) => {
+const UploadFormSubmit = ({ onCancel, isPending, isSuccess }: UploadFormSubmitProps) => {
   return (
     <div className="flex justify-end gap-3">
       <button
@@ -19,12 +20,17 @@ const UploadFormSubmit = ({ onCancel, isPending }: UploadFormSubmitProps) => {
       <button
         type="submit"
         className="px-4 py-2 bg-terracotta text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
-        disabled={isPending}
+        disabled={isPending || isSuccess}
       >
         {isPending ? (
           <>
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
             Uploading...
+          </>
+        ) : isSuccess ? (
+          <>
+            <CheckCircle className="w-4 h-4" />
+            Uploaded
           </>
         ) : (
           <>

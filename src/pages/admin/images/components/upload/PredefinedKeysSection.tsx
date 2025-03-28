@@ -3,16 +3,34 @@ import { Info } from 'lucide-react';
 import { IMAGE_KEYS } from './constants';
 
 interface PredefinedKeysSectionProps {
-  showPredefinedKeys: boolean;
-  setShowPredefinedKeys: (show: boolean) => void;
-  onSelectKey: (key: string, description: string) => void;
+  onSelectKey?: (key: string, description: string) => void;
+  onKeySelect?: (selectedKey: string) => void;
+  showPredefinedKeys?: boolean;
+  setShowPredefinedKeys?: (show: boolean) => void;
 }
 
 const PredefinedKeysSection = ({
-  showPredefinedKeys,
-  setShowPredefinedKeys,
-  onSelectKey
+  onSelectKey,
+  onKeySelect,
+  showPredefinedKeys = false,
+  setShowPredefinedKeys
 }: PredefinedKeysSectionProps) => {
+  // Function to handle key selection
+  const handleSelectKey = (key: string, description: string) => {
+    if (onSelectKey) {
+      onSelectKey(key, description);
+    } else if (onKeySelect) {
+      onKeySelect(key);
+    }
+  };
+
+  // Simple toggle function if we have the setter
+  const toggleShowKeys = () => {
+    if (setShowPredefinedKeys) {
+      setShowPredefinedKeys(!showPredefinedKeys);
+    }
+  };
+
   return (
     <>
       <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
@@ -23,13 +41,15 @@ const PredefinedKeysSection = ({
             To replace placeholder images on the website, use one of the predefined keys. 
             Custom keys will be available for use but won't automatically replace website images.
           </p>
-          <button
-            type="button"
-            onClick={() => setShowPredefinedKeys(!showPredefinedKeys)}
-            className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
-          >
-            {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
-          </button>
+          {setShowPredefinedKeys && (
+            <button
+              type="button"
+              onClick={toggleShowKeys}
+              className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
+            >
+              {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
+            </button>
+          )}
         </div>
       </div>
       
@@ -41,7 +61,7 @@ const PredefinedKeysSection = ({
               <button
                 key={item.key}
                 type="button"
-                onClick={() => onSelectKey(item.key, item.description)}
+                onClick={() => handleSelectKey(item.key, item.description)}
                 className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
               >
                 <span className="font-medium text-navy block">{item.key}</span>

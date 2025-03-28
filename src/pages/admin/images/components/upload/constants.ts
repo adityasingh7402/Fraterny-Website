@@ -1,4 +1,6 @@
 
+import { z } from "zod";
+
 // Available image categories
 export const IMAGE_CATEGORIES = [
   'Hero',
@@ -30,3 +32,39 @@ export const IMAGE_KEYS = [
   { key: 'experience-evening-session', description: 'Experience Page - Evening Session' },
   { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' }
 ];
+
+// Define the expected aspect ratios for different image types
+export const IMAGE_ASPECT_RATIOS: Record<string, { ratio: number, label: string }> = {
+  'hero': { ratio: 16/9, label: '16:9' },
+  'background': { ratio: 16/9, label: '16:9' },
+  'villalab': { ratio: 4/3, label: '4:3' },
+  'experience': { ratio: 4/3, label: '4:3' },
+  'banner': { ratio: 21/9, label: '21:9' },
+  'profile': { ratio: 1, label: '1:1' },
+  'thumbnail': { ratio: 16/9, label: '16:9' },
+  'gallery': { ratio: 4/3, label: '4:3' },
+  'default': { ratio: 16/9, label: '16:9' }
+};
+
+// Zod schema for form validation
+export const uploadFormSchema = z.object({
+  key: z.string().min(2, "Key must be at least 2 characters"),
+  description: z.string().min(5, "Description must be at least 5 characters"),
+  alt_text: z.string().min(5, "Alt text must be at least 5 characters"),
+  category: z.string().min(1, "Please select a category"),
+});
+
+// Get recommended aspect ratio based on the image key
+export const getRecommendedAspectRatio = (key: string) => {
+  if (!key) return IMAGE_ASPECT_RATIOS.default;
+  
+  // Check if the key contains any of the known prefixes
+  for (const prefix of Object.keys(IMAGE_ASPECT_RATIOS)) {
+    if (key.includes(prefix)) {
+      return IMAGE_ASPECT_RATIOS[prefix];
+    }
+  }
+  
+  return IMAGE_ASPECT_RATIOS.default;
+};
+
