@@ -31,7 +31,7 @@ const PredefinedKeysSection = ({ onSelectKey, visible, onToggle }: PredefinedKey
       </div>
       
       {visible && (
-        <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+        <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
           <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
           <div className="grid grid-cols-1 gap-2">
             {IMAGE_KEYS.map((item) => (

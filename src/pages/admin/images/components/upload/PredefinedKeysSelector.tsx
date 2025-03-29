@@ -1,15 +1,14 @@
 
-import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { IMAGE_KEYS } from './constants';
 
 interface PredefinedKeysSelectorProps {
   onSelectKey: (key: string, description: string) => void;
+  visible: boolean;
+  onToggle: () => void;
 }
 
-const PredefinedKeysSelector = ({ onSelectKey }: PredefinedKeysSelectorProps) => {
-  const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
-  
+const PredefinedKeysSelector = ({ onSelectKey, visible, onToggle }: PredefinedKeysSelectorProps) => {
   return (
     <>
       <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
@@ -22,16 +21,16 @@ const PredefinedKeysSelector = ({ onSelectKey }: PredefinedKeysSelectorProps) =>
           </p>
           <button
             type="button"
-            onClick={() => setShowPredefinedKeys(!showPredefinedKeys)}
+            onClick={onToggle}
             className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
           >
-            {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
+            {visible ? 'Hide predefined keys' : 'Show predefined keys'}
           </button>
         </div>
       </div>
       
-      {showPredefinedKeys && (
-        <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+      {visible && (
+        <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
           <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
           <div className="grid grid-cols-1 gap-2">
             {IMAGE_KEYS.map((item) => (
@@ -39,7 +38,7 @@ const PredefinedKeysSelector = ({ onSelectKey }: PredefinedKeysSelectorProps) =>
                 key={item.key}
                 type="button"
                 onClick={() => onSelectKey(item.key, item.description)}
-                className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
+                className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors flex flex-col"
               >
                 <span className="font-medium text-navy block">{item.key}</span>
                 <span className="text-xs text-gray-600">{item.description}</span>
