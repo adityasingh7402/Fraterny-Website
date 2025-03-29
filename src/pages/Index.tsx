@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import { initPerformanceMonitoring, trackResourceTiming } from '@/utils/performanceMonitoring';
 import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
-import { updateDaysLeftCount } from '@/services/websiteSettingsService';
+import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
 
 // Lazy load components that are below the fold

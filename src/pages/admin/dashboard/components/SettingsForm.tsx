@@ -1,6 +1,6 @@
 
 import { useState, FormEvent } from 'react';
-import { updateWebsiteSetting } from '@/services/websiteSettingsService';
+import { updateWebsiteSetting } from '@/services/website-settings';
 import { toast } from 'sonner';
 
 interface SettingsFormProps {

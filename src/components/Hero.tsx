@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
+import { fetchWebsiteSettings } from '@/services/website-settings';
 import { calculateDaysLeft, scheduleAtMidnight } from '@/utils/dateUtils';
 
 const Hero = () => {
