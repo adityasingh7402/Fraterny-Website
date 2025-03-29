@@ -27,7 +27,7 @@ const ResponsiveImage = ({
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
   
   // Use the custom hooks to handle desktop and mobile image loading
-  const { isLoading: isDesktopLoading, error: desktopError, dynamicSrc: desktopDynamicSrc } = 
+  const { isLoading: isDesktopLoading, error: desktopError, dynamicSrc: desktopDynamicSrc, aspectRatio: desktopAspectRatio } = 
     useResponsiveImage(desktopKey, size);
   const { isLoading: isMobileLoading, error: mobileError, dynamicSrc: mobileDynamicSrc } = 
     useResponsiveImage(mobileKey, size);
@@ -45,7 +45,7 @@ const ResponsiveImage = ({
         className={`bg-gray-200 animate-pulse ${className}`} 
         aria-label={`Loading ${alt}`}
         style={{ 
-          aspectRatio: width && height ? `${width}/${height}` : '16/9',
+          aspectRatio: width && height ? `${width}/${height}` : desktopAspectRatio ? `${desktopAspectRatio}` : '16/9',
           width: width,
           height: height 
         }}

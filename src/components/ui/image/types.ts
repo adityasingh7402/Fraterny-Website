@@ -24,5 +24,5 @@ export interface ImageLoadingState {
   isLoading: boolean;
   error: boolean;
   dynamicSrc: string | null;
-  aspectRatio?: string;
+  aspectRatio?: number; // Changed from string to number to match what getImageAspectRatio returns
 }
