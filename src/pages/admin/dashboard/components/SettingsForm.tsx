@@ -32,7 +32,7 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (settings) {
+    if (currentSettings) {
       setFormValues(prev => ({
         ...prev,
         available_seats: currentSettings?.available_seats?.toString() || prev.available_seats,
