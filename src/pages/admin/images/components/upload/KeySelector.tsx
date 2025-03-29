@@ -1,127 +1,111 @@
 
-import { useState, useEffect } from 'react';
-import { Check, ChevronsUpDown, ImageIcon } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { IMAGE_USAGE_MAP, getRecommendedAspectRatio } from './constants';
+import { IMAGE_KEYS, IMAGE_USAGE_MAP } from './constants';
 
 interface KeySelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  form: any; // Using any here for simplicity, but should be typed properly in real code
+  onSelect: (key: string) => void;
 }
 
-const KeySelector = ({ value, onChange }: KeySelectorProps) => {
+const KeySelector = ({ form, onSelect }: KeySelectorProps) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredKeys, setFilteredKeys] = useState<Array<{key: string, description: string}>>([]);
-  
-  // Convert the usage map to an array for easier filtering
-  const keys = Object.entries(IMAGE_USAGE_MAP).map(([key, description]) => ({
-    key,
-    description
-  }));
-  
-  // Filter keys based on search term
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredKeys(keys);
-      return;
-    }
+
+  const filteredKeys = useMemo(() => {
+    if (!searchTerm) return IMAGE_KEYS;
     
-    const filtered = keys.filter(item => 
+    return IMAGE_KEYS.filter(item => 
       item.key.toLowerCase().includes(searchTerm.toLowerCase()) || 
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
-    setFilteredKeys(filtered);
   }, [searchTerm]);
-  
-  // Group keys by category
-  const groupedKeys = filteredKeys.reduce((groups, item) => {
-    // Extract category from key name (e.g., "hero-background" => "hero")
-    let category = item.key.split('-')[0];
-    category = category.charAt(0).toUpperCase() + category.slice(1);
+
+  // Group keys by type
+  const groupedKeys = useMemo(() => {
+    const groups: Record<string, typeof IMAGE_KEYS> = {};
     
-    if (!groups[category]) {
-      groups[category] = [];
-    }
+    filteredKeys.forEach(item => {
+      const group = item.key.split('-')[0] || 'other';
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(item);
+    });
     
-    groups[category].push(item);
     return groups;
-  }, {} as Record<string, typeof keys>);
-  
+  }, [filteredKeys]);
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal"
-        >
-          {value ? (
-            <div className="flex items-center gap-2 truncate">
-              <ImageIcon className="h-4 w-4 text-navy opacity-70" />
-              <span className="truncate">{value}</span>
-            </div>
-          ) : (
-            "Select an image placement"
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[350px] p-0" align="start">
-        <Command shouldFilter={false}>
-          <CommandInput 
-            placeholder="Search image placements..." 
-            value={searchTerm}
-            onValueChange={setSearchTerm}
-          />
-          <CommandEmpty>No image placement found.</CommandEmpty>
-          <CommandList className="max-h-[300px]">
-            {Object.entries(groupedKeys).map(([category, items]) => (
-              <CommandGroup key={category} heading={category}>
-                {items.map((item) => (
-                  <CommandItem
-                    key={item.key}
-                    value={item.key}
-                    onSelect={() => {
-                      onChange(item.key);
-                      setOpen(false);
-                    }}
-                    className="flex items-start py-2"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{item.key}</span>
-                      <span className="text-xs text-gray-500">{item.description}</span>
-                    </div>
-                    <Check
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        value === item.key ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
+    <FormField
+      control={form.control}
+      name="key"
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <FormLabel className="font-medium">Image Key <span className="text-red-500">*</span></FormLabel>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full justify-between",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value
+                    ? IMAGE_KEYS.find((item) => item.key === field.value)?.description || field.value
+                    : "Select a key"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+              <Command>
+                <CommandInput 
+                  placeholder="Search for image location..." 
+                  onValueChange={setSearchTerm}
+                  className="h-9"
+                />
+                <CommandEmpty>No matching image keys found.</CommandEmpty>
+                {Object.entries(groupedKeys).map(([group, items]) => (
+                  <CommandGroup key={group} heading={group.charAt(0).toUpperCase() + group.slice(1)}>
+                    {items.map((item) => (
+                      <CommandItem
+                        key={item.key}
+                        value={item.key}
+                        onSelect={() => {
+                          form.setValue("key", item.key);
+                          onSelect(item.key);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            item.key === field.value ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div>
+                          <p className="font-medium">{item.key}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
                 ))}
-              </CommandGroup>
-            ))}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 };
 

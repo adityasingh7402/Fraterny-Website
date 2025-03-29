@@ -1,36 +1,15 @@
 
+import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { IMAGE_KEYS } from './constants';
 
 interface PredefinedKeysSectionProps {
-  onSelectKey?: (key: string, description: string) => void;
-  onKeySelect?: (selectedKey: string) => void;
-  showPredefinedKeys?: boolean;
-  setShowPredefinedKeys?: (show: boolean) => void;
+  onSelectKey: (key: string, description: string) => void;
+  visible: boolean;
+  onToggle: () => void;
 }
 
-const PredefinedKeysSection = ({
-  onSelectKey,
-  onKeySelect,
-  showPredefinedKeys = false,
-  setShowPredefinedKeys
-}: PredefinedKeysSectionProps) => {
-  // Function to handle key selection
-  const handleSelectKey = (key: string, description: string) => {
-    if (onSelectKey) {
-      onSelectKey(key, description);
-    } else if (onKeySelect) {
-      onKeySelect(key);
-    }
-  };
-
-  // Simple toggle function if we have the setter
-  const toggleShowKeys = () => {
-    if (setShowPredefinedKeys) {
-      setShowPredefinedKeys(!showPredefinedKeys);
-    }
-  };
-
+const PredefinedKeysSection = ({ onSelectKey, visible, onToggle }: PredefinedKeysSectionProps) => {
   return (
     <>
       <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3">
@@ -41,19 +20,17 @@ const PredefinedKeysSection = ({
             To replace placeholder images on the website, use one of the predefined keys. 
             Custom keys will be available for use but won't automatically replace website images.
           </p>
-          {setShowPredefinedKeys && (
-            <button
-              type="button"
-              onClick={toggleShowKeys}
-              className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
-            >
-              {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onToggle}
+            className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
+          >
+            {visible ? 'Hide predefined keys' : 'Show predefined keys'}
+          </button>
         </div>
       </div>
       
-      {showPredefinedKeys && (
+      {visible && (
         <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
           <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
           <div className="grid grid-cols-1 gap-2">
@@ -61,7 +38,7 @@ const PredefinedKeysSection = ({
               <button
                 key={item.key}
                 type="button"
-                onClick={() => handleSelectKey(item.key, item.description)}
+                onClick={() => onSelectKey(item.key, item.description)}
                 className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
               >
                 <span className="font-medium text-navy block">{item.key}</span>

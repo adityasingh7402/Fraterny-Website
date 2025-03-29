@@ -1,88 +1,64 @@
-
+import { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Info } from 'lucide-react';
-import { UseFormReturn } from 'react-hook-form';
-import { IMAGE_CATEGORIES, IMAGE_USAGE_MAP } from './constants';
+import { InfoIcon } from 'lucide-react';
 import KeySelector from './KeySelector';
+import { IMAGE_CATEGORIES, IMAGE_USAGE_MAP } from './constants';
 
 interface ImageDetailsFormProps {
-  form: UseFormReturn<any>;
+  form: any; // Using any here for simplicity, but should be typed properly in real code
   isPredefinedKey: boolean;
   key: string;
   handleKeyChange: (value: string) => void;
-  handleKeySelection: (selectedKey: string) => void;
+  handleKeySelection: (key: string) => void;
 }
 
 const ImageDetailsForm = ({ 
   form, 
-  isPredefinedKey, 
-  key, 
-  handleKeyChange, 
-  handleKeySelection 
+  isPredefinedKey,
+  key,
+  handleKeyChange,
+  handleKeySelection
 }: ImageDetailsFormProps) => {
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <FormLabel className="font-medium">Image Details</FormLabel>
-        <p className="text-sm text-gray-500">
-          Select a predefined image location or enter a custom key.
-        </p>
-      </div>
+      <KeySelector 
+        form={form}
+        onSelect={handleKeySelection}
+      />
       
       <FormField
         control={form.control}
-        name="key"
+        name="category"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>
-              Image Key 
-              {isPredefinedKey && <Badge className="ml-2 bg-terracotta">Predefined</Badge>}
-            </FormLabel>
+            <FormLabel className="font-medium">Category</FormLabel>
             <FormControl>
-              <KeySelector 
-                value={field.value}
-                onChange={(value) => {
-                  field.onChange(value);
-                  handleKeyChange(value);
-                  handleKeySelection(value);
-                }}
-              />
+              <select
+                {...field}
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+              >
+                <option value="">Select a category</option>
+                {IMAGE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
       
-      {isPredefinedKey && IMAGE_USAGE_MAP[key] && (
-        <div className="flex items-start gap-2 p-3 bg-navy bg-opacity-5 rounded-md border border-navy border-opacity-20">
-          <Info className="h-4 w-4 text-navy flex-shrink-0 mt-0.5" />
-          <div className="text-sm space-y-1">
-            <p className="font-medium text-navy">This is a predefined image key</p>
-            <p className="text-gray-700">
-              Location: <span className="font-medium">{IMAGE_USAGE_MAP[key]}</span>
-            </p>
-            <p className="text-gray-700 text-xs">
-              This image will automatically replace the placeholder at this location on the website.
-            </p>
-          </div>
-        </div>
-      )}
-      
       <FormField
         control={form.control}
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Description</FormLabel>
+            <FormLabel className="font-medium">Description <span className="text-red-500">*</span></FormLabel>
             <FormControl>
-              <Textarea 
+              <Input 
                 {...field} 
-                placeholder="Brief description of this image"
-                className="resize-none"
+                placeholder="e.g., Main hero background image"
               />
             </FormControl>
             <FormMessage />
@@ -95,49 +71,29 @@ const ImageDetailsForm = ({
         name="alt_text"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>
-              Alt Text 
-              <span className="ml-1 text-sm text-gray-500 font-normal">(for accessibility)</span>
-            </FormLabel>
+            <FormLabel className="font-medium">Alt Text <span className="text-red-500">*</span></FormLabel>
             <FormControl>
               <Input 
-                {...field} 
-                placeholder="Describe the image for screen readers"
+                {...field}
+                placeholder="e.g., Luxury villa with ocean view" 
               />
             </FormControl>
             <FormMessage />
+            <p className="text-xs text-gray-500 mt-1">
+              Text description for accessibility
+            </p>
           </FormItem>
         )}
       />
       
-      <FormField
-        control={form.control}
-        name="category"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Category</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {IMAGE_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {isPredefinedKey && (
+        <div className="p-3 bg-green-50 border border-green-100 rounded-md">
+          <p className="text-sm text-green-800 flex items-start">
+            <InfoIcon className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+            This key will replace a specific placeholder on the website.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
