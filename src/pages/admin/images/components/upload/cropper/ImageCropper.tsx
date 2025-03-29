@@ -146,7 +146,7 @@ const ImageCropper = ({
             <CropLivePreview 
               imgRef={imgRef}
               crop={crop}
-              completedCrop={setCompletedCrop}
+              completedCrop={null}
               zoom={zoom}
               rotation={rotation}
               imageKey={imageKey}
@@ -169,7 +169,7 @@ const ImageCropper = ({
           <CropLivePreview 
             imgRef={imgRef}
             crop={crop}
-            completedCrop={setCompletedCrop}
+            completedCrop={null}
             zoom={zoom}
             rotation={rotation}
             imageKey={imageKey}
