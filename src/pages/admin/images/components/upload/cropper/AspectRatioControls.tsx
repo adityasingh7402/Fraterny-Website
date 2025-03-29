@@ -1,23 +1,15 @@
 
 import { RefObject, useEffect } from 'react';
 import { type Crop as CropArea } from 'react-image-crop';
-import { AspectRatioOption } from './types';
-
-interface AspectRatioControlsProps {
-  aspectRatio: number | undefined;
-  setAspectRatio: (ratio: number | undefined) => void;
-  imgRef: RefObject<HTMLImageElement>;
-  setCrop: (crop: CropArea) => void;
-  imageKey?: string;
-}
+import { AspectRatioControlsProps, AspectRatioOption } from './types';
 
 // Common aspect ratios for website placeholders
 const aspectRatios: AspectRatioOption[] = [
-  { name: "16:9", value: 16/9, label: "Landscape" },
-  { name: "4:3", value: 4/3, label: "Standard" },
-  { name: "1:1", value: 1, label: "Square" },
-  { name: "9:16", value: 9/16, label: "Portrait" },
-  { name: "Free", value: undefined, label: "Free" },
+  { value: 16/9, label: "Landscape" },
+  { value: 4/3, label: "Standard" },
+  { value: 1, label: "Square" },
+  { value: 9/16, label: "Portrait" },
+  { value: undefined, label: "Free" },
 ];
 
 const AspectRatioControls = ({ 
@@ -82,7 +74,7 @@ const AspectRatioControls = ({
       <div className="flex flex-wrap gap-2 mb-4">
         {aspectRatios.map((ratio) => (
           <button
-            key={ratio.name}
+            key={ratio.label}
             type="button"
             onClick={() => updateCropWithAspectRatio(ratio.value)}
             className={`px-2 py-1 text-xs rounded flex-1 ${
@@ -92,7 +84,7 @@ const AspectRatioControls = ({
             } transition-colors`}
             title={ratio.label}
           >
-            {ratio.name}
+            {ratio.label}
           </button>
         ))}
       </div>
