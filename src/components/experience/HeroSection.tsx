@@ -5,12 +5,11 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 const HeroSection = () => {
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
-      {/* Optimized background hero image with responsive sizes - now supports dynamic image */}
+      {/* Optimized background hero image with responsive sizes - now uses desktop and mobile keys */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
         <ResponsiveImage 
           src={{
             mobile: "/images/hero/experience-hero-mobile.webp",
-            tablet: "/images/hero/experience-hero-tablet.webp",
             desktop: "/images/hero/experience-hero-desktop.webp"
           }}
           alt="Luxury villa experience setting"

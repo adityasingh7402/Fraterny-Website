@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
@@ -48,12 +47,11 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image - now supports dynamic image from Supabase */}
+      {/* Background Image - now uses dedicated desktop and mobile keys */}
       <div className="absolute inset-0">
         <ResponsiveImage
           src={{
             mobile: "/images/hero/luxury-villa-mobile.webp",
-            tablet: "/images/hero/luxury-villa-tablet.webp",
             desktop: "/images/hero/luxury-villa-desktop.webp"
           }}
           alt="Stunning luxury villa with breathtaking views"
