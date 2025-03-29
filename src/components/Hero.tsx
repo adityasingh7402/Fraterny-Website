@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
@@ -47,7 +48,7 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image - now uses dedicated desktop and mobile keys */}
+      {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage
           src={{

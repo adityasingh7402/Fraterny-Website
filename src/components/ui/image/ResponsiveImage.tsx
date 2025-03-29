@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring, createImageProps } from './utils';
 import { ResponsiveImageProps } from './types';
@@ -21,13 +22,23 @@ const ResponsiveImage = ({
   height,
   sizes = '100vw'
 }: ResponsiveImageProps) => {
-  // Use the custom hook to handle image loading
-  const { isLoading, error, dynamicSrc } = useResponsiveImage(dynamicKey, size);
+  // Get desktop and mobile keys if dynamicKey is provided
+  const desktopKey = dynamicKey || '';
+  const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
+  
+  // Use the custom hooks to handle desktop and mobile image loading
+  const { isLoading: isDesktopLoading, error: desktopError, dynamicSrc: desktopDynamicSrc } = 
+    useResponsiveImage(desktopKey, size);
+  const { isLoading: isMobileLoading, error: mobileError, dynamicSrc: mobileDynamicSrc } = 
+    useResponsiveImage(mobileKey, size);
+  
+  // Combined loading state
+  const isLoading = (!!dynamicKey && (isDesktopLoading || (mobileKey && isMobileLoading)));
   
   // Monitor image loading performance
-  useImagePerformanceMonitoring(src, dynamicSrc);
+  useImagePerformanceMonitoring(src, desktopDynamicSrc || mobileDynamicSrc);
   
-  // If we're still loading a dynamic image, show a loading placeholder
+  // If we're still loading dynamic images, show a loading placeholder
   if (isLoading) {
     return (
       <div 
@@ -42,9 +53,13 @@ const ResponsiveImage = ({
     );
   }
   
-  // If there was an error loading the image or no dynamic source found, use fallback
-  if (error || (!dynamicSrc && dynamicKey)) {
-    console.log(`Using fallback for ${dynamicKey} - error: ${error}, no dynamicSrc: ${!dynamicSrc}`);
+  // Check if we have dynamic sources
+  const hasDynamicDesktop = !desktopError && desktopDynamicSrc;
+  const hasDynamicMobile = !mobileError && mobileDynamicSrc;
+  
+  // If there was an error loading both images or no dynamic source found for both, use fallback
+  if ((desktopError || !desktopDynamicSrc) && (mobileError || !mobileDynamicSrc) && dynamicKey) {
+    console.log(`Using fallback for ${dynamicKey} - desktop error: ${desktopError}, mobile error: ${mobileError}`);
     
     // If src is provided as a fallback, use it instead of showing error state
     if (src) {
@@ -88,8 +103,27 @@ const ResponsiveImage = ({
     );
   }
   
-  // If we have a dynamicSrc, use that instead of the props.src
-  const imageSrc = dynamicSrc || src;
+  // If we have dynamic sources, create a responsive image object
+  let imageSrc = src;
+  
+  if (hasDynamicDesktop || hasDynamicMobile) {
+    if (typeof src === 'object') {
+      // Preserve the existing structure but replace with dynamic sources where available
+      imageSrc = {
+        mobile: hasDynamicMobile ? mobileDynamicSrc! : src.mobile,
+        desktop: hasDynamicDesktop ? desktopDynamicSrc! : src.desktop
+      };
+    } else if (hasDynamicDesktop && hasDynamicMobile) {
+      // Create a new responsive object with both dynamic sources
+      imageSrc = {
+        mobile: mobileDynamicSrc!,
+        desktop: desktopDynamicSrc!
+      };
+    } else if (hasDynamicDesktop) {
+      // We only have desktop dynamic source
+      imageSrc = desktopDynamicSrc;
+    }
+  }
   
   // Render different image styles based on the type of imageSrc
   return renderImage(imageSrc, {
@@ -117,7 +151,7 @@ function renderImage(
     fallbackSrc, width, height, sizes 
   } = props;
 
-  // If imageSrc is a string (from dynamicKey), use the same image for all sizes
+  // If imageSrc is a string (simple URL), use the same image for all sizes
   if (typeof imageSrc === 'string') {
     const imgProps = createImageProps(
       imageSrc, alt, className, loading, sizes,
@@ -131,9 +165,6 @@ function renderImage(
   
   // If imageSrc is an object with responsive breakpoints
   if (imageSrc) {
-    // Use tablet image if provided, otherwise fall back to desktop
-    const tabletSrc = imageSrc.tablet || imageSrc.desktop;
-    
     // Create common image props
     const imgProps = createImageProps(
       imageSrc.desktop, alt, className, loading, sizes,
@@ -144,9 +175,9 @@ function renderImage(
     
     return (
       <picture onClick={onClick}>
-        <source media="(max-width: 640px)" srcSet={imageSrc.mobile} />
-        <source media="(max-width: 1024px)" srcSet={tabletSrc} />
-        <source media="(min-width: 1025px)" srcSet={imageSrc.desktop} />
+        {imageSrc.mobile && <source media="(max-width: 640px)" srcSet={imageSrc.mobile} />}
+        {imageSrc.tablet && <source media="(max-width: 1024px)" srcSet={imageSrc.tablet} />}
+        <source media="(min-width: 641px)" srcSet={imageSrc.desktop} />
         <img {...imgProps} />
       </picture>
     );

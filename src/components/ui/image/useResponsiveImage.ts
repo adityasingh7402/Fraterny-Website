@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { getImageUrlByKey, getImageUrlByKeyAndSize } from '@/services/images';
+import { getImageUrlByKey, getImageUrlByKeyAndSize, clearImageUrlCacheForKey } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
-import { clearImageUrlCacheForKey } from '@/services/images';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -31,6 +30,10 @@ export const useResponsiveImage = (
     const fetchImage = async () => {
       try {
         console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
+        
+        // Handle mobile variant keys
+        const isMobileKey = dynamicKey.includes('-mobile');
+        const isDesktopKey = !isMobileKey;
         
         // If size is specified, try to get that specific size
         if (size) {
