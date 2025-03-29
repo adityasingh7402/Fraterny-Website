@@ -84,7 +84,8 @@ const CropLivePreview = ({
       URL.revokeObjectURL(previewUrl);
     }
     
-    const dataUrl = canvas.toDataURL('image/jpeg');
+    // Use higher quality for preview
+    const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
     setPreviewUrl(dataUrl);
   }, [crop, zoom, rotation, imgRef.current]);
   
@@ -107,10 +108,6 @@ const CropLivePreview = ({
         viewMode={viewMode}
         setViewMode={setViewMode}
       />
-      
-      <p className="mt-3 text-sm text-gray-600">
-        This preview accurately represents how your image will appear on the website.
-      </p>
     </div>
   );
 };

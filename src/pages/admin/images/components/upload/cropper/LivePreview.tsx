@@ -78,16 +78,16 @@ const LivePreview = ({
           />
         </div>
       ) : (
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center">
           <div className={`border-4 md:border-8 border-gray-800 rounded-2xl md:rounded-3xl overflow-hidden ${
-            isMobile ? 'w-[120px] h-[210px]' : 'w-[180px] h-[320px]'
+            isMobile ? 'w-[120px] h-[210px]' : 'w-[140px] h-[250px]'
           } relative`}>
             <div className="absolute inset-x-0 top-0 h-4 bg-gray-800 z-10"></div>
             <div className={`${isMobile ? 'w-10 h-1' : 'w-16 h-1.5'} bg-gray-700 absolute top-2 rounded-full left-1/2 transform -translate-x-1/2 z-20`}></div>
             <div className={`absolute inset-x-0 bottom-0 ${isMobile ? 'h-6' : 'h-10'} bg-gray-800 z-10 flex items-center justify-center`}>
-              <div className={`${isMobile ? 'w-6 h-6' : 'w-10 h-10'} rounded-full border border-gray-700`}></div>
+              <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full border border-gray-700`}></div>
             </div>
-            <div className="w-full h-full overflow-hidden">
+            <div className="w-full h-full overflow-hidden bg-gray-100">
               <img 
                 src={previewUrl} 
                 alt="Mobile Preview" 
@@ -95,12 +95,14 @@ const LivePreview = ({
               />
             </div>
           </div>
+          <p className="text-xs text-center text-gray-500 mt-2">
+            {placeholderLabel || 'Custom Size'}
+          </p>
+          <p className="text-xs text-center text-gray-600 mt-2">
+            This preview accurately represents how your image will appear on the website.
+          </p>
         </div>
       )}
-      
-      <p className="text-xs text-center text-gray-500">
-        {placeholderLabel || 'Custom Size'}
-      </p>
     </div>
   );
 };
