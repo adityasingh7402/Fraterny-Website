@@ -29,3 +29,10 @@ export {
 
 // Export cache instances for advanced usage
 export { imageCache, urlCache } from './cacheService';
+
+// Export utility functions for broader use
+export * from './utils/cacheUtils';
+export * from './utils/queryUtils';
+export * from './utils/fileUtils';
+export * from './utils/cleanupUtils';
+export * from './utils/databaseUtils';

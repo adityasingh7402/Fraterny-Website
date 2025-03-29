@@ -2,7 +2,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
-import { imageCache, urlCache } from "./cacheService";
+import { urlCache } from "./cacheService";
+import { 
+  getCachedImage, 
+  cacheImage, 
+  clearImageCache, 
+  invalidateImageCache 
+} from "./utils/cacheUtils";
+import {
+  createImagesQuery,
+  applySearchFilter,
+  applyPagination,
+  processQueryResponse
+} from "./utils/queryUtils";
 
 /**
  * Fetch image metadata by key with improved caching
@@ -21,11 +33,8 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     urlCache.invalidate(`key:${normalizedKey}`);
 
     // Check cache first
-    const cacheKey = `image:${normalizedKey}`;
-    const cached = imageCache.get(cacheKey);
-    
+    const cached = getCachedImage(normalizedKey);
     if (cached !== undefined) {
-      console.log(`Cache hit for fetchImageByKey: ${normalizedKey}`);
       return cached;
     }
     
@@ -47,7 +56,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     }
     
     // Cache the result
-    imageCache.set(cacheKey, data as WebsiteImage | null);
+    cacheImage(normalizedKey, data as WebsiteImage | null);
     
     return data;
   } catch (error) {
@@ -67,28 +76,15 @@ export const fetchAllImages = async (
   total: number
 }> => {
   try {
-    let query = supabase.from('website_images').select('*', { count: 'exact' });
+    let query = createImagesQuery();
     
     // Add search functionality if search term is provided
-    if (searchTerm && searchTerm.trim().length > 0) {
-      const term = searchTerm.trim();
-      // Search in key, description, alt_text and category
-      query = query.or(`key.ilike.%${term}%,description.ilike.%${term}%,alt_text.ilike.%${term}%,category.ilike.%${term}%`);
-    }
+    query = applySearchFilter(query, searchTerm);
     
     // Add pagination
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range((page - 1) * pageSize, page * pageSize - 1);
+    const { data, error, count } = await applyPagination(query, page, pageSize);
     
-    if (error) {
-      return handleApiError(error, 'Error fetching images', false) as unknown as { images: WebsiteImage[], total: number };
-    }
-    
-    return { 
-      images: data || [], 
-      total: count || 0 
-    };
+    return processQueryResponse(data, error, count, 'Error fetching images');
   } catch (error) {
     handleApiError(error, 'Unexpected error in fetchAllImages', false);
     return { images: [], total: 0 };
@@ -108,48 +104,25 @@ export const fetchImagesByCategory = async (
   total: number
 }> => {
   try {
-    let query = supabase
-      .from('website_images')
-      .select('*', { count: 'exact' })
-      .eq('category', category);
+    let query = createImagesQuery().eq('category', category);
     
     // Add search functionality if search term is provided
-    if (searchTerm && searchTerm.trim().length > 0) {
-      const term = searchTerm.trim();
-      // Search in key, description and alt_text
-      query = query.or(`key.ilike.%${term}%,description.ilike.%${term}%,alt_text.ilike.%${term}%`);
-    }
+    query = applySearchFilter(query, searchTerm);
     
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range((page - 1) * pageSize, page * pageSize - 1);
+    // Add pagination
+    const { data, error, count } = await applyPagination(query, page, pageSize);
     
-    if (error) {
-      return handleApiError(error, `Error fetching images by category "${category}"`, false) as unknown as { images: WebsiteImage[], total: number };
-    }
-    
-    return { 
-      images: data || [], 
-      total: count || 0 
-    };
+    return processQueryResponse(
+      data, 
+      error, 
+      count, 
+      `Error fetching images by category "${category}"`
+    );
   } catch (error) {
     handleApiError(error, `Unexpected error in fetchImagesByCategory for category "${category}"`, false);
     return { images: [], total: 0 };
   }
 };
 
-/**
- * Clear image cache
- */
-export const clearImageCache = (): void => {
-  imageCache.clear();
-  console.log('Image cache cleared');
-};
-
-/**
- * Invalidate cache for specific image
- */
-export const invalidateImageCache = (key: string): void => {
-  imageCache.invalidate(key);
-  console.log(`Cache invalidated for image with key: ${key}`);
-};
+// Re-export cache management functions from cacheUtils
+export { clearImageCache, invalidateImageCache };
