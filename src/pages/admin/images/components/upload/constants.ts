@@ -1,18 +1,10 @@
-
 // Image categories for organizing uploads
 export const IMAGE_CATEGORIES = [
   'Hero',
   'Designed for depth',
   'VillaLab',
   'Your tribe awaits',
-  'Experience',
-  'Background',
-  'Banner',
-  'Icon',
-  'Profile',
-  'Thumbnail',
-  'Gallery',
-  'Product'
+  'Experience'
 ];
 
 // Common website image keys that replace placeholders
@@ -51,7 +43,6 @@ export const IMAGE_KEYS = [
   { key: 'experience-evening-session-mobile', description: 'Experience Page - Evening Session (Mobile)' },
   { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' },
   { key: 'experience-gourmet-dining-mobile', description: 'Experience Page - Gourmet Dining (Mobile)' },
-  // Tribe section image placeholders
   { key: 'tribe-visionary', description: 'Experience Page - Tribe Section - Visionary' },
   { key: 'tribe-visionary-mobile', description: 'Experience Page - Tribe Section - Visionary (Mobile)' },
   { key: 'tribe-hustler', description: 'Experience Page - Tribe Section - Hustler' },
@@ -64,7 +55,6 @@ export const IMAGE_KEYS = [
   { key: 'tribe-optimist-mobile', description: 'Experience Page - Tribe Section - Optimist (Mobile)' },
   { key: 'tribe-guardian', description: 'Experience Page - Tribe Section - Guardian' },
   { key: 'tribe-guardian-mobile', description: 'Experience Page - Tribe Section - Guardian (Mobile)' },
-  // Depth section image placeholders
   { key: 'depth-house-code', description: 'Experience Page - Depth Section - House Code' },
   { key: 'depth-house-code-mobile', description: 'Experience Page - Depth Section - House Code (Mobile)' },
   { key: 'depth-startup', description: 'Experience Page - Depth Section - Startup Simulations' },
@@ -83,7 +73,6 @@ export const IMAGE_KEYS = [
   { key: 'depth-community-mobile', description: 'Experience Page - Depth Section - Community (Mobile)' },
   { key: 'depth-soft-skills', description: 'Experience Page - Depth Section - Soft Skills' },
   { key: 'depth-soft-skills-mobile', description: 'Experience Page - Depth Section - Soft Skills (Mobile)' },
-  // Hero images for other pages
   { key: 'pricing-hero', description: 'Pricing Page - Hero Section' },
   { key: 'pricing-hero-mobile', description: 'Pricing Page - Hero Section (Mobile)' },
   { key: 'faq-hero', description: 'FAQ Page - Hero Section' },
@@ -102,7 +91,6 @@ export const IMAGE_USAGE_MAP: Record<string, string> = IMAGE_KEYS.reduce((acc, {
 
 // Recommended aspect ratios and descriptions
 export const getRecommendedAspectRatio = (imageKey: string) => {
-  // Define aspect ratios for different image types
   if (imageKey.includes('hero')) {
     return { ratio: 16/9, label: 'Hero Section (16:9)' };
   } else if (imageKey.includes('banner')) {
@@ -121,7 +109,6 @@ export const getRecommendedAspectRatio = (imageKey: string) => {
     return { ratio: 16/9, label: 'Depth Section (16:9)' };
   }
   
-  // Default ratio
   return { ratio: 16/9, label: 'Standard (16:9)' };
 };
 

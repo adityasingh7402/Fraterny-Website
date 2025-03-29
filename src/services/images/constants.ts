@@ -1,4 +1,3 @@
-
 // Default placeholder images for development
 export const defaultImagesMap: Record<string, string> = {
   'hero-background': '/images/hero/luxury-villa-desktop.webp',
@@ -81,13 +80,10 @@ export const defaultImagesMap: Record<string, string> = {
 // Image categories for the UI
 export const IMAGE_CATEGORIES = [
   'Hero',
-  'Background',
-  'Banner',
-  'Icon',
-  'Profile',
-  'Thumbnail',
-  'Gallery',
-  'Product'
+  'Designed for depth',
+  'VillaLab',
+  'Your tribe awaits',
+  'Experience'
 ];
 
 // Map of image keys to their usage locations on the website
