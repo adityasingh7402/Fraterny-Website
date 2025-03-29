@@ -1,6 +1,8 @@
 
-import { FileInput } from './';
-import { ImagePreview } from './';
+import { useState } from 'react';
+import FileInput from './FileInput';
+import ImagePreview from './ImagePreview';
+import { Card } from '@/components/ui/card';
 
 interface FileUploadSectionProps {
   file: File | null;
@@ -17,19 +19,32 @@ const FileUploadSection = ({
   onCroppedFile,
   imageKey
 }: FileUploadSectionProps) => {
+  const [isFileSelected, setIsFileSelected] = useState(false);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const hasFile = event.target.files && event.target.files.length > 0;
+    setIsFileSelected(hasFile);
+    onFileChange(event);
+  };
+
   return (
-    <div className="space-y-4">
-      <FileInput onFileChange={onFileChange} />
+    <Card className="p-5 bg-white border border-gray-200 rounded-lg">
+      <h3 className="font-medium text-navy mb-3">Upload Image</h3>
       
-      {file && previewUrl && (
+      {!previewUrl ? (
+        <FileInput 
+          onFileChange={handleFileChange} 
+          isFileSelected={isFileSelected} 
+        />
+      ) : file && (
         <ImagePreview 
-          file={file}
+          file={file} 
           previewUrl={previewUrl}
           onCroppedFile={onCroppedFile}
           imageKey={imageKey}
         />
       )}
-    </div>
+    </Card>
   );
 };
 
