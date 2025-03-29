@@ -1,18 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings } from '@/services/website-settings';
 import AdminMenu from './components/AdminMenu';
 import SettingsForm from './components/SettingsForm';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { calculateDaysLeft } from '@/utils/dateUtils';
+import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
 
 const AdminDashboard = () => {
-  const { data: settings, isLoading, error, refetch } = useQuery({
-    queryKey: ['websiteSettings'],
-    queryFn: fetchWebsiteSettings
-  });
+  const { settings, isLoading, error } = useWebsiteSettings();
 
   const [formValues, setFormValues] = useState({
     available_seats: '',
@@ -62,11 +57,7 @@ const AdminDashboard = () => {
         
         <AdminMenu />
         
-        <SettingsForm 
-          settings={formValues} 
-          refetch={refetch} 
-          calculateDaysLeft={calculateDaysLeft} 
-        />
+        <SettingsForm settings={formValues} />
       </div>
     </div>
   );

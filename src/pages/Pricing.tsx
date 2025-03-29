@@ -2,9 +2,9 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
-import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/website-settings';
+import { formatRegistrationCloseDate } from '@/services/website-settings';
+import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
 
 const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
 const LEARN_MORE_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRHsCdRrUpuulDYPVGdYN34Th840/edit";
@@ -67,10 +67,7 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
 const LowerSections = lazy(() => import('../components/pricing/LowerSections'));
 
 const Pricing = () => {
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ['websiteSettings'],
-    queryFn: fetchWebsiteSettings
-  });
+  const { settings, isLoading } = useWebsiteSettings();
   
   const prices = {
     insiderAccess: "₹499/month",

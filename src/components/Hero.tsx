@@ -1,18 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
-import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings } from '@/services/website-settings';
-import { calculateDaysLeft, scheduleAtMidnight } from '@/utils/dateUtils';
+import { scheduleAtMidnight } from '@/utils/dateUtils';
+import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
+import { calculateDaysLeft } from '@/services/website-settings';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
   
-  // Fetch dynamic settings from the database
-  const { data: settings } = useQuery({
-    queryKey: ['websiteSettings'],
-    queryFn: fetchWebsiteSettings,
-  });
+  // Use our custom hook to fetch settings
+  const { settings, isLoading } = useWebsiteSettings();
 
   useEffect(() => {
     // If we have settings from the database, use them
@@ -91,7 +87,7 @@ const Hero = () => {
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
               <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
               <div className="text-xl font-mono">
-                {daysLeft} Days
+                {isLoading ? "Loading..." : `${daysLeft} Days`}
               </div>
             </div>
           </div>

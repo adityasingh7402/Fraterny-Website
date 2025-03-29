@@ -1,7 +1,8 @@
 
 import { useState, FormEvent } from 'react';
-import { updateWebsiteSetting } from '@/services/website-settings';
+import { calculateDaysLeft } from '@/services/website-settings';
 import { toast } from 'sonner';
+import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
 
 interface SettingsFormProps {
   settings: {
@@ -9,15 +10,15 @@ interface SettingsFormProps {
     registration_close_date: string;
     accepting_applications_for_date: string;
   };
-  refetch: () => void;
-  calculateDaysLeft: (date: string) => number;
 }
 
-const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProps) => {
+const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
+  const { updateSetting, refetch } = useWebsiteSettings();
+  
   const [formValues, setFormValues] = useState({
-    available_seats: settings.available_seats,
-    registration_close_date: settings.registration_close_date,
-    accepting_applications_for_date: settings.accepting_applications_for_date
+    available_seats: initialSettings.available_seats,
+    registration_close_date: initialSettings.registration_close_date,
+    accepting_applications_for_date: initialSettings.accepting_applications_for_date
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,17 +37,17 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
     
     try {
       // Update available seats
-      const seatsUpdated = await updateWebsiteSetting('available_seats', formValues.available_seats);
+      const seatsUpdated = await updateSetting('available_seats', formValues.available_seats);
       
       // Update registration close date
-      const dateUpdated = await updateWebsiteSetting('registration_close_date', formValues.registration_close_date);
+      const dateUpdated = await updateSetting('registration_close_date', formValues.registration_close_date);
       
       // Update accepting applications date
-      const applicationDateUpdated = await updateWebsiteSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
+      const applicationDateUpdated = await updateSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
       
       // Calculate and update days left
       const daysLeft = calculateDaysLeft(formValues.registration_close_date);
-      const daysLeftUpdated = await updateWebsiteSetting('registration_days_left', daysLeft.toString());
+      const daysLeftUpdated = await updateSetting('registration_days_left', daysLeft.toString());
       
       if (seatsUpdated && dateUpdated && applicationDateUpdated && daysLeftUpdated) {
         toast.success('Settings updated successfully');
