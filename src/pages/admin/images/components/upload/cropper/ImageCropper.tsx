@@ -6,7 +6,6 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { ImageCropperProps } from './types';
 import CropperHeader from './CropperHeader';
 import LivePreview from './LivePreview';
-import AspectRatioControls from './AspectRatioControls';
 import ZoomRotateControls from './ZoomRotateControls';
 import { getRecommendedAspectRatio } from '../constants';
 
@@ -44,7 +43,7 @@ const ImageCropper = ({
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
     const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
     
-    // Set canvas size to the cropped area
+    // Set canvas size to the dimensions of the crop
     canvas.width = crop.width * scaleX;
     canvas.height = crop.height * scaleY;
     
@@ -68,6 +67,13 @@ const ImageCropper = ({
     setPreviewUrl(dataUrl);
   };
 
+  // Update preview when crop, zoom or rotation changes
+  useEffect(() => {
+    if (imgRef.current && crop.width && crop.height) {
+      updatePreview();
+    }
+  }, [crop, zoom, rotation, imgRef.current]);
+
   return (
     <div className="flex flex-col items-center bg-gray-50 rounded-lg p-4">
       <CropperHeader 
@@ -82,12 +88,9 @@ const ImageCropper = ({
             crop={crop}
             onChange={(c) => {
               setCrop(c);
-              // Debounce this in a real app
-              setTimeout(() => updatePreview(), 100);
             }}
             onComplete={(c) => {
               setCompletedCrop(c);
-              updatePreview();
             }}
             aspect={aspectRatio}
             className="max-h-[400px] flex justify-center"
@@ -133,9 +136,6 @@ const ImageCropper = ({
                   width: cropWidth,
                   height: cropHeight
                 } as CropArea);
-                
-                // Update preview
-                setTimeout(() => updatePreview(), 100);
               }}
             />
           </ReactCrop>
@@ -148,13 +148,14 @@ const ImageCropper = ({
             placeholderLabel={placeholderLabel}
           />
           
-          <AspectRatioControls 
-            aspectRatio={aspectRatio}
-            setAspectRatio={setAspectRatio}
-            imgRef={imgRef}
-            setCrop={setCrop}
-            imageKey={imageKey}
-          />
+          {imageKey && (
+            <div className="mt-4 bg-navy bg-opacity-10 p-3 rounded">
+              <h5 className="font-medium text-sm text-navy mb-1">Recommended for "{imageKey}"</h5>
+              <p className="text-xs text-gray-700">
+                Position your image so the important elements are clearly visible in the preview above.
+              </p>
+            </div>
+          )}
         </div>
       </div>
       
@@ -166,7 +167,7 @@ const ImageCropper = ({
       />
       
       <div className="w-full mt-4 flex items-center justify-center text-gray-500 gap-2 text-sm">
-        <Move className="w-4 w-4" />
+        <Move className="w-4 h-4" />
         <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
       </div>
     </div>

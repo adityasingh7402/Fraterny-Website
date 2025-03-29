@@ -20,7 +20,6 @@ const ImageCropHandler = ({
   imageKey
 }: ImageCropHandlerProps) => {
   const imgRef = useRef<HTMLImageElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [crop, setCrop] = useState<CropArea>({
     unit: '%',
@@ -35,7 +34,7 @@ const ImageCropHandler = ({
 
   // Initialize with recommended aspect ratio
   useEffect(() => {
-    if (imageKey) {
+    if (imageKey && imgRef.current) {
       const recommended = getRecommendedAspectRatio(imageKey);
       // Set initial crop based on recommended aspect ratio
       if (imgRef.current) {
@@ -66,21 +65,23 @@ const ImageCropHandler = ({
     }
   }, [imageKey, imgRef.current]);
 
-  const applyChanges = () => {
+  const applyChanges = async () => {
     if (!completedCrop || !imgRef.current) {
       toast.error('Please make a crop selection first');
       return;
     }
 
-    const croppedFile = getCroppedImg(uploadFile.name, uploadFile.type);
+    const croppedFile = await getCroppedImg(uploadFile.name, uploadFile.type);
     if (croppedFile) {
       onCroppedFile(croppedFile);
       setIsCropping(false);
       toast.success('Crop applied successfully');
+    } else {
+      toast.error('Failed to create cropped image');
     }
   };
 
-  const getCroppedImg = (fileName: string, fileType: string): File | null => {
+  const getCroppedImg = async (fileName: string, fileType: string): Promise<File | null> => {
     if (!imgRef.current || !completedCrop) {
       return null;
     }
@@ -104,17 +105,20 @@ const ImageCropHandler = ({
     // Apply rotation and crop
     ctx.save();
     
-    // Move the crop origin to the canvas center
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    
-    // Apply rotation
-    ctx.rotate((rotation * Math.PI) / 180);
-    
-    // Apply zoom
-    ctx.scale(zoom, zoom);
-    
-    // Move back to the top left corner
-    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    // Adjust for rotation and zoom
+    if (rotation !== 0 || zoom !== 1) {
+      // Move the crop origin to the canvas center
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      
+      // Apply rotation
+      ctx.rotate((rotation * Math.PI) / 180);
+      
+      // Apply zoom
+      ctx.scale(zoom, zoom);
+      
+      // Move back to the top left corner
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    }
     
     // Draw the image with the crop applied
     ctx.drawImage(
@@ -150,7 +154,7 @@ const ImageCropHandler = ({
         fileType,
         0.95
       );
-    }) as unknown as File | null;
+    });
   };
 
   const toggleCropping = () => {
