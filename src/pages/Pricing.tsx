@@ -1,3 +1,4 @@
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -12,7 +13,8 @@ const EXECUTIVE_ESCAPE_MAIL = "mailto:support@fraterny.com?subject=Exclusive%20E
 
 const PricingTier = ({ 
   name, 
-  price, 
+  price,
+  originalPrice,
   features, 
   ctaText, 
   ctaLink, 
@@ -27,7 +29,10 @@ const PricingTier = ({
     )}
     <h3 className="text-xl font-playfair font-bold mb-2">{name}</h3>
     <div className="mb-6">
-      <span className="text-2xl font-bold">{price}</span>
+      {originalPrice && (
+        <div className="text-sm text-gray-400 line-through mb-1">{originalPrice}</div>
+      )}
+      <span className="text-2xl font-bold text-navy">{price}</span>
     </div>
     <ul className="space-y-3 mb-6">
       {features.map((feature, index) => (
@@ -70,9 +75,12 @@ const Pricing = () => {
   const { settings, isLoading } = useWebsiteSettings();
   
   const prices = {
-    insiderAccess: "₹499/month",
-    mainExperience: "₹45,000 - ₹60,000",
-    executiveEscape: "₹1,50,000+",
+    insiderAccess: isLoading ? "₹499/month" : settings?.insider_access_price || "₹499/month",
+    insiderAccessOriginal: isLoading ? "₹699/month" : settings?.insider_access_original_price || "₹699/month",
+    mainExperience: isLoading ? "₹45,000 - ₹60,000" : settings?.main_experience_price || "₹45,000 - ₹60,000",
+    mainExperienceOriginal: isLoading ? "₹65,000 - ₹80,000" : settings?.main_experience_original_price || "₹65,000 - ₹80,000",
+    executiveEscape: isLoading ? "₹1,50,000+" : settings?.executive_escape_price || "₹1,50,000+",
+    executiveEscapeOriginal: isLoading ? "₹1,85,000+" : settings?.executive_escape_original_price || "₹1,85,000+",
     spotsRemaining: isLoading ? "--" : settings?.available_seats || 5,
     closeDate: isLoading ? "March 2025" : formatRegistrationCloseDate(settings?.registration_close_date || '2025-03-31'),
     acceptingApplicationsFor: isLoading ? "February 2026" : settings?.accepting_applications_for_date || "February 2026"
@@ -109,6 +117,7 @@ const Pricing = () => {
             <PricingTier
               name="Insider Access"
               price={prices.insiderAccess}
+              originalPrice={prices.insiderAccessOriginal}
               features={[
                 "Digital Content Only",
                 "Digital Resources",
@@ -122,6 +131,7 @@ const Pricing = () => {
             <PricingTier
               name="The Main Experience"
               price={prices.mainExperience}
+              originalPrice={prices.mainExperienceOriginal}
               features={[
                 "In-Person Retreat",
                 "Exclusive Cohort (20 People)",
@@ -137,6 +147,7 @@ const Pricing = () => {
             <PricingTier
               name="Executive Escape"
               price={prices.executiveEscape}
+              originalPrice={prices.executiveEscapeOriginal}
               features={[
                 "Private Luxury Experience",
                 "8-10 People Only",

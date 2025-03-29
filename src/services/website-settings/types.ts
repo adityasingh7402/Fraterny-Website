@@ -6,6 +6,13 @@ export interface WebsiteSettings {
   available_seats: number;
   registration_close_date: string;
   accepting_applications_for_date: string;
+  // New price fields
+  insider_access_price: string;
+  insider_access_original_price: string;
+  main_experience_price: string;
+  main_experience_original_price: string;
+  executive_escape_price: string;
+  executive_escape_original_price: string;
 }
 
 // Define the shape of the data returned from the database
