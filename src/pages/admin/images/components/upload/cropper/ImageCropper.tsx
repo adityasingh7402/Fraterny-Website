@@ -166,7 +166,8 @@ const ImageCropper = ({
         <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
       </div>
       
-      <style jsx global>{`
+      <style>
+        {`
         .react-crop-container .ReactCrop__crop-selection {
           border: 2px solid #0A1A2F;
           box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
@@ -188,7 +189,8 @@ const ImageCropper = ({
           width: 12px;
           height: 12px;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
