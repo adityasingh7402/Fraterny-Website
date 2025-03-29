@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings, calculateDaysLeft } from '@/services/websiteSettingsService';
+import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
 import AdminMenu from './components/AdminMenu';
 import SettingsForm from './components/SettingsForm';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { calculateDaysLeft } from '@/utils/dateUtils';
 
 const AdminDashboard = () => {
   const { data: settings, isLoading, error, refetch } = useQuery({

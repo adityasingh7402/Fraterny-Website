@@ -1,8 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
-import { format, parseISO } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
+import { format } from "date-fns";
 
 export interface WebsiteSettings {
   registration_days_left: number;
@@ -159,29 +158,15 @@ export const updateWebsiteSetting = async (key: string, value: string): Promise<
 
 /**
  * Calculates days left until a given date (in any timezone)
- * @param dateString - Target date in YYYY-MM-DD format
- * @param timezone - Timezone to use for calculation, defaults to 'Asia/Kolkata' (IST)
- * @returns Number of days left
  */
 export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/Kolkata'): number => {
-  try {
-    const targetDate = new Date(dateString);
-    
-    // Get the current date in the specified timezone
-    const nowInTimezone = new Date();
-    const nowFormatted = formatInTimeZone(nowInTimezone, timezone, 'yyyy-MM-dd');
-    const todayInTimezone = parseISO(nowFormatted);
-    
-    // Calculate difference in milliseconds
-    const diffTime = targetDate.getTime() - todayInTimezone.getTime();
-    
-    // Convert to days and return (use Math.ceil to round up)
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
-  } catch (error) {
-    console.error('Error calculating days left:', error);
+  // Use the utility function from utils/dateUtils.ts
+  return import('@/utils/dateUtils').then(module => {
+    return module.calculateDaysLeft(dateString, timezone);
+  }).catch(error => {
+    console.error('Error importing calculateDaysLeft:', error);
     return 0;
-  }
+  });
 };
 
 /**
@@ -191,7 +176,8 @@ export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/K
 export const updateDaysLeftCount = async (): Promise<boolean> => {
   try {
     const settings = await fetchWebsiteSettings();
-    const daysLeft = calculateDaysLeft(settings.registration_close_date);
+    const daysLeftModule = await import('@/utils/dateUtils');
+    const daysLeft = daysLeftModule.calculateDaysLeft(settings.registration_close_date);
     
     return await updateWebsiteSetting('registration_days_left', daysLeft.toString());
   } catch (error) {

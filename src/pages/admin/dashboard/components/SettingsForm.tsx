@@ -1,29 +1,28 @@
 
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, FormEvent } from 'react';
 import { updateWebsiteSetting } from '@/services/websiteSettingsService';
+import { toast } from 'sonner';
 
-type SettingsFormProps = {
+interface SettingsFormProps {
   settings: {
     available_seats: string;
     registration_close_date: string;
     accepting_applications_for_date: string;
   };
   refetch: () => void;
-  calculateDaysLeft: (dateString: string) => number;
-};
+  calculateDaysLeft: (date: string) => number;
+}
 
 const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProps) => {
   const [formValues, setFormValues] = useState({
     available_seats: settings.available_seats,
     registration_close_date: settings.registration_close_date,
-    accepting_applications_for_date: settings.accepting_applications_for_date || ''
+    accepting_applications_for_date: settings.accepting_applications_for_date
   });
-
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormValues(prev => ({
       ...prev,
@@ -31,44 +30,45 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    
     try {
-      // Calculate days left based on the registration close date
-      const daysLeft = calculateDaysLeft(formValues.registration_close_date);
-
-      // Update registration_days_left
-      await updateWebsiteSetting('registration_days_left', daysLeft.toString());
-
-      // Update available_seats
-      await updateWebsiteSetting('available_seats', formValues.available_seats);
-
-      // Update registration_close_date
-      await updateWebsiteSetting('registration_close_date', formValues.registration_close_date);
+      // Update available seats
+      const seatsUpdated = await updateWebsiteSetting('available_seats', formValues.available_seats);
       
-      // Update accepting_applications_for_date
-      await updateWebsiteSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
-
-      toast.success('Settings updated successfully');
-      refetch(); // Refresh the data
+      // Update registration close date
+      const dateUpdated = await updateWebsiteSetting('registration_close_date', formValues.registration_close_date);
+      
+      // Update accepting applications date
+      const applicationDateUpdated = await updateWebsiteSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
+      
+      // Calculate and update days left
+      const daysLeft = calculateDaysLeft(formValues.registration_close_date);
+      const daysLeftUpdated = await updateWebsiteSetting('registration_days_left', daysLeft.toString());
+      
+      if (seatsUpdated && dateUpdated && applicationDateUpdated && daysLeftUpdated) {
+        toast.success('Settings updated successfully');
+        refetch();
+      } else {
+        toast.error('Failed to update one or more settings');
+      }
     } catch (error) {
       console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
+      toast.error('An error occurred while updating settings');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-medium text-navy">Website Settings</h2>
-        <p className="text-gray-600 mt-1">Manage dynamic content and counters</p>
-      </div>
+  const daysLeft = calculateDaysLeft(formValues.registration_close_date);
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+  return (
+    <div className="bg-white shadow-sm rounded-lg p-6">
+      <h2 className="text-xl font-medium text-navy mb-4">Website Settings</h2>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="available_seats" className="block text-sm font-medium text-gray-700 mb-1">
             Available Seats
@@ -80,11 +80,11 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
             value={formValues.available_seats}
             onChange={handleChange}
             min="0"
-            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
           />
         </div>
-
+        
         <div>
           <label htmlFor="registration_close_date" className="block text-sm font-medium text-gray-700 mb-1">
             Registration Close Date
@@ -93,19 +93,19 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
             type="date"
             id="registration_close_date"
             name="registration_close_date"
-            value={formValues.registration_close_date.substring(0, 10)}
+            value={formValues.registration_close_date}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
           />
           <p className="text-sm text-gray-500 mt-1">
-            Days Remaining: {calculateDaysLeft(formValues.registration_close_date)} days
+            Days left until registration closes: <span className="font-medium">{daysLeft}</span>
           </p>
         </div>
         
         <div>
           <label htmlFor="accepting_applications_for_date" className="block text-sm font-medium text-gray-700 mb-1">
-            Accepting Applications For (e.g., "February 2026")
+            Accepting Applications For Date
           </label>
           <input
             type="text"
@@ -113,22 +113,22 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
             name="accepting_applications_for_date"
             value={formValues.accepting_applications_for_date}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
-            placeholder="February 2026"
+            placeholder="e.g. February 2026"
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
           />
           <p className="text-sm text-gray-500 mt-1">
-            This date will be displayed in the pricing page
+            The date to display on the website (e.g. "Currently accepting applications for February 2026")
           </p>
         </div>
-
-        <div className="flex items-center justify-end">
+        
+        <div className="pt-2">
           <button
             type="submit"
-            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors"
+            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-all"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? 'Saving...' : 'Save Settings'}
           </button>
         </div>
       </form>

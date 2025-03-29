@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings, calculateDaysLeft } from '@/services/websiteSettingsService';
+import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
+import { calculateDaysLeft, scheduleAtMidnight } from '@/utils/dateUtils';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -19,38 +20,17 @@ const Hero = () => {
     } else if (settings?.registration_close_date) {
       // Otherwise, calculate based on the target date
       const calculateAndSetDaysLeft = () => {
-        const daysRemaining = calculateDaysLeft(settings.registration_close_date, 'Asia/Kolkata');
+        const daysRemaining = calculateDaysLeft(settings.registration_close_date);
         setDaysLeft(daysRemaining);
       };
 
       // Calculate initial value
       calculateAndSetDaysLeft();
 
-      // Set up a timer to check at midnight IST (6:30 PM UTC) each day
-      const now = new Date();
-      // Get current time in milliseconds since midnight
-      const currentTimeMs = (
-        now.getUTCHours() * 3600 + 
-        now.getUTCMinutes() * 60 + 
-        now.getUTCSeconds()
-      ) * 1000 + now.getUTCMilliseconds();
+      // Set up a timer to update at midnight IST each day
+      const cleanup = scheduleAtMidnight(calculateAndSetDaysLeft);
       
-      // Time until next day 6:30 PM UTC (midnight IST)
-      const midnightISTMs = (18 * 3600 + 30 * 60) * 1000;
-      const timeUntilMidnightIST = currentTimeMs < midnightISTMs 
-        ? midnightISTMs - currentTimeMs 
-        : 24 * 3600 * 1000 - currentTimeMs + midnightISTMs;
-      
-      // Set a timeout to update at exactly midnight IST
-      const initialTimeout = setTimeout(() => {
-        calculateAndSetDaysLeft();
-        
-        // Then set an interval to update every 24 hours
-        const dailyInterval = setInterval(calculateAndSetDaysLeft, 24 * 60 * 60 * 1000);
-        return () => clearInterval(dailyInterval);
-      }, timeUntilMidnightIST);
-      
-      return () => clearTimeout(initialTimeout);
+      return cleanup;
     }
   }, [settings]);
 
