@@ -2,78 +2,90 @@
 import { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { InfoIcon } from 'lucide-react';
-import { IMAGE_KEYS } from './constants';
+import { Check, ChevronDown } from 'lucide-react';
+import { IMAGE_KEYS, IMAGE_USAGE_MAP } from './constants';
 
 interface KeySelectorProps {
-  form: any;
+  form: any; // Using any here for simplicity, but this should be typed properly
   onSelect: (key: string) => void;
 }
 
 const KeySelector = ({ form, onSelect }: KeySelectorProps) => {
-  const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
-
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const toggleDropdown = () => setIsOpen(!isOpen);
+  
+  const handleSelectKey = (key: string) => {
+    form.setValue('key', key);
+    onSelect(key);
+    setIsOpen(false);
+  };
+  
+  const currentValue = form.watch('key');
+  const isPredefinedKey = !!IMAGE_USAGE_MAP[currentValue];
+  
   return (
-    <>
-      {/* Image Key Field */}
-      <FormField
-        control={form.control}
-        name="key"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="font-medium">Image Key <span className="text-red-500">*</span></FormLabel>
+    <FormField
+      control={form.control}
+      name="key"
+      render={({ field }) => (
+        <FormItem className="space-y-1">
+          <FormLabel className="font-medium flex items-center justify-between">
+            <span>Image Key <span className="text-red-500">*</span></span>
+            {isPredefinedKey && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Predefined</span>
+            )}
+          </FormLabel>
+          <div className="relative">
             <FormControl>
               <Input 
                 {...field} 
                 placeholder="e.g., hero-background, team-photo-1"
+                className={isPredefinedKey ? "border-green-300" : ""}
               />
             </FormControl>
-            <FormMessage />
-            <p className="text-xs text-gray-500 mt-1">
-              A unique identifier used to fetch this image later
-            </p>
-          </FormItem>
-        )}
-      />
-      
-      {/* Predefined Keys Section */}
-      <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3 mt-4">
-        <InfoIcon className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
-        <div>
-          <h3 className="font-medium text-navy">Replace Website Images</h3>
-          <p className="text-sm text-gray-700">
-            To replace placeholder images on the website, use one of the predefined keys.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowPredefinedKeys(!showPredefinedKeys)}
-            className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
-          >
-            {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
-          </button>
-        </div>
-      </div>
-      
-      {/* Predefined Keys List */}
-      {showPredefinedKeys && (
-        <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
-          <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
-          <div className="grid grid-cols-1 gap-2">
-            {IMAGE_KEYS.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => onSelect(item.key)}
-                className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
-              >
-                <span className="font-medium text-navy block">{item.key}</span>
-                <span className="text-xs text-gray-600">{item.description}</span>
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={toggleDropdown}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-gray-100"
+            >
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </button>
           </div>
-        </div>
+          <FormMessage />
+          
+          {isOpen && (
+            <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto bg-white border border-gray-200 rounded-md shadow-lg">
+              <div className="p-2">
+                <p className="text-xs text-gray-500 mb-2">Select a predefined key:</p>
+                {IMAGE_KEYS.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => handleSelectKey(item.key)}
+                    className={`flex items-center w-full text-left p-2 text-sm hover:bg-gray-100 rounded-md ${
+                      currentValue === item.key ? "bg-gray-50" : ""
+                    }`}
+                  >
+                    {currentValue === item.key && (
+                      <Check className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 truncate">
+                      <p className="font-medium truncate">{item.key}</p>
+                      <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <p className="text-xs text-gray-500 mt-1">
+            A unique identifier used to fetch this image later
+          </p>
+        </FormItem>
       )}
-    </>
+    />
   );
 };
 
