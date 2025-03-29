@@ -88,70 +88,91 @@ const ImageCropper = ({
 
   return (
     <div className="flex flex-col">
-      <div className="relative">
-        <ReactCrop
-          crop={crop}
-          onChange={(c) => {
-            setCrop(c);
-            setIsDragging(true);
-          }}
-          onComplete={(c) => {
-            setCompletedCrop(c);
-            setIsDragging(false);
-          }}
-          aspect={aspectRatio}
-          className="max-h-[400px] flex justify-center react-crop-container"
-        >
-          <img
-            ref={imgRef}
-            src={imageSrc}
-            alt="Crop Preview"
-            style={{
-              maxHeight: '400px',
-              transform: `scale(${zoom}) rotate(${rotation}deg)`,
-              transformOrigin: 'center',
-              transition: 'transform 0.2s ease-in-out'
+      <CropperHeader 
+        onApplyChanges={onApplyChanges}
+        onCancelCrop={onCancelCrop}
+        imageKey={imageKey}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 relative bg-gray-50 rounded-lg border border-gray-200 p-4">
+          <ReactCrop
+            crop={crop}
+            onChange={(c) => {
+              setCrop(c);
+              setIsDragging(true);
             }}
-            onLoad={(e) => {
-              // Set initial crop to center of image with recommended aspect ratio
-              const { width, height } = e.currentTarget;
-              let cropWidth, cropHeight;
-              
-              if (aspectRatio) {
-                if (aspectRatio > 1) {
-                  // Landscape
-                  cropWidth = width * 0.8;
-                  cropHeight = cropWidth / aspectRatio;
+            onComplete={(c) => {
+              setCompletedCrop(c);
+              setIsDragging(false);
+            }}
+            aspect={aspectRatio}
+            className="max-h-[500px] flex justify-center react-crop-container"
+          >
+            <img
+              ref={imgRef}
+              src={imageSrc}
+              alt="Crop Preview"
+              style={{
+                maxHeight: '500px',
+                transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                transformOrigin: 'center',
+                transition: 'transform 0.2s ease-in-out'
+              }}
+              onLoad={(e) => {
+                // Set initial crop to center of image with recommended aspect ratio
+                const { width, height } = e.currentTarget;
+                let cropWidth, cropHeight;
+                
+                if (aspectRatio) {
+                  if (aspectRatio > 1) {
+                    // Landscape
+                    cropWidth = width * 0.8;
+                    cropHeight = cropWidth / aspectRatio;
+                  } else {
+                    // Portrait or square
+                    cropHeight = height * 0.8;
+                    cropWidth = cropHeight * aspectRatio;
+                  }
                 } else {
-                  // Portrait or square
+                  // No aspect ratio constraint
+                  cropWidth = width * 0.8;
                   cropHeight = height * 0.8;
-                  cropWidth = cropHeight * aspectRatio;
                 }
-              } else {
-                // No aspect ratio constraint
-                cropWidth = width * 0.8;
-                cropHeight = height * 0.8;
-              }
-              
-              const x = (width - cropWidth) / 2;
-              const y = (height - cropHeight) / 2;
-              
-              setCrop({
-                unit: 'px',
-                x,
-                y,
-                width: cropWidth,
-                height: cropHeight
-              } as CropArea);
-            }}
-          />
-        </ReactCrop>
-        
-        {isDragging && (
-          <div className="absolute top-0 left-0 right-0 bg-navy text-white text-center py-1 text-sm">
-            Dragging selection...
+                
+                const x = (width - cropWidth) / 2;
+                const y = (height - cropHeight) / 2;
+                
+                setCrop({
+                  unit: 'px',
+                  x,
+                  y,
+                  width: cropWidth,
+                  height: cropHeight
+                } as CropArea);
+              }}
+            />
+          </ReactCrop>
+          
+          {isDragging && (
+            <div className="absolute top-0 left-0 right-0 bg-navy text-white text-center py-1 text-sm">
+              Dragging selection...
+            </div>
+          )}
+          
+          <div className="mt-4 w-full flex items-center justify-center text-gray-500 gap-2 text-sm">
+            <Move className="w-4 h-4" />
+            <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
           </div>
-        )}
+        </div>
+        
+        <div className="bg-white border rounded-lg p-4">
+          <LivePreview 
+            previewUrl={previewUrl}
+            aspectRatio={aspectRatio}
+            placeholderLabel={placeholderLabel}
+          />
+        </div>
       </div>
         
       <ZoomRotateControls 
@@ -160,11 +181,6 @@ const ImageCropper = ({
         rotation={rotation}
         setRotation={setRotation}
       />
-      
-      <div className="w-full mt-4 flex items-center justify-center text-gray-500 gap-2 text-sm">
-        <Move className="w-4 h-4" />
-        <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
-      </div>
       
       <style>
         {`

@@ -41,30 +41,36 @@ const ImagePreview = ({
             
             <TabsContent value="desktop" className="mt-2">
               <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 p-4">
-                <div className="max-w-full mx-auto bg-white shadow rounded overflow-hidden">
+                <div className="w-full mx-auto bg-white shadow rounded overflow-hidden">
                   <img 
                     src={previewUrl} 
                     alt="Desktop preview" 
                     className="w-full h-auto object-cover"
                   />
                 </div>
-                <div className="mt-2 text-center text-xs text-gray-500">
-                  Desktop view (1024px+)
+                <div className="mt-2 text-center text-sm text-navy">
+                  Desktop view
                 </div>
               </div>
             </TabsContent>
             
             <TabsContent value="mobile" className="mt-2">
               <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 p-4">
-                <div className="max-w-[375px] w-full mx-auto bg-white shadow rounded overflow-hidden">
-                  <img 
-                    src={previewUrl} 
-                    alt="Mobile preview" 
-                    className="w-full h-auto object-cover"
-                  />
+                <div className="bg-gray-100 px-6 pt-6 pb-2 rounded-lg">
+                  <div className="max-w-[375px] w-full mx-auto relative">
+                    <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-gray-200 rounded-b-lg"></div>
+                    <div className="border-4 border-gray-300 rounded-2xl overflow-hidden">
+                      <img 
+                        src={previewUrl} 
+                        alt="Mobile preview" 
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-2 bg-gray-300 rounded-full"></div>
+                  </div>
                 </div>
-                <div className="mt-2 text-center text-xs text-gray-500">
-                  Mobile view (375px)
+                <div className="mt-2 text-center text-sm text-navy">
+                  Mobile view
                 </div>
               </div>
             </TabsContent>
