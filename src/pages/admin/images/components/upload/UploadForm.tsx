@@ -6,7 +6,7 @@ import { Form } from '@/components/ui/form';
 import { uploadFormSchema, IMAGE_USAGE_MAP } from './constants';
 import { useUploadImageMutation } from './useUploadForm';
 import UploadFormSubmit from './UploadFormSubmit';
-import FileUploadSection from './FileUploadSection';
+import { FileUploadSection } from './file-upload';
 import ImageDetailsForm from './ImageDetailsForm';
 
 export const UploadForm = ({ onClose }: { onClose: () => void }) => {
