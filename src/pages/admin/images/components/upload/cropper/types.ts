@@ -24,6 +24,11 @@ export interface ZoomRotateControlsProps {
   setRotation: (rotation: number) => void;
 }
 
+export interface AspectRatioOption {
+  value: number | undefined;
+  label: string;
+}
+
 export interface AspectRatioControlsProps {
   aspectRatio: number | undefined;
   setAspectRatio: (ratio: number | undefined) => void;
