@@ -1,10 +1,9 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { type Crop as CropArea } from 'react-image-crop';
 import { CropIcon } from 'lucide-react';
 import { getRecommendedAspectRatio } from './constants';
-import ImageCropper from './cropper/ImageCropper';
+import { ImageCropper } from './cropper';
 
 interface ImageCropHandlerProps {
   imageSrc: string;
@@ -32,21 +31,17 @@ const ImageCropHandler = ({
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
-  // Initialize with recommended aspect ratio
   useEffect(() => {
     if (imageKey && imgRef.current) {
       const recommended = getRecommendedAspectRatio(imageKey);
-      // Set initial crop based on recommended aspect ratio
       if (imgRef.current) {
         const { width, height } = imgRef.current;
         let cropWidth, cropHeight;
         
         if (recommended.ratio > 1) {
-          // Landscape
           cropWidth = width * 0.8;
           cropHeight = cropWidth / recommended.ratio;
         } else {
-          // Portrait or square
           cropHeight = height * 0.8;
           cropWidth = cropHeight * recommended.ratio;
         }
@@ -98,29 +93,18 @@ const ImageCropHandler = ({
       return null;
     }
     
-    // Set canvas size to the dimensions of the crop
     canvas.width = crop.width * scaleX;
     canvas.height = crop.height * scaleY;
     
-    // Apply rotation and crop
     ctx.save();
     
-    // Adjust for rotation and zoom
     if (rotation !== 0 || zoom !== 1) {
-      // Move the crop origin to the canvas center
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      
-      // Apply rotation
       ctx.rotate((rotation * Math.PI) / 180);
-      
-      // Apply zoom
       ctx.scale(zoom, zoom);
-      
-      // Move back to the top left corner
       ctx.translate(-canvas.width / 2, -canvas.height / 2);
     }
     
-    // Draw the image with the crop applied
     ctx.drawImage(
       image,
       crop.x * scaleX,
@@ -135,7 +119,6 @@ const ImageCropHandler = ({
     
     ctx.restore();
     
-    // Convert canvas to file
     return new Promise<File | null>((resolve) => {
       canvas.toBlob(
         (blob) => {

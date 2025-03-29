@@ -72,7 +72,7 @@ const ImageCropper = ({
     if (imgRef.current && crop.width && crop.height) {
       updatePreview();
     }
-  }, [crop, zoom, rotation, imgRef.current]);
+  }, [crop, zoom, rotation]);
 
   return (
     <div className="flex flex-col items-center bg-gray-50 rounded-lg p-4">
