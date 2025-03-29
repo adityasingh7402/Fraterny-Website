@@ -36,3 +36,8 @@ export * from './utils/queryUtils';
 export * from './utils/fileUtils';
 export * from './utils/cleanupUtils';
 export * from './utils/databaseUtils';
+
+// Export image processing utilities
+export * from './utils/dimensions';
+export * from './utils/optimizationService';
+export * from './utils/optimizationUtils';
