@@ -6,8 +6,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Badge } from '@/components/ui/badge';
 import { Info } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
-import { IMAGE_CATEGORIES, IMAGE_USAGE_MAP } from '@/services/images/constants';
-import PredefinedKeysSection from './PredefinedKeysSection';
+import { IMAGE_CATEGORIES, IMAGE_USAGE_MAP } from './constants';
+import KeySelector from './KeySelector';
 
 interface ImageDetailsFormProps {
   form: UseFormReturn<any>;
@@ -29,35 +29,28 @@ const ImageDetailsForm = ({
       <div className="space-y-1">
         <FormLabel className="font-medium">Image Details</FormLabel>
         <p className="text-sm text-gray-500">
-          Complete the following information about your image.
+          Select a predefined image location or enter a custom key.
         </p>
       </div>
-      
-      <PredefinedKeysSection onKeySelect={handleKeySelection} />
       
       <FormField
         control={form.control}
         name="key"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Image Key {isPredefinedKey && <Badge className="ml-2 bg-terracotta">Predefined</Badge>}</FormLabel>
+            <FormLabel>
+              Image Key 
+              {isPredefinedKey && <Badge className="ml-2 bg-terracotta">Predefined</Badge>}
+            </FormLabel>
             <FormControl>
-              <div className="relative">
-                <Input 
-                  {...field} 
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleKeyChange(e.target.value);
-                  }}
-                />
-                {isPredefinedKey && (
-                  <div className="absolute right-2 top-2 text-terracotta">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                  </div>
-                )}
-              </div>
+              <KeySelector 
+                value={field.value}
+                onChange={(value) => {
+                  field.onChange(value);
+                  handleKeyChange(value);
+                  handleKeySelection(value);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

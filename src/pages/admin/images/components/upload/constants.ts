@@ -35,15 +35,15 @@ export const IMAGE_KEYS = [
 
 // Define the expected aspect ratios for different image types
 export const IMAGE_ASPECT_RATIOS: Record<string, { ratio: number, label: string }> = {
-  'hero': { ratio: 16/9, label: '16:9' },
-  'background': { ratio: 16/9, label: '16:9' },
-  'villalab': { ratio: 4/3, label: '4:3' },
-  'experience': { ratio: 4/3, label: '4:3' },
-  'banner': { ratio: 21/9, label: '21:9' },
-  'profile': { ratio: 1, label: '1:1' },
-  'thumbnail': { ratio: 16/9, label: '16:9' },
-  'gallery': { ratio: 4/3, label: '4:3' },
-  'default': { ratio: 16/9, label: '16:9' }
+  'hero': { ratio: 16/9, label: '16:9 - Hero Banner' },
+  'background': { ratio: 16/9, label: '16:9 - Background' },
+  'villalab': { ratio: 4/3, label: '4:3 - Villa Lab Gallery' },
+  'experience': { ratio: 4/3, label: '4:3 - Experience Gallery' },
+  'banner': { ratio: 21/9, label: '21:9 - Wide Banner' },
+  'profile': { ratio: 1, label: '1:1 - Square' },
+  'thumbnail': { ratio: 16/9, label: '16:9 - Thumbnail' },
+  'gallery': { ratio: 4/3, label: '4:3 - Gallery Image' },
+  'default': { ratio: 16/9, label: '16:9 - Default' }
 };
 
 // Zod schema for form validation

@@ -8,6 +8,7 @@ import CropperHeader from './CropperHeader';
 import LivePreview from './LivePreview';
 import AspectRatioControls from './AspectRatioControls';
 import ZoomRotateControls from './ZoomRotateControls';
+import { getRecommendedAspectRatio } from '../constants';
 
 const ImageCropper = ({
   imageSrc,
@@ -23,8 +24,18 @@ const ImageCropper = ({
   onCancelCrop,
   imageKey
 }: ImageCropperProps) => {
-  const [aspectRatio, setAspectRatio] = useState<number | undefined>(16 / 9);
+  const [aspectRatio, setAspectRatio] = useState<number | undefined>(undefined);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [placeholderLabel, setPlaceholderLabel] = useState<string>('');
+
+  // Set aspect ratio based on image key
+  useEffect(() => {
+    if (imageKey) {
+      const recommended = getRecommendedAspectRatio(imageKey);
+      setAspectRatio(recommended.ratio);
+      setPlaceholderLabel(recommended.label);
+    }
+  }, [imageKey]);
 
   const updatePreview = () => {
     if (!imgRef.current || !crop.width || !crop.height) return;
@@ -131,7 +142,11 @@ const ImageCropper = ({
         </div>
         
         <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-4">
-          <LivePreview previewUrl={previewUrl} aspectRatio={aspectRatio} />
+          <LivePreview 
+            previewUrl={previewUrl} 
+            aspectRatio={aspectRatio}
+            placeholderLabel={placeholderLabel}
+          />
           
           <AspectRatioControls 
             aspectRatio={aspectRatio}
@@ -151,8 +166,8 @@ const ImageCropper = ({
       />
       
       <div className="w-full mt-4 flex items-center justify-center text-gray-500 gap-2 text-sm">
-        <Move className="w-4 h-4" />
-        <p>Drag to reposition the crop area • Use controls to zoom and rotate</p>
+        <Move className="w-4 w-4" />
+        <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
       </div>
     </div>
   );
