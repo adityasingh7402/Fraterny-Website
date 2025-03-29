@@ -28,7 +28,49 @@ export const IMAGE_KEYS = [
   { key: 'experience-networking', description: 'Experience Page - Networking' },
   { key: 'experience-collaboration', description: 'Experience Page - Collaboration' },
   { key: 'experience-evening-session', description: 'Experience Page - Evening Session' },
-  { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' }
+  { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' },
+  // Adding tribe section image placeholders
+  { key: 'tribe-visionary', description: 'Experience Page - Tribe Section - Visionary' },
+  { key: 'tribe-hustler', description: 'Experience Page - Tribe Section - Hustler' },
+  { key: 'tribe-workaholic', description: 'Experience Page - Tribe Section - Workaholic' },
+  { key: 'tribe-experienced', description: 'Experience Page - Tribe Section - Experienced' },
+  { key: 'tribe-optimist', description: 'Experience Page - Tribe Section - Optimist' },
+  { key: 'tribe-guardian', description: 'Experience Page - Tribe Section - Guardian' },
+  // Adding depth section image placeholders
+  { key: 'depth-house-code', description: 'Experience Page - Depth Section - House Code' },
+  { key: 'depth-startup', description: 'Experience Page - Depth Section - Startup Simulations' },
+  { key: 'depth-learning', description: 'Experience Page - Depth Section - Learning Experience' },
+  { key: 'depth-frameworks', description: 'Experience Page - Depth Section - Frameworks & Templates' },
+  { key: 'depth-group-think', description: 'Experience Page - Depth Section - Group Think' },
+  { key: 'depth-memories', description: 'Experience Page - Depth Section - Lifelong Memories' },
+  { key: 'depth-food', description: 'Experience Page - Depth Section - Food & Coffee' },
+  { key: 'depth-community', description: 'Experience Page - Depth Section - Community' },
+  { key: 'depth-soft-skills', description: 'Experience Page - Depth Section - Soft Skills' },
+  // Mobile-specific images
+  { key: 'tribe-visionary-mobile', description: 'Experience Page - Tribe Section - Visionary (Mobile)' },
+  { key: 'tribe-hustler-mobile', description: 'Experience Page - Tribe Section - Hustler (Mobile)' },
+  { key: 'tribe-workaholic-mobile', description: 'Experience Page - Tribe Section - Workaholic (Mobile)' },
+  { key: 'tribe-experienced-mobile', description: 'Experience Page - Tribe Section - Experienced (Mobile)' },
+  { key: 'tribe-optimist-mobile', description: 'Experience Page - Tribe Section - Optimist (Mobile)' },
+  { key: 'tribe-guardian-mobile', description: 'Experience Page - Tribe Section - Guardian (Mobile)' },
+  { key: 'depth-house-code-mobile', description: 'Experience Page - Depth Section - House Code (Mobile)' },
+  { key: 'depth-startup-mobile', description: 'Experience Page - Depth Section - Startup Simulations (Mobile)' },
+  { key: 'depth-learning-mobile', description: 'Experience Page - Depth Section - Learning Experience (Mobile)' },
+  { key: 'depth-frameworks-mobile', description: 'Experience Page - Depth Section - Frameworks & Templates (Mobile)' },
+  { key: 'depth-group-think-mobile', description: 'Experience Page - Depth Section - Group Think (Mobile)' },
+  { key: 'depth-memories-mobile', description: 'Experience Page - Depth Section - Lifelong Memories (Mobile)' },
+  { key: 'depth-food-mobile', description: 'Experience Page - Depth Section - Food & Coffee (Mobile)' },
+  { key: 'depth-community-mobile', description: 'Experience Page - Depth Section - Community (Mobile)' },
+  { key: 'depth-soft-skills-mobile', description: 'Experience Page - Depth Section - Soft Skills (Mobile)' },
+  // Hero images for other pages
+  { key: 'pricing-hero', description: 'Pricing Page - Hero Section' },
+  { key: 'pricing-hero-mobile', description: 'Pricing Page - Hero Section (Mobile)' },
+  { key: 'faq-hero', description: 'FAQ Page - Hero Section' },
+  { key: 'faq-hero-mobile', description: 'FAQ Page - Hero Section (Mobile)' },
+  { key: 'process-hero', description: 'Process Page - Hero Section' },
+  { key: 'process-hero-mobile', description: 'Process Page - Hero Section (Mobile)' },
+  { key: 'blog-hero', description: 'Blog Page - Hero Section' },
+  { key: 'blog-hero-mobile', description: 'Blog Page - Hero Section (Mobile)' },
 ];
 
 // Map of image keys to usage descriptions
@@ -52,6 +94,10 @@ export const getRecommendedAspectRatio = (imageKey: string) => {
     return { ratio: 3/2, label: 'Villa Lab Gallery (3:2)' };
   } else if (imageKey.includes('experience')) {
     return { ratio: 16/9, label: 'Experience Section (16:9)' };
+  } else if (imageKey.includes('tribe')) {
+    return { ratio: 1/1, label: 'Tribe Section (1:1)' };
+  } else if (imageKey.includes('depth')) {
+    return { ratio: 16/9, label: 'Depth Section (16:9)' };
   }
   
   // Default ratio
