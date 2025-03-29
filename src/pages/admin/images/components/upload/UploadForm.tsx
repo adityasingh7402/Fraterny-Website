@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form } from '@/components/ui/form';
 import { uploadFormSchema, IMAGE_USAGE_MAP } from './constants';
-import { useUploadImageMutation } from './useUploadForm';
+import { useUploadImageMutation } from './hooks';
 import UploadFormSubmit from './UploadFormSubmit';
 import { FileUploadSection } from './file-upload';
 import ImageDetailsForm from './ImageDetailsForm';
