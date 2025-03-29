@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -157,16 +156,18 @@ export const updateWebsiteSetting = async (key: string, value: string): Promise<
 };
 
 /**
- * Calculates days left until a given date (in any timezone)
+ * Wrapper for calculateDaysLeft from utils/dateUtils.ts
+ * This version directly returns a number instead of a Promise
  */
 export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/Kolkata'): number => {
-  // Use the utility function from utils/dateUtils.ts
-  return import('@/utils/dateUtils').then(module => {
-    return module.calculateDaysLeft(dateString, timezone);
-  }).catch(error => {
-    console.error('Error importing calculateDaysLeft:', error);
+  try {
+    // Import the function directly from the module to avoid async imports
+    const { calculateDaysLeft } = require('@/utils/dateUtils');
+    return calculateDaysLeft(dateString, timezone);
+  } catch (error) {
+    console.error('Error calculating days left:', error);
     return 0;
-  });
+  }
 };
 
 /**
@@ -176,8 +177,9 @@ export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/K
 export const updateDaysLeftCount = async (): Promise<boolean> => {
   try {
     const settings = await fetchWebsiteSettings();
-    const daysLeftModule = await import('@/utils/dateUtils');
-    const daysLeft = daysLeftModule.calculateDaysLeft(settings.registration_close_date);
+    
+    // Use the local calculateDaysLeft function (not the async one)
+    const daysLeft = calculateDaysLeft(settings.registration_close_date);
     
     return await updateWebsiteSetting('registration_days_left', daysLeft.toString());
   } catch (error) {
