@@ -7,6 +7,7 @@ import {
   ImagePreview,
   useEditImage 
 } from './edit';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface EditModalProps {
   isOpen: boolean;

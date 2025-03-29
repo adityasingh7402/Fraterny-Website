@@ -29,33 +29,12 @@ const ImageCropHandler = ({
 
   // Initialize crop area based on image key
   useEffect(() => {
-    if (imageKey && imgRef.current) {
-      const recommended = getRecommendedAspectRatio(imageKey);
-      if (imgRef.current) {
-        const { width, height } = imgRef.current;
-        let cropWidth, cropHeight;
-        
-        if (recommended.ratio > 1) {
-          cropWidth = width * 0.8;
-          cropHeight = cropWidth / recommended.ratio;
-        } else {
-          cropHeight = height * 0.8;
-          cropWidth = cropHeight * recommended.ratio;
-        }
-        
-        const x = (width - cropWidth) / 2;
-        const y = (height - cropHeight) / 2;
-        
-        setCrop({
-          unit: 'px',
-          x,
-          y,
-          width: cropWidth,
-          height: cropHeight
-        } as CropArea);
-      }
-    }
-  }, [imageKey, imgRef.current]);
+    // We'll set the aspect ratio based on the image key, but wait for the image to load
+    const recommendedAspect = getRecommendedAspectRatio(imageKey);
+    
+    // We'll let the image load first, then the CropCanvas component will handle setting
+    // the initial crop area based on the image dimensions
+  }, [imageKey]);
 
   const applyChanges = async () => {
     if (!completedCrop || !imgRef.current) {

@@ -1,7 +1,8 @@
 
 import { WebsiteImage, IMAGE_USAGE_MAP } from '@/services/images';
-import { Info, Upload, Crop as CropIcon, X } from 'lucide-react';
+import { Info, Upload, X } from 'lucide-react';
 import { ImageCropHandler } from '../upload/crop-handler';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ImagePreviewProps {
   previewUrl: string | null;
@@ -23,6 +24,7 @@ const ImagePreview = ({
   onCancelReplace
 }: ImagePreviewProps) => {
   const usageLocation = IMAGE_USAGE_MAP[image.key] || 'Custom image (not tied to a specific website section)';
+  const isMobile = useIsMobile();
   
   if (isReplacing && file && previewUrl) {
     return (
@@ -50,12 +52,12 @@ const ImagePreview = ({
   }
   
   return (
-    <>
+    <div className="space-y-4">
       {previewUrl && (
         <div className="border rounded-lg overflow-hidden relative group">
           <img 
             src={previewUrl} 
-            alt={image.alt_text} 
+            alt={image.alt_text || 'Image preview'} 
             className="w-full h-auto object-contain"
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
@@ -83,7 +85,7 @@ const ImagePreview = ({
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

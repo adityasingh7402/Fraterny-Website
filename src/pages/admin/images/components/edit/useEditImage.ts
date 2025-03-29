@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -17,6 +18,7 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
     category: image.category || ''
   });
   
+  // Load the original image on mount
   useEffect(() => {
     const fetchImageUrl = async () => {
       try {
@@ -45,20 +47,24 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
   };
 
   const handleCroppedFile = (newCroppedFile: File) => {
+    // Revoke previous object URL if needed
+    if (file && isReplacing && previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
     setCroppedFile(newCroppedFile);
     
     // Update preview with cropped version
     const objectUrl = URL.createObjectURL(newCroppedFile);
-    if (previewUrl && isReplacing) {
-      URL.revokeObjectURL(previewUrl);
-    }
     setPreviewUrl(objectUrl);
   };
 
   const cancelReplacement = () => {
-    if (file && isReplacing && previewUrl) {
+    // Clean up any blob URLs to prevent memory leaks
+    if (file && isReplacing && previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
+    
     setFile(null);
     setCroppedFile(null);
     setIsReplacing(false);
@@ -93,6 +99,11 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
       );
     },
     onSuccess: () => {
+      // Clean up any blob URLs
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
       onClose();
       toast.success('Image replaced successfully');
@@ -146,6 +157,15 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
       }
     });
   };
+  
+  // Clean up any blob URLs when unmounting
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return {
     previewUrl,
