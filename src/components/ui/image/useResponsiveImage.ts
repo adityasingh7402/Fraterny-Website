@@ -39,12 +39,30 @@ export const useResponsiveImage = (
         if (size) {
           const url = await getImageUrlByKeyAndSize(dynamicKey, size);
           console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
-          setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
+          
+          // Get image dimensions for aspect ratio
+          const aspectRatio = await getImageAspectRatio(url);
+          
+          setState(prev => ({ 
+            ...prev, 
+            dynamicSrc: url, 
+            isLoading: false,
+            aspectRatio 
+          }));
         } else {
           // Otherwise get the original image
           const url = await getImageUrlByKey(dynamicKey);
           console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
-          setState(prev => ({ ...prev, dynamicSrc: url, isLoading: false }));
+          
+          // Get image dimensions for aspect ratio
+          const aspectRatio = await getImageAspectRatio(url);
+          
+          setState(prev => ({ 
+            ...prev, 
+            dynamicSrc: url, 
+            isLoading: false,
+            aspectRatio 
+          }));
         }
       } catch (error) {
         console.error(`Failed to load image with key ${dynamicKey}:`, error);
@@ -64,4 +82,19 @@ export const useResponsiveImage = (
   }, [dynamicKey, size]);
   
   return state;
+};
+
+/**
+ * Helper function to get image aspect ratio from a URL
+ */
+const getImageAspectRatio = (url: string): Promise<number | undefined> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      resolve(aspectRatio);
+    };
+    img.onerror = () => resolve(undefined);
+    img.src = url;
+  });
 };

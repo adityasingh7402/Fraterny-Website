@@ -28,6 +28,7 @@ const ImageCropper = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [placeholderLabel, setPlaceholderLabel] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
+  const [cropLocked, setCropLocked] = useState(true);
   const isMobile = useIsMobile();
 
   // Set aspect ratio based on image key
@@ -36,8 +37,39 @@ const ImageCropper = ({
       const recommended = getRecommendedAspectRatio(imageKey);
       setAspectRatio(recommended.ratio);
       setPlaceholderLabel(recommended.label);
+      
+      // Lock crop by default
+      setCropLocked(true);
     }
   }, [imageKey]);
+
+  // Initialize crop area with recommended aspect ratio when image loads
+  const initializeCrop = (width: number, height: number) => {
+    if (!aspectRatio) return;
+    
+    let cropWidth, cropHeight;
+    
+    if (aspectRatio > 1) {
+      // Landscape
+      cropWidth = width * 0.8;
+      cropHeight = cropWidth / aspectRatio;
+    } else {
+      // Portrait or square
+      cropHeight = height * 0.8;
+      cropWidth = cropHeight * aspectRatio;
+    }
+    
+    const x = (width - cropWidth) / 2;
+    const y = (height - cropHeight) / 2;
+    
+    setCrop({
+      unit: 'px',
+      x,
+      y,
+      width: cropWidth,
+      height: cropHeight
+    } as CropArea);
+  };
 
   const updatePreview = () => {
     if (!imgRef.current || !crop.width || !crop.height) return;
@@ -108,7 +140,8 @@ const ImageCropper = ({
               setCompletedCrop(c);
               setIsDragging(false);
             }}
-            aspect={aspectRatio}
+            aspect={cropLocked ? aspectRatio : undefined}
+            locked={cropLocked}
             className="max-h-[400px] flex justify-center react-crop-container"
           >
             <img
@@ -122,36 +155,8 @@ const ImageCropper = ({
                 transition: 'transform 0.2s ease-in-out'
               }}
               onLoad={(e) => {
-                // Set initial crop to center of image with recommended aspect ratio
                 const { width, height } = e.currentTarget;
-                let cropWidth, cropHeight;
-                
-                if (aspectRatio) {
-                  if (aspectRatio > 1) {
-                    // Landscape
-                    cropWidth = width * 0.8;
-                    cropHeight = cropWidth / aspectRatio;
-                  } else {
-                    // Portrait or square
-                    cropHeight = height * 0.8;
-                    cropWidth = cropHeight * aspectRatio;
-                  }
-                } else {
-                  // No aspect ratio constraint
-                  cropWidth = width * 0.8;
-                  cropHeight = height * 0.8;
-                }
-                
-                const x = (width - cropWidth) / 2;
-                const y = (height - cropHeight) / 2;
-                
-                setCrop({
-                  unit: 'px',
-                  x,
-                  y,
-                  width: cropWidth,
-                  height: cropHeight
-                } as CropArea);
+                initializeCrop(width, height);
               }}
             />
           </ReactCrop>
@@ -165,6 +170,18 @@ const ImageCropper = ({
           <div className="mt-4 w-full flex items-center justify-center text-gray-500 gap-2 text-xs md:text-sm">
             <Move className="w-4 h-4" />
             <p>{isMobile ? 'Drag to position' : 'Drag to position the image in the placeholder • Use controls to zoom and rotate'}</p>
+          </div>
+
+          <div className="mt-2 flex justify-center">
+            <label className="inline-flex items-center">
+              <input 
+                type="checkbox" 
+                checked={cropLocked} 
+                onChange={(e) => setCropLocked(e.target.checked)}
+                className="rounded text-navy focus:ring-navy h-4 w-4"
+              />
+              <span className="ml-2 text-xs text-gray-600">Lock aspect ratio for website display</span>
+            </label>
           </div>
         </div>
         
