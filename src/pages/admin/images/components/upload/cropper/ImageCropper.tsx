@@ -5,7 +5,7 @@ import ReactCrop, { type Crop as CropArea } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { ImageCropperProps } from './types';
 import CropperHeader from './CropperHeader';
-import LivePreview from './LivePreview';
+import CropLivePreview from '../crop-handler/LivePreview';
 import ZoomRotateControls from './ZoomRotateControls';
 import { getRecommendedAspectRatio } from '../constants';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,10 +25,10 @@ const ImageCropper = ({
   imageKey
 }: ImageCropperProps) => {
   const [aspectRatio, setAspectRatio] = useState<number | undefined>(undefined);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [placeholderLabel, setPlaceholderLabel] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const [cropLocked, setCropLocked] = useState(true);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
   const isMobile = useIsMobile();
 
   // Set aspect ratio based on image key
@@ -40,6 +40,11 @@ const ImageCropper = ({
       
       // Lock crop by default
       setCropLocked(true);
+      
+      // Default to mobile view for mobile-specific keys
+      if (imageKey.includes('-mobile')) {
+        setViewMode('mobile');
+      }
     }
   }, [imageKey]);
 
@@ -71,55 +76,6 @@ const ImageCropper = ({
     } as CropArea);
   };
 
-  const updatePreview = () => {
-    if (!imgRef.current || !crop.width || !crop.height) return;
-
-    const canvas = document.createElement('canvas');
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-    
-    // Set canvas size to the dimensions of the crop
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Apply rotation and zoom if needed
-    ctx.save();
-    if (rotation !== 0 || zoom !== 1) {
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.scale(zoom, zoom);
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    }
-    
-    // Draw the cropped image
-    ctx.drawImage(
-      imgRef.current,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width * scaleX,
-      crop.height * scaleY
-    );
-    
-    ctx.restore();
-    
-    const dataUrl = canvas.toDataURL('image/jpeg');
-    setPreviewUrl(dataUrl);
-  };
-
-  // Update preview when crop, zoom or rotation changes
-  useEffect(() => {
-    if (imgRef.current && crop.width && crop.height) {
-      updatePreview();
-    }
-  }, [crop, zoom, rotation]);
-
   return (
     <div className="flex flex-col">
       <CropperHeader 
@@ -141,7 +97,7 @@ const ImageCropper = ({
               setIsDragging(false);
             }}
             aspect={cropLocked ? aspectRatio : undefined}
-            locked={cropLocked}
+            locked={false}
             className="max-h-[400px] flex justify-center react-crop-container"
           >
             <img
@@ -187,10 +143,15 @@ const ImageCropper = ({
         
         {!isMobile && (
           <div className="bg-white border rounded-lg p-4">
-            <LivePreview 
-              previewUrl={previewUrl}
-              aspectRatio={aspectRatio}
-              placeholderLabel={placeholderLabel}
+            <CropLivePreview 
+              imgRef={imgRef}
+              crop={crop}
+              completedCrop={setCompletedCrop}
+              zoom={zoom}
+              rotation={rotation}
+              imageKey={imageKey}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
             />
           </div>
         )}
@@ -203,12 +164,17 @@ const ImageCropper = ({
         setRotation={setRotation}
       />
       
-      {isMobile && previewUrl && (
+      {isMobile && (
         <div className="mt-6 bg-white border rounded-lg p-4">
-          <LivePreview 
-            previewUrl={previewUrl}
-            aspectRatio={aspectRatio}
-            placeholderLabel={placeholderLabel}
+          <CropLivePreview 
+            imgRef={imgRef}
+            crop={crop}
+            completedCrop={setCompletedCrop}
+            zoom={zoom}
+            rotation={rotation}
+            imageKey={imageKey}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
           />
         </div>
       )}

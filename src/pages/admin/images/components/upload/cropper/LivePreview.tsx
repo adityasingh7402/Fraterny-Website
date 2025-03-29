@@ -1,17 +1,31 @@
 
 import { Smartphone, Monitor } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LivePreviewProps {
   previewUrl: string | null;
   aspectRatio?: number;
   placeholderLabel: string;
+  objectFit?: 'cover' | 'contain';
+  viewMode?: 'desktop' | 'mobile';
+  setViewMode?: (mode: 'desktop' | 'mobile') => void;
 }
 
-const LivePreview = ({ previewUrl, aspectRatio, placeholderLabel }: LivePreviewProps) => {
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+const LivePreview = ({ 
+  previewUrl, 
+  aspectRatio, 
+  placeholderLabel,
+  objectFit = 'cover',
+  viewMode: externalViewMode,
+  setViewMode: externalSetViewMode
+}: LivePreviewProps) => {
+  const [internalViewMode, setInternalViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const isMobile = useIsMobile();
+  
+  // Use either external or internal state management for view mode
+  const viewMode = externalViewMode || internalViewMode;
+  const setViewMode = externalSetViewMode || setInternalViewMode;
   
   if (!previewUrl) {
     return (
@@ -24,34 +38,34 @@ const LivePreview = ({ previewUrl, aspectRatio, placeholderLabel }: LivePreviewP
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs md:text-sm font-medium text-navy">Live Preview</h3>
+        <h3 className="text-xs md:text-sm font-medium text-navy">Website Preview</h3>
         <div className="flex gap-1">
           <button
             type="button"
-            onClick={() => setPreviewMode('desktop')}
+            onClick={() => setViewMode('desktop')}
             className={`p-1 md:p-1.5 rounded ${
-              previewMode === 'desktop' ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600'
+              viewMode === 'desktop' ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600'
             }`}
+            aria-label="Desktop Preview"
           >
             <Monitor className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="sr-only">Desktop Preview</span>
           </button>
           <button
             type="button"
-            onClick={() => setPreviewMode('mobile')}
+            onClick={() => setViewMode('mobile')}
             className={`p-1 md:p-1.5 rounded ${
-              previewMode === 'mobile' ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600'
+              viewMode === 'mobile' ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600'
             }`}
+            aria-label="Mobile Preview"
           >
             <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="sr-only">Mobile Preview</span>
           </button>
         </div>
       </div>
 
-      {previewMode === 'desktop' ? (
+      {viewMode === 'desktop' ? (
         <div 
-          className="border border-gray-200 rounded bg-white overflow-hidden" 
+          className="border border-gray-200 rounded-lg bg-white overflow-hidden" 
           style={{
             aspectRatio: aspectRatio || 16/9,
             maxHeight: isMobile ? '180px' : '250px'
@@ -60,7 +74,7 @@ const LivePreview = ({ previewUrl, aspectRatio, placeholderLabel }: LivePreviewP
           <img 
             src={previewUrl} 
             alt="Preview" 
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-${objectFit}`}
           />
         </div>
       ) : (
@@ -77,7 +91,7 @@ const LivePreview = ({ previewUrl, aspectRatio, placeholderLabel }: LivePreviewP
               <img 
                 src={previewUrl} 
                 alt="Mobile Preview" 
-                className="w-full h-full object-cover" 
+                className={`w-full h-full object-${objectFit}`} 
               />
             </div>
           </div>

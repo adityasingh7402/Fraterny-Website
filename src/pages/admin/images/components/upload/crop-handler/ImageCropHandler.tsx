@@ -31,34 +31,50 @@ const ImageCropHandler = ({
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
+  // Initialize crop with recommended aspect ratio
   useEffect(() => {
     if (imageKey && imgRef.current) {
+      // Get recommended aspect ratio for this image type
       const recommended = getRecommendedAspectRatio(imageKey);
-      if (imgRef.current) {
-        const { width, height } = imgRef.current;
-        let cropWidth, cropHeight;
-        
-        if (recommended.ratio > 1) {
-          cropWidth = width * 0.8;
-          cropHeight = cropWidth / recommended.ratio;
-        } else {
-          cropHeight = height * 0.8;
-          cropWidth = cropHeight * recommended.ratio;
-        }
-        
-        const x = (width - cropWidth) / 2;
-        const y = (height - cropHeight) / 2;
-        
-        setCrop({
-          unit: 'px',
-          x,
-          y,
-          width: cropWidth,
-          height: cropHeight
-        } as CropArea);
+      
+      // Make sure image is loaded before calculating dimensions
+      if (imgRef.current.complete) {
+        initializeCropBasedOnRatio(recommended.ratio);
+      } else {
+        imgRef.current.onload = () => initializeCropBasedOnRatio(recommended.ratio);
       }
     }
-  }, [imageKey, imgRef.current]);
+  }, [imageKey]);
+  
+  // Initialize the crop area with recommended aspect ratio
+  const initializeCropBasedOnRatio = (ratio: number) => {
+    if (!imgRef.current) return;
+    
+    const { width, height } = imgRef.current;
+    let cropWidth, cropHeight;
+    
+    if (ratio > 1) {
+      // Landscape oriented image placeholder
+      cropWidth = width * 0.8;
+      cropHeight = cropWidth / ratio;
+    } else {
+      // Portrait oriented image placeholder
+      cropHeight = height * 0.8;
+      cropWidth = cropHeight * ratio;
+    }
+    
+    // Center the crop area
+    const x = (width - cropWidth) / 2;
+    const y = (height - cropHeight) / 2;
+    
+    setCrop({
+      unit: 'px',
+      x,
+      y,
+      width: cropWidth,
+      height: cropHeight
+    } as CropArea);
+  };
 
   const applyChanges = async () => {
     if (!completedCrop || !imgRef.current) {
@@ -92,18 +108,22 @@ const ImageCropHandler = ({
       return null;
     }
     
+    // Set exact dimensions based on cropped area
     canvas.width = crop.width * scaleX;
     canvas.height = crop.height * scaleY;
     
     ctx.save();
     
+    // Apply zoom and rotation if needed
     if (rotation !== 0 || zoom !== 1) {
+      // Center the transformation
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate((rotation * Math.PI) / 180);
       ctx.scale(zoom, zoom);
       ctx.translate(-canvas.width / 2, -canvas.height / 2);
     }
     
+    // Draw the cropped image
     ctx.drawImage(
       image,
       crop.x * scaleX,
@@ -118,6 +138,7 @@ const ImageCropHandler = ({
     
     ctx.restore();
     
+    // Convert to File object with original quality
     return new Promise<File | null>((resolve) => {
       canvas.toBlob(
         (blob) => {
@@ -134,7 +155,7 @@ const ImageCropHandler = ({
           resolve(file);
         },
         fileType,
-        0.95
+        1.0 // Use maximum quality to preserve details
       );
     });
   };
