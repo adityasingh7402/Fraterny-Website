@@ -49,7 +49,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }) 
 
             <div className="text-center">
               <a
-                href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
+                href={APPLICATION_FORM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 sm:mt-6 inline-block px-5 sm:px-6 py-2 sm:py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
@@ -57,7 +57,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }) 
                 Apply Now
               </a>
               <p className="text-sm text-gray-600 mt-4">
-                Currently accepting applications for {prices.closeDate || 'March 2025'}
+                Currently accepting applications for {prices.acceptingApplicationsFor || 'February 2026'}
               </p>
             </div>
           </div>

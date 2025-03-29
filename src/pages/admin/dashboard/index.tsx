@@ -1,10 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
+import { fetchWebsiteSettings, calculateDaysLeft } from '@/services/websiteSettingsService';
 import AdminMenu from './components/AdminMenu';
 import SettingsForm from './components/SettingsForm';
-import { calculateDaysLeft } from './utils/dateUtils';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -16,7 +15,8 @@ const AdminDashboard = () => {
 
   const [formValues, setFormValues] = useState({
     available_seats: '',
-    registration_close_date: ''
+    registration_close_date: '',
+    accepting_applications_for_date: ''
   });
 
   // Initialize form values when settings are loaded
@@ -24,7 +24,8 @@ const AdminDashboard = () => {
     if (settings) {
       setFormValues({
         available_seats: settings.available_seats.toString(),
-        registration_close_date: settings.registration_close_date
+        registration_close_date: settings.registration_close_date,
+        accepting_applications_for_date: settings.accepting_applications_for_date || 'February 2026'
       });
     }
   }, [settings]);

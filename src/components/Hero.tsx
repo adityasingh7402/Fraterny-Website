@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWebsiteSettings } from '@/services/websiteSettingsService';
+import { fetchWebsiteSettings, calculateDaysLeft } from '@/services/websiteSettingsService';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -17,23 +16,41 @@ const Hero = () => {
     // If we have settings from the database, use them
     if (settings?.registration_days_left) {
       setDaysLeft(settings.registration_days_left);
-    } else {
+    } else if (settings?.registration_close_date) {
       // Otherwise, calculate based on the target date
-      const calculateDaysLeft = () => {
-        const targetDate = new Date(settings?.registration_close_date || '2025-03-31').getTime();
-        const difference = targetDate - new Date().getTime();
-        if (difference > 0) {
-          setDaysLeft(Math.floor(difference / (1000 * 60 * 60 * 24)));
-        }
+      const calculateAndSetDaysLeft = () => {
+        const daysRemaining = calculateDaysLeft(settings.registration_close_date, 'Asia/Kolkata');
+        setDaysLeft(daysRemaining);
       };
 
       // Calculate initial value
-      calculateDaysLeft();
+      calculateAndSetDaysLeft();
 
-      // Update once per day is sufficient for days countdown
-      const dailyUpdate = setInterval(calculateDaysLeft, 24 * 60 * 60 * 1000);
-
-      return () => clearInterval(dailyUpdate);
+      // Set up a timer to check at midnight IST (6:30 PM UTC) each day
+      const now = new Date();
+      // Get current time in milliseconds since midnight
+      const currentTimeMs = (
+        now.getUTCHours() * 3600 + 
+        now.getUTCMinutes() * 60 + 
+        now.getUTCSeconds()
+      ) * 1000 + now.getUTCMilliseconds();
+      
+      // Time until next day 6:30 PM UTC (midnight IST)
+      const midnightISTMs = (18 * 3600 + 30 * 60) * 1000;
+      const timeUntilMidnightIST = currentTimeMs < midnightISTMs 
+        ? midnightISTMs - currentTimeMs 
+        : 24 * 3600 * 1000 - currentTimeMs + midnightISTMs;
+      
+      // Set a timeout to update at exactly midnight IST
+      const initialTimeout = setTimeout(() => {
+        calculateAndSetDaysLeft();
+        
+        // Then set an interval to update every 24 hours
+        const dailyInterval = setInterval(calculateAndSetDaysLeft, 24 * 60 * 60 * 1000);
+        return () => clearInterval(dailyInterval);
+      }, timeUntilMidnightIST);
+      
+      return () => clearTimeout(initialTimeout);
     }
   }, [settings]);
 

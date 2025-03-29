@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { updateWebsiteSetting } from '@/services/websiteSettingsService';
 
 type SettingsFormProps = {
   settings: {
     available_seats: string;
     registration_close_date: string;
+    accepting_applications_for_date: string;
   };
   refetch: () => void;
   calculateDaysLeft: (dateString: string) => number;
@@ -15,7 +17,8 @@ type SettingsFormProps = {
 const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProps) => {
   const [formValues, setFormValues] = useState({
     available_seats: settings.available_seats,
-    registration_close_date: settings.registration_close_date
+    registration_close_date: settings.registration_close_date,
+    accepting_applications_for_date: settings.accepting_applications_for_date || ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,22 +40,16 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
       const daysLeft = calculateDaysLeft(formValues.registration_close_date);
 
       // Update registration_days_left
-      await supabase
-        .from('website_settings')
-        .update({ value: daysLeft.toString() })
-        .eq('key', 'registration_days_left');
+      await updateWebsiteSetting('registration_days_left', daysLeft.toString());
 
       // Update available_seats
-      await supabase
-        .from('website_settings')
-        .update({ value: formValues.available_seats })
-        .eq('key', 'available_seats');
+      await updateWebsiteSetting('available_seats', formValues.available_seats);
 
       // Update registration_close_date
-      await supabase
-        .from('website_settings')
-        .update({ value: formValues.registration_close_date })
-        .eq('key', 'registration_close_date');
+      await updateWebsiteSetting('registration_close_date', formValues.registration_close_date);
+      
+      // Update accepting_applications_for_date
+      await updateWebsiteSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
 
       toast.success('Settings updated successfully');
       refetch(); // Refresh the data
@@ -103,6 +100,25 @@ const SettingsForm = ({ settings, refetch, calculateDaysLeft }: SettingsFormProp
           />
           <p className="text-sm text-gray-500 mt-1">
             Days Remaining: {calculateDaysLeft(formValues.registration_close_date)} days
+          </p>
+        </div>
+        
+        <div>
+          <label htmlFor="accepting_applications_for_date" className="block text-sm font-medium text-gray-700 mb-1">
+            Accepting Applications For (e.g., "February 2026")
+          </label>
+          <input
+            type="text"
+            id="accepting_applications_for_date"
+            name="accepting_applications_for_date"
+            value={formValues.accepting_applications_for_date}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
+            placeholder="February 2026"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            This date will be displayed in the pricing page
           </p>
         </div>
 

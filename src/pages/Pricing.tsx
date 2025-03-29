@@ -1,3 +1,4 @@
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Check, Users, Hotel, Coffee, Award } from 'lucide-react';
@@ -80,7 +81,8 @@ const Pricing = () => {
     mainExperience: "₹45,000 - ₹60,000",
     executiveEscape: "₹1,50,000+",
     spotsRemaining: isLoading ? "--" : settings?.available_seats || 5,
-    closeDate: isLoading ? "March 2025" : formatRegistrationCloseDate(settings?.registration_close_date || '2025-03-31')
+    closeDate: isLoading ? "March 2025" : formatRegistrationCloseDate(settings?.registration_close_date || '2025-03-31'),
+    acceptingApplicationsFor: isLoading ? "February 2026" : settings?.accepting_applications_for_date || "February 2026"
   };
 
   return (

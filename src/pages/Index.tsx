@@ -6,6 +6,8 @@ import Footer from '../components/Footer';
 import { initPerformanceMonitoring, trackResourceTiming } from '@/utils/performanceMonitoring';
 import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
+import { updateDaysLeftCount } from '@/services/websiteSettingsService';
+import { scheduleAtMidnightIST } from '@/pages/admin/dashboard/utils/dateUtils';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -37,12 +39,25 @@ const Index = () => {
     const pngCleanup = trackResourceTiming('png');
     const jpgCleanup = trackResourceTiming('jpg');
     
+    // Set up automatic update of days left count at midnight IST
+    const autoUpdateCleanup = scheduleAtMidnightIST(() => {
+      console.log('Automatically updating days left count at midnight IST');
+      updateDaysLeftCount().then(success => {
+        if (success) {
+          console.log('Successfully updated days left count');
+        } else {
+          console.error('Failed to update days left count');
+        }
+      });
+    });
+    
     // Return a composite cleanup function
     return () => {
       cleanup?.();
       imageCleanup?.();
       pngCleanup?.();
       jpgCleanup?.();
+      autoUpdateCleanup?.();
     };
   }, []);
 
