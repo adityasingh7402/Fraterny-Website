@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { InfoIcon } from 'lucide-react';
-import { COMMON_IMAGE_KEYS } from './constants';
+import { IMAGE_KEYS } from './constants';
 
 interface KeySelectorProps {
   form: any;
@@ -59,7 +59,7 @@ const KeySelector = ({ form, onSelect }: KeySelectorProps) => {
         <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
           <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
           <div className="grid grid-cols-1 gap-2">
-            {COMMON_IMAGE_KEYS.map((item) => (
+            {IMAGE_KEYS.map((item) => (
               <button
                 key={item.key}
                 type="button"
