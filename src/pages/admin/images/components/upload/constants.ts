@@ -2,6 +2,10 @@
 // Image categories for organizing uploads
 export const IMAGE_CATEGORIES = [
   'Hero',
+  'Designed for depth',
+  'VillaLab',
+  'Your tribe awaits',
+  'Experience',
   'Background',
   'Banner',
   'Icon',
