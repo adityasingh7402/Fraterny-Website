@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { CropIcon, Smartphone, Monitor } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ImageCropHandler from '../ImageCropHandler';
+import { ImageCropHandler } from '../crop-handler';
 
 interface ImagePreviewProps {
   file: File;
