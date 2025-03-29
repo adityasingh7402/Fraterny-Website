@@ -1,15 +1,9 @@
 
-import { Settings, Image, FileText, BarChart, Users } from 'lucide-react';
+import { Image, FileText, BarChart, Users } from 'lucide-react';
 import AdminMenuCard from './AdminMenuCard';
 
 const AdminMenu = () => {
   const menuItems = [
-    {
-      icon: Settings,
-      title: 'Website Settings',
-      description: 'Manage counters and dates',
-      link: '/admin'
-    },
     {
       icon: BarChart,
       title: 'Analytics',
