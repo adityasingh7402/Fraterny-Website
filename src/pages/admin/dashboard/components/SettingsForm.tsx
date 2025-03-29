@@ -1,5 +1,5 @@
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { calculateDaysLeft } from '@/services/website-settings';
 import { toast } from 'sonner';
 import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
@@ -19,7 +19,6 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
     available_seats: initialSettings.available_seats,
     registration_close_date: initialSettings.registration_close_date,
     accepting_applications_for_date: initialSettings.accepting_applications_for_date,
-    // Initialize pricing fields from current settings or defaults
     insider_access_price: currentSettings?.insider_access_price || "₹499/month",
     insider_access_original_price: currentSettings?.insider_access_original_price || "₹699/month",
     main_experience_price: currentSettings?.main_experience_price || "₹45,000 - ₹60,000",
@@ -28,7 +27,27 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
     executive_escape_original_price: currentSettings?.executive_escape_original_price || "₹1,85,000+"
   });
   
+  // Track which fields have been modified
+  const [modifiedFields, setModifiedFields] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setFormValues(prev => ({
+        ...prev,
+        available_seats: currentSettings?.available_seats?.toString() || prev.available_seats,
+        registration_close_date: currentSettings?.registration_close_date || prev.registration_close_date,
+        accepting_applications_for_date: currentSettings?.accepting_applications_for_date || prev.accepting_applications_for_date,
+        insider_access_price: currentSettings?.insider_access_price || prev.insider_access_price,
+        insider_access_original_price: currentSettings?.insider_access_original_price || prev.insider_access_original_price,
+        main_experience_price: currentSettings?.main_experience_price || prev.main_experience_price,
+        main_experience_original_price: currentSettings?.main_experience_original_price || prev.main_experience_original_price,
+        executive_escape_price: currentSettings?.executive_escape_price || prev.executive_escape_price,
+        executive_escape_original_price: currentSettings?.executive_escape_original_price || prev.executive_escape_original_price,
+      }));
+      setModifiedFields({});
+    }
+  }, [currentSettings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,6 +55,47 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
       ...prev,
       [name]: value
     }));
+    // Mark this field as modified
+    setModifiedFields(prev => ({
+      ...prev,
+      [name]: true
+    }));
+  };
+
+  const handleFieldUpdate = async (fieldName: string) => {
+    if (!modifiedFields[fieldName]) {
+      toast.info('No changes to save');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const value = formValues[fieldName as keyof typeof formValues];
+      
+      // Special case for days left calculation
+      if (fieldName === 'registration_close_date') {
+        const daysLeft = calculateDaysLeft(value);
+        await updateSetting('registration_days_left', daysLeft.toString());
+      }
+      
+      const success = await updateSetting(fieldName, value.toString());
+      
+      if (success) {
+        toast.success(`${fieldName.replace(/_/g, ' ')} updated successfully`);
+        setModifiedFields(prev => ({
+          ...prev,
+          [fieldName]: false
+        }));
+        refetch();
+      } else {
+        toast.error(`Failed to update ${fieldName.replace(/_/g, ' ')}`);
+      }
+    } catch (error) {
+      console.error(`Error updating ${fieldName}:`, error);
+      toast.error(`An error occurred while updating ${fieldName.replace(/_/g, ' ')}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -43,31 +103,36 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // Update available seats
-      const seatsUpdated = await updateSetting('available_seats', formValues.available_seats);
+      let allSuccessful = true;
+      const fieldsToUpdate = Object.keys(modifiedFields).filter(field => modifiedFields[field]);
       
-      // Update registration close date
-      const dateUpdated = await updateSetting('registration_close_date', formValues.registration_close_date);
+      if (fieldsToUpdate.length === 0) {
+        toast.info('No changes to save');
+        setIsSubmitting(false);
+        return;
+      }
       
-      // Update accepting applications date
-      const applicationDateUpdated = await updateSetting('accepting_applications_for_date', formValues.accepting_applications_for_date);
+      for (const field of fieldsToUpdate) {
+        const value = formValues[field as keyof typeof formValues];
+        const success = await updateSetting(field, value.toString());
+        
+        if (!success) {
+          allSuccessful = false;
+        }
+      }
       
-      // Calculate and update days left
-      const daysLeft = calculateDaysLeft(formValues.registration_close_date);
-      const daysLeftUpdated = await updateSetting('registration_days_left', daysLeft.toString());
+      // Special case for registration_close_date to update days_left
+      if (modifiedFields.registration_close_date) {
+        const daysLeft = calculateDaysLeft(formValues.registration_close_date);
+        const daysLeftUpdated = await updateSetting('registration_days_left', daysLeft.toString());
+        if (!daysLeftUpdated) {
+          allSuccessful = false;
+        }
+      }
       
-      // Update pricing fields
-      const insiderPriceUpdated = await updateSetting('insider_access_price', formValues.insider_access_price);
-      const insiderOriginalUpdated = await updateSetting('insider_access_original_price', formValues.insider_access_original_price);
-      const mainPriceUpdated = await updateSetting('main_experience_price', formValues.main_experience_price);
-      const mainOriginalUpdated = await updateSetting('main_experience_original_price', formValues.main_experience_original_price);
-      const executivePriceUpdated = await updateSetting('executive_escape_price', formValues.executive_escape_price);
-      const executiveOriginalUpdated = await updateSetting('executive_escape_original_price', formValues.executive_escape_original_price);
-      
-      if (seatsUpdated && dateUpdated && applicationDateUpdated && daysLeftUpdated && 
-          insiderPriceUpdated && insiderOriginalUpdated && mainPriceUpdated && mainOriginalUpdated && 
-          executivePriceUpdated && executiveOriginalUpdated) {
-        toast.success('Settings updated successfully');
+      if (allSuccessful) {
+        toast.success('All settings updated successfully');
+        setModifiedFields({});
         refetch();
       } else {
         toast.error('Failed to update one or more settings');
@@ -82,6 +147,38 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
 
   const daysLeft = calculateDaysLeft(formValues.registration_close_date);
 
+  // Helper function to render an individual setting field with its own update button
+  const renderSettingField = (name: string, label: string, type: string, placeholder: string, description?: string) => {
+    return (
+      <div className="flex items-end gap-2">
+        <div className="flex-grow">
+          <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+          <input
+            type={type}
+            id={name}
+            name={name}
+            value={formValues[name as keyof typeof formValues] || ''}
+            onChange={handleChange}
+            placeholder={placeholder}
+            className="w-full border border-gray-300 rounded-md shadow-sm p-2"
+            required
+          />
+          {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={() => handleFieldUpdate(name)}
+          disabled={isSubmitting || !modifiedFields[name]}
+          className={`px-3 py-2 rounded-md text-white ${modifiedFields[name] ? 'bg-terracotta hover:bg-opacity-90' : 'bg-gray-300'} transition-all ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isSubmitting ? '...' : 'Save'}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white shadow-sm rounded-lg p-6">
       <h2 className="text-xl font-medium text-navy mb-4">Website Settings</h2>
@@ -91,58 +188,29 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
         <div className="border-b border-gray-200 pb-6">
           <h3 className="text-lg font-medium mb-4">Registration Settings</h3>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="available_seats" className="block text-sm font-medium text-gray-700 mb-1">
-                Available Seats
-              </label>
-              <input
-                type="number"
-                id="available_seats"
-                name="available_seats"
-                value={formValues.available_seats}
-                onChange={handleChange}
-                min="0"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
-            </div>
+            {renderSettingField(
+              'available_seats',
+              'Available Seats',
+              'number',
+              '20',
+              undefined
+            )}
             
-            <div>
-              <label htmlFor="registration_close_date" className="block text-sm font-medium text-gray-700 mb-1">
-                Registration Close Date
-              </label>
-              <input
-                type="date"
-                id="registration_close_date"
-                name="registration_close_date"
-                value={formValues.registration_close_date}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Days left until registration closes: <span className="font-medium">{daysLeft}</span>
-              </p>
-            </div>
+            {renderSettingField(
+              'registration_close_date',
+              'Registration Close Date',
+              'date',
+              '',
+              `Days left until registration closes: ${daysLeft}`
+            )}
             
-            <div>
-              <label htmlFor="accepting_applications_for_date" className="block text-sm font-medium text-gray-700 mb-1">
-                Accepting Applications For Date
-              </label>
-              <input
-                type="text"
-                id="accepting_applications_for_date"
-                name="accepting_applications_for_date"
-                value={formValues.accepting_applications_for_date}
-                onChange={handleChange}
-                placeholder="e.g. February 2026"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                The date to display on the website (e.g. "Currently accepting applications for February 2026")
-              </p>
-            </div>
+            {renderSettingField(
+              'accepting_applications_for_date',
+              'Accepting Applications For Date',
+              'text',
+              'e.g. February 2026',
+              'The date to display on the website (e.g. "Currently accepting applications for February 2026")'
+            )}
           </div>
         </div>
         
@@ -151,34 +219,22 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
           <h3 className="text-lg font-medium mb-4">Insider Access Pricing</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="insider_access_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Discounted Price
-              </label>
-              <input
-                type="text"
-                id="insider_access_price"
-                name="insider_access_price"
-                value={formValues.insider_access_price}
-                onChange={handleChange}
-                placeholder="₹499/month"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'insider_access_price',
+                'Discounted Price',
+                'text',
+                '₹499/month',
+                undefined
+              )}
             </div>
             <div>
-              <label htmlFor="insider_access_original_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Original Price
-              </label>
-              <input
-                type="text"
-                id="insider_access_original_price"
-                name="insider_access_original_price"
-                value={formValues.insider_access_original_price}
-                onChange={handleChange}
-                placeholder="₹699/month"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'insider_access_original_price',
+                'Original Price',
+                'text',
+                '₹699/month',
+                undefined
+              )}
             </div>
           </div>
         </div>
@@ -188,34 +244,22 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
           <h3 className="text-lg font-medium mb-4">Main Experience Pricing</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="main_experience_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Discounted Price
-              </label>
-              <input
-                type="text"
-                id="main_experience_price"
-                name="main_experience_price"
-                value={formValues.main_experience_price}
-                onChange={handleChange}
-                placeholder="₹45,000 - ₹60,000"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'main_experience_price',
+                'Discounted Price',
+                'text',
+                '₹45,000 - ₹60,000',
+                undefined
+              )}
             </div>
             <div>
-              <label htmlFor="main_experience_original_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Original Price
-              </label>
-              <input
-                type="text"
-                id="main_experience_original_price"
-                name="main_experience_original_price"
-                value={formValues.main_experience_original_price}
-                onChange={handleChange}
-                placeholder="₹65,000 - ₹80,000"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'main_experience_original_price',
+                'Original Price',
+                'text',
+                '₹65,000 - ₹80,000',
+                undefined
+              )}
             </div>
           </div>
         </div>
@@ -225,34 +269,22 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
           <h3 className="text-lg font-medium mb-4">Executive Escape Pricing</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="executive_escape_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Discounted Price
-              </label>
-              <input
-                type="text"
-                id="executive_escape_price"
-                name="executive_escape_price"
-                value={formValues.executive_escape_price}
-                onChange={handleChange}
-                placeholder="₹1,50,000+"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'executive_escape_price',
+                'Discounted Price',
+                'text',
+                '₹1,50,000+',
+                undefined
+              )}
             </div>
             <div>
-              <label htmlFor="executive_escape_original_price" className="block text-sm font-medium text-gray-700 mb-1">
-                Original Price
-              </label>
-              <input
-                type="text"
-                id="executive_escape_original_price"
-                name="executive_escape_original_price"
-                value={formValues.executive_escape_original_price}
-                onChange={handleChange}
-                placeholder="₹1,85,000+"
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              />
+              {renderSettingField(
+                'executive_escape_original_price',
+                'Original Price',
+                'text',
+                '₹1,85,000+',
+                undefined
+              )}
             </div>
           </div>
         </div>
@@ -260,10 +292,10 @@ const SettingsForm = ({ settings: initialSettings }: SettingsFormProps) => {
         <div>
           <button
             type="submit"
-            className="px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-all"
-            disabled={isSubmitting}
+            className={`px-4 py-2 text-white rounded-md hover:bg-opacity-90 transition-all ${Object.values(modifiedFields).some(Boolean) ? 'bg-navy' : 'bg-gray-300'}`}
+            disabled={isSubmitting || !Object.values(modifiedFields).some(Boolean)}
           >
-            {isSubmitting ? 'Saving...' : 'Save Settings'}
+            {isSubmitting ? 'Saving...' : 'Save All Changes'}
           </button>
         </div>
       </form>
