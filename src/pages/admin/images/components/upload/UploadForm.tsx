@@ -127,7 +127,7 @@ export const UploadForm = ({ onClose }: { onClose: () => void }) => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col space-y-6">
           <FileUploadSection 
             file={file}
             previewUrl={previewUrl}

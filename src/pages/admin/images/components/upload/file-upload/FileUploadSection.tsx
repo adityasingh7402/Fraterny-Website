@@ -30,7 +30,7 @@ const FileUploadSection = ({
   };
 
   return (
-    <Card className={`p-3 md:p-5 bg-white border border-gray-200 rounded-lg ${isMobile ? 'mb-4' : ''}`}>
+    <Card className="p-3 md:p-5 bg-white border border-gray-200 rounded-lg w-full">
       <h3 className="font-medium text-navy mb-2 md:mb-3 text-sm md:text-base">Upload Image</h3>
       
       {!previewUrl ? (

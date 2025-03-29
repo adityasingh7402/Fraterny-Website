@@ -18,7 +18,7 @@ const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 md:p-4 z-50 overflow-y-auto">
       <div className={`bg-white rounded-lg w-full ${isMobile ? 'max-w-full h-full' : 'max-w-3xl max-h-[90vh]'} overflow-y-auto`}>
         <ModalHeader title="Add New Image" onClose={onClose} />
-        <div className="p-3 md:p-6">
+        <div className="p-3 md:p-6 overflow-y-auto">
           <UploadForm onClose={onClose} />
         </div>
       </div>
