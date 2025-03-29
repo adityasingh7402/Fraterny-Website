@@ -10,6 +10,13 @@ const DEFAULT_SETTINGS: WebsiteSettings = {
   available_seats: 20,
   registration_close_date: '2025-03-30',
   accepting_applications_for_date: 'February 2026',
+  // Add the pricing fields
+  insider_access_price: "₹499/month",
+  insider_access_original_price: "₹699/month",
+  main_experience_price: "₹45,000 - ₹60,000",
+  main_experience_original_price: "₹65,000 - ₹80,000",
+  executive_escape_price: "₹1,50,000+",
+  executive_escape_original_price: "₹1,85,000+"
 };
 
 /**
@@ -39,11 +46,18 @@ export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
         return acc;
       }, {});
       
-      const parsedSettings = {
+      const parsedSettings: WebsiteSettings = {
         registration_days_left: parseInt(settings.registration_days_left || DEFAULT_SETTINGS.registration_days_left.toString()),
         available_seats: parseInt(settings.available_seats || DEFAULT_SETTINGS.available_seats.toString()),
         registration_close_date: settings.registration_close_date || DEFAULT_SETTINGS.registration_close_date,
         accepting_applications_for_date: settings.accepting_applications_for_date || DEFAULT_SETTINGS.accepting_applications_for_date,
+        // Add the pricing fields
+        insider_access_price: settings.insider_access_price || DEFAULT_SETTINGS.insider_access_price,
+        insider_access_original_price: settings.insider_access_original_price || DEFAULT_SETTINGS.insider_access_original_price,
+        main_experience_price: settings.main_experience_price || DEFAULT_SETTINGS.main_experience_price,
+        main_experience_original_price: settings.main_experience_original_price || DEFAULT_SETTINGS.main_experience_original_price,
+        executive_escape_price: settings.executive_escape_price || DEFAULT_SETTINGS.executive_escape_price,
+        executive_escape_original_price: settings.executive_escape_original_price || DEFAULT_SETTINGS.executive_escape_original_price,
       };
       
       // Update cache
