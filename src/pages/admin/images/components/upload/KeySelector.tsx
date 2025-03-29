@@ -1,7 +1,9 @@
 
+import { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import PredefinedKeysSelector from './PredefinedKeysSelector';
+import { InfoIcon } from 'lucide-react';
+import { COMMON_IMAGE_KEYS } from './constants';
 
 interface KeySelectorProps {
   form: any;
@@ -9,14 +11,11 @@ interface KeySelectorProps {
 }
 
 const KeySelector = ({ form, onSelect }: KeySelectorProps) => {
-  const handlePredefinedKeySelection = (key: string, description: string) => {
-    form.setValue('key', key);
-    form.setValue('description', description);
-    onSelect(key);
-  };
-  
+  const [showPredefinedKeys, setShowPredefinedKeys] = useState(false);
+
   return (
-    <div className="space-y-4">
+    <>
+      {/* Image Key Field */}
       <FormField
         control={form.control}
         name="key"
@@ -27,22 +26,54 @@ const KeySelector = ({ form, onSelect }: KeySelectorProps) => {
               <Input 
                 {...field} 
                 placeholder="e.g., hero-background, team-photo-1"
-                onChange={(e) => {
-                  field.onChange(e);
-                  onSelect(e.target.value);
-                }}
               />
             </FormControl>
             <FormMessage />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mt-1">
               A unique identifier used to fetch this image later
             </p>
           </FormItem>
         )}
       />
       
-      <PredefinedKeysSelector onSelectKey={handlePredefinedKeySelection} />
-    </div>
+      {/* Predefined Keys Section */}
+      <div className="bg-navy bg-opacity-10 rounded-lg p-4 flex items-start gap-3 mt-4">
+        <InfoIcon className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+        <div>
+          <h3 className="font-medium text-navy">Replace Website Images</h3>
+          <p className="text-sm text-gray-700">
+            To replace placeholder images on the website, use one of the predefined keys.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowPredefinedKeys(!showPredefinedKeys)}
+            className="text-sm text-terracotta hover:text-terracotta-dark underline mt-2"
+          >
+            {showPredefinedKeys ? 'Hide predefined keys' : 'Show predefined keys'}
+          </button>
+        </div>
+      </div>
+      
+      {/* Predefined Keys List */}
+      {showPredefinedKeys && (
+        <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+          <h4 className="font-medium text-navy mb-2">Select a predefined key:</h4>
+          <div className="grid grid-cols-1 gap-2">
+            {COMMON_IMAGE_KEYS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onSelect(item.key)}
+                className="text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded text-sm transition-colors"
+              >
+                <span className="font-medium text-navy block">{item.key}</span>
+                <span className="text-xs text-gray-600">{item.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

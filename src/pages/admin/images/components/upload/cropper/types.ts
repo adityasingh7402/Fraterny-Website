@@ -13,11 +13,6 @@ export interface ImageCropperProps {
   setRotation: (rotation: number) => void;
   imgRef: RefObject<HTMLImageElement>;
   onApplyChanges: () => void;
-  onCancelCrop?: () => void;
-  imageKey?: string;
-}
-
-export interface AspectRatioOption {
-  value: number | undefined;
-  label: string;
+  onCancelCrop: () => void;
+  imageKey: string;
 }

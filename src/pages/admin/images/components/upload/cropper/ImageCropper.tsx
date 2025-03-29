@@ -182,8 +182,7 @@ const ImageCropper = ({
         setRotation={setRotation}
       />
       
-      <style>
-        {`
+      <style>{`
         .react-crop-container .ReactCrop__crop-selection {
           border: 2px solid #0A1A2F;
           box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
@@ -205,8 +204,7 @@ const ImageCropper = ({
           width: 12px;
           height: 12px;
         }
-        `}
-      </style>
+      `}</style>
     </div>
   );
 };
