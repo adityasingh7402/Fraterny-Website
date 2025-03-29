@@ -54,13 +54,13 @@ const ImagePreview = ({
   return (
     <div className="space-y-4">
       {previewUrl && (
-        <div className="border rounded-lg overflow-hidden relative group">
+        <div className="border rounded-lg overflow-hidden relative">
           <img 
             src={previewUrl} 
             alt={image.alt_text || 'Image preview'} 
             className="w-full h-auto object-contain"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 hover:opacity-100">
             <label className="cursor-pointer bg-navy text-white rounded-md px-3 py-2 flex items-center">
               <Upload className="w-4 h-4 mr-2" />
               Replace Image

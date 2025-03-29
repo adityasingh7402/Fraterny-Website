@@ -36,7 +36,7 @@ const LivePreview = ({
     }
   }, [imageKey]);
   
-  // Generate preview whenever crop, zoom or rotation changes
+  // Generate preview whenever crop, zoom, rotation or the reference image changes
   useEffect(() => {
     if (!imgRef.current || !crop.width || !crop.height) return;
 
@@ -44,20 +44,15 @@ const LivePreview = ({
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
     const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
     
+    // Set canvas dimensions to cropped area size
     canvas.width = crop.width * scaleX;
     canvas.height = crop.height * scaleY;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Apply rotation and zoom if needed
+    // Apply center-based transformations
     ctx.save();
-    if (rotation !== 0 || zoom !== 1) {
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.scale(zoom, zoom);
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    }
     
     // Draw the cropped image
     ctx.drawImage(
@@ -74,9 +69,23 @@ const LivePreview = ({
     
     ctx.restore();
     
+    // Clean up previous blob URL
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
     const dataUrl = canvas.toDataURL('image/jpeg');
     setPreviewUrl(dataUrl);
   }, [crop, zoom, rotation, imgRef.current]);
+  
+  // Cleanup blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, []);
   
   return (
     <div className="bg-white border rounded-lg p-4">

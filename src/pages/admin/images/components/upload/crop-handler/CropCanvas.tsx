@@ -14,6 +14,7 @@ interface CropCanvasProps {
   zoom: number;
   rotation: number;
   imageKey: string;
+  onImageLoad?: () => void;
 }
 
 const CropCanvas = ({
@@ -24,9 +25,46 @@ const CropCanvas = ({
   setCompletedCrop,
   zoom,
   rotation,
-  imageKey
+  imageKey,
+  onImageLoad
 }: CropCanvasProps) => {
   const [isDragging, setIsDragging] = useState(false);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (onImageLoad) onImageLoad();
+
+    // Set initial crop to center of image with recommended aspect ratio
+    const { width, height } = e.currentTarget;
+    const recommendedAspect = imageKey ? getRecommendedAspectRatio(imageKey).ratio : undefined;
+    let cropWidth, cropHeight;
+    
+    if (recommendedAspect) {
+      if (recommendedAspect > 1) {
+        // Landscape
+        cropWidth = width * 0.8;
+        cropHeight = cropWidth / recommendedAspect;
+      } else {
+        // Portrait or square
+        cropHeight = height * 0.8;
+        cropWidth = cropHeight * recommendedAspect;
+      }
+    } else {
+      // No aspect ratio constraint
+      cropWidth = width * 0.8;
+      cropHeight = height * 0.8;
+    }
+    
+    const x = (width - cropWidth) / 2;
+    const y = (height - cropHeight) / 2;
+    
+    setCrop({
+      unit: 'px',
+      x,
+      y,
+      width: cropWidth,
+      height: cropHeight
+    } as CropArea);
+  };
   
   return (
     <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-4">
@@ -53,39 +91,7 @@ const CropCanvas = ({
             transformOrigin: 'center',
             transition: 'transform 0.2s ease-in-out'
           }}
-          onLoad={(e) => {
-            // Set initial crop to center of image with recommended aspect ratio
-            const { width, height } = e.currentTarget;
-            const recommendedAspect = imageKey ? getRecommendedAspectRatio(imageKey).ratio : undefined;
-            let cropWidth, cropHeight;
-            
-            if (recommendedAspect) {
-              if (recommendedAspect > 1) {
-                // Landscape
-                cropWidth = width * 0.8;
-                cropHeight = cropWidth / recommendedAspect;
-              } else {
-                // Portrait or square
-                cropHeight = height * 0.8;
-                cropWidth = cropHeight * recommendedAspect;
-              }
-            } else {
-              // No aspect ratio constraint
-              cropWidth = width * 0.8;
-              cropHeight = height * 0.8;
-            }
-            
-            const x = (width - cropWidth) / 2;
-            const y = (height - cropHeight) / 2;
-            
-            setCrop({
-              unit: 'px',
-              x,
-              y,
-              width: cropWidth,
-              height: cropHeight
-            } as CropArea);
-          }}
+          onLoad={handleImageLoad}
         />
       </ReactCrop>
       

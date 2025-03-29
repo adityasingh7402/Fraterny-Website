@@ -30,12 +30,24 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
     };
     
     fetchImageUrl();
+    
+    // Clean up any blob URLs when unmounting
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
   }, [image.key]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     
     if (selectedFile) {
+      // Clean up previous blob URL if exists
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      
       setFile(selectedFile);
       setCroppedFile(null);
       
@@ -47,8 +59,8 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
   };
 
   const handleCroppedFile = (newCroppedFile: File) => {
-    // Revoke previous object URL if needed
-    if (file && isReplacing && previewUrl && previewUrl.startsWith('blob:')) {
+    // Clean up previous blob URL if exists
+    if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
     
@@ -61,7 +73,7 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
 
   const cancelReplacement = () => {
     // Clean up any blob URLs to prevent memory leaks
-    if (file && isReplacing && previewUrl && previewUrl.startsWith('blob:')) {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
     
@@ -157,15 +169,6 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
       }
     });
   };
-  
-  // Clean up any blob URLs when unmounting
-  useEffect(() => {
-    return () => {
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
 
   return {
     previewUrl,
