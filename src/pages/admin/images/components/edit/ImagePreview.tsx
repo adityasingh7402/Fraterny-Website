@@ -1,24 +1,75 @@
 
 import { WebsiteImage, IMAGE_USAGE_MAP } from '@/services/images';
-import { Info } from 'lucide-react';
+import { Info, Upload, Crop as CropIcon, X } from 'lucide-react';
+import { ImageCropHandler } from '../upload/crop-handler';
 
 interface ImagePreviewProps {
   previewUrl: string | null;
   image: WebsiteImage;
+  isReplacing: boolean;
+  file: File | null;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onCroppedFile: (file: File) => void;
+  onCancelReplace: () => void;
 }
 
-const ImagePreview = ({ previewUrl, image }: ImagePreviewProps) => {
+const ImagePreview = ({ 
+  previewUrl, 
+  image, 
+  isReplacing,
+  file,
+  onFileChange,
+  onCroppedFile,
+  onCancelReplace
+}: ImagePreviewProps) => {
   const usageLocation = IMAGE_USAGE_MAP[image.key] || 'Custom image (not tied to a specific website section)';
+  
+  if (isReplacing && file && previewUrl) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium text-navy">Replace Image</h3>
+          <button
+            type="button"
+            onClick={onCancelReplace}
+            className="text-gray-500 hover:text-gray-700"
+            title="Cancel replacement"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <ImageCropHandler 
+          imageSrc={previewUrl}
+          uploadFile={file}
+          onCroppedFile={onCroppedFile}
+          imageKey={image.key}
+        />
+      </div>
+    );
+  }
   
   return (
     <>
       {previewUrl && (
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border rounded-lg overflow-hidden relative group">
           <img 
             src={previewUrl} 
             alt={image.alt_text} 
             className="w-full h-auto object-contain"
           />
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+            <label className="cursor-pointer bg-navy text-white rounded-md px-3 py-2 flex items-center">
+              <Upload className="w-4 h-4 mr-2" />
+              Replace Image
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={onFileChange}
+              />
+            </label>
+          </div>
         </div>
       )}
       

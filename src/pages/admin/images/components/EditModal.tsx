@@ -17,11 +17,19 @@ interface EditModalProps {
 const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   const {
     previewUrl,
+    file,
+    isReplacing,
     editForm,
     setEditForm,
     updateMutation,
-    handleEditSubmit
+    replaceImageMutation,
+    handleEditSubmit,
+    handleFileChange,
+    handleCroppedFile,
+    cancelReplacement
   } = useEditImage(image, onClose);
+  
+  const isPending = updateMutation.isPending || replaceImageMutation.isPending;
   
   if (!isOpen) return null;
   
@@ -31,17 +39,27 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
         <EditModalHeader onClose={onClose} />
         
         <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
-          <ImagePreview previewUrl={previewUrl} image={image} />
-          
-          <EditFormFields 
-            editForm={editForm}
-            setEditForm={setEditForm}
-            image={image}
+          <ImagePreview 
+            previewUrl={previewUrl} 
+            image={image} 
+            isReplacing={isReplacing}
+            file={file}
+            onFileChange={handleFileChange}
+            onCroppedFile={handleCroppedFile}
+            onCancelReplace={cancelReplacement}
           />
+          
+          {!isReplacing && (
+            <EditFormFields 
+              editForm={editForm}
+              setEditForm={setEditForm}
+              image={image}
+            />
+          )}
           
           <EditModalFooter 
             onClose={onClose}
-            isPending={updateMutation.isPending}
+            isPending={isPending}
           />
         </form>
       </div>
