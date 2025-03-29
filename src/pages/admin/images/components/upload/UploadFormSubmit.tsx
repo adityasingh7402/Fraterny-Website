@@ -1,5 +1,6 @@
 
 import { Upload, CheckCircle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UploadFormSubmitProps {
   onCancel: () => void;
@@ -8,18 +9,20 @@ interface UploadFormSubmitProps {
 }
 
 const UploadFormSubmit = ({ onCancel, isPending, isSuccess }: UploadFormSubmitProps) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="flex justify-end gap-3">
+    <div className={`flex ${isMobile ? 'flex-col' : 'justify-end'} gap-3`}>
       <button
         type="button"
         onClick={onCancel}
-        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+        className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors ${isMobile ? 'w-full' : ''}`}
       >
         Cancel
       </button>
       <button
         type="submit"
-        className="px-4 py-2 bg-terracotta text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-2"
+        className={`px-4 py-2 bg-terracotta text-white rounded-md hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 ${isMobile ? 'w-full' : ''}`}
         disabled={isPending || isSuccess}
       >
         {isPending ? (
