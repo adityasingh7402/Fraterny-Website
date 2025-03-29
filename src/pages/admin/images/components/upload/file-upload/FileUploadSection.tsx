@@ -3,6 +3,7 @@ import { useState } from 'react';
 import FileInput from './FileInput';
 import ImagePreview from './ImagePreview';
 import { Card } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FileUploadSectionProps {
   file: File | null;
@@ -20,6 +21,7 @@ const FileUploadSection = ({
   imageKey
 }: FileUploadSectionProps) => {
   const [isFileSelected, setIsFileSelected] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const hasFile = event.target.files && event.target.files.length > 0;
@@ -28,8 +30,8 @@ const FileUploadSection = ({
   };
 
   return (
-    <Card className="p-5 bg-white border border-gray-200 rounded-lg">
-      <h3 className="font-medium text-navy mb-3">Upload Image</h3>
+    <Card className={`p-3 md:p-5 bg-white border border-gray-200 rounded-lg ${isMobile ? 'mb-4' : ''}`}>
+      <h3 className="font-medium text-navy mb-2 md:mb-3 text-sm md:text-base">Upload Image</h3>
       
       {!previewUrl ? (
         <FileInput 

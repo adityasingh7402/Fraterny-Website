@@ -1,6 +1,7 @@
 
 import { ChangeEvent, useState } from 'react';
 import { Upload } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface FileInputProps {
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -9,6 +10,7 @@ export interface FileInputProps {
 
 const FileInput = ({ onFileChange, isFileSelected = false }: FileInputProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ const FileInput = ({ onFileChange, isFileSelected = false }: FileInputProps) => 
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center transition-colors
+      className={`relative border-2 border-dashed rounded-lg ${isMobile ? 'p-4' : 'p-8'} flex flex-col items-center justify-center text-center transition-colors
         ${dragActive ? 'border-navy bg-navy/5' : 'border-gray-300'}
         ${isFileSelected ? 'bg-green-50 border-green-300' : 'bg-gray-50'}`}
       onDragEnter={handleDrag}
@@ -47,25 +49,25 @@ const FileInput = ({ onFileChange, isFileSelected = false }: FileInputProps) => 
       onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <div className="w-12 h-12 mb-4 rounded-full bg-navy/10 flex items-center justify-center">
-        <Upload className="w-6 h-6 text-navy" />
+      <div className={`${isMobile ? 'w-8 h-8 mb-2' : 'w-12 h-12 mb-4'} rounded-full bg-navy/10 flex items-center justify-center`}>
+        <Upload className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} text-navy`} />
       </div>
       
-      <p className="text-sm font-medium">
-        {isFileSelected ? 'File selected' : 'Drag & drop your image here'}
+      <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
+        {isFileSelected ? 'File selected' : (isMobile ? 'Tap to upload' : 'Drag & drop your image here')}
       </p>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500 mt-1`}>
         PNG, JPG, WebP, or SVG (max. 50MB)
       </p>
       
-      <label className="mt-4 cursor-pointer">
+      <label className={`mt-${isMobile ? '3' : '4'} cursor-pointer`}>
         <input
           type="file"
           className="hidden"
           accept="image/*"
           onChange={onFileChange}
         />
-        <span className="px-4 py-2 text-sm bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors">
+        <span className={`px-3 py-1.5 ${isMobile ? 'text-xs' : 'text-sm'} bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors`}>
           {isFileSelected ? 'Select Different File' : 'Browse Files'}
         </span>
       </label>

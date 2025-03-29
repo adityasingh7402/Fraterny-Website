@@ -1,6 +1,6 @@
 
 import { RefObject } from 'react';
-import { type Crop as CropArea } from 'react-image-crop';
+import { Crop as CropArea } from 'react-image-crop';
 
 export interface ImageCropperProps {
   imageSrc: string;
@@ -15,4 +15,9 @@ export interface ImageCropperProps {
   onApplyChanges: () => void;
   onCancelCrop: () => void;
   imageKey: string;
+}
+
+export interface AspectRatioOption {
+  label: string;
+  value: number | undefined;
 }

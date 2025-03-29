@@ -8,6 +8,7 @@ import CropperHeader from './CropperHeader';
 import LivePreview from './LivePreview';
 import ZoomRotateControls from './ZoomRotateControls';
 import { getRecommendedAspectRatio } from '../constants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ImageCropper = ({
   imageSrc,
@@ -27,6 +28,7 @@ const ImageCropper = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [placeholderLabel, setPlaceholderLabel] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
+  const isMobile = useIsMobile();
 
   // Set aspect ratio based on image key
   useEffect(() => {
@@ -94,8 +96,8 @@ const ImageCropper = ({
         imageKey={imageKey}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 relative bg-gray-50 rounded-lg border border-gray-200 p-4">
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 lg:grid-cols-3 gap-6'}`}>
+        <div className={`${isMobile ? '' : 'lg:col-span-2'} relative bg-gray-50 rounded-lg border border-gray-200 p-4`}>
           <ReactCrop
             crop={crop}
             onChange={(c) => {
@@ -107,14 +109,14 @@ const ImageCropper = ({
               setIsDragging(false);
             }}
             aspect={aspectRatio}
-            className="max-h-[500px] flex justify-center react-crop-container"
+            className="max-h-[400px] flex justify-center react-crop-container"
           >
             <img
               ref={imgRef}
               src={imageSrc}
               alt="Crop Preview"
               style={{
-                maxHeight: '500px',
+                maxHeight: isMobile ? '300px' : '500px',
                 transform: `scale(${zoom}) rotate(${rotation}deg)`,
                 transformOrigin: 'center',
                 transition: 'transform 0.2s ease-in-out'
@@ -155,32 +157,44 @@ const ImageCropper = ({
           </ReactCrop>
           
           {isDragging && (
-            <div className="absolute top-0 left-0 right-0 bg-navy text-white text-center py-1 text-sm">
+            <div className="absolute top-0 left-0 right-0 bg-navy text-white text-center py-1 text-xs md:text-sm">
               Dragging selection...
             </div>
           )}
           
-          <div className="mt-4 w-full flex items-center justify-center text-gray-500 gap-2 text-sm">
+          <div className="mt-4 w-full flex items-center justify-center text-gray-500 gap-2 text-xs md:text-sm">
             <Move className="w-4 h-4" />
-            <p>Drag to position the image in the placeholder • Use controls to zoom and rotate</p>
+            <p>{isMobile ? 'Drag to position' : 'Drag to position the image in the placeholder • Use controls to zoom and rotate'}</p>
           </div>
         </div>
         
-        <div className="bg-white border rounded-lg p-4">
-          <LivePreview 
-            previewUrl={previewUrl}
-            aspectRatio={aspectRatio}
-            placeholderLabel={placeholderLabel}
-          />
-        </div>
+        {!isMobile && (
+          <div className="bg-white border rounded-lg p-4">
+            <LivePreview 
+              previewUrl={previewUrl}
+              aspectRatio={aspectRatio}
+              placeholderLabel={placeholderLabel}
+            />
+          </div>
+        )}
       </div>
-        
+      
       <ZoomRotateControls 
         zoom={zoom}
         setZoom={setZoom}
         rotation={rotation}
         setRotation={setRotation}
       />
+      
+      {isMobile && previewUrl && (
+        <div className="mt-6 bg-white border rounded-lg p-4">
+          <LivePreview 
+            previewUrl={previewUrl}
+            aspectRatio={aspectRatio}
+            placeholderLabel={placeholderLabel}
+          />
+        </div>
+      )}
       
       <style>{`
         .react-crop-container .ReactCrop__crop-selection {

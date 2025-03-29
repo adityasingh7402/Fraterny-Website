@@ -1,5 +1,5 @@
 
-// Available image categories
+// Image categories for organizing uploads
 export const IMAGE_CATEGORIES = [
   'Hero',
   'Background',
@@ -12,7 +12,7 @@ export const IMAGE_CATEGORIES = [
 ];
 
 // Common website image keys that replace placeholders
-export const COMMON_IMAGE_KEYS = [
+export const IMAGE_KEYS = [
   { key: 'hero-background', description: 'Main Hero Section - Homepage' },
   { key: 'villalab-social', description: 'Villa Lab Section - Social Events' },
   { key: 'villalab-mentorship', description: 'Villa Lab Section - Mentorship' },
@@ -31,65 +31,39 @@ export const COMMON_IMAGE_KEYS = [
   { key: 'experience-gourmet-dining', description: 'Experience Page - Gourmet Dining' }
 ];
 
-// Mapping of image keys to their descriptive usage
-export const IMAGE_USAGE_MAP: Record<string, string> = COMMON_IMAGE_KEYS.reduce((acc, { key, description }) => {
+// Map of image keys to usage descriptions
+export const IMAGE_USAGE_MAP: Record<string, string> = IMAGE_KEYS.reduce((acc, { key, description }) => {
   acc[key] = description;
   return acc;
 }, {} as Record<string, string>);
 
-// Function to get recommended aspect ratio based on image key
+// Recommended aspect ratios and descriptions
 export const getRecommendedAspectRatio = (imageKey: string) => {
-  // Default aspect ratio (16:9)
-  const defaultRatio = {
-    ratio: 16/9,
-    label: 'Landscape (16:9)'
-  };
-
-  if (!imageKey) return defaultRatio;
-
-  // Hero images are typically wider
+  // Define aspect ratios for different image types
   if (imageKey.includes('hero')) {
-    return {
-      ratio: 21/9,
-      label: 'Hero Banner (21:9)'
-    };
+    return { ratio: 16/9, label: 'Hero Section (16:9)' };
+  } else if (imageKey.includes('banner')) {
+    return { ratio: 3/1, label: 'Banner (3:1)' };
+  } else if (imageKey.includes('profile')) {
+    return { ratio: 1/1, label: 'Profile (1:1)' };
+  } else if (imageKey.includes('thumbnail')) {
+    return { ratio: 4/3, label: 'Thumbnail (4:3)' };
+  } else if (imageKey.includes('villalab')) {
+    return { ratio: 3/2, label: 'Villa Lab Gallery (3:2)' };
+  } else if (imageKey.includes('experience')) {
+    return { ratio: 16/9, label: 'Experience Section (16:9)' };
   }
-
-  // Gallery images are often square or slightly landscape
-  if (imageKey.includes('gallery')) {
-    return {
-      ratio: 4/3,
-      label: 'Gallery (4:3)'
-    };
-  }
-
-  // Profile or avatar images are square
-  if (imageKey.includes('profile') || imageKey.includes('avatar')) {
-    return {
-      ratio: 1/1,
-      label: 'Square (1:1)'
-    };
-  }
-
-  // Banner images are typically wider
-  if (imageKey.includes('banner')) {
-    return {
-      ratio: 3/1,
-      label: 'Banner (3:1)'
-    };
-  }
-
-  return defaultRatio;
+  
+  // Default ratio
+  return { ratio: 16/9, label: 'Standard (16:9)' };
 };
 
-// Upload form schema
+// Form validation schema
 import { z } from 'zod';
 
 export const uploadFormSchema = z.object({
-  key: z.string().min(1, "Image key is required"),
-  description: z.string().min(1, "Description is required"),
-  alt_text: z.string().min(1, "Alt text is required"),
+  key: z.string().min(1, { message: "Image key is required" }),
+  description: z.string().min(1, { message: "Description is required" }),
+  alt_text: z.string().min(1, { message: "Alt text is required" }),
   category: z.string().optional(),
 });
-
-export type UploadFormValues = z.infer<typeof uploadFormSchema>;
