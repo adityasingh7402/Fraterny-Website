@@ -2,6 +2,9 @@
 // Default placeholder images for development
 export const defaultImagesMap: Record<string, string> = {
   'hero-background': '/images/hero/experience-hero-desktop.webp',
+  'experience-hero': '/images/hero/experience-hero-desktop.webp',
+  'experience-hero-mobile': '/images/hero/experience-hero-mobile.webp',
+  'experience-hero-tablet': '/images/hero/experience-hero-tablet.webp',
   'villalab-social': '/images/villalab/social-desktop.webp',
   'villalab-mentorship': '/images/villalab/mentorship-desktop.webp',
   'villalab-brainstorm': '/images/villalab/brainstorm-desktop.webp',
@@ -76,6 +79,9 @@ export const IMAGE_CATEGORIES = [
 // Map of image keys to their usage locations on the website
 export const IMAGE_USAGE_MAP: Record<string, string> = {
   'hero-background': 'Main Hero Section - Homepage',
+  'experience-hero': 'Experience Page - Hero Section',
+  'experience-hero-mobile': 'Experience Page - Hero Section (Mobile)',
+  'experience-hero-tablet': 'Experience Page - Hero Section (Tablet)',
   'villalab-social': 'Villa Lab Section - Social Events',
   'villalab-mentorship': 'Villa Lab Section - Mentorship',
   'villalab-brainstorm': 'Villa Lab Section - Brainstorming',

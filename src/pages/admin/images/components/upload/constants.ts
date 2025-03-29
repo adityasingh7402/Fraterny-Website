@@ -14,6 +14,9 @@ export const IMAGE_CATEGORIES = [
 // Common website image keys that replace placeholders
 export const IMAGE_KEYS = [
   { key: 'hero-background', description: 'Main Hero Section - Homepage' },
+  { key: 'experience-hero', description: 'Experience Page - Hero Section' },
+  { key: 'experience-hero-mobile', description: 'Experience Page - Hero Section (Mobile)' },
+  { key: 'experience-hero-tablet', description: 'Experience Page - Hero Section (Tablet)' },
   { key: 'villalab-social', description: 'Villa Lab Section - Social Events' },
   { key: 'villalab-mentorship', description: 'Villa Lab Section - Mentorship' },
   { key: 'villalab-brainstorm', description: 'Villa Lab Section - Brainstorming' },
