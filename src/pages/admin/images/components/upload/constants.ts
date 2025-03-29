@@ -46,44 +46,40 @@ export const IMAGE_ASPECT_RATIOS: Record<string, { ratio: number, label: string 
   'default': { ratio: 16/9, label: '16:9 - Default' }
 };
 
-// Zod schema for form validation
-export const uploadFormSchema = z.object({
-  key: z.string().min(2, "Key must be at least 2 characters"),
-  description: z.string().min(5, "Description must be at least 5 characters"),
-  alt_text: z.string().min(5, "Alt text must be at least 5 characters"),
-  category: z.string().min(1, "Please select a category"),
-});
+// Create a mapping of image keys to their descriptions for easier lookup
+export const IMAGE_USAGE_MAP = IMAGE_KEYS.reduce((acc, { key, description }) => {
+  acc[key] = description;
+  return acc;
+}, {} as Record<string, string>);
 
-// Get recommended aspect ratio based on the image key
-export const getRecommendedAspectRatio = (key: string) => {
-  if (!key) return IMAGE_ASPECT_RATIOS.default;
-  
-  // Check if the key contains any of the known prefixes
-  for (const prefix of Object.keys(IMAGE_ASPECT_RATIOS)) {
-    if (key.includes(prefix)) {
-      return IMAGE_ASPECT_RATIOS[prefix];
-    }
+// Get recommended aspect ratio for a specific image key
+export const getRecommendedAspectRatio = (key: string): { ratio: number, label: string } => {
+  if (key.includes('hero') || key.includes('background')) {
+    return IMAGE_ASPECT_RATIOS.hero;
+  }
+  if (key.includes('profile') || key.includes('avatar')) {
+    return IMAGE_ASPECT_RATIOS.profile;
+  }
+  if (key.includes('banner')) {
+    return IMAGE_ASPECT_RATIOS.banner;
+  }
+  if (key.includes('villalab')) {
+    return IMAGE_ASPECT_RATIOS.villalab;
+  }
+  if (key.includes('experience')) {
+    return IMAGE_ASPECT_RATIOS.experience;
+  }
+  if (key.includes('gallery')) {
+    return IMAGE_ASPECT_RATIOS.gallery;
   }
   
   return IMAGE_ASPECT_RATIOS.default;
 };
 
-// Add export for IMAGE_USAGE_MAP
-export const IMAGE_USAGE_MAP: Record<string, string> = {
-  'hero-background': 'Homepage - Main hero background',
-  'villalab-social': 'Villa Lab - Social Events',
-  'villalab-mentorship': 'Villa Lab - Mentorship',
-  'villalab-brainstorm': 'Villa Lab - Brainstorming',
-  'villalab-group': 'Villa Lab - Group Activities',
-  'villalab-networking': 'Villa Lab - Networking',
-  'villalab-candid': 'Villa Lab - Candid Interactions',
-  'villalab-gourmet': 'Villa Lab - Gourmet Meals',
-  'villalab-workshop': 'Villa Lab - Workshops',
-  'villalab-evening': 'Villa Lab - Evening Sessions',
-  'experience-villa-retreat': 'Experience - Villa Retreat',
-  'experience-workshop': 'Experience - Workshop',
-  'experience-networking': 'Experience - Networking',
-  'experience-collaboration': 'Experience - Collaboration',
-  'experience-evening-session': 'Experience - Evening Session',
-  'experience-gourmet-dining': 'Experience - Gourmet Dining'
-};
+// Zod schema for form validation
+export const uploadFormSchema = z.object({
+  key: z.string().min(2, "Key must be at least 2 characters"),
+  description: z.string().min(5, "Description must be at least 5 characters"),
+  alt_text: z.string().min(5, "Alt text must be at least 5 characters"),
+  category: z.string().optional(),
+});
