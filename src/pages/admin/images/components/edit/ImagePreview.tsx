@@ -58,7 +58,7 @@ const ImagePreview = ({
           <img 
             src={previewUrl} 
             alt={image.alt_text || 'Image preview'} 
-            className="w-full h-auto object-contain"
+            className={`w-full ${isMobile ? 'max-h-[300px]' : 'max-h-[400px]'} object-contain mx-auto`}
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 hover:opacity-100">
             <label className="cursor-pointer bg-navy text-white rounded-md px-3 py-2 flex items-center">

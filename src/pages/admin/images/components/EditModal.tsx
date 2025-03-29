@@ -8,6 +8,7 @@ import {
   useEditImage 
 } from './edit';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EditModalProps {
   isOpen: boolean;
@@ -31,12 +32,13 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   } = useEditImage(image, onClose);
   
   const isPending = updateMutation.isPending || replaceImageMutation.isPending;
+  const isMobile = useIsMobile();
   
   if (!isOpen) return null;
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className={`bg-white rounded-lg ${isMobile ? 'w-full' : 'max-w-2xl w-full'} max-h-[90vh] overflow-y-auto`}>
         <EditModalHeader onClose={onClose} />
         
         <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
