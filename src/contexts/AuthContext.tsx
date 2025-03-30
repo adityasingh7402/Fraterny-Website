@@ -43,8 +43,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        if (data && data.is_admin === true) {
+        // Fix: Check if data is an array and has elements before accessing the is_admin property
+        if (data && Array.isArray(data) && data.length > 0 && data[0].is_admin === true) {
           setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
         }
       } catch (error) {
         console.error("Error checking admin status:", error);
