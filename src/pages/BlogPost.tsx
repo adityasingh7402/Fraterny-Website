@@ -80,7 +80,7 @@ const BlogPost = () => {
       {/* Brand color banner */}
       <div className="h-2 bg-navy w-full"></div>
       
-      <article className="container mx-auto px-6 pt-40 pb-10">
+      <article className="container mx-auto px-6 pt-15 pb-10">
         <div className="max-w-3xl mx-auto">
           <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
             <ArrowLeft size={16} className="mr-2" />
