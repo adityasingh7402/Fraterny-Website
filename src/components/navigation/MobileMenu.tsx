@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import MobileNavigationLink from './MobileNavigationLink';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,11 +9,12 @@ interface MobileMenuProps {
   isScrolled: boolean;
   toggleMenu: () => void;
   navLinks: { name: string; href: string }[];
+  user: User | null;
   onSignOut: () => Promise<void>;
 }
 
-const MobileMenu = ({ isOpen, isScrolled, toggleMenu, navLinks, onSignOut }: MobileMenuProps) => {
-  const { user, isAdmin } = useAuth();
+const MobileMenu = ({ isOpen, isScrolled, toggleMenu, navLinks, user, onSignOut }: MobileMenuProps) => {
+  const { isAdmin } = useAuth();
   
   const adminLinks = [
     { name: 'Dashboard', href: '/admin' },

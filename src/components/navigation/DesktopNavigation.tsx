@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import NavigationLink from './NavigationLink';
 import UserMenu from './UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,11 +8,11 @@ import { useAuth } from '@/contexts/AuthContext';
 interface DesktopNavigationProps {
   isScrolled: boolean;
   navLinks: { name: string; href: string }[];
+  user: User | null;
+  onSignOut: () => Promise<void>;
 }
 
-const DesktopNavigation = ({ isScrolled, navLinks }: DesktopNavigationProps) => {
-  const { user } = useAuth();
-  
+const DesktopNavigation = ({ isScrolled, navLinks, user, onSignOut }: DesktopNavigationProps) => {
   return (
     <div className="hidden md:flex items-center space-x-8">
       {navLinks.map(link => (

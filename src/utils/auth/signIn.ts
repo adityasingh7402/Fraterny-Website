@@ -10,11 +10,7 @@ export const signIn = async (email: string, password: string): Promise<{user: Us
   try {
     const { error, data } = await supabase.auth.signInWithPassword({ 
       email, 
-      password,
-      options: {
-        // This ensures we get a fresh state
-        storeSession: true
-      }
+      password
     });
     
     if (error) throw error;
