@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/services/images';
+import ResponsiveImage from '@/components/ui/ResponsiveImage';
 
 // Available categories
 const CATEGORIES = [
@@ -72,13 +72,13 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
 
     try {
       setUploadingImage(true);
-      // Use a unique key based on the blog title or post ID
       const imageKey = `blog-${editingId || Date.now()}`;
       const result = await uploadImage(
         file,
         imageKey,
         `Image for blog: ${formValues.title}`,
-        formValues.title || 'Blog image'
+        formValues.title || 'Blog image',
+        'Blog'
       );
 
       if (result) {
@@ -109,7 +109,6 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
 
     try {
       if (editingId) {
-        // Update existing post
         const { error } = await supabase
           .from('blog_posts')
           .update({
@@ -126,7 +125,6 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
         if (error) throw error;
         toast.success('Blog post updated successfully');
       } else {
-        // Create new post
         const { error } = await supabase
           .from('blog_posts')
           .insert({
@@ -142,7 +140,6 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
         toast.success('Blog post created successfully');
       }
 
-      // Reset form and refresh data
       setFormValues({ title: '', content: '', category: '', tags: [], published: true, image_key: null });
       setEditingId(null);
       onSuccess();
@@ -178,7 +175,6 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
           />
         </div>
 
-        {/* Image Upload Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Featured Image
@@ -350,5 +346,3 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
 };
 
 export default BlogForm;
-
-import ResponsiveImage from '@/components/ui/ResponsiveImage';

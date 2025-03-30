@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { getImageUrlByKey, getImageUrlByKeyAndSize, clearImageUrlCacheForKey } from '@/services/images';
 import { toast } from 'sonner';
@@ -32,12 +33,35 @@ export const useResponsiveImage = (
         
         // Handle mobile variant keys
         const isMobileKey = dynamicKey.includes('-mobile');
-        const isDesktopKey = !isMobileKey;
         
         // If size is specified, try to get that specific size
         if (size) {
           const url = await getImageUrlByKeyAndSize(dynamicKey, size);
           console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
+          
+          if (url === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = dynamicKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            const desktopUrl = await getImageUrlByKeyAndSize(desktopKey, size);
+            
+            if (desktopUrl !== '/placeholder.svg') {
+              // Successfully found a desktop image to use
+              console.log(`Using desktop image for mobile: ${desktopUrl}`);
+              
+              // Get image dimensions for aspect ratio
+              const aspectRatio = await getImageAspectRatio(desktopUrl);
+              
+              setState(prev => ({ 
+                ...prev, 
+                dynamicSrc: desktopUrl, 
+                isLoading: false,
+                aspectRatio 
+              }));
+              return;
+            }
+          }
           
           // Get image dimensions for aspect ratio
           const aspectRatio = await getImageAspectRatio(url);
@@ -52,6 +76,30 @@ export const useResponsiveImage = (
           // Otherwise get the original image
           const url = await getImageUrlByKey(dynamicKey);
           console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
+          
+          if (url === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = dynamicKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            const desktopUrl = await getImageUrlByKey(desktopKey);
+            
+            if (desktopUrl !== '/placeholder.svg') {
+              // Successfully found a desktop image to use
+              console.log(`Using desktop image for mobile: ${desktopUrl}`);
+              
+              // Get image dimensions for aspect ratio
+              const aspectRatio = await getImageAspectRatio(desktopUrl);
+              
+              setState(prev => ({ 
+                ...prev, 
+                dynamicSrc: desktopUrl, 
+                isLoading: false,
+                aspectRatio 
+              }));
+              return;
+            }
+          }
           
           // Get image dimensions for aspect ratio
           const aspectRatio = await getImageAspectRatio(url);
