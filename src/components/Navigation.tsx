@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Logo from './navigation/Logo';
@@ -8,9 +8,15 @@ import MobileMenu from './navigation/MobileMenu';
 import { useScrollEffect } from './navigation/useScrollEffect';
 
 const Navigation = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isScrolled, isPastHero } = useScrollEffect();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+
+  // Add an effect to track when auth is ready to prevent flash of incorrect UI
+  useEffect(() => {
+    setAuthReady(true);
+  }, [user]);
 
   const navLinks = [
     { name: 'The Experience', href: '/experience' },
@@ -33,10 +39,25 @@ const Navigation = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      setIsMenuOpen(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
+
+  // Only render once auth state is determined to prevent flash of incorrect UI
+  if (!authReady) {
+    return (
+      <nav className={navClasses}>
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between">
+            <Logo isPastHero={isPastHero} />
+            <div className="w-10 h-10"></div> {/* Empty placeholder for loading state */}
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className={navClasses}>

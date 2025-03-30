@@ -73,6 +73,7 @@ const MobileMenu = ({ isOpen, isScrolled, toggleMenu, navLinks, onSignOut }: Mob
         href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
         isScrolled={isScrolled}
         onClick={toggleMenu}
+        external={true}
       >
         Apply Now
       </MobileNavigationLink>
