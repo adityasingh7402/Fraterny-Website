@@ -11,6 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, session, isLoading, isAdmin } = useAuthState();
+  const [authReady, setAuthReady] = useState(false);
   
   // Get navigate and location safely
   let navigate;
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('AuthProvider initialized outside router context');
   }
 
-  // Handle email verification link
+  // Handle email verification link and ensure auth state is properly reflected
   useEffect(() => {
     if (!location) return;
 
@@ -58,15 +59,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             toast.success('Email verified successfully!');
             navigate('/');
+            
+            // Force a refresh of the auth state to ensure UI reflects new state
+            const { data: refreshData } = await supabase.auth.getUser();
+            if (refreshData?.user) {
+              console.log('Auth state refreshed after verification');
+              setAuthReady(true);
+            }
           }
+        } else {
+          // No token in URL, we can set auth as ready
+          setAuthReady(true);
         }
       } catch (error) {
         console.error('Error handling verification redirect:', error);
+        setAuthReady(true); // Set auth ready even on error
       }
     };
 
     handleVerificationRedirect();
   }, [location, navigate]);
+
+  // Ensure auth is marked as ready once we have a definitive user state
+  useEffect(() => {
+    if (!isLoading) {
+      setAuthReady(true);
+    }
+  }, [isLoading, user]);
 
   // Sign in function wrapper
   const signIn = async (email: string, password: string) => {
@@ -75,6 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Use navigate only if we're in a router context and not on the home page already
     if (navigate && location?.pathname === '/auth') {
       navigate('/');
+    }
+    
+    // Force refresh auth state
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      console.log('Auth state refreshed after sign in');
     }
   };
 
@@ -102,7 +127,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     isLoading,
     isAdmin,
-    resendVerificationEmail
+    resendVerificationEmail,
+    authReady
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

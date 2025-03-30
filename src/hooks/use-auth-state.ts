@@ -44,19 +44,32 @@ export function useAuthState() {
     const initialize = async () => {
       setIsLoading(true);
 
-      // Set up auth state listener FIRST
+      // Set up auth state listener FIRST to catch all auth events
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        // Don't update state immediately for sign-in events until we validate the session
-        if (event !== 'SIGNED_IN') {
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
-          
-          // Check if this is an admin user
-          if (newSession?.user?.email) {
-            // Check if user email is in the admin emails list
-            setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
-          } else {
-            setIsAdmin(false);
+        console.log('Auth state change event:', event);
+        
+        // Update state immediately for all events to ensure UI reflects changes
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        
+        // Check if this is an admin user
+        if (newSession?.user?.email) {
+          // Check if user email is in the admin emails list
+          setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
+        } else {
+          setIsAdmin(false);
+        }
+        
+        // Special handling for SIGNED_IN events to ensure UI updates
+        if (event === 'SIGNED_IN') {
+          console.log('User signed in, updating auth state');
+          // Force refresh user data to ensure we have the latest
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData?.user) {
+            setUser(userData.user);
+            if (userData.user.email) {
+              setIsAdmin(ADMIN_EMAILS.includes(userData.user.email));
+            }
           }
         }
       });

@@ -8,15 +8,9 @@ import MobileMenu from './navigation/MobileMenu';
 import { useScrollEffect } from './navigation/useScrollEffect';
 
 const Navigation = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user, authReady } = useAuth();
   const { isScrolled, isPastHero } = useScrollEffect();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
-
-  // Add an effect to track when auth is ready to prevent flash of incorrect UI
-  useEffect(() => {
-    setAuthReady(true);
-  }, [user]);
 
   const navLinks = [
     { name: 'The Experience', href: '/experience' },

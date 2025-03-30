@@ -9,5 +9,6 @@ export type AuthContextType = {
   signOut: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
+  authReady: boolean;
   resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
 };
