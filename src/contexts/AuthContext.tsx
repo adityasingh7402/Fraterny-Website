@@ -1,268 +1,202 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
+import { Session, AuthError, User, AuthResponse } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { showError, showSuccess } from '@/utils/errorHandler';
 
-// Define admin phone numbers in a separate array for easier management
-const ADMIN_PHONES = ['+1234567890']; 
-
-type AuthContextType = {
-  user: User | null;
+interface AuthState {
   session: Session | null;
-  signIn: (phone: string) => Promise<void>;
-  verifyOTP: (phone: string, token: string) => Promise<void>;
-  signUp: (phone: string, firstName?: string, lastName?: string) => Promise<{success: boolean; error?: string}>;
-  signOut: () => Promise<void>;
+  user: User | null;
   isLoading: boolean;
   isAdmin: boolean;
-  resendOTP: (phone: string) => Promise<{success: boolean; error?: string}>;
-};
+  phoneNumber: string | null;
+  signIn: (phone: string) => Promise<{ success: boolean, error: AuthError | null }>;
+  verifyOtp: (phone: string, token: string) => Promise<{ success: boolean, error: AuthError | null }>;
+  signOut: () => Promise<void>;
+  updateAuthData: (session: Session | null) => void;
+}
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // Get navigate and location safely
-  let navigate;
-  let location;
-  
-  try {
-    navigate = useNavigate();
-    location = useLocation();
-  } catch (e) {
-    // We're outside a router context, which can happen during initialization
-    console.warn('AuthProvider initialized outside router context');
-  }
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // Validate if the current session is still valid by checking if the user still exists
-  const validateSession = async (currentSession: Session | null) => {
-    if (!currentSession) return false;
-    
-    try {
-      // Try to get user data to see if the user still exists
-      const { data, error } = await supabase.auth.getUser(currentSession.access_token);
-      
-      if (error || !data.user) {
-        console.warn('Session invalid or user was deleted:', error?.message);
-        // Force sign out if user doesn't exist anymore
-        await supabase.auth.signOut();
-        toast.error('Your session is no longer valid. Please sign in again.');
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error validating session:', error);
-      return false;
-    }
-  };
-
-  // Initialize Supabase auth and set up listener
+  // Check if the user has admin privileges
   useEffect(() => {
-    const initialize = async () => {
-      setIsLoading(true);
-
-      // Set up auth state listener FIRST
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        // Don't update state immediately for sign-in events until we validate the session
-        if (event !== 'SIGNED_IN') {
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
-          
-          // Check if this is an admin user
-          if (newSession?.user?.phone) {
-            // Check if user phone is in the admin phones list
-            setIsAdmin(ADMIN_PHONES.includes(newSession.user.phone));
-          } else {
-            setIsAdmin(false);
-          }
-        }
-      });
-
-      // THEN check for existing session
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      // Validate if the session is still valid (user exists)
-      const isValid = await validateSession(initialSession);
-      
-      if (isValid && initialSession) {
-        setSession(initialSession);
-        setUser(initialSession.user);
-        
-        // Check initial admin status
-        if (initialSession.user?.phone) {
-          setIsAdmin(ADMIN_PHONES.includes(initialSession.user.phone));
-        }
-      } else if (initialSession) {
-        // Session was found but invalid (user might have been deleted)
-        await signOut();
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
       }
 
-      setIsLoading(false);
-      return () => subscription.unsubscribe();
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_role');
+        if (error) {
+          console.error("Error checking admin status:", error);
+          setIsAdmin(false);
+          return;
+        }
+
+        if (data && data.is_admin) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      }
     };
 
-    initialize();
+    checkAdminStatus();
+  }, [user]);
+
+  // Set up auth state listener
+  useEffect(() => {
+    setIsLoading(true);
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          setPhoneNumber(currentSession?.user?.phone ?? null);
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setPhoneNumber(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setPhoneNumber(currentSession?.user?.phone ?? null);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Sign in with phone number (Step 1)
-  const signIn = async (phone: string) => {
+  // Sign in with phone number (request OTP)
+  const signIn = async (phone: string): Promise<{ success: boolean, error: AuthError | null }> => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signInWithOtp({
-        phone: phone,
+        phone,
       });
-      
-      if (error) throw error;
-      
-      showSuccess('Verification code sent! Please check your phone.');
-    } catch (error: any) {
-      showError(error, 'Error sending verification code');
-      throw error;
+
+      if (error) {
+        toast.error('Error sending verification code', {
+          description: error.message,
+        });
+        return { success: false, error };
+      }
+
+      // Store the phone number in state
+      setPhoneNumber(phone);
+      toast.success('Verification code sent', {
+        description: 'Please check your phone for the verification code',
+      });
+      return { success: true, error: null };
+    } catch (err) {
+      toast.error('Unexpected error', {
+        description: 'Failed to send verification code',
+      });
+      return { success: false, error: err as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Verify OTP (Step 2)
-  const verifyOTP = async (phone: string, token: string) => {
+  // Verify OTP and complete sign in
+  const verifyOtp = async (phone: string, token: string): Promise<{ success: boolean, error: AuthError | null }> => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: phone,
-        token: token,
+      setIsLoading(true);
+      const { data, error }: AuthResponse = await supabase.auth.verifyOtp({
+        phone,
+        token,
         type: 'sms',
       });
-      
-      if (error) throw error;
-      
-      // Set user and session state
-      setUser(data.user);
+
+      if (error) {
+        toast.error('Verification failed', {
+          description: error.message,
+        });
+        return { success: false, error };
+      }
+
+      // Authentication successful
       setSession(data.session);
+      setUser(data.user);
+      setPhoneNumber(phone);
       
-      // Set admin status
-      if (data.user?.phone) {
-        setIsAdmin(ADMIN_PHONES.includes(data.user.phone));
-      }
-      
-      // Use navigate only if we're in a router context
-      if (navigate && location?.pathname === '/auth') {
-        navigate('/');
-      }
-      
-      showSuccess('Signed in successfully');
-    } catch (error: any) {
-      showError(error, 'Error verifying code');
-      throw error;
+      toast.success('Verification successful', {
+        description: 'You are now signed in',
+      });
+      navigate('/');
+      return { success: true, error: null };
+    } catch (err) {
+      toast.error('Verification failed', {
+        description: 'An unexpected error occurred',
+      });
+      return { success: false, error: err as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Resend OTP
-  const resendOTP = async (phone: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phone,
-      });
-      
-      if (error) {
-        showError(error, 'Failed to resend verification code');
-        return { success: false, error: error.message };
-      }
-      
-      showSuccess('Verification code sent!');
-      return { success: true };
-    } catch (error: any) {
-      showError(error, 'Failed to resend verification code');
-      return { success: false, error: error.message };
-    }
-  };
-
-  // Sign up with phone number (directly uses sign in with OTP)
-  const signUp = async (phone: string, firstName?: string, lastName?: string) => {
-    try {
-      // First, store metadata for this phone number
-      const { error: metadataError } = await supabase.functions.invoke('store-user-metadata', {
-        body: {
-          phone,
-          metadata: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
-      });
-      
-      if (metadataError) {
-        console.error('Error storing user metadata:', metadataError);
-      }
-      
-      // Then send the OTP
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phone,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
-      });
-      
-      if (error) {
-        showError(error, 'Error sending verification code');
-        return { success: false, error: error.message };
-      }
-      
-      showSuccess('Verification code sent! Please check your phone.');
-      return { success: true };
-    } catch (error: any) {
-      showError(error, 'Error during sign up');
-      return { success: false, error: error.message };
-    }
-  };
-
-  // Sign out function
+  // Sign out
   const signOut = async () => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Reset user and session state
-      setUser(null);
+      await supabase.auth.signOut();
       setSession(null);
-      setIsAdmin(false);
-      
-      // Navigate to auth page after sign out if navigate is available
-      if (navigate) {
-        navigate('/auth');
-      }
-      showSuccess('Signed out successfully');
-    } catch (error: any) {
-      showError(error, 'Error signing out');
-      throw error;
+      setUser(null);
+      setPhoneNumber(null);
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Update auth data manually
+  const updateAuthData = (newSession: Session | null) => {
+    setSession(newSession);
+    setUser(newSession?.user ?? null);
+    setPhoneNumber(newSession?.user?.phone ?? null);
   };
 
   const value = {
-    user,
     session,
-    signIn,
-    verifyOTP,
-    signUp,
-    signOut,
+    user,
     isLoading,
     isAdmin,
-    resendOTP
+    phoneNumber,
+    signIn,
+    verifyOtp,
+    signOut,
+    updateAuthData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
