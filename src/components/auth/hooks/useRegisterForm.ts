@@ -22,7 +22,7 @@ export const useRegisterForm = ({ onRegistrationSuccess }: UseRegisterFormProps)
       firstName: "",
       lastName: "",
       email: "",
-      mobileNumber: "+1", // Default with US/CA country code
+      mobileNumber: "+91", // Default with India country code
       password: "",
       confirmPassword: "",
     },

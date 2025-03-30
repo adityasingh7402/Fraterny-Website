@@ -19,7 +19,7 @@ interface PhoneFieldProps {
 }
 
 export const PhoneField = ({ form }: PhoneFieldProps) => {
-  const [countryCode, setCountryCode] = useState('+1'); // Default to US
+  const [countryCode, setCountryCode] = useState('+91'); // Default to India
 
   const handleCountryCodeChange = (value: string) => {
     setCountryCode(value);
