@@ -11,6 +11,7 @@ export interface ResponsiveImageProps {
   className?: string;
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
+  priority?: 'high' | 'low' | 'auto'; // Added as a replacement for fetchPriority
   onClick?: () => void;
   dynamicKey?: string;
   size?: 'small' | 'medium' | 'large';

@@ -1,3 +1,4 @@
+
 import { ResponsiveImageSource } from '../types';
 
 type ImageSourceResult = {
@@ -21,9 +22,9 @@ export const useImageSource = (
   // Handle string src with dynamic sources
   if (typeof src === 'string' || src === undefined) {
     if (hasDynamicDesktop) {
-      if (isMobile && hasDynamicMobile) {
+      if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
         // Use mobile image if on mobile device and mobile image exists
-        resolvedSrc = mobileDynamicSrc!;
+        resolvedSrc = mobileDynamicSrc;
       } else {
         // Otherwise use desktop image
         resolvedSrc = desktopDynamicSrc!;
@@ -32,10 +33,10 @@ export const useImageSource = (
   } 
   // Handle responsive object src
   else if (typeof src === 'object') {
-    if (hasDynamicDesktop && hasDynamicMobile) {
+    if (hasDynamicDesktop && hasDynamicMobile && mobileDynamicSrc) {
       // Create a new responsive object with both dynamic sources
       resolvedSrc = {
-        mobile: mobileDynamicSrc!,
+        mobile: mobileDynamicSrc,
         desktop: desktopDynamicSrc!
       };
     } else if (hasDynamicDesktop) {

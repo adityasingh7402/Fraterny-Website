@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { ResponsiveImageSource } from './types';
 
 /**
  * Utility function to create common props for the img element
@@ -35,7 +36,8 @@ export const createImageProps = (
   
   // Only add fetchPriority if it exists
   if (fetchPriority) {
-    imgProps.fetchPriority = fetchPriority.toLowerCase() as any;
+    // Use lowercase for HTML attribute
+    imgProps.fetchpriority = fetchPriority.toLowerCase() as any;
   }
   
   return imgProps;
@@ -74,6 +76,3 @@ export const useImagePerformanceMonitoring = (
     }
   }, [imageSrc, dynamicSrc]);
 };
-
-// Import type
-import { ResponsiveImageSource } from './types';

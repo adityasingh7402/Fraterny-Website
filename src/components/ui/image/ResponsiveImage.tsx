@@ -26,7 +26,8 @@ const ResponsiveImage = ({
   fallbackSrc = "/placeholder.svg",
   width,
   height,
-  sizes = '100vw'
+  sizes = '100vw',
+  priority,
 }: ResponsiveImageProps) => {
   // Get device type
   const isMobile = useIsMobile();
@@ -42,7 +43,7 @@ const ResponsiveImage = ({
     useResponsiveImage(mobileKey, size);
   
   // Combined loading state
-  const isLoading = (!!dynamicKey && (isDesktopLoading || (mobileKey && isMobileLoading)));
+  const isLoading = !!(dynamicKey && (isDesktopLoading || (mobileKey && isMobileLoading)));
   
   // Monitor image loading performance
   useImagePerformanceMonitoring(src, desktopDynamicSrc || mobileDynamicSrc);
@@ -65,7 +66,7 @@ const ResponsiveImage = ({
   const hasDynamicMobile = !mobileError && !!mobileDynamicSrc;
   
   // If there was an error loading both images or no dynamic source found for both, use fallback
-  if ((desktopError || !desktopDynamicSrc) && (mobileError || !mobileDynamicSrc) && dynamicKey) {
+  if (dynamicKey && ((!desktopDynamicSrc && !mobileDynamicSrc) || (desktopError && mobileError))) {
     console.log(`Using fallback for ${dynamicKey} - desktop error: ${desktopError}, mobile error: ${mobileError}`);
     
     // If src is provided as a fallback, use it instead of showing error state
@@ -78,7 +79,7 @@ const ResponsiveImage = ({
             alt={alt}
             className={className}
             loading={loading}
-            fetchPriority={fetchPriority}
+            fetchPriority={priority || fetchPriority}
             onClick={onClick}
             fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
             width={width}
@@ -93,7 +94,7 @@ const ResponsiveImage = ({
             alt={alt}
             className={className}
             loading={loading}
-            fetchPriority={fetchPriority}
+            fetchPriority={priority || fetchPriority}
             onClick={onClick}
             fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
             width={width}
@@ -134,7 +135,7 @@ const ResponsiveImage = ({
         alt={alt}
         className={className}
         loading={loading}
-        fetchPriority={fetchPriority}
+        fetchPriority={priority || fetchPriority}
         onClick={onClick}
         fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
         width={width}
@@ -149,7 +150,7 @@ const ResponsiveImage = ({
         alt={alt}
         className={className}
         loading={loading}
-        fetchPriority={fetchPriority}
+        fetchPriority={priority || fetchPriority}
         onClick={onClick}
         fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
         width={width}

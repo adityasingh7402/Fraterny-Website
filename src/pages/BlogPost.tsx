@@ -113,7 +113,7 @@ const BlogPost = () => {
                 size="large"
                 className="w-full h-auto"
                 loading="eager"
-                fetchPriority="high"
+                priority="high"
                 fallbackSrc="/placeholder.svg"
               />
             </div>
