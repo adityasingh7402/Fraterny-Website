@@ -36,28 +36,41 @@ export const signUp = async (
     const currentDomain = window.location.origin;
     console.log('Current domain for redirect:', currentDomain);
     
-    // Format the phone number properly (with +) if it doesn't already have it
-    let formattedPhone = mobileNumber;
-    if (mobileNumber && !mobileNumber.startsWith('+')) {
-      formattedPhone = `+${mobileNumber}`;
+    // Format the phone number properly with country code for E.164 format
+    let formattedPhone = null;
+    if (mobileNumber && mobileNumber.trim()) {
+      formattedPhone = mobileNumber.trim();
+      // Ensure it starts with +
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = `+${formattedPhone}`;
+      }
+      console.log('Formatted phone for Supabase:', formattedPhone);
     }
     
-    console.log('Signing up user with phone:', formattedPhone);
-    
-    // We need to use the phone field AND include it in metadata for complete phone handling
-    const { error, data } = await supabase.auth.signUp({
+    const signUpData: any = {
       email,
       password,
       options: {
         data: {
           first_name: firstName,
           last_name: lastName,
-          phone: formattedPhone,  // Include in metadata
         },
         emailRedirectTo: `${currentDomain}/auth`
-      },
-      phone: formattedPhone,  // Also set as main phone field
-    });
+      }
+    };
+
+    // Only add phone if it's provided and valid
+    if (formattedPhone) {
+      // Add phone as a top-level property
+      signUpData.phone = formattedPhone;
+      
+      // Also include phone in user metadata
+      signUpData.options.data.phone = formattedPhone;
+    }
+    
+    console.log('Full signup data being sent:', JSON.stringify(signUpData, null, 2));
+    
+    const { error, data } = await supabase.auth.signUp(signUpData);
 
     if (error) {
       // Handle specific error for existing user
