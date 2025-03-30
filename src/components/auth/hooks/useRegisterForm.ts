@@ -22,7 +22,7 @@ export const useRegisterForm = ({ onRegistrationSuccess }: UseRegisterFormProps)
       firstName: "",
       lastName: "",
       email: "",
-      mobileNumber: "",
+      mobileNumber: "+1", // Default with US/CA country code
       password: "",
       confirmPassword: "",
     },
@@ -31,9 +31,9 @@ export const useRegisterForm = ({ onRegistrationSuccess }: UseRegisterFormProps)
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      // Format the phone number
+      // Format the phone number to ensure it's in E.164 format
       const formattedPhone = formatPhoneNumber(data.mobileNumber);
-      console.log('Submitting with phone number:', formattedPhone);
+      console.log('Submitting with properly formatted phone number:', formattedPhone);
       
       const result = await signUp(
         data.email, 
