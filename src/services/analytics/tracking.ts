@@ -71,10 +71,19 @@ export const trackPageView = (path: string): void => {
     sessionStorage.setItem('last_page', path);
     sessionStorage.setItem('last_page_time', Date.now().toString());
     
+    // Clear any existing heartbeat interval
+    clearHeartbeatInterval();
+    
+    // Start heartbeat to track time on current page
+    startHeartbeatTracking(path);
+    
     // Listen for page exit
     window.addEventListener('beforeunload', () => {
       const analytics = getAnalyticsFromStorage();
       const today = new Date().toISOString().split('T')[0];
+      
+      // Save final time on page before exit
+      updateTimeOnCurrentPage(path);
       
       if (analytics.dailyTraffic[today] && analytics.dailyTraffic[today].paths[path]) {
         analytics.dailyTraffic[today].paths[path].exits++;
@@ -154,4 +163,61 @@ export const trackSession = (analytics: any, today: string): void => {
   
   // Update last visit time
   localStorage.setItem(ANALYTICS_LAST_VISIT_KEY, Date.now().toString());
+};
+
+// Heartbeat tracking
+let heartbeatInterval: number | undefined;
+
+// Update time spent on current page
+const updateTimeOnCurrentPage = (path: string): void => {
+  try {
+    const lastPageTime = sessionStorage.getItem('last_page_time');
+    if (!lastPageTime) return;
+    
+    const analytics = getAnalyticsFromStorage();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Calculate time spent since last update
+    const now = Date.now();
+    const timeSpent = now - parseInt(lastPageTime, 10);
+    const timeSpentSeconds = Math.floor(timeSpent / 1000);
+    
+    // Only update if time is reasonable (less than 5 minutes)
+    if (timeSpentSeconds > 0 && timeSpentSeconds < 300) {
+      if (analytics.dailyTraffic[today]?.paths?.[path]) {
+        analytics.dailyTraffic[today].paths[path].timeOnPage += timeSpentSeconds;
+        saveAnalyticsToStorage(analytics);
+      }
+    }
+    
+    // Update the last page time to now
+    sessionStorage.setItem('last_page_time', now.toString());
+  } catch (error) {
+    console.error('Error updating time on current page:', error);
+  }
+};
+
+// Clear existing heartbeat interval
+const clearHeartbeatInterval = (): void => {
+  if (heartbeatInterval) {
+    window.clearInterval(heartbeatInterval);
+    heartbeatInterval = undefined;
+  }
+};
+
+// Start heartbeat tracking for current page
+const startHeartbeatTracking = (path: string): void => {
+  // Update time every 15 seconds if the page is active
+  heartbeatInterval = window.setInterval(() => {
+    if (!document.hidden) {
+      updateTimeOnCurrentPage(path);
+    }
+  }, 15000); // 15 seconds
+  
+  // Also update when visibility changes (tab becomes active)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateTimeOnCurrentPage(path);
+    }
+  });
 };

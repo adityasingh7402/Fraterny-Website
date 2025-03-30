@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 
-import { analyticsPeriods, type AnalyticsPeriod } from '@/services/analyticsService';
+import { analyticsPeriods, type AnalyticsPeriod, trackPageView } from '@/services/analyticsService';
 import { DashboardHeader } from './components/DashboardHeader';
 import { KPISection } from './components/KPISection';
 import { TrafficSection } from './components/TrafficSection';
@@ -15,6 +15,11 @@ import { InsightsSection } from './components/InsightsSection';
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState<string>('7d');
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  
+  // Track this page view and ensure heartbeat tracking on mount
+  useEffect(() => {
+    trackPageView('/admin/analytics');
+  }, []);
   
   // Refresh data every 30 seconds if the page is visible
   useEffect(() => {
