@@ -8,7 +8,7 @@ import {
   generateMockDeviceData, 
   generateMockTopPagesData, 
   generateMockOverview 
-} from './mockData';
+} from './mock';
 import { 
   TrafficDataPoint, 
   DistributionDataPoint, 
