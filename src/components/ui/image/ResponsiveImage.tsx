@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
-import { useImagePerformanceMonitoring, createImageProps } from './utils';
+import { useImagePerformanceMonitoring } from './utils';
 import { ResponsiveImageProps } from './types';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { LoadingPlaceholder } from './components/LoadingPlaceholder';
+import { ErrorPlaceholder } from './components/ErrorPlaceholder';
+import { BasicImage } from './components/BasicImage';
+import { ResponsivePicture } from './components/ResponsivePicture';
+import { useImageSource } from './hooks/useImageSource';
 
 /**
  * ResponsiveImage component that serves different image sizes based on screen width
@@ -22,8 +26,6 @@ const ResponsiveImage = ({
   height,
   sizes = '100vw'
 }: ResponsiveImageProps) => {
-  const isMobile = useIsMobile();
-  
   // Get desktop and mobile keys if dynamicKey is provided
   const desktopKey = dynamicKey || '';
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
@@ -43,15 +45,13 @@ const ResponsiveImage = ({
   // If we're still loading dynamic images, show a loading placeholder
   if (isLoading) {
     return (
-      <div 
-        className={`bg-gray-200 animate-pulse ${className}`} 
-        aria-label={`Loading ${alt}`}
-        style={{ 
-          aspectRatio: width && height ? `${width}/${height}` : desktopAspectRatio ? `${desktopAspectRatio}` : '16/9',
-          width: width,
-          height: height 
-        }}
-      ></div>
+      <LoadingPlaceholder 
+        alt={alt}
+        className={className}
+        width={width}
+        height={height}
+        aspectRatio={desktopAspectRatio}
+      />
     );
   }
   
@@ -65,154 +65,104 @@ const ResponsiveImage = ({
     
     // If src is provided as a fallback, use it instead of showing error state
     if (src) {
-      return renderImage(src, {
-        alt,
-        className,
-        loading, 
-        fetchPriority,
-        onClick,
-        fallbackSrc,
-        width,
-        height,
-        sizes
-      });
+      // Render the appropriate image component based on src type
+      if (typeof src === 'string') {
+        return (
+          <BasicImage
+            src={src}
+            alt={alt}
+            className={className}
+            loading={loading}
+            fetchPriority={fetchPriority}
+            onClick={onClick}
+            fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
+            width={width}
+            height={height}
+            sizes={sizes}
+          />
+        );
+      } else if (typeof src === 'object') {
+        return (
+          <ResponsivePicture
+            sources={src}
+            alt={alt}
+            className={className}
+            loading={loading}
+            fetchPriority={fetchPriority}
+            onClick={onClick}
+            fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
+            width={width}
+            height={height}
+            sizes={sizes}
+          />
+        );
+      }
     }
     
     // Otherwise show placeholder/error state
     return (
-      <div 
-        className={`bg-gray-100 flex items-center justify-center ${className}`}
-        style={{ 
-          aspectRatio: width && height ? `${width}/${height}` : '16/9',
-          width: width,
-          height: height 
-        }}
-      >
-        {typeof fallbackSrc === 'string' ? (
-          <img 
-            src={fallbackSrc} 
-            alt={`Placeholder for ${alt}`} 
-            className="max-h-full max-w-full p-4 opacity-30"
-            width={width}
-            height={height}
-          />
-        ) : (
-          <div className="text-gray-400 text-sm text-center p-4">
-            Image not found
-          </div>
-        )}
-      </div>
+      <ErrorPlaceholder 
+        alt={alt}
+        className={className}
+        width={width}
+        height={height}
+        fallbackSrc={fallbackSrc}
+      />
     );
   }
   
-  // Use the desktop image for both desktop and mobile if no mobile-specific image exists
-  // This ensures mobile always has an image even if the -mobile variant doesn't exist
-  let imageSrc = src;
+  // Resolve the appropriate image source
+  const { resolvedSrc } = useImageSource(
+    src, 
+    hasDynamicDesktop, 
+    hasDynamicMobile, 
+    desktopDynamicSrc, 
+    mobileDynamicSrc
+  );
   
-  if (hasDynamicDesktop) {
-    if (isMobile && hasDynamicMobile) {
-      // Use mobile image if on mobile device and mobile image exists
-      imageSrc = mobileDynamicSrc;
-    } else {
-      // Otherwise use desktop image
-      imageSrc = desktopDynamicSrc;
-    }
-  }
-  
-  // For responsive sources object
-  if (typeof src === 'object') {
-    // Create a new responsive object with both dynamic sources
-    if (hasDynamicDesktop && hasDynamicMobile) {
-      imageSrc = {
-        mobile: mobileDynamicSrc!,
-        desktop: desktopDynamicSrc!
-      };
-    } else if (hasDynamicDesktop) {
-      // If only desktop exists, use it for both
-      imageSrc = {
-        mobile: desktopDynamicSrc!,
-        desktop: desktopDynamicSrc!
-      };
-    } else {
-      // Keep original responsive object
-      imageSrc = {
-        mobile: src.mobile,
-        desktop: src.desktop
-      };
-    }
-  }
-  
-  // Render different image styles based on the type of imageSrc
-  return renderImage(imageSrc, {
-    alt,
-    className,
-    loading, 
-    fetchPriority,
-    onClick,
-    fallbackSrc,
-    width,
-    height,
-    sizes
-  });
-};
-
-/**
- * Helper function to render the appropriate image based on source type
- */
-function renderImage(
-  imageSrc: string | { mobile: string; tablet?: string; desktop: string; } | undefined,
-  props: Omit<ResponsiveImageProps, 'src' | 'dynamicKey' | 'size'>
-) {
-  const { 
-    alt, className, loading, fetchPriority, onClick, 
-    fallbackSrc, width, height, sizes 
-  } = props;
-
-  // If imageSrc is a string (simple URL), use the same image for all sizes
-  if (typeof imageSrc === 'string') {
-    const imgProps = createImageProps(
-      imageSrc, alt, className, loading, sizes,
-      width, height, 
-      typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg', 
-      fetchPriority
-    );
-    
-    return <img {...imgProps} onClick={onClick} />;
-  }
-  
-  // If imageSrc is an object with responsive breakpoints
-  if (imageSrc) {
-    // Create common image props
-    const imgProps = createImageProps(
-      imageSrc.desktop, alt, className, loading, sizes,
-      width, height, 
-      typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg',
-      fetchPriority
-    );
-    
+  // Render the appropriate image component based on resolvedSrc type
+  if (typeof resolvedSrc === 'string') {
     return (
-      <picture onClick={onClick}>
-        {imageSrc.mobile && <source media="(max-width: 640px)" srcSet={imageSrc.mobile} />}
-        {imageSrc.tablet && <source media="(max-width: 1024px)" srcSet={imageSrc.tablet} />}
-        <source media="(min-width: 641px)" srcSet={imageSrc.desktop} />
-        <img {...imgProps} />
-      </picture>
+      <BasicImage
+        src={resolvedSrc}
+        alt={alt}
+        className={className}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        onClick={onClick}
+        fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
+        width={width}
+        height={height}
+        sizes={sizes}
+      />
+    );
+  } else if (resolvedSrc) {
+    return (
+      <ResponsivePicture
+        sources={resolvedSrc}
+        alt={alt}
+        className={className}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        onClick={onClick}
+        fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
+        width={width}
+        height={height}
+        sizes={sizes}
+      />
     );
   }
   
   // Fallback for empty src
   return (
-    <div 
-      className={`bg-gray-100 flex items-center justify-center ${className}`}
-      style={{ 
-        aspectRatio: width && height ? `${width}/${height}` : '16/9',
-        width, 
-        height 
-      }}
-    >
-      <div className="text-gray-400 text-sm text-center p-4">No image provided</div>
-    </div>
+    <ErrorPlaceholder 
+      alt={alt}
+      className={className}
+      width={width}
+      height={height}
+      fallbackSrc="No image provided"
+    />
   );
-}
+};
 
 export default ResponsiveImage;
