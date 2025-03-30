@@ -38,33 +38,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('AuthProvider initialized outside router context');
   }
 
+  // Validate if the current session is still valid by checking if the user still exists
+  const validateSession = async (currentSession: Session | null) => {
+    if (!currentSession) return false;
+    
+    try {
+      // Try to get user data to see if the user still exists
+      const { data, error } = await supabase.auth.getUser(currentSession.access_token);
+      
+      if (error || !data.user) {
+        console.warn('Session invalid or user was deleted:', error?.message);
+        // Force sign out if user doesn't exist anymore
+        await supabase.auth.signOut();
+        toast.error('Your session is no longer valid. Please sign in again.');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validating session:', error);
+      return false;
+    }
+  };
+
   // Initialize Supabase auth and set up listener
   useEffect(() => {
     const initialize = async () => {
       setIsLoading(true);
 
       // Set up auth state listener FIRST
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        
-        // Check if this is an admin user
-        if (newSession?.user?.email) {
-          // Check if user email is in the admin emails list
-          setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
-        } else {
-          setIsAdmin(false);
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+        // Don't update state immediately for sign-in events until we validate the session
+        if (event !== 'SIGNED_IN') {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          // Check if this is an admin user
+          if (newSession?.user?.email) {
+            // Check if user email is in the admin emails list
+            setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
+          } else {
+            setIsAdmin(false);
+          }
         }
       });
 
       // THEN check for existing session
       const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
       
-      // Check initial admin status
-      if (initialSession?.user?.email) {
-        setIsAdmin(ADMIN_EMAILS.includes(initialSession.user.email));
+      // Validate if the session is still valid (user exists)
+      const isValid = await validateSession(initialSession);
+      
+      if (isValid && initialSession) {
+        setSession(initialSession);
+        setUser(initialSession.user);
+        
+        // Check initial admin status
+        if (initialSession.user?.email) {
+          setIsAdmin(ADMIN_EMAILS.includes(initialSession.user.email));
+        }
+      } else if (initialSession) {
+        // Session was found but invalid (user might have been deleted)
+        await signOut();
       }
 
       setIsLoading(false);
@@ -77,8 +112,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sign in function
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      
+      // Validate the new session
+      const isValid = await validateSession(data.session);
+      if (!isValid) {
+        throw new Error('Invalid session. User may have been deleted.');
+      }
+      
+      // Set user and session state
+      setUser(data.session?.user ?? null);
+      setSession(data.session);
+      
+      // Set admin status
+      if (data.session?.user?.email) {
+        setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
+      }
       
       // Use navigate only if we're in a router context and not on the home page already
       if (navigate && location?.pathname === '/auth') {
@@ -118,6 +168,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Reset user and session state
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
       
       // Navigate to auth page after sign out if navigate is available
       if (navigate) {

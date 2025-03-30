@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 
 export const ProtectedRoute = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, session } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export const ProtectedRoute = () => {
   }
 
   // If not authenticated, redirect to auth page
-  if (!user) {
+  if (!user || !session) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -32,18 +32,18 @@ export const ProtectedRoute = () => {
 };
 
 export const AdminRoute = () => {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isLoading, session } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading) {
-      if (!user) {
+      if (!user || !session) {
         navigate('/auth', { replace: true });
       } else if (!isAdmin) {
         navigate('/', { replace: true });
       }
     }
-  }, [user, isAdmin, isLoading, navigate]);
+  }, [user, isAdmin, isLoading, navigate, session]);
 
   // Show loading state if still checking authentication
   if (isLoading) {
@@ -55,7 +55,7 @@ export const AdminRoute = () => {
   }
 
   // If not authenticated, redirect to auth page
-  if (!user) {
+  if (!user || !session) {
     return <Navigate to="/auth" replace />;
   }
 
