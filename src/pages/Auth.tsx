@@ -1,260 +1,316 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { Label } from "@/components/ui/label";
-import { Loader2, Phone } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Phone, RefreshCw, Check, ChevronLeft } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-// Schema for phone authentication
-const phoneSchema = z.object({
-  phone: z
-    .string()
-    .min(10, { message: "Phone number must be at least 10 digits" })
-    .refine((val) => /^\+?[0-9]+$/.test(val), {
-      message: "Please enter a valid phone number",
-    }),
+const phoneRegex = /^\+?[0-9]{10,15}$/;
+
+const signInSchema = z.object({
+  phone: z.string().regex(phoneRegex, 'Enter a valid phone number with country code (e.g., +1XXXXXXXXXX)'),
 });
 
-// Schema for OTP verification
-const otpSchema = z.object({
-  otp: z
-    .string()
-    .min(6, { message: "Verification code must be at least 6 digits" })
-    .refine((val) => /^[0-9]+$/.test(val), {
-      message: "Verification code must contain only numbers",
-    }),
+const verifySchema = z.object({
+  otp: z.string().min(6, { message: 'OTP must be 6 digits' }).max(6),
 });
 
-// Form values types
-type PhoneFormValues = z.infer<typeof phoneSchema>;
-type OtpFormValues = z.infer<typeof otpSchema>;
+const registerSchema = z.object({
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+  phone: z.string().regex(phoneRegex, 'Enter a valid phone number with country code (e.g., +1XXXXXXXXXX)'),
+});
+
+type SignInFormValues = z.infer<typeof signInSchema>;
+type VerifyFormValues = z.infer<typeof verifySchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
-  const { user, signIn, verifyOtp, isLoading } = useAuth();
-  const [otpSent, setOtpSent] = useState(false);
-  const [currentPhone, setCurrentPhone] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn, verifyOTP, signUp, resendOTP } = useAuth();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("login");
+  const [otpSent, setOtpSent] = useState(false);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+  const [currentPhone, setCurrentPhone] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
 
-  // Form for phone number input
-  const phoneForm = useForm<PhoneFormValues>({
-    resolver: zodResolver(phoneSchema),
+  const signInForm = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       phone: "",
     },
   });
 
-  // Form for OTP verification
-  const otpForm = useForm<OtpFormValues>({
-    resolver: zodResolver(otpSchema),
+  const verifyForm = useForm<VerifyFormValues>({
+    resolver: zodResolver(verifySchema),
     defaultValues: {
       otp: "",
     },
   });
 
-  // If user is already authenticated, redirect to home
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+    },
+  });
 
-  // Handle phone number submission
-  const onPhoneSubmit = async (values: PhoneFormValues) => {
-    setIsSubmitting(true);
-    
-    // Format phone number to ensure it has a country code
-    let formattedPhone = values.phone;
-    if (!formattedPhone.startsWith("+")) {
-      // Add India country code if not present
-      formattedPhone = `+91${formattedPhone}`;
-    }
-    
+  const onSignInSubmit = async (data: SignInFormValues) => {
+    setIsLoading(true);
     try {
-      // Store user metadata before sending OTP
-      const metadataResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-user-metadata`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          phone: formattedPhone,
-          metadata: {
-            signup_date: new Date().toISOString(),
-            last_signin_attempt: new Date().toISOString(),
-          }
-        }),
-      });
-      
-      if (!metadataResponse.ok) {
-        const errorData = await metadataResponse.json();
-        console.error('Failed to store user metadata:', errorData);
-      }
-      
-      // Send OTP via Supabase Auth
-      const { success } = await signIn(formattedPhone);
-      
-      if (success) {
-        setOtpSent(true);
-        setCurrentPhone(formattedPhone);
-      }
+      await signIn(data.phone);
+      setCurrentPhone(data.phone);
+      setOtpSent(true);
+      setIsSignUp(false);
     } catch (error) {
-      console.error("Error during phone authentication:", error);
+      console.error(error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  // Handle OTP verification
-  const onOtpSubmit = async (values: OtpFormValues) => {
-    setIsSubmitting(true);
+  const onVerifySubmit = async (data: VerifyFormValues) => {
+    setIsLoading(true);
     try {
-      await verifyOtp(currentPhone, values.otp);
+      await verifyOTP(currentPhone, data.otp);
+      navigate('/');
     } catch (error) {
-      console.error("Error during OTP verification:", error);
+      console.error(error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
+  };
+
+  const onRegisterSubmit = async (data: RegisterFormValues) => {
+    setIsLoading(true);
+    try {
+      const result = await signUp(data.phone, data.firstName, data.lastName);
+      if (result.success) {
+        setCurrentPhone(data.phone);
+        setOtpSent(true);
+        setIsSignUp(true);
+        registerForm.reset();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setIsResendingOtp(true);
+    try {
+      await resendOTP(currentPhone);
+    } catch (error) {
+      console.error('Failed to resend OTP:', error);
+    } finally {
+      setIsResendingOtp(false);
+    }
+  };
+
+  const handleBackToForm = () => {
+    setOtpSent(false);
+    verifyForm.reset();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-navy">
-            Welcome to Fraterny
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {otpSent ? "Enter the verification code sent to your phone" : "Enter your phone number to sign in or register"}
-          </p>
+          <h1 className="text-3xl font-bold text-navy mb-2">Welcome to FRAT</h1>
+          <p className="text-gray-500">Sign in to access your account</p>
         </div>
 
-        <Card className="w-full mt-6">
-          <CardHeader>
-            <CardTitle className="text-xl font-medium text-navy">
-              {otpSent ? "Verify OTP" : "Phone Authentication"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!otpSent ? (
-              <Form {...phoneForm}>
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-6">
+        {otpSent ? (
+          <div className="space-y-6">
+            <Alert className="bg-blue-50 border-blue-200">
+              <Phone className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-700">Verification Code Sent!</AlertTitle>
+              <AlertDescription className="text-blue-600">
+                We've sent a verification code to <strong>{currentPhone}</strong>.
+                Please enter the 6-digit code below.
+              </AlertDescription>
+            </Alert>
+
+            <Form {...verifyForm}>
+              <form onSubmit={verifyForm.handleSubmit(onVerifySubmit)} className="space-y-6">
+                <FormField
+                  control={verifyForm.control}
+                  name="otp"
+                  render={({ field }) => (
+                    <FormItem className="space-y-4">
+                      <FormLabel>Verification Code</FormLabel>
+                      <FormControl>
+                        <InputOTP
+                          maxLength={6}
+                          {...field}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-3">
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-terracotta hover:bg-terracotta/90"
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify Code'}
+                  </Button>
+                  
+                  <div className="flex justify-between">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleBackToForm}
+                      className="flex items-center"
+                    >
+                      <ChevronLeft className="mr-1 h-4 w-4" />
+                      Back
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={handleResendOTP}
+                      disabled={isResendingOtp}
+                      className="text-terracotta hover:text-terracotta/90"
+                    >
+                      {isResendingOtp ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Resending...
+                        </>
+                      ) : (
+                        'Resend Code'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Form>
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="login">Sign In</TabsTrigger>
+              <TabsTrigger value="register">Sign Up</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <Form {...signInForm}>
+                <form onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-6">
                   <FormField
-                    control={phoneForm.control}
+                    control={signInForm.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-terracotta focus-within:border-terracotta overflow-hidden">
-                            <div className="bg-gray-50 px-3 py-2.5 border-r">
-                              <Phone size={18} className="text-gray-500" />
-                            </div>
-                            <Input
-                              {...field}
-                              placeholder="+91 (India) or 10-digit number"
-                              className="border-0 focus-visible:ring-0"
-                              type="tel"
-                            />
-                          </div>
+                          <Input 
+                            type="tel" 
+                            placeholder="Enter with country code (+1XXXXXXXXXX)" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-terracotta hover:bg-terracotta-dark"
-                    disabled={isSubmitting || isLoading}
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-terracotta hover:bg-terracotta/90"
                   >
-                    {isSubmitting || isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending Code...
-                      </>
-                    ) : (
-                      "Send Verification Code"
-                    )}
+                    {isLoading ? 'Sending code...' : 'Send Verification Code'}
                   </Button>
                 </form>
               </Form>
-            ) : (
-              <>
-                <Alert className="mb-6 bg-blue-50 border-blue-200">
-                  <AlertTitle className="text-blue-800">Verification code sent!</AlertTitle>
-                  <AlertDescription className="text-blue-700">
-                    We've sent a verification code to {currentPhone}
-                  </AlertDescription>
-                </Alert>
+            </TabsContent>
 
-                <Form {...otpForm}>
-                  <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-6">
+            <TabsContent value="register">
+              <Form {...registerForm}>
+                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
-                      control={otpForm.control}
-                      name="otp"
+                      control={registerForm.control}
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Verification Code</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Enter 6-digit code"
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={6}
-                              className="text-center text-lg tracking-widest"
-                            />
+                            <Input placeholder="First name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
-                    <div className="space-y-4">
-                      <Button
-                        type="submit"
-                        className="w-full bg-terracotta hover:bg-terracotta-dark"
-                        disabled={isSubmitting || isLoading}
-                      >
-                        {isSubmitting || isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Verifying...
-                          </>
-                        ) : (
-                          "Verify & Sign In"
-                        )}
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-full text-navy"
-                        onClick={() => {
-                          setOtpSent(false);
-                          setCurrentPhone("");
-                        }}
-                        disabled={isSubmitting || isLoading}
-                      >
-                        Change Phone Number
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                    <FormField
+                      control={registerForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Last name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={registerForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="tel" 
+                            placeholder="Enter with country code (+1XXXXXXXXXX)" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-terracotta hover:bg-terracotta/90"
+                  >
+                    {isLoading ? 'Signing up...' : 'Sign Up'}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

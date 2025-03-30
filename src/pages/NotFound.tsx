@@ -1,21 +1,37 @@
 
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const NotFound = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  // Check if we're in a router context before using router hooks
+  let location;
+  let navigate;
+  
+  try {
+    location = useLocation();
+    navigate = useNavigate();
+  } catch (e) {
+    // If hooks fail, we're outside router context
+    console.error("404 page rendered outside Router context");
+  }
 
-  React.useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
+  useEffect(() => {
+    if (location) {
+      console.error(
+        "404 Error: User attempted to access non-existent route:",
+        location.pathname
+      );
+    }
   }, [location]);
 
-  const handleHomeClick = (e: React.MouseEvent) => {
+  const handleHomeClick = (e) => {
     e.preventDefault();
-    navigate("/");
+    if (navigate) {
+      navigate("/");
+    } else {
+      // Fallback to regular navigation
+      window.location.href = "/";
+    }
   };
 
   return (

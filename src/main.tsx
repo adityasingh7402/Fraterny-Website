@@ -35,22 +35,11 @@ const queryClient = new QueryClient({
   }
 });
 
-// Create a separate NotFound page route with its own Router context
-const NotFoundPage = () => {
-  return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <NotFound />
-      </QueryClientProvider>
-    </React.StrictMode>
-  );
-};
-
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    errorElement: <NotFoundPage />,
+    errorElement: <NotFound />,
     children: [
       { index: true, element: <Index /> },
       { path: "auth", element: <Auth /> },
@@ -79,13 +68,12 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Add 404 route explicitly
-  {
-    path: "*",
-    element: <NotFoundPage />
-  }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <RouterProvider router={router} />
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  </React.StrictMode>
 )
