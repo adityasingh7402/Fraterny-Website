@@ -54,6 +54,13 @@ const ResponsiveImage = ({
     lastUpdated
   } = useResponsiveImage(dynamicKey, size, debugCache);
   
+  // For debugging
+  useEffect(() => {
+    if (dynamicKey && dynamicSrc) {
+      console.log(`[ResponsiveImage] Rendered ${dynamicKey} with URL: ${dynamicSrc}`);
+    }
+  }, [dynamicKey, dynamicSrc]);
+
   // If we're loading a dynamic image and it's still loading
   if (dynamicKey && isLoading) {
     return (
@@ -93,7 +100,7 @@ const ResponsiveImage = ({
           loading={loading}
           fetchPriority={finalFetchPriority}
           onClick={onClick}
-          className={className}
+          className="w-full h-full"
           width={width}
           height={height}
           sizes={sizes}
@@ -156,7 +163,7 @@ const ResponsiveImage = ({
         loading={loading}
         fetchPriority={finalFetchPriority}
         onClick={onClick}
-        className={className}
+        className={className || "w-full h-full"}
         width={width}
         height={height}
         sizes={sizes}

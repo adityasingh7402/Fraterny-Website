@@ -38,7 +38,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
             fallbackSrc="/placeholder.svg"
-            src=""
+            src="" // Empty string as src since we're using dynamicKey
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-navy to-terracotta opacity-40"></div>

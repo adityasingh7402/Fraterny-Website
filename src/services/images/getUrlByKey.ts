@@ -11,33 +11,52 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   // First check if this URL is in the URL cache
   const cachedUrl = urlCache.get(`url:${key}`);
   if (cachedUrl) {
+    console.log(`[getImageUrlByKey] Using cached URL for ${key}`);
     return cachedUrl;
   }
 
-  // Fetch the image record to get the storage path
-  const { data, error } = await supabase
-    .from('website_images')
-    .select('storage_path')
-    .eq('key', key)
-    .maybeSingle();
+  try {
+    console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
 
-  if (error || !data) {
-    console.error(`Error fetching image with key ${key}:`, error);
+    // Fetch the image record to get the storage path
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('storage_path')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
+      return '/placeholder.svg';
+    }
+
+    if (!data || !data.storage_path) {
+      console.warn(`[getImageUrlByKey] No image or storage path found for key ${key}`);
+      return '/placeholder.svg';
+    }
+
+    // Get the public URL for this storage path
+    const { data: urlData } = supabase.storage
+      .from('website-images')
+      .getPublicUrl(data.storage_path);
+
+    if (!urlData || !urlData.publicUrl) {
+      console.warn(`[getImageUrlByKey] Failed to get public URL for storage path: ${data.storage_path}`);
+      return '/placeholder.svg';
+    }
+
+    // No content hash since metadata column doesn't exist yet
+    const finalUrl = urlData.publicUrl;
+    console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
+
+    // Cache the URL for future use
+    urlCache.set(`url:${key}`, finalUrl);
+
+    return finalUrl;
+  } catch (e) {
+    console.error(`[getImageUrlByKey] Unexpected error for key ${key}:`, e);
     return '/placeholder.svg';
   }
-
-  // Get the public URL for this storage path
-  const { data: urlData } = supabase.storage
-    .from('website-images')
-    .getPublicUrl(data.storage_path);
-
-  // No content hash since metadata column doesn't exist yet
-  const finalUrl = urlData.publicUrl;
-
-  // Cache the URL for future use
-  urlCache.set(`url:${key}`, finalUrl);
-
-  return finalUrl;
 };
 
 /**
@@ -52,38 +71,59 @@ export const getImageUrlByKeyAndSize = async (
   // First check if this URL is already cached
   const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl) {
+    console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size})`);
     return cachedUrl;
   }
 
-  // Fetch the image record to get sizes
-  const { data, error } = await supabase
-    .from('website_images')
-    .select('sizes')
-    .eq('key', key)
-    .maybeSingle();
+  try {
+    console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
 
-  if (error || !data) {
-    console.error(`Error fetching image with key ${key}:`, error);
+    // Fetch the image record to get sizes
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('sizes, storage_path')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`[getImageUrlByKeyAndSize] Error fetching image with key ${key}:`, error);
+      return '/placeholder.svg';
+    }
+
+    if (!data) {
+      console.warn(`[getImageUrlByKeyAndSize] No image found for key ${key}`);
+      return '/placeholder.svg';
+    }
+    
+    // Check if sizes exists and if the requested size is available
+    if (data.sizes && data.sizes[size]) {
+      // Get the public URL for this optimized size
+      const { data: urlData } = supabase.storage
+        .from('website-images')
+        .getPublicUrl(data.sizes[size]);
+
+      if (!urlData || !urlData.publicUrl) {
+        console.warn(`[getImageUrlByKeyAndSize] Failed to get public URL for size path: ${data.sizes[size]}`);
+        return '/placeholder.svg';
+      }
+
+      // No content hash since metadata column doesn't exist yet
+      const finalUrl = urlData.publicUrl;
+      console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
+
+      // Cache the URL for future use
+      urlCache.set(cacheKey, finalUrl);
+      
+      return finalUrl;
+    }
+
+    // If the requested size doesn't exist, fall back to the original image
+    console.log(`[getImageUrlByKeyAndSize] Size ${size} not found for ${key}, falling back to original`);
+    return getImageUrlByKey(key);
+  } catch (e) {
+    console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}, size ${size}:`, e);
     return '/placeholder.svg';
   }
-  
-  if (data.sizes && data.sizes[size]) {
-    // Get the public URL for this optimized size
-    const { data: urlData } = supabase.storage
-      .from('website-images')
-      .getPublicUrl(data.sizes[size]);
-
-    // No content hash since metadata column doesn't exist yet
-    const finalUrl = urlData.publicUrl;
-
-    // Cache the URL for future use
-    urlCache.set(cacheKey, finalUrl);
-    
-    return finalUrl;
-  }
-
-  // If the requested size doesn't exist, fall back to the original image
-  return getImageUrlByKey(key);
 };
 
 /**
@@ -123,5 +163,16 @@ export const clearImageUrlCache = (): void => {
  */
 export const clearImageUrlCacheForKey = (key: string): void => {
   console.log(`Clearing URL cache for key: ${key}`);
-  urlCache.invalidate(key);
+  
+  // Clear all related cache entries
+  urlCache.delete(`url:${key}`);
+  urlCache.delete(`placeholder:tiny:${key}`);
+  urlCache.delete(`placeholder:color:${key}`);
+  
+  // Clear size variants
+  ['small', 'medium', 'large'].forEach(size => {
+    urlCache.delete(`url:${key}:${size}`);
+  });
+  
+  console.log(`Cache entries for key ${key} cleared`);
 };
