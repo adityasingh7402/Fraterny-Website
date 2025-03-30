@@ -1,0 +1,6 @@
+
+project_id = "eukenximajiuhrtljnpw"
+anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1a2VueGltYWppdWhydGxqbnB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5OTE0OTYsImV4cCI6MjA1ODU2NzQ5Nn0.P4U99VuGWgdPxJDsJ5LKnhvVQ1Rhgpwp9yqolRnuNJg"
+
+[functions."store-user-metadata"]
+verify_jwt = false

@@ -31,6 +31,25 @@ const UserMenu = ({ isScrolled }: UserMenuProps) => {
       console.error('Error signing out:', error);
     }
   };
+  
+  // Get user display information
+  const getUserInitial = () => {
+    if (user?.user_metadata?.first_name) {
+      return user.user_metadata.first_name.charAt(0);
+    } else if (user?.phone) {
+      return user.phone.slice(-2, -1);
+    }
+    return null;
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.first_name) {
+      return user.user_metadata.first_name;
+    } else if (user?.phone) {
+      return user.phone;
+    }
+    return "User";
+  };
 
   return (
     <div className="relative">
@@ -41,9 +60,9 @@ const UserMenu = ({ isScrolled }: UserMenuProps) => {
         aria-haspopup="true"
       >
         <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
-          {user?.user_metadata?.first_name ? (
+          {getUserInitial() ? (
             <span className="text-white font-medium">
-              {user.user_metadata.first_name.charAt(0)}
+              {getUserInitial()}
             </span>
           ) : (
             <User size={18} />
@@ -55,7 +74,7 @@ const UserMenu = ({ isScrolled }: UserMenuProps) => {
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {user?.email}
+              {getUserDisplayName()}
             </p>
             <p className="text-xs text-gray-500">
               {isAdmin ? 'Administrator' : 'User'}

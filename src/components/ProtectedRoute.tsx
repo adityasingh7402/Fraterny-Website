@@ -12,21 +12,7 @@ export const ProtectedRoute = () => {
     if (!isLoading && !user) {
       navigate('/auth', { replace: true });
     }
-    
-    // Handle verification redirects from email
-    const handleVerificationRedirect = () => {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-      
-      if (accessToken && type === 'signup') {
-        // Clear the hash to avoid repeated processing
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    };
-    
-    handleVerificationRedirect();
-  }, [user, isLoading, navigate, location]);
+  }, [user, isLoading, navigate]);
 
   // Show loading state if still checking authentication
   if (isLoading) {
@@ -49,7 +35,6 @@ export const ProtectedRoute = () => {
 export const AdminRoute = () => {
   const { user, isAdmin, isLoading, session } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (!isLoading) {
@@ -59,20 +44,7 @@ export const AdminRoute = () => {
         navigate('/', { replace: true });
       }
     }
-    
-    // Handle verification redirects similar to ProtectedRoute
-    const handleVerificationRedirect = () => {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      
-      if (accessToken) {
-        // Clear the hash
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    };
-    
-    handleVerificationRedirect();
-  }, [user, isAdmin, isLoading, navigate, session, location]);
+  }, [user, isAdmin, isLoading, navigate, session]);
 
   // Show loading state if still checking authentication
   if (isLoading) {

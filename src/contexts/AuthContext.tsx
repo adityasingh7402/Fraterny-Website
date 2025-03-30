@@ -6,18 +6,19 @@ import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { showError, showSuccess } from '@/utils/errorHandler';
 
-// Define admin emails in a separate array for easier management
-const ADMIN_EMAILS = ['admin@example.com', 'malhotrayash1900@gmail.com']; 
+// Define admin phone numbers in a separate array for easier management
+const ADMIN_PHONES = ['+1234567890']; 
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<{success: boolean; error?: string; emailConfirmationSent: boolean}>;
+  signIn: (phone: string) => Promise<void>;
+  verifyOTP: (phone: string, token: string) => Promise<void>;
+  signUp: (phone: string, firstName?: string, lastName?: string) => Promise<{success: boolean; error?: string}>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
-  resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
+  resendOTP: (phone: string) => Promise<{success: boolean; error?: string}>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,58 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Handle email verification link
-  useEffect(() => {
-    if (!location) return;
-
-    const handleVerificationRedirect = async () => {
-      try {
-        // Check for verification link parameters in the URL
-        const hashParams = new URLSearchParams(location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type');
-
-        if (accessToken && (type === 'signup' || type === 'recovery' || type === 'invite')) {
-          console.log(`Processing ${type} verification from URL hash`);
-          
-          // Set the session with the tokens from the URL
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
-
-          if (error) {
-            console.error('Error setting session from URL:', error);
-            toast.error('Failed to verify email. Please try signing in.');
-            navigate('/auth');
-            return;
-          }
-
-          if (data?.session) {
-            setSession(data.session);
-            setUser(data.session.user);
-
-            // Set admin status if applicable
-            if (data.session.user?.email) {
-              setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
-            }
-
-            // Clear the hash to avoid repeated processing
-            window.history.replaceState(null, '', window.location.pathname);
-            
-            toast.success('Email verified successfully!');
-            navigate('/');
-          }
-        }
-      } catch (error) {
-        console.error('Error handling verification redirect:', error);
-      }
-    };
-
-    handleVerificationRedirect();
-  }, [location, navigate]);
-
   // Initialize Supabase auth and set up listener
   useEffect(() => {
     const initialize = async () => {
@@ -128,9 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(newSession?.user ?? null);
           
           // Check if this is an admin user
-          if (newSession?.user?.email) {
-            // Check if user email is in the admin emails list
-            setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
+          if (newSession?.user?.phone) {
+            // Check if user phone is in the admin phones list
+            setIsAdmin(ADMIN_PHONES.includes(newSession.user.phone));
           } else {
             setIsAdmin(false);
           }
@@ -148,8 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(initialSession.user);
         
         // Check initial admin status
-        if (initialSession.user?.email) {
-          setIsAdmin(ADMIN_EMAILS.includes(initialSession.user.email));
+        if (initialSession.user?.phone) {
+          setIsAdmin(ADMIN_PHONES.includes(initialSession.user.phone));
         }
       } else if (initialSession) {
         // Session was found but invalid (user might have been deleted)
@@ -163,110 +112,113 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initialize();
   }, []);
 
-  // Sign in function
-  const signIn = async (email: string, password: string) => {
+  // Sign in with phone number (Step 1)
+  const signIn = async (phone: string) => {
     try {
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+      });
+      
       if (error) throw error;
       
-      // Validate the new session
-      const isValid = await validateSession(data.session);
-      if (!isValid) {
-        throw new Error('Invalid session. User may have been deleted.');
-      }
-      
-      // Set user and session state
-      setUser(data.session?.user ?? null);
-      setSession(data.session);
-      
-      // Set admin status
-      if (data.session?.user?.email) {
-        setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
-      }
-      
-      // Use navigate only if we're in a router context and not on the home page already
-      if (navigate && location?.pathname === '/auth') {
-        navigate('/');
-      }
-      
-      toast.success('Signed in successfully');
+      showSuccess('Verification code sent! Please check your phone.');
     } catch (error: any) {
-      toast.error(error.message || 'Error signing in');
+      showError(error, 'Error sending verification code');
       throw error;
     }
   };
 
-  // Resend verification email function
-  const resendVerificationEmail = async (email: string) => {
+  // Verify OTP (Step 2)
+  const verifyOTP = async (phone: string, token: string) => {
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`
-        }
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: token,
+        type: 'sms',
+      });
+      
+      if (error) throw error;
+      
+      // Set user and session state
+      setUser(data.user);
+      setSession(data.session);
+      
+      // Set admin status
+      if (data.user?.phone) {
+        setIsAdmin(ADMIN_PHONES.includes(data.user.phone));
+      }
+      
+      // Use navigate only if we're in a router context
+      if (navigate && location?.pathname === '/auth') {
+        navigate('/');
+      }
+      
+      showSuccess('Signed in successfully');
+    } catch (error: any) {
+      showError(error, 'Error verifying code');
+      throw error;
+    }
+  };
+
+  // Resend OTP
+  const resendOTP = async (phone: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
       });
       
       if (error) {
-        console.error('Error resending verification email:', error);
-        showError(error, 'Failed to resend verification email');
+        showError(error, 'Failed to resend verification code');
         return { success: false, error: error.message };
       }
       
-      showSuccess('Verification email sent! Please check your inbox and spam folder.');
+      showSuccess('Verification code sent!');
       return { success: true };
     } catch (error: any) {
-      console.error('Error in resendVerificationEmail:', error);
-      showError(error, 'Failed to resend verification email');
+      showError(error, 'Failed to resend verification code');
       return { success: false, error: error.message };
     }
   };
 
-  // Sign up function
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => {
+  // Sign up with phone number (directly uses sign in with OTP)
+  const signUp = async (phone: string, firstName?: string, lastName?: string) => {
     try {
-      // Get the current domain to use for the redirect URL
-      const currentDomain = window.location.origin;
+      // First, store metadata for this phone number
+      const { error: metadataError } = await supabase.functions.invoke('store-user-metadata', {
+        body: {
+          phone,
+          metadata: {
+            first_name: firstName,
+            last_name: lastName
+          }
+        }
+      });
       
-      const { error, data } = await supabase.auth.signUp({
-        email,
-        password,
+      if (metadataError) {
+        console.error('Error storing user metadata:', metadataError);
+      }
+      
+      // Then send the OTP
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
         options: {
           data: {
             first_name: firstName,
-            last_name: lastName,
-            mobile_number: mobileNumber
-          },
-          emailRedirectTo: `${currentDomain}/auth`
+            last_name: lastName
+          }
         }
       });
-
+      
       if (error) {
-        // Handle specific error for existing user
-        if (error.message.includes('User already registered')) {
-          toast.error('An account with this email address already exists. Please sign in instead.');
-          return { success: false, error: 'User already registered', emailConfirmationSent: false };
-        }
-        
-        // Handle other errors
-        toast.error(error.message || 'Error signing up');
-        return { success: false, error: error.message, emailConfirmationSent: false };
+        showError(error, 'Error sending verification code');
+        return { success: false, error: error.message };
       }
       
-      // Check for autoconfirm (no email verification needed)
-      if (data?.user && !data.user.email_confirmed_at) {
-        console.log('User created, email confirmation required');
-        return { success: true, emailConfirmationSent: true };
-      } else {
-        // User was auto-confirmed (email confirmation was disabled in Supabase settings)
-        console.log('User created and auto-confirmed');
-        toast.success('Signed up successfully!');
-        return { success: true, emailConfirmationSent: false };
-      }
+      showSuccess('Verification code sent! Please check your phone.');
+      return { success: true };
     } catch (error: any) {
-      console.error('Error in signUp:', error);
-      toast.error(error.message || 'Error signing up');
-      return { success: false, error: error.message, emailConfirmationSent: false };
+      showError(error, 'Error during sign up');
+      return { success: false, error: error.message };
     }
   };
 
@@ -285,9 +237,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (navigate) {
         navigate('/auth');
       }
-      toast.success('Signed out successfully');
+      showSuccess('Signed out successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Error signing out');
+      showError(error, 'Error signing out');
       throw error;
     }
   };
@@ -296,11 +248,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     signIn,
+    verifyOTP,
     signUp,
     signOut,
     isLoading,
     isAdmin,
-    resendVerificationEmail
+    resendOTP
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
