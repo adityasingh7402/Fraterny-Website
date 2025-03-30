@@ -19,14 +19,23 @@ const PricingTier = ({
   ctaText, 
   ctaLink, 
   isPopular = false,
+  applicationsReceived = null,
   className = ""
 }) => (
   <div className={`p-6 rounded-xl border ${isPopular ? 'border-terracotta shadow-lg scale-105' : 'border-gray-200'} bg-white ${className}`}>
-    {isPopular && (
-      <Badge variant="secondary" className="mb-4 bg-terracotta text-white">
-        Most Popular
-      </Badge>
-    )}
+    <div className="flex flex-wrap gap-2 mb-4">
+      {isPopular && (
+        <Badge variant="secondary" className="bg-terracotta text-white">
+          Most Popular
+        </Badge>
+      )}
+      
+      {applicationsReceived !== null && (
+        <Badge variant="outline" className="border-terracotta text-navy bg-transparent">
+          {applicationsReceived} Applications received
+        </Badge>
+      )}
+    </div>
     <h3 className="text-xl font-playfair font-bold mb-2">{name}</h3>
     <div className="mb-6">
       {originalPrice && (
@@ -83,7 +92,8 @@ const Pricing = () => {
     executiveEscapeOriginal: isLoading ? "₹1,85,000+" : settings?.executive_escape_original_price || "₹1,85,000+",
     spotsRemaining: isLoading ? "--" : settings?.available_seats || 5,
     closeDate: isLoading ? "March 2025" : formatRegistrationCloseDate(settings?.registration_close_date || '2025-03-31'),
-    acceptingApplicationsFor: isLoading ? "February 2026" : settings?.accepting_applications_for_date || "February 2026"
+    acceptingApplicationsFor: isLoading ? "February 2026" : settings?.accepting_applications_for_date || "February 2026",
+    applicationsReceived: isLoading ? 42 : parseInt(settings?.applications_received || "42", 10)
   };
 
   return (
@@ -143,6 +153,7 @@ const Pricing = () => {
               ctaText="Apply Now"
               ctaLink={APPLICATION_FORM_URL}
               isPopular={true}
+              applicationsReceived={prices.applicationsReceived}
             />
             <PricingTier
               name="Executive Escape"
