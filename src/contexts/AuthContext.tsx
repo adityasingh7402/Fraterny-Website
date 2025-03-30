@@ -4,15 +4,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuthState } from '@/hooks/use-auth-state';
-import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, resendVerificationEmail as authResendVerificationEmail, getUserProfile, updateUserProfile } from '@/utils/auth-utils';
+import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, resendVerificationEmail as authResendVerificationEmail } from '@/utils/auth-utils';
 import { AuthContextType } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, session, isLoading, isAdmin } = useAuthState();
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
   
   // Get navigate and location safely
   let navigate;
@@ -25,24 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // We're outside a router context, which can happen during initialization
     console.warn('AuthProvider initialized outside router context');
   }
-
-  // Fetch user profile when user is authenticated
-  useEffect(() => {
-    async function fetchUserProfile() {
-      if (user) {
-        setIsProfileLoading(true);
-        const { profile, success } = await getUserProfile(user.id);
-        if (success) {
-          setUserProfile(profile);
-        }
-        setIsProfileLoading(false);
-      } else {
-        setUserProfile(null);
-      }
-    }
-    
-    fetchUserProfile();
-  }, [user]);
 
   // Handle email verification link
   useEffect(() => {
@@ -111,34 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update profile function wrapper
-  const updateProfile = async (updates: { first_name?: string; last_name?: string; phone?: string }) => {
-    if (!user) return { success: false, error: 'User not authenticated' };
-    
-    const result = await updateUserProfile(user.id, updates);
-    if (result.success && userProfile) {
-      // Update the local profile state with the new values
-      setUserProfile({
-        ...userProfile,
-        ...updates,
-        updated_at: new Date().toISOString()
-      });
-    }
-    return result;
-  };
-
   // Resend verification email wrapper
   const resendVerificationEmail = authResendVerificationEmail;
 
   const value = {
     user,
     session,
-    profile: userProfile,
-    isProfileLoading,
     signIn,
     signUp,
     signOut,
-    updateProfile,
     isLoading,
     isAdmin,
     resendVerificationEmail
