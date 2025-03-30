@@ -10,7 +10,7 @@ export interface WebsiteImage {
   updated_at: string;
   width?: number;
   height?: number;
-  sizes?: Record<string, string>;
+  sizes?: Record<string, string> | any; // Updated to handle Json type from Supabase
   metadata?: Record<string, any>; // Added for placeholder storage
 }
 
