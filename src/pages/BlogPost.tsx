@@ -54,7 +54,7 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        <div className="h-2 bg-navy w-full"></div> {/* Brand color banner */}
+        <div className="h-8 bg-navy w-full"></div> {/* Taller brand color banner */}
         <div className="container mx-auto px-6 pt-40 pb-20">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
@@ -77,10 +77,10 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Brand color banner */}
-      <div className="h-2 bg-navy w-full"></div>
+      {/* Brand color banner - increased height to 8 (32px) */}
+      <div className="h-8 bg-navy w-full"></div>
       
-      <article className="container mx-auto px-6 pt-15 pb-10">
+      <article className="container mx-auto px-6 pt-40 pb-10">
         <div className="max-w-3xl mx-auto">
           <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
             <ArrowLeft size={16} className="mr-2" />
