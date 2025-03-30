@@ -1,5 +1,6 @@
 
 import { format } from "date-fns";
+import { calculateDaysLeft as coreCalculateDaysLeft } from "@/utils/dateUtils";
 
 /**
  * Formats the registration close date into a human-readable format
@@ -16,15 +17,12 @@ export const formatRegistrationCloseDate = (dateString: string): string => {
 
 /**
  * Wrapper for calculateDaysLeft from utils/dateUtils.ts
- * This version directly returns a number instead of a Promise
+ * This version directly imports and uses the function from utils/dateUtils
  */
 export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/Kolkata'): number => {
   try {
-    // Import the function directly from the module
-    const dateUtils = require('@/utils/dateUtils');
-    // Log the imported function and parameters for debugging
     console.log('Using calculateDaysLeft from utils/dateUtils with:', dateString);
-    return dateUtils.calculateDaysLeft(dateString, timezone);
+    return coreCalculateDaysLeft(dateString, timezone);
   } catch (error) {
     console.error('Error in website-settings/calculateDaysLeft wrapper:', error);
     return 0;

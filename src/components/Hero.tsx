@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
-import { scheduleAtMidnight } from '@/utils/dateUtils';
+import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
-import { calculateDaysLeft } from '@/services/website-settings';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -19,7 +18,8 @@ const Hero = () => {
       
       // Define function to calculate and update days left
       const calculateAndSetDaysLeft = () => {
-        const daysRemaining = calculateDaysLeft(settings.registration_close_date);
+        // Use the direct import from utils to avoid any import chain issues
+        const daysRemaining = utilsCalculateDaysLeft(settings.registration_close_date);
         console.log('Days remaining calculated in Hero:', daysRemaining);
         setDaysLeft(daysRemaining);
       };

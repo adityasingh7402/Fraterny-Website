@@ -15,7 +15,7 @@ export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/K
       return 0;
     }
 
-    // Parse the target date
+    // Parse the target date - ensure it has the correct format yyyy-MM-dd
     const targetDate = new Date(dateString);
     
     // Log data for debugging
