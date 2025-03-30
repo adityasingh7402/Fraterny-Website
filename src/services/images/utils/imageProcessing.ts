@@ -8,4 +8,5 @@
 export { getImageDimensions } from './dimensions';
 export { createOptimizedVersions } from './optimizationService';
 export { resizeImage } from './optimizationUtils';
-export { generateTinyPlaceholder } from './placeholderService';
+export { generateTinyPlaceholder, generateColorPlaceholder } from './placeholderService';
+

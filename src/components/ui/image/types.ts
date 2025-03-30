@@ -19,11 +19,15 @@ export interface ResponsiveImageProps {
   width?: number;
   height?: number;
   sizes?: string;
+  debugCache?: boolean; // New prop for debugging cache behavior
 }
 
 export interface ImageLoadingState {
   isLoading: boolean;
   error: boolean;
   dynamicSrc: string | null;
-  aspectRatio?: number; // Changed from string to number to match what getImageAspectRatio returns
+  aspectRatio?: number;
+  tinyPlaceholder?: string | null; // Added tiny image placeholder
+  colorPlaceholder?: string | null; // Added color-based placeholder
 }
+

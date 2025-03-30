@@ -14,6 +14,7 @@ export * from './deleteService';
 export { 
   getImageUrlByKey, 
   getImageUrlByKeyAndSize,
+  getImagePlaceholdersByKey,
   clearImageUrlCache,
   clearImageUrlCacheForKey 
 } from './getUrlByKey';
@@ -41,3 +42,5 @@ export * from './utils/databaseUtils';
 export * from './utils/dimensions';
 export * from './utils/optimizationService';
 export * from './utils/optimizationUtils';
+export * from './utils/placeholderService';
+

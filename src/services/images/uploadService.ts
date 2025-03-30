@@ -5,6 +5,7 @@ import { handleApiError } from "@/utils/errorHandling";
 import { invalidateImageCache } from "./fetchService";
 import { getImageDimensions } from "./utils/dimensions";
 import { createOptimizedVersions } from "./utils/optimizationService";
+import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
 import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
@@ -52,12 +53,26 @@ export const uploadImage = async (
       await removeExistingImage(existingImage);
     }
     
-    // Upload the file to storage
+    // Generate placeholders for better loading experience (especially on mobile)
+    let placeholderData = null;
+    let colorPlaceholder = null;
+    
+    if (file.type.startsWith('image/')) {
+      try {
+        console.log('Generating image placeholders...');
+        placeholderData = await generateTinyPlaceholder(file);
+        colorPlaceholder = await generateColorPlaceholder(file);
+      } catch (err) {
+        console.error('Could not generate placeholders:', err);
+      }
+    }
+    
+    // Upload the file to storage with enhanced caching headers
     console.log(`Uploading file to storage: ${storagePath}`);
     const { error: uploadError } = await supabase.storage
       .from('website-images')
       .upload(storagePath, file, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // 1 year cache (up from 3600 seconds)
         upsert: true
       });
     
@@ -71,16 +86,29 @@ export const uploadImage = async (
     const optimizedSizes = await createOptimizedVersions(file, storagePath);
     console.log('Optimized sizes:', optimizedSizes);
     
-    // Create an entry in the website_images table
-    const { data, error: insertError } = await createImageRecord(
-      key, 
-      description, 
-      storagePath, 
-      alt_text, 
-      category, 
-      dimensions, 
-      optimizedSizes
-    );
+    // Create an entry in the website_images table with enhanced metadata
+    const metadata = {
+      placeholders: {
+        tiny: placeholderData,
+        color: colorPlaceholder
+      }
+    };
+    
+    const { data, error: insertError } = await supabase
+      .from('website_images')
+      .insert({
+        key,
+        description,
+        storage_path: storagePath,
+        alt_text,
+        category,
+        width: dimensions.width,
+        height: dimensions.height,
+        sizes: optimizedSizes,
+        metadata // Add the placeholder data to the database
+      })
+      .select()
+      .single();
     
     if (insertError) {
       console.error('Insert error:', insertError);

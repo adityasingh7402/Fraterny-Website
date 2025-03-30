@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring } from './utils';
@@ -11,8 +10,8 @@ import { useImageSource } from './hooks/useImageSource';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
- * ResponsiveImage component that serves different image sizes based on screen width
- * Enhanced with Low-Quality Image Placeholders for improved loading experience
+ * Enhanced ResponsiveImage component with advanced caching and progressive loading
+ * Uses Low-Quality Image Placeholders for improved loading experience
  */
 const ResponsiveImage = ({
   src,
@@ -28,51 +27,69 @@ const ResponsiveImage = ({
   height,
   sizes = '100vw',
   priority,
+  debugCache,
 }: ResponsiveImageProps) => {
   // Get device type
   const isMobile = useIsMobile();
-  
-  // State for tiny placeholder image
-  const [placeholderSrc, setPlaceholderSrc] = useState<string | null>(null);
   
   // Get desktop and mobile keys if dynamicKey is provided
   const desktopKey = dynamicKey || '';
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
   
   // Use the custom hooks to handle desktop and mobile image loading
-  const { isLoading: isDesktopLoading, error: desktopError, dynamicSrc: desktopDynamicSrc, aspectRatio: desktopAspectRatio } = 
-    useResponsiveImage(desktopKey, size);
-  const { isLoading: isMobileLoading, error: mobileError, dynamicSrc: mobileDynamicSrc } = 
-    useResponsiveImage(mobileKey, size);
+  const { 
+    isLoading: isDesktopLoading, 
+    error: desktopError, 
+    dynamicSrc: desktopDynamicSrc, 
+    aspectRatio: desktopAspectRatio,
+    tinyPlaceholder: desktopTinyPlaceholder,
+    colorPlaceholder: desktopColorPlaceholder
+  } = useResponsiveImage(desktopKey, size);
+  
+  const { 
+    isLoading: isMobileLoading, 
+    error: mobileError, 
+    dynamicSrc: mobileDynamicSrc,
+    tinyPlaceholder: mobileTinyPlaceholder,
+    colorPlaceholder: mobileColorPlaceholder
+  } = useResponsiveImage(mobileKey, size);
   
   // Combined loading state
   const isLoading = !!(dynamicKey && (isDesktopLoading || (mobileKey && isMobileLoading)));
   
+  // Debug logging for cache behavior if debugCache is enabled
+  useEffect(() => {
+    if (debugCache) {
+      console.log(`[Cache Debug] Image: ${dynamicKey || 'No key'}`, {
+        isLoading,
+        desktopSrc: desktopDynamicSrc,
+        mobileSrc: mobileDynamicSrc,
+        desktopPlaceholder: !!desktopTinyPlaceholder,
+        mobilePlaceholder: !!mobileTinyPlaceholder,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [
+    debugCache, 
+    dynamicKey, 
+    isLoading, 
+    desktopDynamicSrc, 
+    mobileDynamicSrc, 
+    desktopTinyPlaceholder,
+    mobileTinyPlaceholder
+  ]);
+  
   // Monitor image loading performance
   useImagePerformanceMonitoring(src, desktopDynamicSrc || mobileDynamicSrc);
   
-  // Generate tiny placeholder when loading starts
-  useEffect(() => {
-    if (isLoading) {
-      // Try to get placeholder from dynamicKey or src
-      if (dynamicKey) {
-        // Use pre-generated placeholders based on keys when available
-        if (dynamicKey.includes('hero-background')) {
-          setPlaceholderSrc('/images/hero/luxury-villa-placeholder.svg');
-        } else if (dynamicKey.includes('experience-hero')) {
-          setPlaceholderSrc('/images/hero/experience-hero-placeholder.svg');
-        } else {
-          setPlaceholderSrc(null);
-        }
-      } else if (typeof src === 'string') {
-        // If it's a string src, we can use it as is but at tiny size
-        setPlaceholderSrc(src);
-      } else if (src && typeof src === 'object') {
-        // For responsive image sources, use mobile if available, otherwise desktop
-        setPlaceholderSrc(src.mobile || src.desktop);
-      }
-    }
-  }, [isLoading, dynamicKey, src]);
+  // Determine which placeholder to use based on device type and availability
+  const placeholderSrc = isMobile ? 
+    (mobileTinyPlaceholder || desktopTinyPlaceholder) : 
+    desktopTinyPlaceholder;
+  
+  const colorPlaceholder = isMobile ?
+    (mobileColorPlaceholder || desktopColorPlaceholder) :
+    desktopColorPlaceholder;
   
   // If we're still loading dynamic images, show a loading placeholder
   if (isLoading) {
@@ -84,6 +101,7 @@ const ResponsiveImage = ({
         height={height}
         aspectRatio={desktopAspectRatio}
         placeholderSrc={placeholderSrc}
+        colorPlaceholder={colorPlaceholder}
       />
     );
   }

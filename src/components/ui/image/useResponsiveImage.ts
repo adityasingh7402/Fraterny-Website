@@ -1,11 +1,16 @@
-
 import { useState, useEffect } from 'react';
-import { getImageUrlByKey, getImageUrlByKeyAndSize, clearImageUrlCacheForKey } from '@/services/images';
+import { 
+  getImageUrlByKey, 
+  getImageUrlByKeyAndSize, 
+  getImagePlaceholdersByKey,
+  clearImageUrlCacheForKey 
+} from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 
 /**
  * Custom hook to handle dynamic image loading from storage
+ * Enhanced with placeholder support for better mobile experience
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
@@ -15,7 +20,9 @@ export const useResponsiveImage = (
     isLoading: !!dynamicKey,
     error: false,
     dynamicSrc: null,
-    aspectRatio: undefined
+    aspectRatio: undefined,
+    tinyPlaceholder: null,
+    colorPlaceholder: null
   });
   
   // Fetch dynamic image if dynamicKey is provided
@@ -24,93 +31,71 @@ export const useResponsiveImage = (
     
     setState(prev => ({ ...prev, isLoading: true, error: false }));
     
-    // Clear cache for this key to ensure we get fresh data
-    clearImageUrlCacheForKey(dynamicKey);
+    // Clear cache for this key to ensure we get fresh data in development
+    if (process.env.NODE_ENV === 'development') {
+      clearImageUrlCacheForKey(dynamicKey);
+    }
     
     const fetchImage = async () => {
       try {
         console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
         
+        // Fetch placeholders in parallel with the main image for faster loading
+        const placeholdersPromise = getImagePlaceholdersByKey(dynamicKey);
+        
         // Handle mobile variant keys
         const isMobileKey = dynamicKey.includes('-mobile');
+        let imageUrl: string;
+        let fallbackToDesktop = false;
         
         // If size is specified, try to get that specific size
         if (size) {
-          const url = await getImageUrlByKeyAndSize(dynamicKey, size);
-          console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
+          imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
           
-          if (url === '/placeholder.svg' && isMobileKey) {
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
             // try the desktop version instead (removing the -mobile suffix)
             const desktopKey = dynamicKey.replace('-mobile', '');
             console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            const desktopUrl = await getImageUrlByKeyAndSize(desktopKey, size);
-            
-            if (desktopUrl !== '/placeholder.svg') {
-              // Successfully found a desktop image to use
-              console.log(`Using desktop image for mobile: ${desktopUrl}`);
-              
-              // Get image dimensions for aspect ratio
-              const aspectRatio = await getImageAspectRatio(desktopUrl);
-              
-              setState(prev => ({ 
-                ...prev, 
-                dynamicSrc: desktopUrl, 
-                isLoading: false,
-                aspectRatio 
-              }));
-              return;
-            }
+            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
+            fallbackToDesktop = true;
           }
-          
-          // Get image dimensions for aspect ratio
-          const aspectRatio = await getImageAspectRatio(url);
-          
-          setState(prev => ({ 
-            ...prev, 
-            dynamicSrc: url, 
-            isLoading: false,
-            aspectRatio 
-          }));
         } else {
           // Otherwise get the original image
-          const url = await getImageUrlByKey(dynamicKey);
-          console.log(`Fetched image URL for ${dynamicKey}: ${url}`);
+          imageUrl = await getImageUrlByKey(dynamicKey);
           
-          if (url === '/placeholder.svg' && isMobileKey) {
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
             // try the desktop version instead (removing the -mobile suffix)
             const desktopKey = dynamicKey.replace('-mobile', '');
             console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            const desktopUrl = await getImageUrlByKey(desktopKey);
-            
-            if (desktopUrl !== '/placeholder.svg') {
-              // Successfully found a desktop image to use
-              console.log(`Using desktop image for mobile: ${desktopUrl}`);
-              
-              // Get image dimensions for aspect ratio
-              const aspectRatio = await getImageAspectRatio(desktopUrl);
-              
-              setState(prev => ({ 
-                ...prev, 
-                dynamicSrc: desktopUrl, 
-                isLoading: false,
-                aspectRatio 
-              }));
-              return;
-            }
+            imageUrl = await getImageUrlByKey(desktopKey);
+            fallbackToDesktop = true;
           }
-          
-          // Get image dimensions for aspect ratio
-          const aspectRatio = await getImageAspectRatio(url);
-          
-          setState(prev => ({ 
-            ...prev, 
-            dynamicSrc: url, 
-            isLoading: false,
-            aspectRatio 
-          }));
         }
+        
+        // Get placeholders
+        let { tinyPlaceholder, colorPlaceholder } = await placeholdersPromise;
+        
+        // If we switched to desktop key but don't have placeholders, try getting them from desktop key
+        if (fallbackToDesktop && (!tinyPlaceholder && !colorPlaceholder)) {
+          const desktopKey = dynamicKey.replace('-mobile', '');
+          const desktopPlaceholders = await getImagePlaceholdersByKey(desktopKey);
+          tinyPlaceholder = desktopPlaceholders.tinyPlaceholder;
+          colorPlaceholder = desktopPlaceholders.colorPlaceholder;
+        }
+        
+        // Get image dimensions for aspect ratio
+        const aspectRatio = await getImageAspectRatio(imageUrl);
+        
+        setState(prev => ({ 
+          ...prev, 
+          dynamicSrc: imageUrl, 
+          isLoading: false,
+          aspectRatio,
+          tinyPlaceholder,
+          colorPlaceholder
+        }));
       } catch (error) {
         console.error(`Failed to load image with key ${dynamicKey}:`, error);
         setState(prev => ({ ...prev, error: true, isLoading: false }));
@@ -136,6 +121,12 @@ export const useResponsiveImage = (
  */
 const getImageAspectRatio = (url: string): Promise<number | undefined> => {
   return new Promise((resolve) => {
+    // For placeholder images, return a default aspect ratio
+    if (url === '/placeholder.svg') {
+      resolve(16/9);
+      return;
+    }
+    
     const img = new Image();
     img.onload = () => {
       const aspectRatio = img.width / img.height;

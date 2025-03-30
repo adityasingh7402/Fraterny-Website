@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Resize an image to a specific width while maintaining aspect ratio and convert to WebP
+ * Enhanced with extended cache duration for better performance
  */
 export const resizeImage = async (
   file: File, 
@@ -60,7 +61,7 @@ export const resizeImage = async (
     // Use .webp extension for the output file
     const optimizedPath = `optimized/${sizeName}/${fileNameWithoutExtension}.webp`;
     
-    // Upload optimized version
+    // Upload optimized version with extended cache duration
     const optimizedFile = new File([blob], `${sizeName}-${fileNameWithoutExtension}.webp`, { type: 'image/webp' });
     
     const { error, data } = await supabase.storage
@@ -81,4 +82,3 @@ export const resizeImage = async (
     return null;
   }
 };
-
