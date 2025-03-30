@@ -199,11 +199,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Resend verification email function
   const resendVerificationEmail = async (email: string) => {
     try {
+      // Get the current domain to use for the redirect URL
+      const currentDomain = window.location.origin;
+      
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth`
+          emailRedirectTo: `${currentDomain}/auth`
         }
       });
       
@@ -227,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Get the current domain to use for the redirect URL
       const currentDomain = window.location.origin;
+      console.log('Current domain for redirect:', currentDomain);
       
       const { error, data } = await supabase.auth.signUp({
         email,

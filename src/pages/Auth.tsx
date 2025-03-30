@@ -51,6 +51,7 @@ const Auth = () => {
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
+      // Check for verification token in URL hash
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
@@ -59,7 +60,7 @@ const Auth = () => {
       if (accessToken && (type === 'signup' || type === 'recovery')) {
         setIsProcessingToken(true);
         try {
-          console.log("Processing verification token from URL");
+          console.log("Processing verification token from URL", { type, accessToken: accessToken.substring(0, 10) + '...' });
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || '',
@@ -71,6 +72,8 @@ const Auth = () => {
           }
           
           if (data && data.session) {
+            console.log("Successfully verified email and set session");
+            // Clear the hash to avoid repeated processing
             window.history.replaceState(null, '', window.location.pathname);
             navigate('/');
           }

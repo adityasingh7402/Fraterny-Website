@@ -20,6 +20,7 @@ export const ProtectedRoute = () => {
       const type = hashParams.get('type');
       
       if (accessToken && type === 'signup') {
+        console.log('Detected verification redirect in ProtectedRoute');
         // Clear the hash to avoid repeated processing
         window.history.replaceState(null, '', window.location.pathname);
       }
@@ -66,6 +67,7 @@ export const AdminRoute = () => {
       const accessToken = hashParams.get('access_token');
       
       if (accessToken) {
+        console.log('Detected verification redirect in AdminRoute');
         // Clear the hash
         window.history.replaceState(null, '', window.location.pathname);
       }
