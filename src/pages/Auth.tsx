@@ -45,28 +45,45 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [isProcessingToken, setIsProcessingToken] = useState(false);
 
   // Check if there is a verification token in the URL
   useEffect(() => {
     const handleEmailConfirmation = async () => {
+      // Check for hash parameters which contain auth tokens
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const type = hashParams.get('type');
 
-      if (accessToken && type === 'signup') {
+      if (accessToken && (type === 'signup' || type === 'recovery')) {
+        setIsProcessingToken(true);
         try {
+          console.log("Processing verification token from URL");
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || '',
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error during email confirmation:', error);
+            throw error;
+          }
           
-          // Successfully verified and signed in
-          navigate('/');
+          if (data && data.session) {
+            // Successfully verified and signed in
+            console.log("Email verification successful, redirecting to home");
+            
+            // Clear the hash to avoid repeated processing
+            window.history.replaceState(null, '', window.location.pathname);
+            
+            // Redirect to home page
+            navigate('/');
+          }
         } catch (error) {
           console.error('Error during email confirmation:', error);
+        } finally {
+          setIsProcessingToken(false);
         }
       }
     };
@@ -119,6 +136,21 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading state if processing a token
+  if (isProcessingToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md text-center">
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy mb-4"></div>
+            <h2 className="text-2xl font-bold text-navy">Verifying your email...</h2>
+            <p className="text-gray-500 mt-2">Please wait while we complete the verification process.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

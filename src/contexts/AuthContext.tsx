@@ -61,6 +61,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Handle email verification link
+  useEffect(() => {
+    if (!location) return;
+
+    const handleVerificationRedirect = async () => {
+      try {
+        // Check for verification link parameters in the URL
+        const hashParams = new URLSearchParams(location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+
+        if (accessToken && (type === 'signup' || type === 'recovery' || type === 'invite')) {
+          console.log(`Processing ${type} verification from URL hash`);
+          
+          // Set the session with the tokens from the URL
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
+
+          if (error) {
+            console.error('Error setting session from URL:', error);
+            toast.error('Failed to verify email. Please try signing in.');
+            navigate('/auth');
+            return;
+          }
+
+          if (data?.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+
+            // Set admin status if applicable
+            if (data.session.user?.email) {
+              setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
+            }
+
+            // Clear the hash to avoid repeated processing
+            window.history.replaceState(null, '', window.location.pathname);
+            
+            toast.success('Email verified successfully!');
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Error handling verification redirect:', error);
+      }
+    };
+
+    handleVerificationRedirect();
+  }, [location, navigate]);
+
   // Initialize Supabase auth and set up listener
   useEffect(() => {
     const initialize = async () => {
@@ -145,6 +197,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sign up function
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => {
     try {
+      // Get the current domain to use for the redirect URL
+      const currentDomain = window.location.origin;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -154,7 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             last_name: lastName,
             mobile_number: mobileNumber
           },
-          emailRedirectTo: window.location.origin + '/auth'
+          emailRedirectTo: `${currentDomain}/auth`
         }
       });
       if (error) throw error;
