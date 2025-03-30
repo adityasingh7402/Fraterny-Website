@@ -1,3 +1,4 @@
+
 import { ResponsiveImageSource } from '../types';
 
 type ImageSourceResult = {
@@ -14,7 +15,7 @@ export const useImageSource = (
   hasDynamicMobile: boolean,
   desktopDynamicSrc: string | null,
   mobileDynamicSrc: string | null,
-  isMobile: boolean, // Now passed as a parameter instead of using the hook
+  isMobile: boolean,
 ): ImageSourceResult => {
   let resolvedSrc = src;
   

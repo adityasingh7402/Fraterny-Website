@@ -30,12 +30,12 @@ const ResponsiveImage = ({
   objectFit = 'cover',
   debugCache = false
 }: ResponsiveImageProps) => {
-  const [useMobileSrc, setUseMobileSrc] = useState<boolean | null>(null);
+  const [useMobileSrc, setUseMobileSrc] = useState<boolean>(false);
   const isMobile = useIsMobile();
 
   // Set mobile source flag based on device detection
   useEffect(() => {
-    setUseMobileSrc(isMobile);
+    setUseMobileSrc(!!isMobile);
   }, [isMobile]);
 
   // Handle priority for browser loading hint
@@ -133,7 +133,7 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           fallbackSrc={fallbackSrc}
-          useMobileSrc={!!useMobileSrc}
+          useMobileSrc={useMobileSrc}
           objectFit={objectFit}
         />
         {debugCache && (

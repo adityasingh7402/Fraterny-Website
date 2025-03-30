@@ -17,7 +17,7 @@ export const createImageProps = (
   fetchPriority?: 'high' | 'low' | 'auto'
 ): React.ImgHTMLAttributes<HTMLImageElement> => {
   // Create a props object for the img element
-  const imgProps: React.ImgHTMLAttributes<HTMLImageElement> & { fetchPriority?: 'high' | 'low' | 'auto' } = {
+  const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
     src,
     alt,
     className,
@@ -33,11 +33,6 @@ export const createImageProps = (
       }
     }
   };
-  
-  // Only add fetchPriority if it exists
-  if (fetchPriority) {
-    imgProps.fetchPriority = fetchPriority;
-  }
   
   return imgProps;
 };

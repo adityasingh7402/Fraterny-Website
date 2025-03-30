@@ -39,18 +39,8 @@ export const BasicImage = ({
     fetchPriority
   );
   
-  // Remove fetchPriority from imgProps to avoid React DOM warning
-  // fetchPriority needs to be lowercase in the DOM
-  const { fetchPriority: _, ...cleanProps } = imgProps;
-  
-  // Add it back with the correct DOM attribute name if it exists
-  const finalProps: any = { ...cleanProps };
-  if (fetchPriority) {
-    finalProps.fetchpriority = fetchPriority;
-  }
-  
   // Add style for object-fit if provided
-  const style = objectFit ? { objectFit, ...finalProps.style } : finalProps.style;
+  const style = objectFit ? { objectFit, ...imgProps.style } : imgProps.style;
   
-  return <img {...finalProps} style={style} onClick={onClick} />;
+  return <img {...imgProps} style={style} onClick={onClick} fetchpriority={fetchPriority} />;
 };
