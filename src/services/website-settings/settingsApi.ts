@@ -16,7 +16,9 @@ const DEFAULT_SETTINGS: WebsiteSettings = {
   main_experience_price: "₹45,000 - ₹60,000",
   main_experience_original_price: "₹65,000 - ₹80,000",
   executive_escape_price: "₹1,50,000+",
-  executive_escape_original_price: "₹1,85,000+"
+  executive_escape_original_price: "₹1,85,000+",
+  // Set default for applications received
+  applications_received: "42"
 };
 
 /**
@@ -58,6 +60,8 @@ export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
         main_experience_original_price: settings.main_experience_original_price || DEFAULT_SETTINGS.main_experience_original_price,
         executive_escape_price: settings.executive_escape_price || DEFAULT_SETTINGS.executive_escape_price,
         executive_escape_original_price: settings.executive_escape_original_price || DEFAULT_SETTINGS.executive_escape_original_price,
+        // Include applications_received field
+        applications_received: settings.applications_received || DEFAULT_SETTINGS.applications_received
       };
       
       // Update cache
