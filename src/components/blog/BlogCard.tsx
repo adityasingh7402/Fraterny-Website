@@ -12,7 +12,7 @@ export type BlogPost = {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-  image_key?: string | null; // Optional image key for the blog post thumbnail
+  image_key?: string | null;
 };
 
 interface BlogCardProps {

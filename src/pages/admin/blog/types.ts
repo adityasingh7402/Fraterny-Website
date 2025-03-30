@@ -8,7 +8,7 @@ export interface BlogPost {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-  image_key?: string | null;
+  image_key: string | null;
 }
 
 export interface BlogFormValues {
@@ -17,5 +17,5 @@ export interface BlogFormValues {
   category: string;
   tags: string[];
   published: boolean;
-  image_key?: string | null;
+  image_key: string | null;
 }

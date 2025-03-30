@@ -50,6 +50,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_key: string | null
           published: boolean
           tags: string[] | null
           title: string
@@ -60,6 +61,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_key?: string | null
           published?: boolean
           tags?: string[] | null
           title: string
@@ -70,6 +72,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_key?: string | null
           published?: boolean
           tags?: string[] | null
           title?: string
