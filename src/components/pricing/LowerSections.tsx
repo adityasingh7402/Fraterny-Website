@@ -48,12 +48,6 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }) 
             </div>
 
             <div className="text-center">
-              <div className="mb-4">
-                {prices.mainExperienceOriginal && (
-                  <div className="text-sm text-gray-400 line-through mb-1">{prices.mainExperienceOriginal}</div>
-                )}
-                <span className="text-xl font-semibold text-navy">{prices.mainExperience}</span>
-              </div>
               <a
                 href={APPLICATION_FORM_URL}
                 target="_blank"
@@ -104,12 +98,6 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }) 
             </div>
 
             <div className="text-center">
-              <div className="mb-4">
-                {prices.executiveEscapeOriginal && (
-                  <div className="text-sm text-gray-400 line-through mb-1">{prices.executiveEscapeOriginal}</div>
-                )}
-                <span className="text-xl font-semibold text-navy">{prices.executiveEscape}</span>
-              </div>
               <a
                 href={EXECUTIVE_ESCAPE_MAIL}
                 className="inline-block px-6 sm:px-8 py-2 sm:py-3 border-2 border-navy text-navy hover:bg-navy hover:text-white rounded-lg transition-colors"
