@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Mail, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Check, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,7 +36,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +46,8 @@ const Auth = () => {
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [isProcessingToken, setIsProcessingToken] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -126,17 +129,45 @@ const Auth = () => {
       );
       
       if (result.success) {
-        setVerificationEmailSent(true);
-        setVerificationEmail(data.email);
+        if (result.emailConfirmationSent) {
+          setVerificationEmailSent(true);
+          setVerificationEmail(data.email);
+        } else {
+          // User was auto-confirmed (email confirmation disabled in Supabase)
+          setActiveTab('login');
+          loginForm.setValue('email', data.email);
+        }
         registerForm.reset();
       } else if (result.error === 'User already registered') {
         setActiveTab('login');
         loginForm.setValue('email', data.email);
+      } else {
+        // If we received an error related to sending the verification email
+        if (result.error?.includes('send') || result.error?.includes('email') || result.error?.includes('SMTP')) {
+          setVerificationEmailSent(true);
+          setVerificationEmail(data.email);
+          setVerificationError(true);
+          registerForm.reset();
+        }
       }
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    setIsResendingEmail(true);
+    try {
+      const result = await resendVerificationEmail(verificationEmail);
+      if (result.success) {
+        setVerificationError(false);
+      }
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
+    } finally {
+      setIsResendingEmail(false);
     }
   };
 
@@ -164,14 +195,25 @@ const Auth = () => {
 
         {verificationEmailSent ? (
           <div className="space-y-6">
-            <Alert className="bg-green-50 border-green-200">
-              <Mail className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-700">Verification Email Sent!</AlertTitle>
-              <AlertDescription className="text-green-600">
-                We've sent a confirmation link to <strong>{verificationEmail}</strong>.
-                Please check your inbox and click the verification link to complete your registration.
-              </AlertDescription>
-            </Alert>
+            {verificationError ? (
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-700">Email Delivery Issue</AlertTitle>
+                <AlertDescription className="text-amber-600">
+                  Your account was created, but there was a problem sending the verification email to <strong>{verificationEmail}</strong>.
+                  You can try to resend the email or contact support if the problem persists.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert className="bg-green-50 border-green-200">
+                <Mail className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-700">Verification Email Sent!</AlertTitle>
+                <AlertDescription className="text-green-600">
+                  We've sent a confirmation link to <strong>{verificationEmail}</strong>.
+                  Please check your inbox and spam folder, then click the verification link to complete your registration.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="flex flex-col items-center space-y-4 py-4">
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100">
                 <Mail className="h-6 w-6 text-navy" />
@@ -181,6 +223,24 @@ const Auth = () => {
               </p>
             </div>
             <div className="space-y-3">
+              <Button 
+                type="button" 
+                onClick={handleResendVerificationEmail}
+                disabled={isResendingEmail}
+                className="w-full bg-terracotta hover:bg-terracotta/90"
+              >
+                {isResendingEmail ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Resending...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend Verification Email
+                  </>
+                )}
+              </Button>
               <Button 
                 type="button" 
                 variant="outline" 

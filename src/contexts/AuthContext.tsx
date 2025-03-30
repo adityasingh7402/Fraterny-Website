@@ -1,8 +1,10 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { showError, showSuccess } from '@/utils/errorHandler';
 
 // Define admin emails in a separate array for easier management
 const ADMIN_EMAILS = ['admin@example.com', 'malhotrayash1900@gmail.com']; 
@@ -11,10 +13,11 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<{success: boolean; error?: string}>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<{success: boolean; error?: string; emailConfirmationSent: boolean}>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
+  resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -193,6 +196,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Resend verification email function
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`
+        }
+      });
+      
+      if (error) {
+        console.error('Error resending verification email:', error);
+        showError(error, 'Failed to resend verification email');
+        return { success: false, error: error.message };
+      }
+      
+      showSuccess('Verification email sent! Please check your inbox and spam folder.');
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error in resendVerificationEmail:', error);
+      showError(error, 'Failed to resend verification email');
+      return { success: false, error: error.message };
+    }
+  };
+
   // Sign up function
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => {
     try {
@@ -216,26 +245,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Handle specific error for existing user
         if (error.message.includes('User already registered')) {
           toast.error('An account with this email address already exists. Please sign in instead.');
-          return { success: false, error: 'User already registered' };
+          return { success: false, error: 'User already registered', emailConfirmationSent: false };
         }
         
         // Handle other errors
         toast.error(error.message || 'Error signing up');
-        return { success: false, error: error.message };
+        return { success: false, error: error.message, emailConfirmationSent: false };
       }
       
       // Check for autoconfirm (no email verification needed)
       if (data?.user && !data.user.email_confirmed_at) {
-        toast.success('Signed up successfully! Check your email for verification.');
-        return { success: true };
+        console.log('User created, email confirmation required');
+        return { success: true, emailConfirmationSent: true };
       } else {
-        // User was auto-confirmed
+        // User was auto-confirmed (email confirmation was disabled in Supabase settings)
+        console.log('User created and auto-confirmed');
         toast.success('Signed up successfully!');
-        return { success: true };
+        return { success: true, emailConfirmationSent: false };
       }
     } catch (error: any) {
+      console.error('Error in signUp:', error);
       toast.error(error.message || 'Error signing up');
-      return { success: false, error: error.message };
+      return { success: false, error: error.message, emailConfirmationSent: false };
     }
   };
 
@@ -268,7 +299,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     isLoading,
-    isAdmin
+    isAdmin,
+    resendVerificationEmail
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
