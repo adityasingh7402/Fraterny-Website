@@ -2,14 +2,15 @@
 import { 
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent 
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
 } from '@/components/ui/chart';
 import { 
   PieChart, 
   Pie, 
   Cell, 
   ResponsiveContainer,
-  Tooltip,
   Legend
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +22,7 @@ interface DistributionChartProps {
 }
 
 export function DistributionChart({ data, title }: DistributionChartProps) {
-  // Updated colors to match brand palette (navy, terracotta, gold + complementary colors)
+  // Brand colors from the custom instructions (Navy, Terracotta, Gold + complementary colors)
   const COLORS = ['#0A1A2F', '#E07A5F', '#D4AF37', '#3B7A57', '#6A5ACD', '#FF7F50'];
   
   // Create chart config dynamically from data
@@ -35,6 +36,9 @@ export function DistributionChart({ data, title }: DistributionChartProps) {
     };
     return acc;
   }, {} as Record<string, any>);
+  
+  // Calculate total for percentage
+  const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <Card>
@@ -60,11 +64,27 @@ export function DistributionChart({ data, title }: DistributionChartProps) {
                     <Cell 
                       key={`cell-${index}`} 
                       fill={COLORS[index % COLORS.length]}
+                      stroke="#fff"
+                      strokeWidth={2}
                     />
                   ))}
                 </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Legend />
+                <ChartTooltip 
+                  content={
+                    <ChartTooltipContent 
+                      formatter={(value: number) => {
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${value} (${percentage}%)`;
+                      }}
+                    />
+                  }
+                />
+                <Legend 
+                  content={<ChartLegendContent />}
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                  align="center"
+                />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>

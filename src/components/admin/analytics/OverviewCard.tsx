@@ -7,10 +7,20 @@ interface OverviewCardProps {
   value: string | number;
   percentChange: number;
   icon: React.ReactNode;
+  inverseTrend?: boolean; // For metrics where decreasing is good (like bounce rate)
 }
 
-export function OverviewCard({ title, value, percentChange, icon }: OverviewCardProps) {
-  const isPositive = percentChange >= 0;
+export function OverviewCard({ 
+  title, 
+  value, 
+  percentChange, 
+  icon, 
+  inverseTrend = false 
+}: OverviewCardProps) {
+  // Determine if the trend is positive based on the inverseTrend flag
+  const isPositiveTrend = inverseTrend 
+    ? percentChange <= 0 
+    : percentChange >= 0;
   const isNeutral = percentChange === 0;
   
   return (
@@ -27,14 +37,14 @@ export function OverviewCard({ title, value, percentChange, icon }: OverviewCard
         <div className="text-2xl font-bold text-navy">{value}</div>
         <p className="text-xs flex items-center mt-1">
           {!isNeutral && (
-            isPositive ? (
+            isPositiveTrend ? (
               <ArrowUpIcon className="mr-1 h-3 w-3 text-green-600" />
             ) : (
               <ArrowDownIcon className="mr-1 h-3 w-3 text-rose-500" />
             )
           )}
-          <span className={isPositive ? 'text-green-600' : isNeutral ? 'text-gray-500' : 'text-rose-500'}>
-            {isPositive ? '+' : ''}{percentChange}% from last period
+          <span className={isPositiveTrend ? 'text-green-600' : isNeutral ? 'text-gray-500' : 'text-rose-500'}>
+            {Math.abs(percentChange)}% {percentChange > 0 ? 'increase' : percentChange < 0 ? 'decrease' : ''} from last period
           </span>
         </p>
       </CardContent>

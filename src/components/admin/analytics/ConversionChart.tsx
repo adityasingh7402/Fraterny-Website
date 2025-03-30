@@ -6,18 +6,16 @@ import {
 } from '@/components/ui/chart';
 import { 
   ResponsiveContainer,
-  LineChart, 
-  Line, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend,
-  ReferenceLine
+  Legend 
 } from 'recharts';
-import { Card, CardContent } from '@/components/ui/card';
 
-interface TrafficChartProps {
+interface ConversionChartProps {
   data: Array<{
     name: string;
     visits: number;
@@ -27,30 +25,29 @@ interface TrafficChartProps {
   }>;
 }
 
-export function TrafficChart({ data }: TrafficChartProps) {
+export function ConversionChart({ data }: ConversionChartProps) {
   const chartConfig = {
-    visits: { 
-      label: "Visits", 
+    conversion: { 
+      label: "Conversion %", 
       theme: {
-        dark: "#0A1A2F", 
-        light: "#0A1A2F"
+        dark: "#D4AF37", 
+        light: "#D4AF37"
       }
-    },
-    signups: { 
-      label: "Signups", 
-      theme: {
-        dark: "#E07A5F", 
-        light: "#E07A5F"
-      }
-    },
+    }
   };
+
+  // Calculate conversion percentage if not provided
+  const chartData = data.map(item => ({
+    ...item,
+    conversion: item.conversion || (item.visits > 0 ? (item.signups / item.visits) * 100 : 0)
+  }));
 
   return (
     <div className="h-[300px] w-full">
       <ChartContainer config={chartConfig}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
+          <AreaChart
+            data={chartData}
             margin={{
               top: 20,
               right: 30,
@@ -58,6 +55,12 @@ export function TrafficChart({ data }: TrafficChartProps) {
               bottom: 20,
             }}
           >
+            <defs>
+              <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="#D4AF37" stopOpacity={0.1}/>
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
             <XAxis 
               dataKey="name"
@@ -70,31 +73,20 @@ export function TrafficChart({ data }: TrafficChartProps) {
               tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `${value}`}
-              domain={[0, 'auto']}
+              tickFormatter={(value) => `${value.toFixed(1)}%`}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Legend verticalAlign="top" height={36} />
-            <ReferenceLine y={0} stroke="#E5E7EB" />
-            <Line
-              type="monotone"
-              dataKey="visits"
-              name="Visits"
-              stroke="var(--color-visits)"
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ r: 6 }}
-            />
-            <Line 
+            <Area 
               type="monotone" 
-              dataKey="signups" 
-              name="Signups"
-              stroke="var(--color-signups)"
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ r: 6 }}
+              dataKey="conversion" 
+              name="Conversion %"
+              stroke="#D4AF37" 
+              fillOpacity={1}
+              fill="url(#colorConversion)" 
+              strokeWidth={2}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
     </div>

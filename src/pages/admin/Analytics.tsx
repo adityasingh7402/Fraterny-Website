@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { Users, Clock, ArrowDownRight, TrendingUp, ArrowLeft } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Users, Clock, ArrowDownRight, TrendingUp, MousePointerClick, Target, Award, ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -12,22 +12,32 @@ import {
   getTrafficSourceData, 
   getDeviceData,
   getAnalyticsOverview,
+  getTopPages,
   type AnalyticsPeriod
 } from '@/services/analyticsService';
 import { OverviewCard } from '@/components/admin/analytics/OverviewCard';
 import { TrafficChart } from '@/components/admin/analytics/TrafficChart';
 import { DistributionChart } from '@/components/admin/analytics/DistributionChart';
+import { TopPagesTable } from '@/components/admin/analytics/TopPagesTable';
+import { ConversionChart } from '@/components/admin/analytics/ConversionChart';
 
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState<string>('7d');
-  const [tab, setTab] = useState<string>("overview");
   const [refreshKey, setRefreshKey] = useState<number>(0);
   
-  // Get the analytics data
+  // Fetch data with the selected period
   const trafficData = getTrafficData(period);
   const sourceData = getTrafficSourceData();
   const deviceData = getDeviceData();
   const overviewData = getAnalyticsOverview(period);
+  const topPages = getTopPages(period);
+
+  // Calculate engagement score (weighted average of key metrics)
+  const engagementScore = Math.round(
+    (overviewData.averageTimeOnSite * 0.3) + 
+    ((100 - overviewData.bounceRate) * 0.4) + 
+    (overviewData.pagesPerSession * 0.3)
+  );
 
   // Refresh data every 30 seconds if the page is visible
   useEffect(() => {
@@ -40,19 +50,18 @@ export default function AnalyticsDashboard() {
     return () => clearInterval(intervalId);
   }, []);
   
-  // Trigger refresh when period changes or refresh key changes
-  useEffect(() => {
-    // The state changes will trigger a re-render,
-    // which will refresh the analytics data
-  }, [period, refreshKey]);
+  // Handle period change
+  const handlePeriodChange = useCallback((value: string) => {
+    setPeriod(value);
+  }, []);
 
   return (
     <div className="container px-4 py-6 md:py-10 mx-auto max-w-7xl">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-navy">Analytics Dashboard</h2>
           <p className="text-muted-foreground">
-            Track your website performance and user engagement
+            Track your website performance and make data-driven decisions
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -65,7 +74,7 @@ export default function AnalyticsDashboard() {
           </Link>
           <Select
             value={period}
-            onValueChange={(value) => setPeriod(value)}
+            onValueChange={handlePeriodChange}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select period" />
@@ -81,70 +90,186 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" value={tab} onValueChange={setTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="traffic">Traffic</TabsTrigger>
-          <TabsTrigger value="audience">Audience</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <OverviewCard
-              title="Total Visitors"
-              value={overviewData.totalVisits.toLocaleString()}
-              percentChange={overviewData.percentChange.visits}
-              icon={<Users className="h-4 w-4" />}
-            />
-            <OverviewCard
-              title="Avg. Session Time"
-              value={overviewData.averageSessionTime}
-              percentChange={overviewData.percentChange.sessionTime}
-              icon={<Clock className="h-4 w-4" />}
-            />
-            <OverviewCard
-              title="Bounce Rate"
-              value={overviewData.bounceRate}
-              percentChange={-overviewData.percentChange.bounceRate} // Negative because lower is better
-              icon={<ArrowDownRight className="h-4 w-4" />}
-            />
-            <OverviewCard
-              title="Conversion Rate"
-              value={overviewData.conversionRate}
-              percentChange={overviewData.percentChange.conversionRate}
-              icon={<TrendingUp className="h-4 w-4" />}
-            />
-          </div>
+      <div className="space-y-6">
+        {/* Key Performance Indicators */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <OverviewCard
+            title="Total Visitors"
+            value={overviewData.totalVisits.toLocaleString()}
+            percentChange={overviewData.percentChange.visits}
+            icon={<Users className="h-4 w-4" />}
+          />
+          <OverviewCard
+            title="Avg. Session Time"
+            value={overviewData.averageSessionTime}
+            percentChange={overviewData.percentChange.sessionTime}
+            icon={<Clock className="h-4 w-4" />}
+          />
+          <OverviewCard
+            title="Bounce Rate"
+            value={overviewData.bounceRate}
+            percentChange={-overviewData.percentChange.bounceRate} // Negative because lower is better
+            icon={<ArrowDownRight className="h-4 w-4" />}
+            inverseTrend={true} // Lower is better for bounce rate
+          />
+          <OverviewCard
+            title="Conversion Rate"
+            value={overviewData.conversionRate}
+            percentChange={overviewData.percentChange.conversionRate}
+            icon={<TrendingUp className="h-4 w-4" />}
+          />
+        </div>
           
-          <TrafficChart data={trafficData} title="Website Traffic" />
+        {/* Traffic & Engagement Analysis */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <CardTitle className="text-navy">Traffic Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TrafficChart data={trafficData} />
+            </CardContent>
+          </Card>
           
-          <div className="grid gap-4 md:grid-cols-2">
-            <DistributionChart data={sourceData} title="Traffic Sources" />
-            <DistributionChart data={deviceData} title="Device Distribution" />
-          </div>
-        </TabsContent>
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <CardTitle className="text-navy">Conversion Funnel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ConversionChart data={trafficData} />
+            </CardContent>
+          </Card>
+        </div>
         
-        <TabsContent value="traffic" className="space-y-4">
-          <TrafficChart data={trafficData} title="Traffic Analysis" />
+        {/* Audience Insights */}
+        <h3 className="text-2xl font-bold tracking-tight text-navy mt-8">Audience Insights</h3>
+        
+        <div className="grid gap-6 md:grid-cols-2">
           <DistributionChart data={sourceData} title="Traffic Sources" />
-        </TabsContent>
+          <DistributionChart data={deviceData} title="Device Distribution" />
+        </div>
         
-        <TabsContent value="audience" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Demographics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Detailed audience demographics will be implemented in a future update.
-                </p>
-              </CardContent>
-            </Card>
-            <DistributionChart data={deviceData} title="Device Types" />
-          </div>
-        </TabsContent>
-      </Tabs>
+        {/* User Engagement Metrics */}
+        <h3 className="text-2xl font-bold tracking-tight text-navy mt-8">User Engagement</h3>
+        
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-navy flex items-center gap-2">
+                <Award className="h-5 w-5 text-gold" />
+                Engagement Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center h-[200px]">
+                <div className="text-5xl font-bold text-navy mb-2">{engagementScore}</div>
+                <div className="text-sm text-muted-foreground">out of 100</div>
+                <div className="mt-4 text-sm">
+                  {engagementScore > 70 
+                    ? "Excellent user engagement" 
+                    : engagementScore > 50 
+                      ? "Good user engagement" 
+                      : "Needs improvement"}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-navy">Top Pages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TopPagesTable data={topPages} />
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Actionable Insights */}
+        <h3 className="text-2xl font-bold tracking-tight text-navy mt-8">Actionable Insights</h3>
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-navy flex items-center gap-2">
+                <Target className="h-5 w-5 text-terracotta" />
+                Conversion Opportunities
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {overviewData.conversionRate < 3 ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500 text-lg">•</span>
+                    <span>Your conversion rate is below average. Consider improving your call-to-action buttons and landing page content.</span>
+                  </li>
+                ) : null}
+                {overviewData.bounceRate > 60 ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500 text-lg">•</span>
+                    <span>High bounce rate detected. Review your top entry pages for usability issues or slow loading times.</span>
+                  </li>
+                ) : null}
+                {sourceData.some(item => item.name === "Social" && item.value < 10) ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 text-lg">•</span>
+                    <span>Low social media traffic. Consider increasing your social presence or running targeted campaigns.</span>
+                  </li>
+                ) : null}
+                {deviceData.some(item => item.name === "Mobile" && item.value > 40 && overviewData.mobileConversionRate < overviewData.conversionRate) ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 text-lg">•</span>
+                    <span>Mobile conversion rate is lower than desktop. Check your mobile experience for usability issues.</span>
+                  </li>
+                ) : null}
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 text-lg">•</span>
+                  <span>Consider A/B testing your signup form to improve conversion rates.</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-navy flex items-center gap-2">
+                <MousePointerClick className="h-5 w-5 text-terracotta" />
+                User Experience Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {overviewData.averageTimeOnSite < 90 ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 text-lg">•</span>
+                    <span>Low average time on site. Consider enriching your content or improving navigation.</span>
+                  </li>
+                ) : null}
+                {deviceData.some(item => item.name === "Mobile" && item.value > 30) ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 text-lg">•</span>
+                    <span>Significant mobile traffic detected. Ensure your site is fully optimized for mobile users.</span>
+                  </li>
+                ) : null}
+                {topPages.some(page => page.exitRate > 70) ? (
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500 text-lg">•</span>
+                    <span>High exit rates detected on key pages. Review these pages for improvements.</span>
+                  </li>
+                ) : null}
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-500 text-lg">•</span>
+                  <span>Consider adding more visual content to increase engagement on your top pages.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 text-lg">•</span>
+                  <span>Implement user surveys to gather direct feedback on your website experience.</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
