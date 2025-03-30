@@ -8,6 +8,7 @@ import { ErrorPlaceholder } from './components/ErrorPlaceholder';
 import { BasicImage } from './components/BasicImage';
 import { ResponsivePicture } from './components/ResponsivePicture';
 import { useImageSource } from './hooks/useImageSource';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * ResponsiveImage component that serves different image sizes based on screen width
@@ -27,6 +28,9 @@ const ResponsiveImage = ({
   height,
   sizes = '100vw'
 }: ResponsiveImageProps) => {
+  // Get device type
+  const isMobile = useIsMobile();
+  
   // Get desktop and mobile keys if dynamicKey is provided
   const desktopKey = dynamicKey || '';
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
@@ -118,7 +122,8 @@ const ResponsiveImage = ({
     hasDynamicDesktop, 
     hasDynamicMobile, 
     desktopDynamicSrc, 
-    mobileDynamicSrc
+    mobileDynamicSrc,
+    isMobile // Pass isMobile to useImageSource
   );
   
   // Render the appropriate image component based on resolvedSrc type
