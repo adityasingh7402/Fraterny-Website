@@ -11,10 +11,12 @@ import { TrafficSection } from './components/TrafficSection';
 import { AudienceSection } from './components/AudienceSection';
 import { EngagementSection } from './components/EngagementSection';
 import { InsightsSection } from './components/InsightsSection';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState<string>('7d');
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  const isMobile = useIsMobile();
   
   // Track this page view and ensure heartbeat tracking on mount
   useEffect(() => {
@@ -38,13 +40,13 @@ export default function AnalyticsDashboard() {
   }, []);
 
   return (
-    <div className="container px-4 py-6 md:py-10 mx-auto max-w-7xl">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
+    <div className="container px-2 sm:px-4 py-4 sm:py-6 md:py-10 mx-auto max-w-7xl">
+      <div className="flex flex-col gap-3 mb-4 sm:mb-6">
         <DashboardHeader />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:justify-between">
           <Link 
             to="/" 
-            className="flex items-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Website
@@ -53,7 +55,7 @@ export default function AnalyticsDashboard() {
             value={period}
             onValueChange={handlePeriodChange}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px] sm:w-[180px]">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
@@ -67,7 +69,7 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <KPISection period={period} refreshKey={refreshKey} />
         <TrafficSection period={period} />
         <AudienceSection />

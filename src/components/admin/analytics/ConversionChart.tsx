@@ -14,6 +14,7 @@ import {
   Tooltip, 
   Legend 
 } from 'recharts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ConversionChartProps {
   data: Array<{
@@ -26,6 +27,8 @@ interface ConversionChartProps {
 }
 
 export function ConversionChart({ data }: ConversionChartProps) {
+  const isMobile = useIsMobile();
+  
   const chartConfig = {
     conversion: { 
       label: "Conversion %", 
@@ -42,16 +45,25 @@ export function ConversionChart({ data }: ConversionChartProps) {
     conversion: item.conversion || (item.visits > 0 ? (item.signups / item.visits) * 100 : 0)
   }));
 
+  // Format X-axis labels for mobile to be more compact
+  const formatXAxis = (tickItem: string) => {
+    if (isMobile) {
+      // For mobile, abbreviate month names or shorten date format
+      return tickItem.split(' ').map(part => part.substring(0, 3)).join(' ');
+    }
+    return tickItem;
+  };
+
   return (
-    <div className="h-[300px] w-full">
+    <div className="h-[220px] sm:h-[300px] w-full">
       <ChartContainer config={chartConfig}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
             margin={{
               top: 20,
-              right: 30,
-              left: 20,
+              right: isMobile ? 10 : 30,
+              left: isMobile ? 0 : 20,
               bottom: 20,
             }}
           >
@@ -64,16 +76,19 @@ export function ConversionChart({ data }: ConversionChartProps) {
             <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
             <XAxis 
               dataKey="name"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: isMobile ? 10 : 12 }}
               tickLine={false}
               axisLine={false}
               dy={10}
+              tickFormatter={formatXAxis}
+              interval={isMobile ? 'preserveStartEnd' : 0}
             />
             <YAxis 
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: isMobile ? 10 : 11 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${value.toFixed(1)}%`}
+              width={isMobile ? 35 : 45}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Legend verticalAlign="top" height={36} />
