@@ -1,32 +1,16 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { showError, showSuccess } from '@/utils/errorHandler';
-
-// Define admin emails in a separate array for easier management
-const ADMIN_EMAILS = ['admin@example.com', 'malhotrayash1900@gmail.com']; 
-
-type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<{success: boolean; error?: string; emailConfirmationSent: boolean}>;
-  signOut: () => Promise<void>;
-  isLoading: boolean;
-  isAdmin: boolean;
-  resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
-};
+import { useAuthState } from '@/hooks/use-auth-state';
+import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, resendVerificationEmail as authResendVerificationEmail } from '@/utils/auth-utils';
+import { AuthContextType } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, session, isLoading, isAdmin } = useAuthState();
   
   // Get navigate and location safely
   let navigate;
@@ -39,29 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // We're outside a router context, which can happen during initialization
     console.warn('AuthProvider initialized outside router context');
   }
-
-  // Validate if the current session is still valid by checking if the user still exists
-  const validateSession = async (currentSession: Session | null) => {
-    if (!currentSession) return false;
-    
-    try {
-      // Try to get user data to see if the user still exists
-      const { data, error } = await supabase.auth.getUser(currentSession.access_token);
-      
-      if (error || !data.user) {
-        console.warn('Session invalid or user was deleted:', error?.message);
-        // Force sign out if user doesn't exist anymore
-        await supabase.auth.signOut();
-        toast.error('Your session is no longer valid. Please sign in again.');
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error validating session:', error);
-      return false;
-    }
-  };
 
   // Handle email verification link
   useEffect(() => {
@@ -92,14 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (data?.session) {
-            setSession(data.session);
-            setUser(data.session.user);
-
-            // Check if user email is in the admin emails list
-            if (data.session.user?.email) {
-              setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
-            }
-
             // Clear the hash to avoid repeated processing
             window.history.replaceState(null, '', window.location.pathname);
             
@@ -115,186 +68,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleVerificationRedirect();
   }, [location, navigate]);
 
-  // Initialize Supabase auth and set up listener
-  useEffect(() => {
-    const initialize = async () => {
-      setIsLoading(true);
-
-      // Set up auth state listener FIRST
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        // Don't update state immediately for sign-in events until we validate the session
-        if (event !== 'SIGNED_IN') {
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
-          
-          // Check if this is an admin user
-          if (newSession?.user?.email) {
-            // Check if user email is in the admin emails list
-            setIsAdmin(ADMIN_EMAILS.includes(newSession.user.email));
-          } else {
-            setIsAdmin(false);
-          }
-        }
-      });
-
-      // THEN check for existing session
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      // Validate if the session is still valid (user exists)
-      const isValid = await validateSession(initialSession);
-      
-      if (isValid && initialSession) {
-        setSession(initialSession);
-        setUser(initialSession.user);
-        
-        // Check initial admin status
-        if (initialSession.user?.email) {
-          setIsAdmin(ADMIN_EMAILS.includes(initialSession.user.email));
-        }
-      } else if (initialSession) {
-        // Session was found but invalid (user might have been deleted)
-        await signOut();
-      }
-
-      setIsLoading(false);
-      return () => subscription.unsubscribe();
-    };
-
-    initialize();
-  }, []);
-
-  // Sign in function
+  // Sign in function wrapper
   const signIn = async (email: string, password: string) => {
-    try {
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      
-      // Validate the new session
-      const isValid = await validateSession(data.session);
-      if (!isValid) {
-        throw new Error('Invalid session. User may have been deleted.');
-      }
-      
-      // Set user and session state
-      setUser(data.session?.user ?? null);
-      setSession(data.session);
-      
-      // Set admin status based on email
-      if (data.session?.user?.email) {
-        setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
-      }
-      
-      // Use navigate only if we're in a router context and not on the home page already
-      if (navigate && location?.pathname === '/auth') {
-        navigate('/');
-      }
-      
-      toast.success('Signed in successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Error signing in');
-      throw error;
+    const result = await authSignIn(email, password);
+    
+    // Use navigate only if we're in a router context and not on the home page already
+    if (navigate && location?.pathname === '/auth') {
+      navigate('/');
     }
   };
 
-  // Resend verification email function
-  const resendVerificationEmail = async (email: string) => {
-    try {
-      // Get the current domain to use for the redirect URL
-      const currentDomain = window.location.origin;
-      
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${currentDomain}/auth`
-        }
-      });
-      
-      if (error) {
-        console.error('Error resending verification email:', error);
-        showError(error, 'Failed to resend verification email');
-        return { success: false, error: error.message };
-      }
-      
-      showSuccess('Verification email sent! Please check your inbox and spam folder.');
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error in resendVerificationEmail:', error);
-      showError(error, 'Failed to resend verification email');
-      return { success: false, error: error.message };
-    }
-  };
+  // Sign up function wrapper
+  const signUp = authSignUp;
 
-  // Sign up function
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => {
-    try {
-      // Get the current domain to use for the redirect URL
-      const currentDomain = window.location.origin;
-      console.log('Current domain for redirect:', currentDomain);
-      
-      const { error, data } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            mobile_number: mobileNumber
-          },
-          emailRedirectTo: `${currentDomain}/auth`
-        }
-      });
-
-      if (error) {
-        // Handle specific error for existing user
-        if (error.message.includes('User already registered')) {
-          toast.error('An account with this email address already exists. Please sign in instead.');
-          return { success: false, error: 'User already registered', emailConfirmationSent: false };
-        }
-        
-        // Handle other errors
-        toast.error(error.message || 'Error signing up');
-        return { success: false, error: error.message, emailConfirmationSent: false };
-      }
-      
-      // Check for autoconfirm (no email verification needed)
-      if (data?.user && !data.user.email_confirmed_at) {
-        console.log('User created, email confirmation required');
-        return { success: true, emailConfirmationSent: true };
-      } else {
-        // User was auto-confirmed (email confirmation was disabled in Supabase settings)
-        console.log('User created and auto-confirmed');
-        toast.success('Signed up successfully!');
-        return { success: true, emailConfirmationSent: false };
-      }
-    } catch (error: any) {
-      console.error('Error in signUp:', error);
-      toast.error(error.message || 'Error signing up');
-      return { success: false, error: error.message, emailConfirmationSent: false };
-    }
-  };
-
-  // Sign out function
+  // Sign out function wrapper
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Reset user and session state
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-      
-      // Navigate to auth page after sign out if navigate is available
-      if (navigate) {
-        navigate('/auth');
-      }
-      toast.success('Signed out successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Error signing out');
-      throw error;
+    await authSignOut();
+    
+    // Navigate to auth page after sign out if navigate is available
+    if (navigate) {
+      navigate('/auth');
     }
   };
+
+  // Resend verification email wrapper
+  const resendVerificationEmail = authResendVerificationEmail;
 
   const value = {
     user,
