@@ -54,6 +54,11 @@ export class GenericCache<T> {
     });
   }
   
+  // Add the missing delete method
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+  
   invalidate(keyPattern: string): void {
     // Remove all entries that match the pattern
     for (const key of this.cache.keys()) {
