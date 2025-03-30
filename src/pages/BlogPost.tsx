@@ -54,8 +54,9 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        <div className="h-8 bg-navy w-full"></div> {/* Taller brand color banner */}
-        <div className="container mx-auto px-6 pt-40 pb-20">
+        {/* Significantly taller brand color banner that extends down */}
+        <div className="h-52 bg-navy w-full"></div>
+        <div className="container mx-auto px-6 pt-16 pb-20">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
             <p className="mt-4 text-gray-600">Loading blog post...</p>
@@ -77,29 +78,29 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Brand color banner - increased height to 8 (32px) */}
-      <div className="h-8 bg-navy w-full"></div>
+      {/* Significantly taller brand color banner that extends close to the back button */}
+      <div className="h-52 bg-navy w-full"></div>
       
-      <article className="container mx-auto px-6 pt-40 pb-10">
+      <article className="container mx-auto px-6 -mt-32 pb-10">
         <div className="max-w-3xl mx-auto">
-          <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
+          <Link to="/blog" className="inline-flex items-center text-white hover:text-terracotta mb-8">
             <ArrowLeft size={16} className="mr-2" />
             Back to all posts
           </Link>
           
           {post?.category && (
             <div className="mb-4">
-              <span className="inline-block px-3 py-1 bg-navy bg-opacity-10 text-navy text-sm rounded">
+              <span className="inline-block px-3 py-1 bg-white bg-opacity-20 text-white text-sm rounded">
                 {post.category}
               </span>
             </div>
           )}
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair font-bold text-navy mb-6">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair font-bold text-white mb-6">
             {post?.title}
           </h1>
           
-          <div className="mb-8 flex items-center text-gray-500">
+          <div className="mb-8 flex items-center text-white text-opacity-80">
             <Calendar size={16} className="mr-2" />
             {new Date(post?.created_at || '').toLocaleDateString('en-US', {
               year: 'numeric',
@@ -110,7 +111,7 @@ const BlogPost = () => {
           
           {/* Featured image with enhanced responsive handling */}
           {post?.image_key && (
-            <div className="mb-8 rounded-lg overflow-hidden">
+            <div className="mb-8 rounded-lg overflow-hidden shadow-xl">
               <ResponsiveImage
                 dynamicKey={post.image_key}
                 alt={post.title}
@@ -126,7 +127,7 @@ const BlogPost = () => {
           {post?.tags && post.tags.length > 0 && (
             <div className="mb-8 flex flex-wrap gap-2">
               {post.tags.map(tag => (
-                <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-white bg-opacity-20 text-white">
                   <Tag size={14} className="mr-1 text-terracotta" />
                   {tag}
                 </span>
@@ -134,7 +135,7 @@ const BlogPost = () => {
             </div>
           )}
           
-          <div className="prose prose-lg max-w-none text-gray-700">
+          <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-lg text-gray-700">
             {post && formatContent(post.content)}
           </div>
           
