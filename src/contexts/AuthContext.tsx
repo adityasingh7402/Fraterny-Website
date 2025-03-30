@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        if (data && data.is_admin) {
+        if (data && data.is_admin === true) {
           setIsAdmin(true);
         }
       } catch (error) {

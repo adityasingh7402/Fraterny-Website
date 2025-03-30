@@ -21,7 +21,7 @@ const DesktopNavigation = ({ isScrolled, navLinks }: DesktopNavigationProps) => 
       ))}
       
       {user ? (
-        <UserMenu isScrolled={isScrolled} />
+        <UserMenu />
       ) : (
         <a
           href="/auth"
