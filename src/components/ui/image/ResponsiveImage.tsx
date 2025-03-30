@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring } from './utils';
@@ -56,8 +57,8 @@ const ResponsiveImage = ({
   }
   
   // Check if we have dynamic sources
-  const hasDynamicDesktop = !desktopError && desktopDynamicSrc;
-  const hasDynamicMobile = !mobileError && mobileDynamicSrc;
+  const hasDynamicDesktop = !desktopError && !!desktopDynamicSrc;
+  const hasDynamicMobile = !mobileError && !!mobileDynamicSrc;
   
   // If there was an error loading both images or no dynamic source found for both, use fallback
   if ((desktopError || !desktopDynamicSrc) && (mobileError || !mobileDynamicSrc) && dynamicKey) {
