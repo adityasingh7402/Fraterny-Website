@@ -35,7 +35,7 @@ export default function AnalyticsDashboard() {
   // Calculate engagement score (weighted average of key metrics)
   const engagementScore = Math.round(
     (overviewData.averageTimeOnSite * 0.3) + 
-    ((100 - overviewData.bounceRate) * 0.4) + 
+    ((100 - Number(overviewData.bounceRate.replace('%', ''))) * 0.4) + 
     (overviewData.pagesPerSession * 0.3)
   );
 
@@ -198,13 +198,13 @@ export default function AnalyticsDashboard() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {overviewData.conversionRate < 3 ? (
+                {Number(overviewData.conversionRate.replace('%', '')) < 3 ? (
                   <li className="flex items-start gap-2">
                     <span className="text-red-500 text-lg">•</span>
                     <span>Your conversion rate is below average. Consider improving your call-to-action buttons and landing page content.</span>
                   </li>
                 ) : null}
-                {overviewData.bounceRate > 60 ? (
+                {Number(overviewData.bounceRate.replace('%', '')) > 60 ? (
                   <li className="flex items-start gap-2">
                     <span className="text-red-500 text-lg">•</span>
                     <span>High bounce rate detected. Review your top entry pages for usability issues or slow loading times.</span>
@@ -216,7 +216,7 @@ export default function AnalyticsDashboard() {
                     <span>Low social media traffic. Consider increasing your social presence or running targeted campaigns.</span>
                   </li>
                 ) : null}
-                {deviceData.some(item => item.name === "Mobile" && item.value > 40 && overviewData.mobileConversionRate < overviewData.conversionRate) ? (
+                {deviceData.some(item => item.name === "Mobile" && item.value > 40 && overviewData.mobileConversionRate < Number(overviewData.conversionRate.replace('%', ''))) ? (
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500 text-lg">•</span>
                     <span>Mobile conversion rate is lower than desktop. Check your mobile experience for usability issues.</span>
