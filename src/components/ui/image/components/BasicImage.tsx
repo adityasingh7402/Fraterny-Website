@@ -42,5 +42,6 @@ export const BasicImage = ({
   // Add style for object-fit if provided
   const style = objectFit ? { objectFit, ...imgProps.style } : imgProps.style;
   
-  return <img {...imgProps} style={style} onClick={onClick} fetchpriority={fetchPriority} />;
+  // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
+  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
 };
