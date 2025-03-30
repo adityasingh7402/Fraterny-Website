@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +11,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, mobileNumber?: string) => Promise<{success: boolean; error?: string}>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
@@ -200,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the current domain to use for the redirect URL
       const currentDomain = window.location.origin;
       
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -212,11 +211,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           emailRedirectTo: `${currentDomain}/auth`
         }
       });
-      if (error) throw error;
-      toast.success('Signed up successfully! Check your email for verification.');
+
+      if (error) {
+        // Handle specific error for existing user
+        if (error.message.includes('User already registered')) {
+          toast.error('An account with this email address already exists. Please sign in instead.');
+          return { success: false, error: 'User already registered' };
+        }
+        
+        // Handle other errors
+        toast.error(error.message || 'Error signing up');
+        return { success: false, error: error.message };
+      }
+      
+      // Check for autoconfirm (no email verification needed)
+      if (data?.user && !data.user.email_confirmed_at) {
+        toast.success('Signed up successfully! Check your email for verification.');
+        return { success: true };
+      } else {
+        // User was auto-confirmed
+        toast.success('Signed up successfully!');
+        return { success: true };
+      }
     } catch (error: any) {
       toast.error(error.message || 'Error signing up');
-      throw error;
+      return { success: false, error: error.message };
     }
   };
 

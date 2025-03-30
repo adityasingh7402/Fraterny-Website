@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,10 +46,8 @@ const Auth = () => {
   const [verificationEmail, setVerificationEmail] = useState("");
   const [isProcessingToken, setIsProcessingToken] = useState(false);
 
-  // Check if there is a verification token in the URL
   useEffect(() => {
     const handleEmailConfirmation = async () => {
-      // Check for hash parameters which contain auth tokens
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
@@ -71,13 +68,7 @@ const Auth = () => {
           }
           
           if (data && data.session) {
-            // Successfully verified and signed in
-            console.log("Email verification successful, redirecting to home");
-            
-            // Clear the hash to avoid repeated processing
             window.history.replaceState(null, '', window.location.pathname);
-            
-            // Redirect to home page
             navigate('/');
           }
         } catch (error) {
@@ -126,10 +117,22 @@ const Auth = () => {
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      await signUp(data.email, data.password, data.firstName, data.lastName, data.mobileNumber);
-      setVerificationEmailSent(true);
-      setVerificationEmail(data.email);
-      registerForm.reset();
+      const result = await signUp(
+        data.email, 
+        data.password, 
+        data.firstName, 
+        data.lastName, 
+        data.mobileNumber
+      );
+      
+      if (result.success) {
+        setVerificationEmailSent(true);
+        setVerificationEmail(data.email);
+        registerForm.reset();
+      } else if (result.error === 'User already registered') {
+        setActiveTab('login');
+        loginForm.setValue('email', data.email);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -137,7 +140,6 @@ const Auth = () => {
     }
   };
 
-  // Show loading state if processing a token
   if (isProcessingToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
