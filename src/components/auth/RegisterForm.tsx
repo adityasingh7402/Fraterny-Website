@@ -51,14 +51,14 @@ export const RegisterForm = ({ onRegistrationSuccess }: RegisterFormProps) => {
     setIsLoading(true);
     try {
       // Normalize the phone number - ensure it has a + prefix if needed
-      let formattedPhone = data.mobileNumber;
+      let formattedPhone = data.mobileNumber.trim();
+      
+      // If it doesn't start with +, add it (assuming it's a full international number)
       if (formattedPhone && !formattedPhone.startsWith('+')) {
-        // Check if it's not already formatted and doesn't have country code
-        if (!formattedPhone.includes('+')) {
-          // If no country code and no +, add a + at the beginning
-          formattedPhone = `+${formattedPhone}`;
-        }
+        formattedPhone = `+${formattedPhone}`;
       }
+      
+      console.log('Submitting with phone number:', formattedPhone);
       
       const result = await signUp(
         data.email, 
@@ -145,7 +145,15 @@ export const RegisterForm = ({ onRegistrationSuccess }: RegisterFormProps) => {
             <FormItem>
               <FormLabel>Mobile Number</FormLabel>
               <FormControl>
-                <Input placeholder="Mobile number" {...field} />
+                <Input 
+                  placeholder="Mobile number (e.g. 919876543210)" 
+                  {...field}
+                  onChange={(e) => {
+                    // Only allow digits, +, spaces, (), and -
+                    const value = e.target.value.replace(/[^\d+\s()-]/g, '');
+                    field.onChange(value);
+                  }} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
