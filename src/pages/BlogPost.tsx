@@ -54,8 +54,8 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        <div className="h-2 bg-navy w-full"></div> {/* Brand color banner */}
-        <div className="container mx-auto px-6 pt-40 pb-20">
+        <div className="bg-navy w-full h-40"></div> {/* Taller navy banner for loading state */}
+        <div className="container mx-auto px-6 pt-16 pb-20">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
             <p className="mt-4 text-gray-600">Loading blog post...</p>
@@ -77,11 +77,11 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Brand color banner */}
-      <div className="h-2 bg-navy w-full"></div>
+      {/* Extended navy banner that fills the space between navigation and content */}
+      <div className="bg-navy w-full h-40"></div>
       
-      <article className="container mx-auto px-6 pt-40 pb-10">
-        <div className="max-w-3xl mx-auto">
+      <article className="container mx-auto px-6 -mt-20 pb-10">
+        <div className="max-w-3xl mx-auto bg-white pt-8 px-8 rounded-t-lg">
           <Link to="/blog" className="inline-flex items-center text-navy hover:text-terracotta mb-8">
             <ArrowLeft size={16} className="mr-2" />
             Back to all posts
