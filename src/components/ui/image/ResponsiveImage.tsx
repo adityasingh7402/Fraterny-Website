@@ -4,7 +4,7 @@ import { useResponsiveImage } from './useResponsiveImage';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LoadingPlaceholder } from './components/LoadingPlaceholder';
 import { ErrorPlaceholder } from './components/ErrorPlaceholder';
-import { ResponsiveImageProps } from './types';
+import { ResponsiveImageProps, ResponsiveImageSource } from './types';
 import { ResponsivePicture } from './components/ResponsivePicture';
 import { BasicImage } from './components/BasicImage';
 import { CacheDebugInfo } from './components/CacheDebugInfo';
@@ -39,7 +39,7 @@ const ResponsiveImage = ({
   }, [isMobile]);
 
   // Handle priority for browser loading hint
-  const finalFetchPriority = priority || fetchPriority || (loading === 'eager' ? 'high' : 'auto');
+  const finalFetchPriority = priority ? 'high' : fetchPriority || (loading === 'eager' ? 'high' : 'auto');
 
   // Use the hook to load dynamic images from storage
   const { 
@@ -133,7 +133,7 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           fallbackSrc={fallbackSrc}
-          useMobileSrc={useMobileSrc}
+          useMobileSrc={!!useMobileSrc}
           objectFit={objectFit}
         />
         {debugCache && (

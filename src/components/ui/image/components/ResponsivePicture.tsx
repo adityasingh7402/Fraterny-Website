@@ -14,7 +14,7 @@ interface ResponsivePictureProps {
   width?: number;
   height?: number;
   sizes?: string;
-  useMobileSrc?: boolean | null;
+  useMobileSrc?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 

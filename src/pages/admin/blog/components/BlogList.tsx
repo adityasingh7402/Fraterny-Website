@@ -75,6 +75,7 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
                       alt={post.title}
                       size="small"
                       className="w-full h-full object-cover"
+                      src="" // Provide empty string as src since we're using dynamicKey
                     />
                   </div>
                 ) : (

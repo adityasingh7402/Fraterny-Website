@@ -188,6 +188,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
                   alt={formValues.title || "Blog featured image"}
                   className="w-full h-full object-cover"
                   size="medium"
+                  src=""
                 />
                 <button
                   type="button"

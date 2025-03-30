@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -118,8 +117,9 @@ const BlogPost = () => {
                 size="large"
                 className="w-full h-auto"
                 loading="eager"
-                priority="high"
+                priority={true}
                 fallbackSrc="/placeholder.svg"
+                src=""
               />
             </div>
           )}

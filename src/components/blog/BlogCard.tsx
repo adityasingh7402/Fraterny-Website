@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ResponsiveImage from '../ui/ResponsiveImage';
@@ -38,6 +37,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
             fallbackSrc="/placeholder.svg"
+            src=""
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-navy to-terracotta opacity-40"></div>
