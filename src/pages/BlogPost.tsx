@@ -54,12 +54,12 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        {/* Significantly taller brand color banner that extends down */}
-        <div className="h-52 bg-navy w-full"></div>
-        <div className="container mx-auto px-6 pt-16 pb-20">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-            <p className="mt-4 text-gray-600">Loading blog post...</p>
+        <div className="bg-navy w-full pb-24">
+          <div className="container mx-auto px-6 pt-24">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-white border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+              <p className="mt-4 text-white">Loading blog post...</p>
+            </div>
           </div>
         </div>
         <Footer />
@@ -78,37 +78,53 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Significantly taller brand color banner that extends close to the back button */}
-      <div className="h-52 bg-navy w-full"></div>
-      
-      <article className="container mx-auto px-6 -mt-32 pb-10">
-        <div className="max-w-3xl mx-auto">
-          <Link to="/blog" className="inline-flex items-center text-white hover:text-terracotta mb-8">
-            <ArrowLeft size={16} className="mr-2" />
-            Back to all posts
-          </Link>
-          
-          {post?.category && (
-            <div className="mb-4">
-              <span className="inline-block px-3 py-1 bg-white bg-opacity-20 text-white text-sm rounded">
-                {post.category}
-              </span>
+      {/* Navy banner that extends to the content */}
+      <div className="bg-navy w-full pb-12">
+        <div className="container mx-auto px-6 pt-24">
+          <div className="max-w-3xl mx-auto">
+            <Link to="/blog" className="inline-flex items-center text-white hover:text-terracotta mb-8">
+              <ArrowLeft size={16} className="mr-2" />
+              Back to all posts
+            </Link>
+            
+            {post?.category && (
+              <div className="mb-4">
+                <span className="inline-block px-3 py-1 bg-white bg-opacity-20 text-white text-sm rounded">
+                  {post.category}
+                </span>
+              </div>
+            )}
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair font-bold text-white mb-6">
+              {post?.title}
+            </h1>
+            
+            <div className="mb-8 flex items-center text-white text-opacity-80">
+              <Calendar size={16} className="mr-2" />
+              {new Date(post?.created_at || '').toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
             </div>
-          )}
-          
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-playfair font-bold text-white mb-6">
-            {post?.title}
-          </h1>
-          
-          <div className="mb-8 flex items-center text-white text-opacity-80">
-            <Calendar size={16} className="mr-2" />
-            {new Date(post?.created_at || '').toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
+            
+            {/* Tags displayed in the banner area */}
+            {post?.tags && post.tags.length > 0 && (
+              <div className="mb-8 flex flex-wrap gap-2">
+                {post.tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-white bg-opacity-20 text-white">
+                    <Tag size={14} className="mr-1 text-terracotta" />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          
+        </div>
+      </div>
+      
+      <article className="container mx-auto px-6 -mt-4 pb-10">
+        <div className="max-w-3xl mx-auto">
           {/* Featured image with enhanced responsive handling */}
           {post?.image_key && (
             <div className="mb-8 rounded-lg overflow-hidden shadow-xl">
@@ -121,17 +137,6 @@ const BlogPost = () => {
                 priority="high"
                 fallbackSrc="/placeholder.svg"
               />
-            </div>
-          )}
-          
-          {post?.tags && post.tags.length > 0 && (
-            <div className="mb-8 flex flex-wrap gap-2">
-              {post.tags.map(tag => (
-                <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-white bg-opacity-20 text-white">
-                  <Tag size={14} className="mr-1 text-terracotta" />
-                  {tag}
-                </span>
-              ))}
             </div>
           )}
           
