@@ -50,12 +50,22 @@ export const RegisterForm = ({ onRegistrationSuccess }: RegisterFormProps) => {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
+      // Normalize the phone number - ensure it has a + prefix if needed
+      let formattedPhone = data.mobileNumber;
+      if (formattedPhone && !formattedPhone.startsWith('+')) {
+        // Check if it's not already formatted and doesn't have country code
+        if (!formattedPhone.includes('+')) {
+          // If no country code and no +, add a + at the beginning
+          formattedPhone = `+${formattedPhone}`;
+        }
+      }
+      
       const result = await signUp(
         data.email, 
         data.password, 
         data.firstName, 
         data.lastName, 
-        data.mobileNumber
+        formattedPhone
       );
       
       if (result.success) {

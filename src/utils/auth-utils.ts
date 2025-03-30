@@ -36,14 +36,20 @@ export const signUp = async (
     const currentDomain = window.location.origin;
     console.log('Current domain for redirect:', currentDomain);
     
+    // Format the phone number properly (with +) if it doesn't already have it
+    let formattedPhone = mobileNumber;
+    if (mobileNumber && !mobileNumber.startsWith('+')) {
+      formattedPhone = `+${mobileNumber}`;
+    }
+    
     const { error, data } = await supabase.auth.signUp({
       email,
       password,
+      phone: formattedPhone, // Set the phone directly in the user record
       options: {
         data: {
           first_name: firstName,
           last_name: lastName,
-          mobile_number: mobileNumber
         },
         emailRedirectTo: `${currentDomain}/auth`
       }
