@@ -76,7 +76,8 @@ const ResponsiveImage = ({
         className={className}
         width={width}
         height={height}
-        aspectRatio={aspectRatio} 
+        aspectRatio={aspectRatio}
+        fallbackSrc={fallbackSrc}
       />
     );
   }
@@ -95,6 +96,7 @@ const ResponsiveImage = ({
           width={width}
           height={height}
           sizes={sizes}
+          fallbackSrc={fallbackSrc}
         />
         {debugCache && (
           <CacheDebugInfo
@@ -129,6 +131,7 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           useMobileSrc={useMobileSrc}
+          fallbackSrc={fallbackSrc}
         />
         {debugCache && (
           <CacheDebugInfo
@@ -154,6 +157,7 @@ const ResponsiveImage = ({
         width={width}
         height={height}
         sizes={sizes}
+        fallbackSrc={fallbackSrc}
       />
       {debugCache && (
         <CacheDebugInfo

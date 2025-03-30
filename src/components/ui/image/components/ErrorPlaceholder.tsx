@@ -6,7 +6,8 @@ interface ErrorPlaceholderProps {
   className?: string;
   width?: number;
   height?: number;
-  fallbackSrc: string | React.ReactNode;
+  aspectRatio?: number;  // Added missing aspectRatio prop
+  fallbackSrc?: string | React.ReactNode;
 }
 
 /**
@@ -17,13 +18,14 @@ export const ErrorPlaceholder = ({
   className = '', 
   width, 
   height, 
-  fallbackSrc 
+  aspectRatio = 16/9,
+  fallbackSrc = '/placeholder.svg'
 }: ErrorPlaceholderProps) => {
   return (
     <div 
       className={`bg-gray-100 flex items-center justify-center ${className}`}
       style={{ 
-        aspectRatio: width && height ? `${width}/${height}` : '16/9',
+        aspectRatio: width && height ? `${width}/${height}` : aspectRatio ? `${aspectRatio}` : '16/9',
         width: width,
         height: height 
       }}

@@ -10,10 +10,11 @@ interface ResponsivePictureProps {
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  fallbackSrc: string;
+  fallbackSrc?: string; // Make fallbackSrc optional with a default
   width?: number;
   height?: number;
   sizes?: string;
+  useMobileSrc?: boolean | null; // Added useMobileSrc prop
 }
 
 /**
@@ -26,10 +27,11 @@ export const ResponsivePicture = ({
   loading = 'lazy',
   fetchPriority,
   onClick,
-  fallbackSrc,
+  fallbackSrc = '/placeholder.svg',
   width,
   height,
-  sizes
+  sizes,
+  useMobileSrc
 }: ResponsivePictureProps) => {
   const imgProps = createImageProps(
     sources.desktop, alt, className, loading, sizes,

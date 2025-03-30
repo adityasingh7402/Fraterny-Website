@@ -17,7 +17,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   // Fetch the image record to get the storage path and content hash
   const { data, error } = await supabase
     .from('website_images')
-    .select('storage_path, metadata')
+    .select('storage_path')
     .eq('key', key)
     .maybeSingle();
 
@@ -26,8 +26,8 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     return '/placeholder.svg';
   }
 
-  // Get content hash from metadata if available
-  const contentHash = data.metadata?.contentHash || '';
+  // Get content hash from metadata if available (handle case where metadata doesn't exist yet)
+  const contentHash = ''; // We'll implement content hash once the metadata column exists
 
   // Get the public URL for this storage path
   const { data: urlData } = supabase.storage
@@ -60,10 +60,10 @@ export const getImageUrlByKeyAndSize = async (
     return cachedUrl;
   }
 
-  // Fetch the image record to get sizes and content hash
+  // Fetch the image record to get sizes
   const { data, error } = await supabase
     .from('website_images')
-    .select('sizes, metadata')
+    .select('sizes')
     .eq('key', key)
     .maybeSingle();
 
@@ -72,8 +72,7 @@ export const getImageUrlByKeyAndSize = async (
     return '/placeholder.svg';
   }
 
-  // Get content hash from metadata if available
-  const contentHash = data.metadata?.contentHash || '';
+  const contentHash = ''; // We'll implement content hash once the metadata column exists
   
   if (data.sizes && data.sizes[size]) {
     // Get the public URL for this optimized size
@@ -116,30 +115,8 @@ export const getImagePlaceholdersByKey = async (
     };
   }
 
-  // Fetch the image record to get metadata with placeholders
-  const { data, error } = await supabase
-    .from('website_images')
-    .select('metadata')
-    .eq('key', key)
-    .maybeSingle();
-
-  if (error || !data || !data.metadata) {
-    return { tinyPlaceholder: null, colorPlaceholder: null };
-  }
-
-  const tinyPlaceholder = data.metadata?.placeholders?.tiny || null;
-  const colorPlaceholder = data.metadata?.placeholders?.color || null;
-
-  // Cache placeholders for future use
-  if (tinyPlaceholder) {
-    urlCache.set(`placeholder:tiny:${key}`, tinyPlaceholder);
-  }
-  
-  if (colorPlaceholder) {
-    urlCache.set(`placeholder:color:${key}`, colorPlaceholder);
-  }
-
-  return { tinyPlaceholder, colorPlaceholder };
+  // For now, return null placeholders until we have the metadata column
+  return { tinyPlaceholder: null, colorPlaceholder: null };
 };
 
 /**

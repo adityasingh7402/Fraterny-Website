@@ -9,7 +9,7 @@ interface BasicImageProps {
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  fallbackSrc: string;
+  fallbackSrc?: string; // Made fallbackSrc optional with a default value
   width?: number;
   height?: number;
   sizes?: string;
@@ -25,7 +25,7 @@ export const BasicImage = ({
   loading = 'lazy',
   fetchPriority,
   onClick,
-  fallbackSrc,
+  fallbackSrc = '/placeholder.svg', // Default fallback
   width,
   height,
   sizes
@@ -39,4 +39,3 @@ export const BasicImage = ({
   
   return <img {...imgProps} onClick={onClick} />;
 };
-
