@@ -42,21 +42,21 @@ export const signUp = async (
       formattedPhone = `+${mobileNumber}`;
     }
     
+    console.log('Signing up user with phone:', formattedPhone);
+    
     // We need to use the phone field AND include it in metadata for complete phone handling
     const { error, data } = await supabase.auth.signUp({
       email,
       password,
-      // Set both because Supabase uses phone AND phone_confirmed_at in metadata
-      phone: formattedPhone, 
       options: {
         data: {
           first_name: firstName,
           last_name: lastName,
-          // Also include the phone in metadata for redundancy
-          phone: formattedPhone
+          phone: formattedPhone,  // Include in metadata
         },
         emailRedirectTo: `${currentDomain}/auth`
-      }
+      },
+      phone: formattedPhone,  // Also set as main phone field
     });
 
     if (error) {
