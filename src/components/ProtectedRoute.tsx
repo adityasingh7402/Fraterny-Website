@@ -1,17 +1,32 @@
 
-import { Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 
 export const ProtectedRoute = () => {
   const { user, isLoading, session } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/auth', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+    
+    // Handle verification redirects from email
+    const handleVerificationRedirect = () => {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+      
+      if (accessToken && type === 'signup') {
+        // Clear the hash to avoid repeated processing
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+    
+    handleVerificationRedirect();
+  }, [user, isLoading, navigate, location]);
 
   // Show loading state if still checking authentication
   if (isLoading) {
@@ -34,6 +49,7 @@ export const ProtectedRoute = () => {
 export const AdminRoute = () => {
   const { user, isAdmin, isLoading, session } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!isLoading) {
@@ -43,7 +59,20 @@ export const AdminRoute = () => {
         navigate('/', { replace: true });
       }
     }
-  }, [user, isAdmin, isLoading, navigate, session]);
+    
+    // Handle verification redirects similar to ProtectedRoute
+    const handleVerificationRedirect = () => {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      
+      if (accessToken) {
+        // Clear the hash
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+    
+    handleVerificationRedirect();
+  }, [user, isAdmin, isLoading, navigate, session, location]);
 
   // Show loading state if still checking authentication
   if (isLoading) {
