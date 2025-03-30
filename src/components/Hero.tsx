@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
@@ -12,12 +13,14 @@ const Hero = () => {
 
   useEffect(() => {
     // If we have settings from the database, use them
-    if (settings?.registration_days_left) {
-      setDaysLeft(settings.registration_days_left);
-    } else if (settings?.registration_close_date) {
-      // Otherwise, calculate based on the target date
+    if (settings?.registration_close_date) {
+      // Log the target date for debugging
+      console.log('Registration close date from settings:', settings.registration_close_date);
+      
+      // Define function to calculate and update days left
       const calculateAndSetDaysLeft = () => {
         const daysRemaining = calculateDaysLeft(settings.registration_close_date);
+        console.log('Days remaining calculated in Hero:', daysRemaining);
         setDaysLeft(daysRemaining);
       };
 
@@ -28,6 +31,8 @@ const Hero = () => {
       const cleanup = scheduleAtMidnight(calculateAndSetDaysLeft);
       
       return cleanup;
+    } else {
+      console.warn('No registration_close_date found in settings');
     }
   }, [settings]);
 

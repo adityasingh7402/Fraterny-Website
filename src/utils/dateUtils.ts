@@ -10,16 +10,37 @@ import { parseISO } from 'date-fns';
  */
 export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/Kolkata'): number => {
   try {
+    if (!dateString) {
+      console.error('No target date provided to calculateDaysLeft');
+      return 0;
+    }
+
+    // Parse the target date
     const targetDate = new Date(dateString);
+    
+    // Log data for debugging
+    console.log('Target date:', targetDate);
+    console.log('Target date valid:', !isNaN(targetDate.getTime()));
+    
+    if (isNaN(targetDate.getTime())) {
+      console.error('Invalid date provided to calculateDaysLeft:', dateString);
+      return 0;
+    }
     
     // Get the current date in the specified timezone
     const nowInTimezone = new Date();
     const todayFormatted = formatInTimeZone(nowInTimezone, timezone, 'yyyy-MM-dd');
     const todayInTimezone = parseISO(todayFormatted);
     
+    // Log the current date for debugging
+    console.log('Today in timezone:', todayInTimezone);
+    
     // Calculate the difference in days
     const diffTime = targetDate.getTime() - todayInTimezone.getTime();
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    
+    console.log('Days left calculated:', daysLeft);
+    return daysLeft;
   } catch (error) {
     console.error('Error calculating days left:', error);
     return 0;
@@ -43,6 +64,9 @@ export const scheduleAtMidnight = (callback: () => void, timezone: string = 'Asi
   // Calculate milliseconds until midnight in the specified timezone
   const millisecondsInDay = 24 * 60 * 60 * 1000;
   const millisecondsUntilMidnight = millisecondsInDay - ((hours * 60 * 60 + minutes * 60 + seconds) * 1000 + now.getMilliseconds());
+  
+  // Log information for debugging
+  console.log('Hours until midnight:', millisecondsUntilMidnight / (1000 * 60 * 60));
   
   // Schedule the callback
   const timer = setTimeout(() => {

@@ -20,11 +20,13 @@ export const formatRegistrationCloseDate = (dateString: string): string => {
  */
 export const calculateDaysLeft = (dateString: string, timezone: string = 'Asia/Kolkata'): number => {
   try {
-    // Import the function directly from the module to avoid async imports
-    const { calculateDaysLeft } = require('@/utils/dateUtils');
-    return calculateDaysLeft(dateString, timezone);
+    // Import the function directly from the module
+    const dateUtils = require('@/utils/dateUtils');
+    // Log the imported function and parameters for debugging
+    console.log('Using calculateDaysLeft from utils/dateUtils with:', dateString);
+    return dateUtils.calculateDaysLeft(dateString, timezone);
   } catch (error) {
-    console.error('Error calculating days left:', error);
+    console.error('Error in website-settings/calculateDaysLeft wrapper:', error);
     return 0;
   }
 };

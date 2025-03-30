@@ -39,6 +39,16 @@ const Index = () => {
     const pngCleanup = trackResourceTiming('png');
     const jpgCleanup = trackResourceTiming('jpg');
     
+    // Initial days left update
+    console.log('Running initial days left update check');
+    updateDaysLeftCount().then(success => {
+      if (success) {
+        console.log('Successfully updated days left count on page load');
+      } else {
+        console.error('Failed to update days left count on page load');
+      }
+    });
+    
     // Set up automatic update of days left count at midnight IST
     const autoUpdateCleanup = scheduleAtMidnight(() => {
       console.log('Automatically updating days left count at midnight IST');
