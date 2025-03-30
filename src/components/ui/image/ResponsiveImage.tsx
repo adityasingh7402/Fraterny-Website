@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring, createImageProps } from './utils';
 import { ResponsiveImageProps } from './types';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * ResponsiveImage component that serves different image sizes based on screen width
@@ -22,6 +22,8 @@ const ResponsiveImage = ({
   height,
   sizes = '100vw'
 }: ResponsiveImageProps) => {
+  const isMobile = useIsMobile();
+  
   // Get desktop and mobile keys if dynamicKey is provided
   const desktopKey = dynamicKey || '';
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
@@ -103,25 +105,40 @@ const ResponsiveImage = ({
     );
   }
   
-  // If we have dynamic sources, create a responsive image object
+  // Use the desktop image for both desktop and mobile if no mobile-specific image exists
+  // This ensures mobile always has an image even if the -mobile variant doesn't exist
   let imageSrc = src;
   
-  if (hasDynamicDesktop || hasDynamicMobile) {
-    if (typeof src === 'object') {
-      // Preserve the existing structure but replace with dynamic sources where available
-      imageSrc = {
-        mobile: hasDynamicMobile ? mobileDynamicSrc! : src.mobile,
-        desktop: hasDynamicDesktop ? desktopDynamicSrc! : src.desktop
-      };
-    } else if (hasDynamicDesktop && hasDynamicMobile) {
-      // Create a new responsive object with both dynamic sources
+  if (hasDynamicDesktop) {
+    if (isMobile && hasDynamicMobile) {
+      // Use mobile image if on mobile device and mobile image exists
+      imageSrc = mobileDynamicSrc;
+    } else {
+      // Otherwise use desktop image
+      imageSrc = desktopDynamicSrc;
+    }
+  }
+  
+  // For responsive sources object
+  if (typeof src === 'object') {
+    // Create a new responsive object with both dynamic sources
+    if (hasDynamicDesktop && hasDynamicMobile) {
       imageSrc = {
         mobile: mobileDynamicSrc!,
         desktop: desktopDynamicSrc!
       };
     } else if (hasDynamicDesktop) {
-      // We only have desktop dynamic source
-      imageSrc = desktopDynamicSrc;
+      // If only desktop exists, use it for both
+      imageSrc = {
+        mobile: desktopDynamicSrc!,
+        desktop: desktopDynamicSrc!
+      };
+    } else {
+      // Keep original responsive object
+      imageSrc = {
+        mobile: src.mobile,
+        desktop: src.desktop
+      };
     }
   }
   

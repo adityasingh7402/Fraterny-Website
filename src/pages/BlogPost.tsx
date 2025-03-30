@@ -9,6 +9,7 @@ import ResponsiveImage from '../components/ui/ResponsiveImage';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import CommentSection from '../components/blog/CommentSection';
 import NewsletterSignup from '../components/blog/NewsletterSignup';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Blog post type
 type BlogPost = {
@@ -26,6 +27,7 @@ type BlogPost = {
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   // Fetch the specific blog post
   const { data: post, isLoading, error } = useQuery({
@@ -113,6 +115,8 @@ const BlogPost = () => {
                 size="large"
                 className="w-full h-auto"
                 loading="eager"
+                fetchPriority="high"
+                fallbackSrc="/placeholder.svg"
               />
             </div>
           )}

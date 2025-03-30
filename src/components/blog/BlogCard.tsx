@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ResponsiveImage from '../ui/ResponsiveImage';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export type BlogPost = {
   id: string;
@@ -20,6 +21,8 @@ interface BlogCardProps {
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
+  const isMobile = useIsMobile();
+
   return (
     <Link 
       to={`/blog/${post.id}`}
@@ -37,6 +40,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
             size="medium"
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
+            fallbackSrc="/placeholder.svg"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-navy to-terracotta opacity-40"></div>
