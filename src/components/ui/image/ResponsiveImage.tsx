@@ -27,6 +27,7 @@ const ResponsiveImage = ({
   width,
   height,
   sizes,
+  objectFit = 'cover',
   debugCache = false
 }: ResponsiveImageProps) => {
   const [useMobileSrc, setUseMobileSrc] = useState<boolean | null>(null);
@@ -76,7 +77,7 @@ const ResponsiveImage = ({
         className={className}
         width={width}
         height={height}
-        aspectRatio={aspectRatio}
+        aspectRatio={aspectRatio || 16/9}
         fallbackSrc={fallbackSrc}
       />
     );
@@ -97,6 +98,7 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           fallbackSrc={fallbackSrc}
+          objectFit={objectFit}
         />
         {debugCache && (
           <CacheDebugInfo
@@ -131,6 +133,8 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           fallbackSrc={fallbackSrc}
+          useMobileSrc={useMobileSrc}
+          objectFit={objectFit}
         />
         {debugCache && (
           <CacheDebugInfo
@@ -157,6 +161,7 @@ const ResponsiveImage = ({
         height={height}
         sizes={sizes}
         fallbackSrc={fallbackSrc}
+        objectFit={objectFit}
       />
       {debugCache && (
         <CacheDebugInfo

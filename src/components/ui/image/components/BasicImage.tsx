@@ -13,6 +13,7 @@ interface BasicImageProps {
   width?: number;
   height?: number;
   sizes?: string;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 
 /**
@@ -28,7 +29,8 @@ export const BasicImage = ({
   fallbackSrc = '/placeholder.svg',
   width,
   height,
-  sizes
+  sizes,
+  objectFit = 'cover'
 }: BasicImageProps) => {
   const imgProps = createImageProps(
     src, alt, className, loading, sizes,
@@ -47,5 +49,8 @@ export const BasicImage = ({
     finalProps.fetchpriority = fetchPriority;
   }
   
-  return <img {...finalProps} onClick={onClick} />;
+  // Add style for object-fit if provided
+  const style = objectFit ? { objectFit, ...finalProps.style } : finalProps.style;
+  
+  return <img {...finalProps} style={style} onClick={onClick} />;
 };

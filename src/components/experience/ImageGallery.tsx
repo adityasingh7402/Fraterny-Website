@@ -81,12 +81,13 @@ const ImageGallery = () => {
             <ResponsiveImage 
               src={image.fallback}
               alt={image.alt}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
               loading={index < 2 ? "eager" : "lazy"}
               dynamicKey={image.dynamicKey}
               width={image.width}
               height={image.height}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+              objectFit="contain"
             />
           </div>
         ))}

@@ -14,7 +14,8 @@ interface ResponsivePictureProps {
   width?: number;
   height?: number;
   sizes?: string;
-  useMobileSrc?: boolean | null; // Added useMobileSrc prop
+  useMobileSrc?: boolean | null;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 
 /**
@@ -31,19 +32,23 @@ export const ResponsivePicture = ({
   width,
   height,
   sizes,
-  useMobileSrc
+  useMobileSrc,
+  objectFit = 'cover'
 }: ResponsivePictureProps) => {
   const imgProps = createImageProps(
     sources.desktop, alt, className, loading, sizes,
     width, height, fallbackSrc, fetchPriority
   );
   
+  // Add style for object-fit if provided
+  const style = objectFit ? { objectFit, ...imgProps.style } : imgProps.style;
+  
   return (
     <picture onClick={onClick}>
       {sources.mobile && <source media="(max-width: 640px)" srcSet={sources.mobile} />}
       {sources.tablet && <source media="(max-width: 1024px)" srcSet={sources.tablet} />}
       <source media="(min-width: 641px)" srcSet={sources.desktop} />
-      <img {...imgProps} />
+      <img {...imgProps} style={style} />
     </picture>
   );
 };

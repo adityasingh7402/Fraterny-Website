@@ -34,7 +34,7 @@ export const ErrorPlaceholder = ({
         <img 
           src={fallbackSrc} 
           alt={`Placeholder for ${alt}`} 
-          className="max-h-full max-w-full p-4 opacity-30"
+          className="max-h-full max-w-full p-4 opacity-30 object-contain"
           width={width}
           height={height}
         />

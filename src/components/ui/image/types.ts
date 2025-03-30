@@ -1,17 +1,13 @@
+import { ResponsiveImageSource } from '../types';
 
-export interface ResponsiveImageSource {
-  mobile: string;
-  tablet?: string;
-  desktop: string;
-}
-
+// Add objectFit to the ResponsiveImageProps interface
 export interface ResponsiveImageProps {
-  src?: ResponsiveImageSource | string;
+  src: string | ResponsiveImageSource;
   alt: string;
   className?: string;
   loading?: 'lazy' | 'eager';
+  priority?: boolean;
   fetchPriority?: 'high' | 'low' | 'auto';
-  priority?: 'high' | 'low' | 'auto'; // Added as a replacement for fetchPriority
   onClick?: () => void;
   dynamicKey?: string;
   size?: 'small' | 'medium' | 'large';
@@ -19,17 +15,6 @@ export interface ResponsiveImageProps {
   width?: number;
   height?: number;
   sizes?: string;
-  debugCache?: boolean; // New prop for debugging cache behavior
-}
-
-export interface ImageLoadingState {
-  isLoading: boolean;
-  error: boolean;
-  dynamicSrc: string | null;
-  aspectRatio?: number;
-  tinyPlaceholder?: string | null; // Added tiny image placeholder
-  colorPlaceholder?: string | null; // Added color-based placeholder
-  contentHash?: string | null; // Content-based hash for cache validation
-  isCached?: boolean; // Whether the image came from cache
-  lastUpdated?: string | null; // When the image was last updated
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  debugCache?: boolean;
 }
