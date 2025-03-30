@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage } from '@/services/images';
 
 // Available categories
 const CATEGORIES = [
@@ -23,6 +24,7 @@ type BlogFormProps = {
     category: string;
     tags: string[];
     published: boolean;
+    image_key?: string | null;
   };
   setFormValues: (values: any) => void;
   setEditingId: (id: string | null) => void;
@@ -32,6 +34,7 @@ type BlogFormProps = {
 const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSuccess }: BlogFormProps) => {
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -58,6 +61,48 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
     }));
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      // Use a unique key based on the blog title or post ID
+      const imageKey = `blog-${editingId || Date.now()}`;
+      const result = await uploadImage(
+        file,
+        imageKey,
+        `Image for blog: ${formValues.title}`,
+        formValues.title || 'Blog image'
+      );
+
+      if (result) {
+        setFormValues(prev => ({
+          ...prev,
+          image_key: imageKey
+        }));
+        toast.success('Image uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+  
+  const handleRemoveImage = () => {
+    setFormValues(prev => ({
+      ...prev,
+      image_key: null
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -73,6 +118,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
             category: formValues.category || null,
             tags: formValues.tags.length > 0 ? formValues.tags : null,
             published: formValues.published,
+            image_key: formValues.image_key,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingId);
@@ -88,7 +134,8 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
             content: formValues.content,
             category: formValues.category || null,
             tags: formValues.tags.length > 0 ? formValues.tags : null,
-            published: formValues.published
+            published: formValues.published,
+            image_key: formValues.image_key
           });
 
         if (error) throw error;
@@ -96,7 +143,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
       }
 
       // Reset form and refresh data
-      setFormValues({ title: '', content: '', category: '', tags: [], published: true });
+      setFormValues({ title: '', content: '', category: '', tags: [], published: true, image_key: null });
       setEditingId(null);
       onSuccess();
     } catch (error) {
@@ -129,6 +176,53 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
             className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
             required
           />
+        </div>
+
+        {/* Image Upload Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Featured Image
+          </label>
+          
+          {formValues.image_key ? (
+            <div className="mb-4">
+              <div className="relative w-full max-w-md aspect-video mb-2 rounded overflow-hidden bg-gray-100">
+                <ResponsiveImage
+                  dynamicKey={formValues.image_key}
+                  alt={formValues.title || "Blog featured image"}
+                  className="w-full h-full object-cover"
+                  size="medium"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500">Change image</p>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-1 text-sm text-gray-500">Upload a featured image for your blog post</p>
+            </div>
+          )}
+          
+          <div className="mt-2">
+            <label className="inline-flex items-center px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors cursor-pointer">
+              <Upload size={16} className="mr-2" />
+              {uploadingImage ? 'Uploading...' : 'Upload Image'}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+            </label>
+          </div>
         </div>
 
         <div>
@@ -234,7 +328,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
             <button
               type="button"
               onClick={() => {
-                setFormValues({ title: '', content: '', category: '', tags: [], published: true });
+                setFormValues({ title: '', content: '', category: '', tags: [], published: true, image_key: null });
                 setEditingId(null);
               }}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
@@ -256,3 +350,5 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
 };
 
 export default BlogForm;
+
+import ResponsiveImage from '@/components/ui/ResponsiveImage';

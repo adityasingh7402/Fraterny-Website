@@ -13,7 +13,8 @@ const AdminBlog = () => {
     content: '',
     category: '',
     tags: [],
-    published: true
+    published: true,
+    image_key: null
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,7 +40,8 @@ const AdminBlog = () => {
       content: post.content,
       category: post.category || '',
       tags: post.tags || [],
-      published: post.published
+      published: post.published,
+      image_key: post.image_key || null
     });
     setEditingId(post.id);
     setShowForm(true);
@@ -52,7 +54,8 @@ const AdminBlog = () => {
       content: '',
       category: '',
       tags: [],
-      published: true
+      published: true,
+      image_key: null
     });
     setEditingId(null);
     setShowForm(true);

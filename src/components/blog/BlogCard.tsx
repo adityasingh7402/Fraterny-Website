@@ -23,39 +23,46 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   return (
     <Link 
       to={`/blog/${post.id}`}
-      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col h-full"
+      className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col h-full"
     >
-      {/* Conditionally show image if image_key is available */}
-      {post.image_key && (
-        <div className="w-full aspect-[16/9] overflow-hidden">
+      <div className="relative w-full aspect-[16/9] overflow-hidden">
+        {/* Background image */}
+        <div className="absolute inset-0 bg-navy bg-opacity-50 z-10"></div>
+
+        {/* Post image */}
+        {post.image_key ? (
           <ResponsiveImage
             dynamicKey={post.image_key}
             alt={post.title}
-            size="medium" // Use medium size for better performance
-            className="w-full h-full object-cover transition-transform hover:scale-105"
+            size="medium"
+            className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
           />
-        </div>
-      )}
-      
-      <div className="p-6 flex-grow">
-        {post.category && (
-          <span className="inline-block px-2 py-1 bg-navy bg-opacity-10 text-navy text-xs rounded mb-2">
-            {post.category}
-          </span>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-b from-navy to-terracotta opacity-40"></div>
         )}
-        <h2 className="text-xl font-playfair font-bold text-navy mb-2 line-clamp-2">{post.title}</h2>
-        <p className="text-sm text-gray-500 mb-3">
-          {new Date(post.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </p>
-        <p className="text-gray-600 line-clamp-3">{post.content.substring(0, 160)}...</p>
-      </div>
-      <div className="px-6 pb-4">
-        <span className="text-terracotta font-medium hover:underline">Read more →</span>
+
+        {/* Overlay content positioned at the bottom */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black/80 to-transparent">
+          {post.category && (
+            <span className="inline-block px-2 py-1 bg-navy bg-opacity-80 text-white text-xs font-medium rounded mb-2">
+              {post.category}
+            </span>
+          )}
+          <h2 className="text-xl font-playfair font-bold text-white mb-2 line-clamp-2">
+            {post.title}
+          </h2>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-200">
+              {new Date(post.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+            <span className="text-terracotta font-medium group-hover:underline">Read more →</span>
+          </div>
+        </div>
       </div>
     </Link>
   );

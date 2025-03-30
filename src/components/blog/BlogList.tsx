@@ -76,7 +76,7 @@ const BlogList: React.FC<BlogListProps> = ({
   
   return (
     <div className="space-y-10">
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-8">
         {posts.map((post) => (
           <BlogCard key={post.id} post={post} />
         ))}

@@ -1,5 +1,5 @@
 
-export type BlogPost = {
+export interface BlogPost {
   id: string;
   title: string;
   content: string;
@@ -8,12 +8,14 @@ export type BlogPost = {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-};
+  image_key?: string | null;
+}
 
-export type BlogFormValues = {
+export interface BlogFormValues {
   title: string;
   content: string;
   category: string;
   tags: string[];
   published: boolean;
-};
+  image_key?: string | null;
+}
