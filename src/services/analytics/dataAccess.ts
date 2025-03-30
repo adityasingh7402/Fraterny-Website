@@ -62,7 +62,8 @@ export const getTrafficSourceData = (): DistributionDataPoint[] => {
     
     // Process sources and combine development/testing domains into "Other"
     Object.entries(analytics.sources).forEach(([name, value]) => {
-      if (name === 'lovable_dev' || name.includes('lovableproject.com')) {
+      // Updated condition to also filter out "lovable.dev"
+      if (name === 'lovable_dev' || name.includes('lovableproject.com') || name.includes('lovable.dev')) {
         otherValue += value as number;
       } else {
         cleanedSources[name] = value as number;
