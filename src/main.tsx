@@ -22,18 +22,7 @@ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import AdminBlog from './pages/admin/blog';
 import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false
-    }
-  }
-});
 
 const router = createBrowserRouter([
   {
@@ -72,8 +61,6 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <RouterProvider router={router} />
   </React.StrictMode>
 )

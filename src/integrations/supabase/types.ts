@@ -95,6 +95,30 @@ export type Database = {
         }
         Relationships: []
       }
+      temp_user_metadata: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          metadata: Json
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          metadata?: Json
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json
+          phone?: string
+        }
+        Relationships: []
+      }
       website_images: {
         Row: {
           alt_text: string
@@ -166,6 +190,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_expired_metadata: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: {
