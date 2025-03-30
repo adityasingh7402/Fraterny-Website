@@ -10,7 +10,7 @@ interface ResponsivePictureProps {
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  fallbackSrc?: string; // Make fallbackSrc optional with a default
+  fallbackSrc?: string;
   width?: number;
   height?: number;
   sizes?: string;

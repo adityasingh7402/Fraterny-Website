@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -8,11 +7,10 @@ import {
 } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
-import { getHashFromUrl } from '@/services/images/utils/hashUtils';
 
 /**
  * Custom hook to handle dynamic image loading from storage
- * Enhanced with content-based cache keys and placeholder support
+ * Simplified version that doesn't rely on metadata column
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
@@ -117,9 +115,6 @@ export const useResponsiveImage = (
           }
         }
         
-        // Extract content hash from URL if available
-        const contentHash = getHashFromUrl(imageUrl);
-        
         // Get placeholders
         let { tinyPlaceholder, colorPlaceholder } = await placeholdersPromise;
         
@@ -140,7 +135,7 @@ export const useResponsiveImage = (
           aspectRatio,
           tinyPlaceholder,
           colorPlaceholder,
-          contentHash,
+          contentHash: null, // No content hash yet
           timestamp: Date.now(),
           lastUpdated: new Date().toISOString()
         };
@@ -154,7 +149,7 @@ export const useResponsiveImage = (
           aspectRatio,
           tinyPlaceholder,
           colorPlaceholder,
-          contentHash,
+          contentHash: null,
           isCached: false,
           lastUpdated: imageInfo.lastUpdated
         }));

@@ -6,7 +6,7 @@ interface ErrorPlaceholderProps {
   className?: string;
   width?: number;
   height?: number;
-  aspectRatio?: number;  // Added missing aspectRatio prop
+  aspectRatio?: number;
   fallbackSrc?: string | React.ReactNode;
 }
 

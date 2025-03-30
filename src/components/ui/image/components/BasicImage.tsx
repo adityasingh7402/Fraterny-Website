@@ -9,7 +9,7 @@ interface BasicImageProps {
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  fallbackSrc?: string; // Made fallbackSrc optional with a default value
+  fallbackSrc?: string;
   width?: number;
   height?: number;
   sizes?: string;
@@ -25,7 +25,7 @@ export const BasicImage = ({
   loading = 'lazy',
   fetchPriority,
   onClick,
-  fallbackSrc = '/placeholder.svg', // Default fallback
+  fallbackSrc = '/placeholder.svg',
   width,
   height,
   sizes
@@ -37,5 +37,15 @@ export const BasicImage = ({
     fetchPriority
   );
   
-  return <img {...imgProps} onClick={onClick} />;
+  // Remove fetchPriority from imgProps to avoid React DOM warning
+  // fetchPriority needs to be lowercase in the DOM
+  const { fetchPriority: _, ...cleanProps } = imgProps;
+  
+  // Add it back with the correct DOM attribute name if it exists
+  const finalProps: any = { ...cleanProps };
+  if (fetchPriority) {
+    finalProps.fetchpriority = fetchPriority;
+  }
+  
+  return <img {...finalProps} onClick={onClick} />;
 };

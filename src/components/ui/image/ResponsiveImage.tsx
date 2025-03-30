@@ -130,7 +130,6 @@ const ResponsiveImage = ({
           width={width}
           height={height}
           sizes={sizes}
-          useMobileSrc={useMobileSrc}
           fallbackSrc={fallbackSrc}
         />
         {debugCache && (

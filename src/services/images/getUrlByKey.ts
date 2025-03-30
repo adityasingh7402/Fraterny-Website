@@ -14,7 +14,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     return cachedUrl;
   }
 
-  // Fetch the image record to get the storage path and content hash
+  // Fetch the image record to get the storage path
   const { data, error } = await supabase
     .from('website_images')
     .select('storage_path')
@@ -26,18 +26,13 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     return '/placeholder.svg';
   }
 
-  // Get content hash from metadata if available (handle case where metadata doesn't exist yet)
-  const contentHash = ''; // We'll implement content hash once the metadata column exists
-
   // Get the public URL for this storage path
   const { data: urlData } = supabase.storage
     .from('website-images')
     .getPublicUrl(data.storage_path);
 
-  // Add content hash as a query parameter for cache busting
-  const finalUrl = contentHash 
-    ? addHashToUrl(urlData.publicUrl, contentHash) 
-    : urlData.publicUrl;
+  // No content hash since metadata column doesn't exist yet
+  const finalUrl = urlData.publicUrl;
 
   // Cache the URL for future use
   urlCache.set(`url:${key}`, finalUrl);
@@ -71,8 +66,6 @@ export const getImageUrlByKeyAndSize = async (
     console.error(`Error fetching image with key ${key}:`, error);
     return '/placeholder.svg';
   }
-
-  const contentHash = ''; // We'll implement content hash once the metadata column exists
   
   if (data.sizes && data.sizes[size]) {
     // Get the public URL for this optimized size
@@ -80,10 +73,8 @@ export const getImageUrlByKeyAndSize = async (
       .from('website-images')
       .getPublicUrl(data.sizes[size]);
 
-    // Add content hash as query parameter for cache busting
-    const finalUrl = contentHash 
-      ? addHashToUrl(urlData.publicUrl, contentHash) 
-      : urlData.publicUrl;
+    // No content hash since metadata column doesn't exist yet
+    const finalUrl = urlData.publicUrl;
 
     // Cache the URL for future use
     urlCache.set(cacheKey, finalUrl);
