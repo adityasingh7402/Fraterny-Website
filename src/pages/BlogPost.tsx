@@ -54,8 +54,8 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        {/* Navy banner that only covers the navigation */}
-        <div className="bg-navy w-full h-16"></div>
+        {/* Navy banner that only covers the navigation - increased by 5px */}
+        <div className="bg-navy w-full h-[21px]"></div>
         <div className="container mx-auto px-6 pt-12 pb-20">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-navy border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
@@ -78,8 +78,8 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Navy banner that only covers the navigation */}
-      <div className="bg-navy w-full h-16"></div>
+      {/* Navy banner that only covers the navigation - increased by 5px */}
+      <div className="bg-navy w-full h-[21px]"></div>
       
       <article className="container mx-auto px-4 sm:px-6 pt-12 pb-10">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8">
