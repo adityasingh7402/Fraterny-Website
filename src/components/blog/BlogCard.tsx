@@ -27,7 +27,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
     >
       {/* Conditionally show image if image_key is available */}
       {post.image_key && (
-        <div className="w-full aspect-video overflow-hidden">
+        <div className="w-full aspect-[16/9] overflow-hidden">
           <ResponsiveImage
             dynamicKey={post.image_key}
             alt={post.title}
@@ -44,28 +44,19 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
             {post.category}
           </span>
         )}
-        <h2 className="text-xl font-medium text-navy mb-2 line-clamp-2">{post.title}</h2>
+        <h2 className="text-xl font-playfair font-bold text-navy mb-2 line-clamp-2">{post.title}</h2>
         <p className="text-sm text-gray-500 mb-3">
-          {new Date(post.created_at).toLocaleDateString()}
+          {new Date(post.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
         </p>
         <p className="text-gray-600 line-clamp-3">{post.content.substring(0, 160)}...</p>
-        
-        {post.tags && post.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {post.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                {tag}
-              </span>
-            ))}
-            {post.tags.length > 3 && (
-              <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                +{post.tags.length - 3} more
-              </span>
-            )}
-          </div>
-        )}
       </div>
-      <div className="px-6 pb-4 text-terracotta font-medium">Read more →</div>
+      <div className="px-6 pb-4">
+        <span className="text-terracotta font-medium hover:underline">Read more →</span>
+      </div>
     </Link>
   );
 };
