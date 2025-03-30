@@ -1,4 +1,3 @@
-
 import { getAnalyticsFromStorage } from './storage';
 import { getStartDateByPeriod } from './dateUtils';
 import { calculatePeriodMetrics, calculatePercentChange } from './metrics';
@@ -146,7 +145,7 @@ export const getTopPages = (period: string): TopPageData[] => {
       avgTimeOnPage: data.views > 0 ? Math.round(data.timeOnPage / data.views) : 0
     }));
     
-    // Sort by views (descending)
+    // Sort by views (descending) and take top 10
     return topPages.sort((a, b) => b.views - a.views).slice(0, 10);
   } catch (error) {
     console.error('Error getting top pages:', error);
