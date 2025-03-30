@@ -42,6 +42,8 @@ export const showError = (
       duration: options.duration || 5000,
       // Cast action to any to avoid type error with sonner
       action: options.action as any,
+      // Always show close button
+      closeButton: true,
     });
   } else {
     shadcnToast({
@@ -72,6 +74,8 @@ export const showSuccess = (
       duration: options.duration || 5000,
       // Cast action to any to avoid type error with sonner
       action: options.action as any,
+      // Always show close button
+      closeButton: true,
     });
   } else {
     shadcnToast({

@@ -35,6 +35,7 @@ const App = () => {
           {/* Sonner toast notification system with customizations */}
           <Sonner 
             position="top-right"
+            closeButton={true}
             toastOptions={{
               style: {
                 background: 'white',
