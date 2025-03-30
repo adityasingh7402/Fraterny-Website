@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(data.session);
             setUser(data.session.user);
 
-            // Set admin status if applicable
+            // Check if user email is in the admin emails list
             if (data.session.user?.email) {
               setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
             }
@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.session?.user ?? null);
       setSession(data.session);
       
-      // Set admin status
+      // Set admin status based on email
       if (data.session?.user?.email) {
         setIsAdmin(ADMIN_EMAILS.includes(data.session.user.email));
       }
