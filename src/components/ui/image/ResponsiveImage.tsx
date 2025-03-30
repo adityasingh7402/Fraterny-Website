@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring } from './utils';

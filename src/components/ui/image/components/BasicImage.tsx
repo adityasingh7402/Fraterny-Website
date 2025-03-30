@@ -39,3 +39,4 @@ export const BasicImage = ({
   
   return <img {...imgProps} onClick={onClick} />;
 };
+

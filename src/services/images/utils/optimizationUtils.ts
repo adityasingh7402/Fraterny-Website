@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
  */
 
 /**
- * Resize an image to a specific width while maintaining aspect ratio
+ * Resize an image to a specific width while maintaining aspect ratio and convert to WebP
  */
 export const resizeImage = async (
   file: File, 
@@ -39,9 +39,10 @@ export const resizeImage = async (
       img.src = URL.createObjectURL(file);
     });
     
-    // Convert canvas to blob
+    // Convert canvas to WebP blob with specified quality
     const blob = await new Promise<Blob | null>(resolve => {
-      canvas.toBlob(resolve, 'image/jpeg', quality);
+      // Use WebP format with specified quality
+      canvas.toBlob(resolve, 'image/webp', quality);
     });
     
     if (!blob) {
@@ -49,32 +50,35 @@ export const resizeImage = async (
     }
     
     // Create a sanitized path for the optimized version
-    const sanitizedFilename = file.name
+    const fileNameWithoutExtension = file.name
+      .replace(/\.[^/.]+$/, "") // Remove file extension
       .replace(/[,\s·]+/g, '-')
       .replace(/[^a-zA-Z0-9\-_.]/g, '')
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '');
       
-    const optimizedPath = `optimized/${sizeName}/${sanitizedFilename}`;
+    // Use .webp extension for the output file
+    const optimizedPath = `optimized/${sizeName}/${fileNameWithoutExtension}.webp`;
     
     // Upload optimized version
-    const optimizedFile = new File([blob], `${sizeName}-${sanitizedFilename}`, { type: 'image/jpeg' });
+    const optimizedFile = new File([blob], `${sizeName}-${fileNameWithoutExtension}.webp`, { type: 'image/webp' });
     
     const { error, data } = await supabase.storage
       .from('website-images')
       .upload(optimizedPath, optimizedFile, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // 1 year cache (up from 3600 seconds)
         upsert: true
       });
         
     if (error) {
-      console.error(`Error uploading ${sizeName} version:`, error);
+      console.error(`Error uploading ${sizeName} WebP version:`, error);
       return null;
     }
     
     return optimizedPath;
   } catch (error) {
-    console.error(`Error resizing image to ${sizeName}:`, error);
+    console.error(`Error resizing image to ${sizeName} WebP:`, error);
     return null;
   }
 };
+

@@ -2,7 +2,7 @@
 import { resizeImage } from "./optimizationUtils";
 
 /**
- * Create optimized versions of an image
+ * Create optimized WebP versions of an image
  */
 export const createOptimizedVersions = async (
   file: File,
@@ -15,14 +15,14 @@ export const createOptimizedVersions = async (
   try {
     const sizes: Record<string, string> = {};
     const sizeConfigs = [
-      { name: 'small', maxWidth: 400, quality: 0.7 },
+      { name: 'small', maxWidth: 400, quality: 0.75 },
       { name: 'medium', maxWidth: 800, quality: 0.8 },
-      { name: 'large', maxWidth: 1200, quality: 0.85 }
+      { name: 'large', maxWidth: 1200, quality: 0.85 },
+      { name: 'original', maxWidth: 2000, quality: 0.9 } // Add high-quality version but with size limit
     ];
 
-    // For images under threshold size, create optimized versions
-    // In a production setup, you would use a proper image processing library
-    if (file.size < 5 * 1024 * 1024) { // Only process files under 5MB
+    // For images under threshold size, create optimized WebP versions
+    if (file.size < 10 * 1024 * 1024) { // Increased from 5MB to 10MB
       for (const config of sizeConfigs) {
         const optimizedPath = await resizeImage(file, config.name, config.maxWidth, config.quality);
         if (optimizedPath) {
@@ -33,7 +33,8 @@ export const createOptimizedVersions = async (
     
     return sizes;
   } catch (error) {
-    console.error('Error creating optimized versions:', error);
+    console.error('Error creating optimized WebP versions:', error);
     return {};
   }
 };
+
