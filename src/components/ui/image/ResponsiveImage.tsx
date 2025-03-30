@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useImagePerformanceMonitoring } from './utils';
 import { ResponsiveImageProps } from './types';
@@ -11,7 +12,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * ResponsiveImage component that serves different image sizes based on screen width
- * Enhanced with width/height attributes to prevent CLS and sizes attribute for responsive loading
+ * Enhanced with Low-Quality Image Placeholders for improved loading experience
  */
 const ResponsiveImage = ({
   src,
@@ -31,6 +32,9 @@ const ResponsiveImage = ({
   // Get device type
   const isMobile = useIsMobile();
   
+  // State for tiny placeholder image
+  const [placeholderSrc, setPlaceholderSrc] = useState<string | null>(null);
+  
   // Get desktop and mobile keys if dynamicKey is provided
   const desktopKey = dynamicKey || '';
   const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
@@ -47,6 +51,29 @@ const ResponsiveImage = ({
   // Monitor image loading performance
   useImagePerformanceMonitoring(src, desktopDynamicSrc || mobileDynamicSrc);
   
+  // Generate tiny placeholder when loading starts
+  useEffect(() => {
+    if (isLoading) {
+      // Try to get placeholder from dynamicKey or src
+      if (dynamicKey) {
+        // Use pre-generated placeholders based on keys when available
+        if (dynamicKey.includes('hero-background')) {
+          setPlaceholderSrc('/images/hero/luxury-villa-placeholder.svg');
+        } else if (dynamicKey.includes('experience-hero')) {
+          setPlaceholderSrc('/images/hero/experience-hero-placeholder.svg');
+        } else {
+          setPlaceholderSrc(null);
+        }
+      } else if (typeof src === 'string') {
+        // If it's a string src, we can use it as is but at tiny size
+        setPlaceholderSrc(src);
+      } else if (src && typeof src === 'object') {
+        // For responsive image sources, use mobile if available, otherwise desktop
+        setPlaceholderSrc(src.mobile || src.desktop);
+      }
+    }
+  }, [isLoading, dynamicKey, src]);
+  
   // If we're still loading dynamic images, show a loading placeholder
   if (isLoading) {
     return (
@@ -56,6 +83,7 @@ const ResponsiveImage = ({
         width={width}
         height={height}
         aspectRatio={desktopAspectRatio}
+        placeholderSrc={placeholderSrc}
       />
     );
   }
@@ -123,7 +151,7 @@ const ResponsiveImage = ({
     hasDynamicMobile, 
     desktopDynamicSrc, 
     mobileDynamicSrc,
-    isMobile // Pass isMobile to useImageSource
+    isMobile
   );
   
   // Render the appropriate image component based on resolvedSrc type
