@@ -10,7 +10,7 @@ const OurValues = () => {
         </h2>
         
         <div className="max-w-5xl mx-auto">
-          <p className="text-lg md:text-xl text-navy/80 leading-relaxed mb-14 max-w-3xl">
+          <p className="text-lg md:text-xl text-navy/80 leading-relaxed mb-14 max-w-3xl relative z-10">
             Fraterny is built on the belief that success is accelerated through the right community. We unite the most driven, high-potential entrepreneurs in a lifelong network focused on incubation, mentorship, and continuous learning. By fostering deep relationships, real-world collaboration, and a culture of shared ambition, Fraterny empowers its members to think bigger, execute faster, and build the future together.
           </p>
           
