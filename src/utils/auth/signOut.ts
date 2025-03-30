@@ -7,7 +7,10 @@ import { toast } from 'sonner';
  */
 export const signOut = async (): Promise<void> => {
   try {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // Sign out from all devices
+    });
+    
     if (error) throw error;
     
     toast.success('Signed out successfully');

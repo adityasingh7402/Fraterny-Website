@@ -8,12 +8,22 @@ import { toast } from 'sonner';
  */
 export const signIn = async (email: string, password: string): Promise<{user: User | null, session: Session | null}> => {
   try {
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ 
+      email, 
+      password,
+      options: {
+        // This ensures we get a fresh state
+        storeSession: true
+      }
+    });
+    
     if (error) throw error;
     
-    // Set user and session state
     toast.success('Signed in successfully');
-    return { user: data.session?.user ?? null, session: data.session };
+    return { 
+      user: data.session?.user ?? null, 
+      session: data.session 
+    };
   } catch (error: any) {
     toast.error(error.message || 'Error signing in');
     throw error;

@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Logo from './navigation/Logo';
@@ -62,6 +62,8 @@ const Navigation = () => {
           <DesktopNavigation 
             isScrolled={isScrolled} 
             navLinks={navLinks} 
+            user={user}
+            onSignOut={handleSignOut}
           />
 
           <button
@@ -79,6 +81,7 @@ const Navigation = () => {
           isScrolled={isScrolled}
           toggleMenu={toggleMenu}
           navLinks={navLinks}
+          user={user}
           onSignOut={handleSignOut}
         />
       </div>
