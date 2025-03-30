@@ -1,5 +1,6 @@
 
 import { resizeImage } from "./optimizationUtils";
+import { generateContentHash } from "./hashUtils";
 
 /**
  * Create optimized WebP versions of an image
@@ -21,10 +22,20 @@ export const createOptimizedVersions = async (
       { name: 'original', maxWidth: 2000, quality: 0.9 } // Add high-quality version but with size limit
     ];
 
+    // Generate content hash for consistent file naming/caching
+    const contentHash = await generateContentHash(file);
+
     // For images under threshold size, create optimized WebP versions
-    if (file.size < 10 * 1024 * 1024) { // Increased from 5MB to 10MB
+    if (file.size < 10 * 1024 * 1024) { // Up to 10MB
       for (const config of sizeConfigs) {
-        const optimizedPath = await resizeImage(file, config.name, config.maxWidth, config.quality);
+        // Include content hash in optimization for better caching
+        const optimizedPath = await resizeImage(
+          file, 
+          config.name, 
+          config.maxWidth, 
+          config.quality,
+          contentHash
+        );
         if (optimizedPath) {
           sizes[config.name] = optimizedPath;
         }
@@ -37,4 +48,3 @@ export const createOptimizedVersions = async (
     return {};
   }
 };
-

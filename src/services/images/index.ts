@@ -43,4 +43,4 @@ export * from './utils/dimensions';
 export * from './utils/optimizationService';
 export * from './utils/optimizationUtils';
 export * from './utils/placeholderService';
-
+export * from './utils/hashUtils';

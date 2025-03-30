@@ -1,219 +1,168 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
-import { useImagePerformanceMonitoring } from './utils';
-import { ResponsiveImageProps } from './types';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { LoadingPlaceholder } from './components/LoadingPlaceholder';
 import { ErrorPlaceholder } from './components/ErrorPlaceholder';
-import { BasicImage } from './components/BasicImage';
+import { ResponsiveImageProps } from './types';
 import { ResponsivePicture } from './components/ResponsivePicture';
-import { useImageSource } from './hooks/useImageSource';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { BasicImage } from './components/BasicImage';
+import { CacheDebugInfo } from './components/CacheDebugInfo';
 
 /**
- * Enhanced ResponsiveImage component with advanced caching and progressive loading
- * Uses Low-Quality Image Placeholders for improved loading experience
+ * A component that renders responsive images with different sources for mobile, tablet, and desktop
+ * Enhanced with content-based cache keys and debugging capabilities
  */
 const ResponsiveImage = ({
   src,
   alt,
   className = '',
   loading = 'lazy',
+  priority,
   fetchPriority,
   onClick,
   dynamicKey,
   size,
-  fallbackSrc = "/placeholder.svg",
+  fallbackSrc = '/placeholder.svg',
   width,
   height,
-  sizes = '100vw',
-  priority,
-  debugCache,
+  sizes,
+  debugCache = false
 }: ResponsiveImageProps) => {
-  // Get device type
+  const [useMobileSrc, setUseMobileSrc] = useState<boolean | null>(null);
   const isMobile = useIsMobile();
-  
-  // Get desktop and mobile keys if dynamicKey is provided
-  const desktopKey = dynamicKey || '';
-  const mobileKey = dynamicKey ? `${dynamicKey}-mobile` : '';
-  
-  // Use the custom hooks to handle desktop and mobile image loading
-  const { 
-    isLoading: isDesktopLoading, 
-    error: desktopError, 
-    dynamicSrc: desktopDynamicSrc, 
-    aspectRatio: desktopAspectRatio,
-    tinyPlaceholder: desktopTinyPlaceholder,
-    colorPlaceholder: desktopColorPlaceholder
-  } = useResponsiveImage(desktopKey, size);
-  
-  const { 
-    isLoading: isMobileLoading, 
-    error: mobileError, 
-    dynamicSrc: mobileDynamicSrc,
-    tinyPlaceholder: mobileTinyPlaceholder,
-    colorPlaceholder: mobileColorPlaceholder
-  } = useResponsiveImage(mobileKey, size);
-  
-  // Combined loading state
-  const isLoading = !!(dynamicKey && (isDesktopLoading || (mobileKey && isMobileLoading)));
-  
-  // Debug logging for cache behavior if debugCache is enabled
+
+  // Set mobile source flag based on device detection
   useEffect(() => {
-    if (debugCache) {
-      console.log(`[Cache Debug] Image: ${dynamicKey || 'No key'}`, {
-        isLoading,
-        desktopSrc: desktopDynamicSrc,
-        mobileSrc: mobileDynamicSrc,
-        desktopPlaceholder: !!desktopTinyPlaceholder,
-        mobilePlaceholder: !!mobileTinyPlaceholder,
-        timestamp: new Date().toISOString()
-      });
-    }
-  }, [
-    debugCache, 
-    dynamicKey, 
+    setUseMobileSrc(isMobile);
+  }, [isMobile]);
+
+  // Handle priority for browser loading hint
+  const finalFetchPriority = priority || fetchPriority || (loading === 'eager' ? 'high' : 'auto');
+
+  // Use the hook to load dynamic images from storage
+  const { 
     isLoading, 
-    desktopDynamicSrc, 
-    mobileDynamicSrc, 
-    desktopTinyPlaceholder,
-    mobileTinyPlaceholder
-  ]);
+    error, 
+    dynamicSrc, 
+    aspectRatio,
+    tinyPlaceholder,
+    colorPlaceholder,
+    contentHash,
+    isCached,
+    lastUpdated
+  } = useResponsiveImage(dynamicKey, size, debugCache);
   
-  // Monitor image loading performance
-  useImagePerformanceMonitoring(src, desktopDynamicSrc || mobileDynamicSrc);
-  
-  // Determine which placeholder to use based on device type and availability
-  const placeholderSrc = isMobile ? 
-    (mobileTinyPlaceholder || desktopTinyPlaceholder) : 
-    desktopTinyPlaceholder;
-  
-  const colorPlaceholder = isMobile ?
-    (mobileColorPlaceholder || desktopColorPlaceholder) :
-    desktopColorPlaceholder;
-  
-  // If we're still loading dynamic images, show a loading placeholder
-  if (isLoading) {
+  // If we're loading a dynamic image and it's still loading
+  if (dynamicKey && isLoading) {
     return (
-      <LoadingPlaceholder 
+      <LoadingPlaceholder
         alt={alt}
         className={className}
         width={width}
         height={height}
-        aspectRatio={desktopAspectRatio}
-        placeholderSrc={placeholderSrc}
-        colorPlaceholder={colorPlaceholder}
+        aspectRatio={aspectRatio}
+        placeholderSrc={tinyPlaceholder || undefined}
+        colorPlaceholder={colorPlaceholder || undefined}
       />
     );
   }
-  
-  // Check if we have dynamic sources
-  const hasDynamicDesktop = !desktopError && !!desktopDynamicSrc;
-  const hasDynamicMobile = !mobileError && !!mobileDynamicSrc;
-  
-  // If there was an error loading both images or no dynamic source found for both, use fallback
-  if (dynamicKey && ((!desktopDynamicSrc && !mobileDynamicSrc) || (desktopError && mobileError))) {
-    console.log(`Using fallback for ${dynamicKey} - desktop error: ${desktopError}, mobile error: ${mobileError}`);
-    
-    // If src is provided as a fallback, use it instead of showing error state
-    if (src) {
-      // Render the appropriate image component based on src type
-      if (typeof src === 'string') {
-        return (
-          <BasicImage
-            src={src}
-            alt={alt}
-            className={className}
-            loading={loading}
-            fetchPriority={priority || fetchPriority}
-            onClick={onClick}
-            fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
-            width={width}
-            height={height}
-            sizes={sizes}
-          />
-        );
-      } else if (typeof src === 'object') {
-        return (
-          <ResponsivePicture
-            sources={src}
-            alt={alt}
-            className={className}
-            loading={loading}
-            fetchPriority={priority || fetchPriority}
-            onClick={onClick}
-            fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
-            width={width}
-            height={height}
-            sizes={sizes}
-          />
-        );
-      }
-    }
-    
-    // Otherwise show placeholder/error state
+
+  // If there was an error loading the dynamic image
+  if (dynamicKey && error) {
     return (
       <ErrorPlaceholder 
-        alt={alt}
+        alt={alt} 
         className={className}
         width={width}
         height={height}
-        fallbackSrc={fallbackSrc}
+        aspectRatio={aspectRatio} 
       />
     );
   }
-  
-  // Resolve the appropriate image source
-  const { resolvedSrc } = useImageSource(
-    src, 
-    hasDynamicDesktop, 
-    hasDynamicMobile, 
-    desktopDynamicSrc, 
-    mobileDynamicSrc,
-    isMobile
-  );
-  
-  // Render the appropriate image component based on resolvedSrc type
-  if (typeof resolvedSrc === 'string') {
+
+  // If we have a dynamic source, use it
+  if (dynamicKey && dynamicSrc) {
     return (
-      <BasicImage
-        src={resolvedSrc}
-        alt={alt}
-        className={className}
-        loading={loading}
-        fetchPriority={priority || fetchPriority}
-        onClick={onClick}
-        fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
-        width={width}
-        height={height}
-        sizes={sizes}
-      />
-    );
-  } else if (resolvedSrc) {
-    return (
-      <ResponsivePicture
-        sources={resolvedSrc}
-        alt={alt}
-        className={className}
-        loading={loading}
-        fetchPriority={priority || fetchPriority}
-        onClick={onClick}
-        fallbackSrc={typeof fallbackSrc === 'string' ? fallbackSrc : '/placeholder.svg'}
-        width={width}
-        height={height}
-        sizes={sizes}
-      />
+      <div className={`relative ${className}`} style={{ width, height }}>
+        <BasicImage
+          src={dynamicSrc}
+          alt={alt}
+          loading={loading}
+          fetchPriority={finalFetchPriority}
+          onClick={onClick}
+          className={className}
+          width={width}
+          height={height}
+          sizes={sizes}
+        />
+        {debugCache && (
+          <CacheDebugInfo
+            dynamicKey={dynamicKey}
+            url={dynamicSrc}
+            isLoading={isLoading}
+            isCached={isCached}
+            contentHash={contentHash}
+            lastUpdated={lastUpdated}
+          />
+        )}
+      </div>
     );
   }
-  
-  // Fallback for empty src
+
+  // For responsive image object with mobile, tablet, desktop variants
+  if (typeof src === 'object' && 'mobile' in src && 'desktop' in src) {
+    return (
+      <div className="relative" style={{ width, height }}>
+        <ResponsivePicture
+          sources={{
+            mobile: src.mobile,
+            tablet: src.tablet,
+            desktop: src.desktop
+          }}
+          alt={alt}
+          className={className}
+          loading={loading}
+          fetchPriority={finalFetchPriority}
+          onClick={onClick}
+          width={width}
+          height={height}
+          sizes={sizes}
+          useMobileSrc={useMobileSrc}
+        />
+        {debugCache && (
+          <CacheDebugInfo
+            url={useMobileSrc ? src.mobile : (src.desktop || src.mobile)}
+            isLoading={false}
+            isCached={false}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Default case: simple image
   return (
-    <ErrorPlaceholder 
-      alt={alt}
-      className={className}
-      width={width}
-      height={height}
-      fallbackSrc="No image provided"
-    />
+    <div className="relative" style={{ width, height }}>
+      <BasicImage
+        src={typeof src === 'string' ? src : fallbackSrc}
+        alt={alt}
+        loading={loading}
+        fetchPriority={finalFetchPriority}
+        onClick={onClick}
+        className={className}
+        width={width}
+        height={height}
+        sizes={sizes}
+      />
+      {debugCache && (
+        <CacheDebugInfo
+          url={typeof src === 'string' ? src : fallbackSrc}
+          isLoading={false}
+          isCached={false}
+        />
+      )}
+    </div>
   );
 };
 

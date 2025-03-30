@@ -29,5 +29,7 @@ export interface ImageLoadingState {
   aspectRatio?: number;
   tinyPlaceholder?: string | null; // Added tiny image placeholder
   colorPlaceholder?: string | null; // Added color-based placeholder
+  contentHash?: string | null; // Content-based hash for cache validation
+  isCached?: boolean; // Whether the image came from cache
+  lastUpdated?: string | null; // When the image was last updated
 }
-

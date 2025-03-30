@@ -7,13 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Resize an image to a specific width while maintaining aspect ratio and convert to WebP
- * Enhanced with extended cache duration for better performance
+ * Enhanced with content-based cache keys for better caching
  */
 export const resizeImage = async (
   file: File, 
   sizeName: string, 
   maxWidth: number, 
-  quality: number
+  quality: number,
+  contentHash?: string
 ): Promise<string | null> => {
   try {
     const canvas = document.createElement('canvas');
@@ -57,17 +58,20 @@ export const resizeImage = async (
       .replace(/[^a-zA-Z0-9\-_.]/g, '')
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '');
-      
+    
+    // Include content hash in the path for better caching if provided
+    const hashComponent = contentHash ? `-${contentHash}` : '';
+    
     // Use .webp extension for the output file
-    const optimizedPath = `optimized/${sizeName}/${fileNameWithoutExtension}.webp`;
+    const optimizedPath = `optimized/${sizeName}/${fileNameWithoutExtension}${hashComponent}.webp`;
     
     // Upload optimized version with extended cache duration
-    const optimizedFile = new File([blob], `${sizeName}-${fileNameWithoutExtension}.webp`, { type: 'image/webp' });
+    const optimizedFile = new File([blob], `${sizeName}-${fileNameWithoutExtension}${hashComponent}.webp`, { type: 'image/webp' });
     
     const { error, data } = await supabase.storage
       .from('website-images')
       .upload(optimizedPath, optimizedFile, {
-        cacheControl: '31536000', // 1 year cache (up from 3600 seconds)
+        cacheControl: '31536000', // 1 year cache
         upsert: true
       });
         

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -7,14 +8,16 @@ import {
 } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
+import { getHashFromUrl } from '@/services/images/utils/hashUtils';
 
 /**
  * Custom hook to handle dynamic image loading from storage
- * Enhanced with placeholder support for better mobile experience
+ * Enhanced with content-based cache keys and placeholder support
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large',
+  debugCache?: boolean
 ): ImageLoadingState => {
   const [state, setState] = useState<ImageLoadingState>({
     isLoading: !!dynamicKey,
@@ -22,7 +25,10 @@ export const useResponsiveImage = (
     dynamicSrc: null,
     aspectRatio: undefined,
     tinyPlaceholder: null,
-    colorPlaceholder: null
+    colorPlaceholder: null,
+    contentHash: null,
+    isCached: false,
+    lastUpdated: null
   });
   
   // Fetch dynamic image if dynamicKey is provided
@@ -38,7 +44,44 @@ export const useResponsiveImage = (
     
     const fetchImage = async () => {
       try {
-        console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
+        // Load from performance cache if available
+        const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}`;
+        const cachedData = sessionStorage.getItem(cacheKey);
+        let cachedImageInfo: any = null;
+        
+        // Check if we have a valid cached version that's not too old
+        if (cachedData) {
+          try {
+            const parsed = JSON.parse(cachedData);
+            const cacheAge = Date.now() - parsed.timestamp;
+            
+            // Use cache if it's less than 5 minutes old
+            if (cacheAge < 5 * 60 * 1000) {
+              cachedImageInfo = parsed;
+              if (debugCache) console.log(`Using cached image data for ${dynamicKey}`);
+            }
+          } catch (e) {
+            console.error('Error parsing cached image data:', e);
+          }
+        }
+        
+        // If we have valid cached data, use it
+        if (cachedImageInfo) {
+          setState(prev => ({ 
+            ...prev, 
+            dynamicSrc: cachedImageInfo.url, 
+            isLoading: false,
+            aspectRatio: cachedImageInfo.aspectRatio,
+            tinyPlaceholder: cachedImageInfo.tinyPlaceholder,
+            colorPlaceholder: cachedImageInfo.colorPlaceholder,
+            contentHash: cachedImageInfo.contentHash,
+            isCached: true,
+            lastUpdated: cachedImageInfo.lastUpdated
+          }));
+          return;
+        }
+        
+        if (debugCache) console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
         
         // Fetch placeholders in parallel with the main image for faster loading
         const placeholdersPromise = getImagePlaceholdersByKey(dynamicKey);
@@ -74,6 +117,9 @@ export const useResponsiveImage = (
           }
         }
         
+        // Extract content hash from URL if available
+        const contentHash = getHashFromUrl(imageUrl);
+        
         // Get placeholders
         let { tinyPlaceholder, colorPlaceholder } = await placeholdersPromise;
         
@@ -88,13 +134,29 @@ export const useResponsiveImage = (
         // Get image dimensions for aspect ratio
         const aspectRatio = await getImageAspectRatio(imageUrl);
         
+        // Cache this response in sessionStorage for faster subsequent loads
+        const imageInfo = {
+          url: imageUrl,
+          aspectRatio,
+          tinyPlaceholder,
+          colorPlaceholder,
+          contentHash,
+          timestamp: Date.now(),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
+        
         setState(prev => ({ 
           ...prev, 
           dynamicSrc: imageUrl, 
           isLoading: false,
           aspectRatio,
           tinyPlaceholder,
-          colorPlaceholder
+          colorPlaceholder,
+          contentHash,
+          isCached: false,
+          lastUpdated: imageInfo.lastUpdated
         }));
       } catch (error) {
         console.error(`Failed to load image with key ${dynamicKey}:`, error);
@@ -111,7 +173,7 @@ export const useResponsiveImage = (
     };
     
     fetchImage();
-  }, [dynamicKey, size]);
+  }, [dynamicKey, size, debugCache]);
   
   return state;
 };

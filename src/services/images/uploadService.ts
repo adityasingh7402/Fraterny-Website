@@ -9,6 +9,7 @@ import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/place
 import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
+import { generateContentHash } from "./utils/hashUtils";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
@@ -67,12 +68,16 @@ export const uploadImage = async (
       }
     }
     
+    // Generate content hash for cache optimization
+    const contentHash = await generateContentHash(file);
+    console.log(`Generated content hash: ${contentHash} for key: ${key}`);
+    
     // Upload the file to storage with enhanced caching headers
     console.log(`Uploading file to storage: ${storagePath}`);
     const { error: uploadError } = await supabase.storage
       .from('website-images')
       .upload(storagePath, file, {
-        cacheControl: '31536000', // 1 year cache (up from 3600 seconds)
+        cacheControl: '31536000', // 1 year cache
         upsert: true
       });
     
@@ -86,12 +91,14 @@ export const uploadImage = async (
     const optimizedSizes = await createOptimizedVersions(file, storagePath);
     console.log('Optimized sizes:', optimizedSizes);
     
-    // Create an entry in the website_images table with enhanced metadata
+    // Create an entry in the website_images table with enhanced metadata including content hash
     const metadata = {
       placeholders: {
         tiny: placeholderData,
         color: colorPlaceholder
-      }
+      },
+      contentHash: contentHash, // Store content hash in metadata
+      lastModified: new Date().toISOString()
     };
     
     const { data, error: insertError } = await supabase
@@ -105,7 +112,7 @@ export const uploadImage = async (
         width: dimensions.width,
         height: dimensions.height,
         sizes: optimizedSizes,
-        metadata // Add the placeholder data to the database
+        metadata // Add metadata including content hash
       })
       .select()
       .single();
