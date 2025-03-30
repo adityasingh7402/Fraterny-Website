@@ -15,7 +15,11 @@ import {
 import { LogOut, Phone, Settings, User as UserIcon } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-const UserMenu = () => {
+interface UserMenuProps {
+  isScrolled?: boolean;
+}
+
+const UserMenu = ({ isScrolled }: UserMenuProps) => {
   const { user, signOut } = useAuth();
   
   return (
