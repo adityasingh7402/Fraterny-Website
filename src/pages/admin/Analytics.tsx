@@ -32,12 +32,24 @@ export default function AnalyticsDashboard() {
   const overviewData = getAnalyticsOverview(period);
   const topPages = getTopPages(period);
 
-  // Calculate engagement score (weighted average of key metrics)
-  const engagementScore = Math.round(
-    (overviewData.averageTimeOnSite * 0.3) + 
-    ((100 - Number(overviewData.bounceRate.replace('%', ''))) * 0.4) + 
-    (overviewData.pagesPerSession * 0.3)
-  );
+  // Parse numeric values from string representations
+  const bounceRateValue = Number(overviewData.bounceRate.replace('%', ''));
+  const avgTimeOnSite = overviewData.averageTimeOnSite;
+  const pagesPerSession = overviewData.pagesPerSession;
+  
+  // Calculate engagement score properly (weighted average of key metrics)
+  // Scale metrics appropriately for better scoring
+  // Time on site (seconds): 0-300 → 0-30 points
+  const timeScore = Math.min(30, avgTimeOnSite / 10);
+  
+  // Bounce rate: 0-100% → 0-40 points (inverted, lower is better)
+  const bounceScore = Math.min(40, (100 - bounceRateValue) * 0.4);
+  
+  // Pages per session: 1-5+ → 0-30 points
+  const pagesScore = Math.min(30, pagesPerSession * 6);
+  
+  // Calculate final score and ensure it's between 0-100
+  const engagementScore = Math.min(100, Math.max(0, Math.round(timeScore + bounceScore + pagesScore)));
 
   // Refresh data every 30 seconds if the page is visible
   useEffect(() => {
