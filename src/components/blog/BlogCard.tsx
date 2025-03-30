@@ -12,7 +12,7 @@ export type BlogPost = {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-  image_key?: string | null;
+  image_key: string | null;
 };
 
 interface BlogCardProps {

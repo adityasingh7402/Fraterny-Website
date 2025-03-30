@@ -20,7 +20,7 @@ type BlogPost = {
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-  image_key?: string | null;
+  image_key: string | null;
 };
 
 const BlogPost = () => {
@@ -112,7 +112,7 @@ const BlogPost = () => {
                 alt={post.title}
                 size="large"
                 className="w-full h-auto"
-                fetchPriority="high"
+                loading="eager"
               />
             </div>
           )}

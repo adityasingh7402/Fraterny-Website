@@ -35,7 +35,7 @@ export const createImageProps = (
   
   // Only add fetchPriority if it exists
   if (fetchPriority) {
-    imgProps.fetchPriority = fetchPriority;
+    imgProps.fetchPriority = fetchPriority.toLowerCase() as any;
   }
   
   return imgProps;
