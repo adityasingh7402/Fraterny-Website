@@ -57,7 +57,24 @@ export const getTrafficSourceData = (): DistributionDataPoint[] => {
       return generateMockSourceData(); // Fallback to mock data
     }
     
-    return Object.entries(analytics.sources).map(([name, value]) => ({
+    let otherValue = 0;
+    const cleanedSources: Record<string, number> = {};
+    
+    // Process sources and combine development/testing domains into "Other"
+    Object.entries(analytics.sources).forEach(([name, value]) => {
+      if (name === 'lovable_dev' || name.includes('lovableproject.com')) {
+        otherValue += value as number;
+      } else {
+        cleanedSources[name] = value as number;
+      }
+    });
+    
+    // Add "Other" category if any values were combined
+    if (otherValue > 0) {
+      cleanedSources['Other'] = (cleanedSources['Other'] || 0) + otherValue;
+    }
+    
+    return Object.entries(cleanedSources).map(([name, value]) => ({
       name,
       value: value as number
     }));
