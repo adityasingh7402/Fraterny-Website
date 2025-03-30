@@ -2,7 +2,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ResponsiveImage from '../ui/ResponsiveImage';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 export type BlogPost = {
   id: string;
@@ -21,15 +20,13 @@ interface BlogCardProps {
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
-  const isMobile = useIsMobile();
-
   return (
     <Link 
       to={`/blog/${post.id}`}
       className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col h-full"
     >
       <div className="relative w-full aspect-[16/9] overflow-hidden">
-        {/* Background image */}
+        {/* Background overlay */}
         <div className="absolute inset-0 bg-navy bg-opacity-50 z-10"></div>
 
         {/* Post image */}

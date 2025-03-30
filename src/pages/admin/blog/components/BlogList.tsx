@@ -67,7 +67,7 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
           blogPosts?.map((post) => (
             <div key={post.id} className="p-6">
               <div className="flex gap-4">
-                {/* Blog image thumbnail */}
+                {/* Blog image thumbnail with responsive handling */}
                 {post.image_key ? (
                   <div className="flex-shrink-0 w-24 h-24 rounded overflow-hidden bg-gray-100">
                     <ResponsiveImage

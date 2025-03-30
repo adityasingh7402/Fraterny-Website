@@ -6,7 +6,7 @@ type ImageSourceResult = {
 };
 
 /**
- * Hook to resolve the appropriate image source based on device and available images
+ * Hook to resolve the appropriate image source based on available images
  */
 export const useImageSource = (
   src: string | ResponsiveImageSource | undefined,
