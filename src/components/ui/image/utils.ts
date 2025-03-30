@@ -36,8 +36,8 @@ export const createImageProps = (
   
   // Only add fetchPriority if it exists
   if (fetchPriority) {
-    // Use lowercase for HTML attribute
-    imgProps.fetchpriority = fetchPriority.toLowerCase() as any;
+    // Use the correct camelCase property name for TypeScript
+    imgProps.fetchPriority = fetchPriority;
   }
   
   return imgProps;
