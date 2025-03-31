@@ -40,8 +40,11 @@ export const ResponsivePicture = ({
     width, height, fallbackSrc, fetchPriority
   );
   
-  // Add style for object-fit if provided
-  const style = objectFit ? { objectFit, ...imgProps.style } : imgProps.style;
+  // Apply object-fit directly to the style object for the img element
+  const style = { 
+    ...imgProps.style, 
+    objectFit 
+  };
   
   return (
     <picture onClick={onClick}>

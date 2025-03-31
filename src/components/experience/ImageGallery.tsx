@@ -74,7 +74,7 @@ const experienceImages = [
 
 const ImageGallery = () => {
   return (
-    <section className="w-full">
+    <section className="w-full overflow-hidden">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
@@ -87,7 +87,7 @@ const ImageGallery = () => {
               width={image.width}
               height={image.height}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-              objectFit="contain"
+              objectFit="cover"
             />
           </div>
         ))}

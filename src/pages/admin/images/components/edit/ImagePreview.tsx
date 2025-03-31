@@ -26,6 +26,22 @@ const ImagePreview = ({
   const usageLocation = IMAGE_USAGE_MAP[image.key] || 'Custom image (not tied to a specific website section)';
   const isMobile = useIsMobile();
   
+  // Determine if image is used as cover or contain based on usage key
+  const getObjectFit = (): 'cover' | 'contain' => {
+    if (
+      image.key.includes('hero') || 
+      image.key.includes('background') || 
+      image.key.includes('banner') ||
+      image.key.includes('villalab') ||
+      image.key.includes('experience')
+    ) {
+      return 'cover';
+    }
+    return 'contain';
+  };
+  
+  const objectFit = getObjectFit();
+  
   if (isReplacing && file && previewUrl) {
     return (
       <div className="space-y-4">
@@ -55,10 +71,13 @@ const ImagePreview = ({
     <div className="space-y-4">
       {previewUrl && (
         <div className="border rounded-lg overflow-hidden relative">
+          <div className="bg-navy bg-opacity-10 rounded-t-lg px-2 py-1 text-xs text-center">
+            {objectFit === 'cover' ? 'Image fills the entire container' : 'Image fully visible within container'}
+          </div>
           <img 
             src={previewUrl} 
             alt={image.alt_text || 'Image preview'} 
-            className={`w-full ${isMobile ? 'max-h-[300px]' : 'max-h-[400px]'} object-contain mx-auto`}
+            className={`w-full ${isMobile ? 'max-h-[300px]' : 'max-h-[400px]'} object-${objectFit} mx-auto bg-white`}
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 hover:opacity-100">
             <label className="cursor-pointer bg-navy text-white rounded-md px-3 py-2 flex items-center">

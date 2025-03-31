@@ -124,7 +124,7 @@ const VillaLab = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-hidden">
           {activities.slice(0, displayCount).map((activity, index) => (
             <div 
               key={index}
@@ -139,7 +139,7 @@ const VillaLab = () => {
                 width={activity.width}
                 height={activity.height}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                objectFit="contain"
+                objectFit="cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                 <span className="text-white p-4 font-medium">{activity.title}</span>

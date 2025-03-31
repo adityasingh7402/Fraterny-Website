@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Crop as CropIcon, Trash2 } from 'lucide-react';
 import { ImageCropHandler } from '../../upload/crop-handler';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { IMAGE_USAGE_MAP } from '@/services/images';
 
 interface ImagePreviewProps {
   file: File;
@@ -14,6 +15,22 @@ interface ImagePreviewProps {
 const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePreviewProps) => {
   const [isCropping, setIsCropping] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Determine if image is used as cover or contain based on usage key
+  const getObjectFit = (): 'cover' | 'contain' => {
+    if (
+      imageKey.includes('hero') || 
+      imageKey.includes('background') || 
+      imageKey.includes('banner') ||
+      imageKey.includes('villalab') ||
+      imageKey.includes('experience')
+    ) {
+      return 'cover';
+    }
+    return 'contain';
+  };
+  
+  const objectFit = getObjectFit();
   
   const handleStartCrop = () => {
     setIsCropping(true);
@@ -40,14 +57,23 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+  
+  // Get usage information if it exists
+  const usageInfo = IMAGE_USAGE_MAP[imageKey] || '';
 
   return (
     <div className="space-y-3 md:space-y-4">
       <div className="relative border border-gray-200 rounded-lg overflow-hidden">
+        {imageKey && (
+          <div className="bg-navy bg-opacity-10 rounded-t-lg px-2 py-1 text-xs text-center">
+            {objectFit === 'cover' ? 'Image will fill the entire container' : 'Image will be fully visible'}
+            {usageInfo && ` • ${usageInfo}`}
+          </div>
+        )}
         <img 
           src={previewUrl} 
           alt="Preview" 
-          className={`w-full ${isMobile ? 'h-48' : 'h-64'} object-contain bg-gray-50`}
+          className={`w-full ${isMobile ? 'h-48' : 'h-64'} object-${objectFit} bg-gray-50`}
         />
       </div>
       
