@@ -4,9 +4,11 @@ import { useReactQueryImages } from '@/hooks/useReactQueryImages';
 import { getImagePlaceholdersByKey } from '@/services/images';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { ImageLoadingState } from '../types';
+import { getCdnUrl } from '@/utils/cdnUtils';
 
 /**
  * Enhanced hook that combines React Query with existing image loading system
+ * Now with optional CDN support
  */
 export const useReactQueryResponsiveImage = (
   dynamicKey?: string,
@@ -96,11 +98,14 @@ export const useReactQueryResponsiveImage = (
             aspectRatio = imageData.width / imageData.height;
           }
           
+          // Process the URL through our CDN if available
+          const processedUrl = getCdnUrl(urlData.url) || urlData.url;
+          
           // Update state with all the information
           setState({
             isLoading: false,
             error: false,
-            dynamicSrc: urlData.url,
+            dynamicSrc: processedUrl,
             aspectRatio,
             tinyPlaceholder: placeholderData.tinyPlaceholder,
             colorPlaceholder: placeholderData.colorPlaceholder,
