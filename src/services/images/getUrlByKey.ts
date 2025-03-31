@@ -50,9 +50,10 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
 
     // Extract content hash from metadata if available
     // Use safe type checking to avoid errors with different metadata formats
-    const contentHash = typeof data.metadata === 'object' && data.metadata !== null
-      ? data.metadata.contentHash || null
-      : null;
+    let contentHash = null;
+    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
+      contentHash = data.metadata.contentHash || null;
+    }
     
     // Build the final URL with both content hash and global version for cache busting
     let finalUrl = urlData.publicUrl;
@@ -120,9 +121,10 @@ export const getImageUrlByKeyAndSize = async (
     const globalVersion = await getGlobalCacheVersion();
     
     // Extract content hash from metadata if available using safe type checking
-    const contentHash = typeof data.metadata === 'object' && data.metadata !== null
-      ? data.metadata.contentHash || null
-      : null;
+    let contentHash = null;
+    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
+      contentHash = data.metadata.contentHash || null;
+    }
     
     // Check if sizes exists and if the requested size is available
     if (data.sizes && data.sizes[size]) {
@@ -203,9 +205,9 @@ export const getImagePlaceholdersByKey = async (
     let tinyPlaceholder = null;
     let colorPlaceholder = null;
     
-    if (typeof data.metadata === 'object' && data.metadata !== null) {
+    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
       const placeholders = data.metadata.placeholders;
-      if (typeof placeholders === 'object' && placeholders !== null) {
+      if (typeof placeholders === 'object' && placeholders !== null && !Array.isArray(placeholders)) {
         tinyPlaceholder = placeholders.tiny || null;
         colorPlaceholder = placeholders.color || null;
       }
