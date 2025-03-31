@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
-import { initPerformanceMonitoring, trackResourceTiming } from '@/utils/performanceMonitoring';
 import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
@@ -31,14 +30,6 @@ const Index = () => {
     // Track this specific page view
     trackPageView('/');
     
-    // Track performance metrics
-    const cleanup = initPerformanceMonitoring();
-    
-    // Track image resources specifically
-    const imageCleanup = trackResourceTiming('webp');
-    const pngCleanup = trackResourceTiming('png');
-    const jpgCleanup = trackResourceTiming('jpg');
-    
     // Initial days left update
     console.log('Running initial days left update check');
     updateDaysLeftCount().then(success => {
@@ -63,10 +54,6 @@ const Index = () => {
     
     // Return a composite cleanup function
     return () => {
-      cleanup?.();
-      imageCleanup?.();
-      pngCleanup?.();
-      jpgCleanup?.();
       autoUpdateCleanup?.();
     };
   }, []);

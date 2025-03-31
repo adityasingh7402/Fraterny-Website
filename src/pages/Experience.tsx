@@ -1,10 +1,9 @@
 
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import HeroSection from '../components/experience/HeroSection';
 import { useIsMobile } from '../hooks/use-mobile';
-import { initPerformanceMonitoring } from '@/utils/performanceMonitoring';
 
 // Lazy load components that are below the fold
 const TimelineSection = lazy(() => import('../components/experience/TimelineSection'));
@@ -21,12 +20,6 @@ const LoadingFallback = () => (
 
 const Experience = () => {
   const isMobile = useIsMobile();
-  
-  // Initialize performance monitoring
-  useEffect(() => {
-    const cleanup = initPerformanceMonitoring();
-    return () => cleanup?.();
-  }, []);
   
   return (
     <div className="min-h-screen bg-white">
