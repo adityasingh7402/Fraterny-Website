@@ -4,12 +4,15 @@ import { Toaster } from '@/components/ui/sonner';
 
 // Import providers
 import ReactQueryProvider from './components/providers/ReactQueryProvider';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
     <ReactQueryProvider>
-      <Outlet />
-      <Toaster />
+      <AuthProvider>
+        <Outlet />
+        <Toaster />
+      </AuthProvider>
     </ReactQueryProvider>
   );
 }
