@@ -10,16 +10,28 @@ export * from './uploadService';
 export * from './updateService';
 export * from './deleteService';
 
-// Export getUrlByKey functions directly
+// Export URL service functions directly
 export { 
   getImageUrlByKey, 
-  getImageUrlByKeyAndSize,
-  getImagePlaceholdersByKey,
+  getImageUrlByKeyAndSize 
+} from './services/urlService';
+
+// Export placeholder functions
+export { 
+  getImagePlaceholdersByKey 
+} from './services/placeholderService';
+
+// Export cache management functions
+export {
   clearImageUrlCache,
-  clearImageUrlCacheForKey,
+  clearImageUrlCacheForKey
+} from './services/cacheService';
+
+// Export cache version management
+export {
   getGlobalCacheVersion,
   updateGlobalCacheVersion 
-} from './getUrlByKey';
+} from './services/cacheVersionService';
 
 // Export fetchService functions explicitly to avoid naming conflicts
 export { 
