@@ -107,6 +107,7 @@ export type Database = {
           height: number | null
           id: string
           key: string
+          metadata: Json | null
           sizes: Json | null
           storage_path: string
           updated_at: string
@@ -120,6 +121,7 @@ export type Database = {
           height?: number | null
           id?: string
           key: string
+          metadata?: Json | null
           sizes?: Json | null
           storage_path: string
           updated_at?: string
@@ -133,6 +135,7 @@ export type Database = {
           height?: number | null
           id?: string
           key?: string
+          metadata?: Json | null
           sizes?: Json | null
           storage_path?: string
           updated_at?: string

@@ -18,10 +18,10 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   try {
     console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
 
-    // Fetch the image record to get the storage path
+    // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
       .from('website_images')
-      .select('storage_path')
+      .select('storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
@@ -48,10 +48,17 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
 
-    // Build the final URL with global version for cache busting
-    let finalUrl = urlData.publicUrl;
+    // Extract content hash from metadata if available
+    const contentHash = data.metadata?.contentHash || null;
     
-    // Add global version as cache parameter if available
+    // Build the final URL with both content hash and global version for cache busting
+    let finalUrl = urlData.publicUrl;
+    if (contentHash) {
+      // Use content hash as primary cache key
+      finalUrl = addHashToUrl(finalUrl, contentHash);
+    }
+    
+    // Add global version as secondary cache parameter if available
     if (globalVersion) {
       finalUrl = finalUrl.includes('?') 
         ? `${finalUrl}&gv=${globalVersion}` 
@@ -89,10 +96,10 @@ export const getImageUrlByKeyAndSize = async (
   try {
     console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
 
-    // Fetch the image record to get sizes and storage path
+    // Fetch the image record to get sizes and metadata
     const { data, error } = await supabase
       .from('website_images')
-      .select('sizes, storage_path')
+      .select('sizes, storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
@@ -109,6 +116,9 @@ export const getImageUrlByKeyAndSize = async (
     // Get the global cache version from website settings
     const globalVersion = await getGlobalCacheVersion();
     
+    // Extract content hash from metadata if available
+    const contentHash = data.metadata?.contentHash || null;
+    
     // Check if sizes exists and if the requested size is available
     if (data.sizes && data.sizes[size]) {
       // Get the public URL for this optimized size
@@ -121,8 +131,12 @@ export const getImageUrlByKeyAndSize = async (
         return '/placeholder.svg';
       }
 
-      // Build the final URL with global version for cache busting
+      // Build the final URL with both content hash and global version for cache busting
       let finalUrl = urlData.publicUrl;
+      if (contentHash) {
+        // Use content hash as primary cache key
+        finalUrl = addHashToUrl(finalUrl, contentHash);
+      }
       
       // Add global version as secondary cache parameter if available
       if (globalVersion) {
@@ -157,9 +171,6 @@ export const getImagePlaceholdersByKey = async (
   tinyPlaceholder: string | null; 
   colorPlaceholder: string | null;
 }> => {
-  // Default return value
-  const defaultResult = { tinyPlaceholder: null, colorPlaceholder: null };
-  
   // Check cache for placeholders
   const cachedTiny = urlCache.get(`placeholder:tiny:${key}`);
   const cachedColor = urlCache.get(`placeholder:color:${key}`);
@@ -171,8 +182,34 @@ export const getImagePlaceholdersByKey = async (
     };
   }
 
-  // Since metadata column doesn't exist yet, we'll just return null placeholders
-  return defaultResult;
+  try {
+    // Attempt to fetch placeholders from metadata
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('metadata')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error || !data || !data.metadata) {
+      return { tinyPlaceholder: null, colorPlaceholder: null };
+    }
+
+    const tinyPlaceholder = data.metadata.placeholders?.tiny || null;
+    const colorPlaceholder = data.metadata.placeholders?.color || null;
+
+    // Cache the placeholders if they exist
+    if (tinyPlaceholder) {
+      urlCache.set(`placeholder:tiny:${key}`, tinyPlaceholder);
+    }
+    if (colorPlaceholder) {
+      urlCache.set(`placeholder:color:${key}`, colorPlaceholder);
+    }
+
+    return { tinyPlaceholder, colorPlaceholder };
+  } catch (e) {
+    console.error(`Error fetching placeholders for key ${key}:`, e);
+    return { tinyPlaceholder: null, colorPlaceholder: null };
+  }
 };
 
 /**
