@@ -3,29 +3,20 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
-
-// Blog post type
-type BlogPost = {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  category: string | null;
-  tags: string[] | null;
-  created_at: string;
-  updated_at: string;
-  image_key?: string | null;
-};
+import { useReactQueryBlogPosts } from '@/hooks/useReactQueryBlogPosts';
+import { BlogPost } from '@/services/blog-posts';
 
 interface BlogListProps {
   blogPosts: BlogPost[] | null;
   isLoading: boolean;
-  error: Error | null;
+  error: Error | unknown | null;
   onEdit: (post: BlogPost) => void;
   refetch: () => void;
 }
 
 const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProps) => {
+  const { invalidateBlogPosts } = useReactQueryBlogPosts();
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
 
@@ -36,8 +27,12 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Invalidate both admin and public blog posts queries
+      await refetch();
+      await invalidateBlogPosts();
+      
       toast.success('Blog post deleted successfully');
-      refetch();
     } catch (error) {
       console.error('Error deleting blog post:', error);
       toast.error('Failed to delete blog post');

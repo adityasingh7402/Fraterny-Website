@@ -1,7 +1,7 @@
+
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useReactQueryBlogPosts } from '@/hooks/useReactQueryBlogPosts';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import ResponsiveImage from '../components/ui/ResponsiveImage';
@@ -9,45 +9,27 @@ import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import CommentSection from '../components/blog/CommentSection';
 import NewsletterSignup from '../components/blog/NewsletterSignup';
 
-// Blog post type
-type BlogPost = {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  category: string | null;
-  tags: string[] | null;
-  created_at: string;
-  updated_at: string;
-  image_key: string | null;
-};
-
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Fetch the specific blog post
-  const { data: post, isLoading, error } = useQuery({
-    queryKey: ['blogPost', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('id', id)
-        .eq('published', true)
-        .single();
-      
-      if (error) throw error;
-      return data as BlogPost;
-    },
-  });
-
+  // Use our React Query hook for fetching a single blog post
+  const { useBlogPost } = useReactQueryBlogPosts();
+  const { data: post, isLoading, error } = useBlogPost(id);
+  
   // Redirect to the blog page if the post doesn't exist or isn't published
   useEffect(() => {
     if (error) {
       navigate('/blog');
     }
   }, [error, navigate]);
+
+  // Format the blog content with proper line breaks
+  const formatContent = (content: string) => {
+    return content.split('\n').map((paragraph, index) => (
+      <p key={index} className="mb-4">{paragraph}</p>
+    ));
+  };
 
   if (isLoading) {
     return (
@@ -65,13 +47,6 @@ const BlogPost = () => {
       </div>
     );
   }
-
-  // Format the blog content with proper line breaks
-  const formatContent = (content: string) => {
-    return content.split('\n').map((paragraph, index) => (
-      <p key={index} className="mb-4">{paragraph}</p>
-    ));
-  };
 
   return (
     <div className="min-h-screen">

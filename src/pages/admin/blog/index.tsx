@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useReactQueryBlogPosts } from '@/hooks/useReactQueryBlogPosts';
 import { supabase } from '@/integrations/supabase/client';
 import PageHeader from './components/PageHeader';
 import BlogForm from './components/BlogForm';
 import BlogList from './components/BlogList';
-import { BlogPost, BlogFormValues } from './types';
+import { BlogFormValues } from './types';
 
 const AdminBlog = () => {
   const [formValues, setFormValues] = useState<BlogFormValues>({
@@ -20,21 +21,23 @@ const AdminBlog = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
 
-  // Fetch blog posts
+  // Use React Query hook for fetching all blog posts (including unpublished)
+  const fetchAdminBlogPosts = async () => {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  };
+
   const { data: blogPosts, isLoading, error, refetch } = useQuery({
-    queryKey: ['blogPosts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BlogPost[];
-    }
+    queryKey: ['adminBlogPosts'],
+    queryFn: fetchAdminBlogPosts,
   });
 
-  const handleEdit = (post: BlogPost) => {
+  const handleEdit = (post) => {
     setFormValues({
       title: post.title,
       content: post.content,
@@ -62,6 +65,17 @@ const AdminBlog = () => {
     window.scrollTo(0, 0);
   };
 
+  // Access the invalidate function to refresh data after changes
+  const { invalidateBlogPosts } = useReactQueryBlogPosts();
+
+  const handleFormSuccess = async () => {
+    // Refetch admin posts
+    await refetch();
+    // Invalidate public blog posts to ensure consistent data
+    await invalidateBlogPosts();
+    setShowForm(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
@@ -73,10 +87,7 @@ const AdminBlog = () => {
             formValues={formValues}
             setFormValues={setFormValues}
             setEditingId={setEditingId}
-            onSuccess={() => {
-              refetch();
-              setShowForm(false);
-            }}
+            onSuccess={handleFormSuccess}
           />
         )}
 
