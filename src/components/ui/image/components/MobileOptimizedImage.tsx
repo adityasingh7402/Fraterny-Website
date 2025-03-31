@@ -1,0 +1,67 @@
+
+import React from 'react';
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import { BasicImage } from './BasicImage';
+
+interface MobileOptimizedImageProps {
+  src: string;
+  lowQualitySrc?: string;
+  alt: string;
+  width?: number | string;
+  height?: number | string;
+  className?: string;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none';
+}
+
+/**
+ * Image component that adapts to mobile network conditions
+ * Uses lower quality images on slow connections or when save-data is enabled
+ */
+export function MobileOptimizedImage({
+  src,
+  lowQualitySrc,
+  alt,
+  width,
+  height,
+  className,
+  loading = 'lazy',
+  sizes,
+  objectFit = 'cover'
+}: MobileOptimizedImageProps) {
+  const network = useNetworkStatus();
+  
+  // Use low quality image if:
+  // 1. User has enabled data-saving mode, or
+  // 2. Connection is slow (2g or slow-2g), or
+  // 3. RTT is very high indicating poor connection
+  const shouldUseLowQuality = 
+    (network.saveDataEnabled) || 
+    (['slow-2g', '2g'].includes(network.effectiveConnectionType)) ||
+    (network.rtt !== null && network.rtt > 500);
+  
+  // If we have a low quality source and should use it
+  const finalSrc = (shouldUseLowQuality && lowQualitySrc) ? lowQualitySrc : src;
+  
+  // Priority is higher if we're on a good connection
+  const fetchPriority = network.effectiveConnectionType === '4g' ? 'high' : 'auto';
+  
+  // Use more aggressive lazy loading on slow connections
+  const finalLoading = 
+    shouldUseLowQuality && loading === 'lazy' ? 'lazy' : loading;
+
+  return (
+    <BasicImage
+      src={finalSrc}
+      alt={alt}
+      width={width}
+      height={height}
+      className={className}
+      loading={finalLoading}
+      fetchPriority={fetchPriority}
+      sizes={sizes}
+      objectFit={objectFit}
+    />
+  );
+}

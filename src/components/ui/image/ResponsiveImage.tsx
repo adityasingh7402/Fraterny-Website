@@ -8,10 +8,12 @@ import { ResponsiveImageProps, ResponsiveImageSource } from './types';
 import { ResponsivePicture } from './components/ResponsivePicture';
 import { BasicImage } from './components/BasicImage';
 import { CacheDebugInfo } from './components/CacheDebugInfo';
+import { MobileOptimizedImage } from './components/MobileOptimizedImage';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 
 /**
  * A component that renders responsive images with different sources for mobile, tablet, and desktop
- * Enhanced with content-based cache keys and debugging capabilities
+ * Enhanced with content-based cache keys, debugging capabilities, and mobile optimization
  */
 const ResponsiveImage = ({
   src,
@@ -32,6 +34,13 @@ const ResponsiveImage = ({
 }: ResponsiveImageProps) => {
   const [useMobileSrc, setUseMobileSrc] = useState<boolean>(false);
   const isMobile = useIsMobile();
+  const network = useNetworkStatus();
+  
+  // Determine if we should use lower quality images based on network conditions
+  const useLowQualityOnPoorConnection = 
+    network.saveDataEnabled || 
+    ['slow-2g', '2g'].includes(network.effectiveConnectionType) ||
+    (network.rtt !== null && network.rtt > 500);
 
   // Set mobile source flag based on device detection
   useEffect(() => {
@@ -39,7 +48,12 @@ const ResponsiveImage = ({
   }, [isMobile]);
 
   // Handle priority for browser loading hint
-  const finalFetchPriority = priority ? 'high' : fetchPriority || (loading === 'eager' ? 'high' : 'auto');
+  // Adjust based on network conditions
+  const finalFetchPriority = priority 
+    ? 'high' 
+    : (fetchPriority || (loading === 'eager' 
+        ? (useLowQualityOnPoorConnection ? 'auto' : 'high') 
+        : 'auto'));
 
   // Use the hook to load dynamic images from storage
   const { 
@@ -52,14 +66,20 @@ const ResponsiveImage = ({
     contentHash,
     isCached,
     lastUpdated
-  } = useResponsiveImage(dynamicKey, size, debugCache);
+  } = useResponsiveImage(dynamicKey, 
+    // Use a smaller size on poor connections
+    useLowQualityOnPoorConnection && size === 'large' ? 'medium' : size, 
+    debugCache);
   
   // For debugging
   useEffect(() => {
     if (dynamicKey && dynamicSrc) {
       console.log(`[ResponsiveImage] Rendered ${dynamicKey} with URL: ${dynamicSrc}`);
+      if (useLowQualityOnPoorConnection) {
+        console.log(`[ResponsiveImage] Using lower quality for ${dynamicKey} due to network conditions`);
+      }
     }
-  }, [dynamicKey, dynamicSrc]);
+  }, [dynamicKey, dynamicSrc, useLowQualityOnPoorConnection]);
 
   // If we're loading a dynamic image and it's still loading
   if (dynamicKey && isLoading) {
@@ -90,23 +110,28 @@ const ResponsiveImage = ({
     );
   }
 
-  // If we have a dynamic source, use it
+  // If we have a dynamic source, use it with mobile optimization
   if (dynamicKey && dynamicSrc) {
     return (
       <div className={`relative ${className}`} style={{ width, height }}>
-        <BasicImage
+        <MobileOptimizedImage
           src={dynamicSrc}
+          lowQualitySrc={tinyPlaceholder || undefined}
           alt={alt}
           loading={loading}
-          fetchPriority={finalFetchPriority}
-          onClick={onClick}
           className="w-full h-full"
           width={width}
           height={height}
           sizes={sizes}
-          fallbackSrc={fallbackSrc}
           objectFit={objectFit}
         />
+        {onClick && (
+          <div 
+            className="absolute inset-0 cursor-pointer" 
+            onClick={onClick}
+            aria-label={`Click to interact with ${alt}`}
+          />
+        )}
         {debugCache && (
           <CacheDebugInfo
             dynamicKey={dynamicKey}

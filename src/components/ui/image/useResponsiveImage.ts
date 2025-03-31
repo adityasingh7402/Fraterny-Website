@@ -9,10 +9,11 @@ import {
 } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 
 /**
  * Custom hook to handle dynamic image loading from storage
- * Enhanced with versioning and cache coordination
+ * Enhanced with versioning, cache coordination, and mobile optimization
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
@@ -31,6 +32,8 @@ export const useResponsiveImage = (
     lastUpdated: null
   });
   
+  const network = useNetworkStatus();
+  
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
     if (!dynamicKey) return;
@@ -47,24 +50,52 @@ export const useResponsiveImage = (
         // Get the global cache version for proper cache coordination
         const globalVersion = await getGlobalCacheVersion();
         
-        // Load from performance cache if available
+        // Load from performance cache if available and network is not offline
         const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}:${globalVersion || ''}`;
-        const cachedData = sessionStorage.getItem(cacheKey);
+        const cachedData = navigator.onLine ? sessionStorage.getItem(cacheKey) : null;
         let cachedImageInfo: any = null;
         
         // Check if we have a valid cached version that's not too old
+        // Use a shorter cache expiry on slow connections
+        const cacheExpiryTime = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType) 
+          ? 15 * 60 * 1000  // 15 minutes for slower connections
+          : 5 * 60 * 1000;  // 5 minutes for faster connections
+          
         if (cachedData) {
           try {
             const parsed = JSON.parse(cachedData);
             const cacheAge = Date.now() - parsed.timestamp;
             
-            // Use cache if it's less than 5 minutes old
-            if (cacheAge < 5 * 60 * 1000) {
+            // Use cache if it's less than the expiry time
+            if (cacheAge < cacheExpiryTime) {
               cachedImageInfo = parsed;
               if (debugCache) console.log(`Using cached image data for ${dynamicKey}`);
             }
           } catch (e) {
             console.error('Error parsing cached image data:', e);
+          }
+        }
+        
+        // Give priority to placeholders on slow connections
+        const fetchPlaceholdersFirst = ['slow-2g', '2g'].includes(network.effectiveConnectionType);
+        
+        // If we're on a slow connection, start by loading placeholders
+        let tinyPlaceholder = null;
+        let colorPlaceholder = null;
+        
+        if (fetchPlaceholdersFirst) {
+          const placeholders = await getImagePlaceholdersByKey(dynamicKey);
+          tinyPlaceholder = placeholders.tinyPlaceholder;
+          colorPlaceholder = placeholders.colorPlaceholder;
+          
+          // Show placeholder immediately while full image loads
+          if (tinyPlaceholder) {
+            setState(prev => ({
+              ...prev,
+              tinyPlaceholder,
+              colorPlaceholder,
+              // Don't set isLoading to false yet, we're still loading the full image
+            }));
           }
         }
         
@@ -75,8 +106,8 @@ export const useResponsiveImage = (
             dynamicSrc: cachedImageInfo.url, 
             isLoading: false,
             aspectRatio: cachedImageInfo.aspectRatio,
-            tinyPlaceholder: cachedImageInfo.tinyPlaceholder,
-            colorPlaceholder: cachedImageInfo.colorPlaceholder,
+            tinyPlaceholder: cachedImageInfo.tinyPlaceholder || prev.tinyPlaceholder,
+            colorPlaceholder: cachedImageInfo.colorPlaceholder || prev.colorPlaceholder,
             contentHash: cachedImageInfo.contentHash,
             isCached: true,
             lastUpdated: cachedImageInfo.lastUpdated
@@ -87,7 +118,9 @@ export const useResponsiveImage = (
         if (debugCache) console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
         
         // Fetch placeholders in parallel with the main image for faster loading
-        const placeholdersPromise = getImagePlaceholdersByKey(dynamicKey);
+        const placeholdersPromise = !fetchPlaceholdersFirst ? 
+          getImagePlaceholdersByKey(dynamicKey) : 
+          Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
         // Handle mobile variant keys
         const isMobileKey = dynamicKey.includes('-mobile');
@@ -139,8 +172,12 @@ export const useResponsiveImage = (
           }
         }
         
-        // Get placeholders
-        let { tinyPlaceholder, colorPlaceholder } = await placeholdersPromise;
+        // Get placeholders if we didn't fetch them earlier
+        if (!fetchPlaceholdersFirst) {
+          const placeholders = await placeholdersPromise;
+          tinyPlaceholder = placeholders.tinyPlaceholder;
+          colorPlaceholder = placeholders.colorPlaceholder;
+        }
         
         // If we switched to desktop key but don't have placeholders, try getting them from desktop key
         if (fallbackToDesktop && (!tinyPlaceholder && !colorPlaceholder)) {
@@ -163,10 +200,18 @@ export const useResponsiveImage = (
           contentHash: extractedContentHash,
           timestamp: Date.now(),
           lastUpdated: new Date().toISOString(),
-          globalVersion
+          globalVersion,
+          networkType: network.effectiveConnectionType
         };
         
-        sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
+        try {
+          // Only cache if we're online
+          if (navigator.onLine) {
+            sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
+          }
+        } catch (e) {
+          console.warn('Failed to cache image data in sessionStorage:', e);
+        }
         
         setState(prev => ({ 
           ...prev, 
@@ -193,8 +238,19 @@ export const useResponsiveImage = (
       }
     };
     
-    fetchImage();
-  }, [dynamicKey, size, debugCache]);
+    // For slow connections or offline mode, use a small delay to avoid 
+    // excessive requests during poor connectivity
+    const delay = !navigator.onLine || ['slow-2g', '2g'].includes(network.effectiveConnectionType) 
+      ? 300 : 0;
+      
+    const timeoutId = setTimeout(() => {
+      fetchImage();
+    }, delay);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [dynamicKey, size, debugCache, network.online, network.effectiveConnectionType]);
   
   return state;
 };

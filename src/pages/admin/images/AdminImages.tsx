@@ -11,8 +11,11 @@ import EditModal from './components/EditModal';
 import DeleteModal from './components/DeleteModal';
 import { useImageManagement } from './hooks/useImageManagement';
 import CacheVersionControl from './components/CacheVersionControl';
+import MobilePerformanceMonitor from '@/components/admin/performance/MobilePerformanceMonitor';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminImages = () => {
+  const isMobile = useIsMobile();
   const {
     images,
     totalCount,
@@ -55,6 +58,9 @@ const AdminImages = () => {
         <div className="grid gap-6 mb-8">
           {/* Cache Version Control Card */}
           <CacheVersionControl />
+          
+          {/* Mobile Performance Monitoring Card */}
+          <MobilePerformanceMonitor />
           
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <ImageHeader 
