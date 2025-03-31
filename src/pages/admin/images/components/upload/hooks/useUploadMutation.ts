@@ -1,6 +1,11 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, clearImageCache, clearImageUrlCache } from '@/services/images';
+import { 
+  uploadImage, 
+  clearImageCache, 
+  clearImageUrlCache, 
+  updateGlobalCacheVersion 
+} from '@/services/images';
 import { toast } from 'sonner';
 
 export const useUploadImageMutation = (onSuccess?: () => void) => {
@@ -22,10 +27,31 @@ export const useUploadImageMutation = (onSuccess?: () => void) => {
         data.category
       );
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Clear caches to ensure fresh data
       clearImageCache();
       clearImageUrlCache();
+      
+      // Update global cache version for system-wide cache invalidation
+      // Only when replacing an existing image (if key already exists)
+      try {
+        const { data } = await queryClient.fetchQuery({
+          queryKey: ['check-existing-image', variables.key],
+          queryFn: async () => {
+            const response = await fetch(`/api/images/exists?key=${variables.key}`);
+            return response.json();
+          }
+        });
+        
+        // If we're replacing an existing image, update the global cache version
+        if (data && data.exists) {
+          await updateGlobalCacheVersion();
+          console.log('Updated global cache version because image was replaced');
+        }
+      } catch (error) {
+        console.error('Error checking if image exists:', error);
+        // Continue anyway, the image was uploaded successfully
+      }
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['website-images'] });

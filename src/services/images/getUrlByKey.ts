@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "./cacheService";
 import { WebsiteImage } from "./types";
 import { addHashToUrl } from "./utils/hashUtils";
+import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
 
 /**
  * Get the image URL by key
@@ -18,10 +19,10 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   try {
     console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
 
-    // Fetch the image record to get the storage path
+    // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
       .from('website_images')
-      .select('storage_path')
+      .select('storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
@@ -35,6 +36,9 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
 
+    // Get the global cache version from website settings
+    const globalVersion = await getGlobalCacheVersion();
+
     // Get the public URL for this storage path
     const { data: urlData } = supabase.storage
       .from('website-images')
@@ -45,8 +49,23 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
 
-    // No content hash since metadata column doesn't exist yet
-    const finalUrl = urlData.publicUrl;
+    // Extract content hash from metadata if available
+    const contentHash = data.metadata?.contentHash || null;
+    
+    // Build the final URL with both content hash and global version for cache busting
+    let finalUrl = urlData.publicUrl;
+    if (contentHash) {
+      // Use content hash as primary cache key
+      finalUrl = addHashToUrl(finalUrl, contentHash);
+    }
+    
+    // Add global version as secondary cache parameter if available
+    if (globalVersion) {
+      finalUrl = finalUrl.includes('?') 
+        ? `${finalUrl}&gv=${globalVersion}` 
+        : `${finalUrl}?gv=${globalVersion}`;
+    }
+
     console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
 
     // Cache the URL for future use
@@ -78,10 +97,10 @@ export const getImageUrlByKeyAndSize = async (
   try {
     console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
 
-    // Fetch the image record to get sizes
+    // Fetch the image record to get sizes and metadata
     const { data, error } = await supabase
       .from('website_images')
-      .select('sizes, storage_path')
+      .select('sizes, storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
@@ -95,6 +114,12 @@ export const getImageUrlByKeyAndSize = async (
       return '/placeholder.svg';
     }
     
+    // Get the global cache version from website settings
+    const globalVersion = await getGlobalCacheVersion();
+    
+    // Extract content hash from metadata if available
+    const contentHash = data.metadata?.contentHash || null;
+    
     // Check if sizes exists and if the requested size is available
     if (data.sizes && data.sizes[size]) {
       // Get the public URL for this optimized size
@@ -107,8 +132,20 @@ export const getImageUrlByKeyAndSize = async (
         return '/placeholder.svg';
       }
 
-      // No content hash since metadata column doesn't exist yet
-      const finalUrl = urlData.publicUrl;
+      // Build the final URL with both content hash and global version for cache busting
+      let finalUrl = urlData.publicUrl;
+      if (contentHash) {
+        // Use content hash as primary cache key
+        finalUrl = addHashToUrl(finalUrl, contentHash);
+      }
+      
+      // Add global version as secondary cache parameter if available
+      if (globalVersion) {
+        finalUrl = finalUrl.includes('?') 
+          ? `${finalUrl}&gv=${globalVersion}` 
+          : `${finalUrl}?gv=${globalVersion}`;
+      }
+
       console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
 
       // Cache the URL for future use
@@ -146,8 +183,105 @@ export const getImagePlaceholdersByKey = async (
     };
   }
 
-  // For now, return null placeholders until we have the metadata column
-  return { tinyPlaceholder: null, colorPlaceholder: null };
+  try {
+    // Attempt to fetch placeholders from metadata
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('metadata')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (error || !data || !data.metadata) {
+      return { tinyPlaceholder: null, colorPlaceholder: null };
+    }
+
+    const tinyPlaceholder = data.metadata.placeholders?.tiny || null;
+    const colorPlaceholder = data.metadata.placeholders?.color || null;
+
+    // Cache the placeholders if they exist
+    if (tinyPlaceholder) {
+      urlCache.set(`placeholder:tiny:${key}`, tinyPlaceholder);
+    }
+    if (colorPlaceholder) {
+      urlCache.set(`placeholder:color:${key}`, colorPlaceholder);
+    }
+
+    return { tinyPlaceholder, colorPlaceholder };
+  } catch (e) {
+    console.error(`Error fetching placeholders for key ${key}:`, e);
+    return { tinyPlaceholder: null, colorPlaceholder: null };
+  }
+};
+
+/**
+ * Helper function to retrieve the global cache version from website settings
+ */
+export const getGlobalCacheVersion = async (): Promise<string | null> => {
+  try {
+    // Check in-memory cache first
+    const cachedVersion = urlCache.get('global:cache:version');
+    if (cachedVersion) {
+      return cachedVersion;
+    }
+
+    // Fetch from database
+    const { data, error } = await supabase
+      .from('website_settings')
+      .select('value')
+      .eq('key', 'global_cache_version')
+      .maybeSingle();
+
+    if (error || !data) {
+      console.log('No global cache version found in settings, using default');
+      return null;
+    }
+
+    // Cache for future use (short TTL)
+    urlCache.set('global:cache:version', data.value, 60000); // 1 minute TTL
+    
+    return data.value;
+  } catch (e) {
+    console.error('Error fetching global cache version:', e);
+    return null;
+  }
+};
+
+/**
+ * Update the global cache version to invalidate all cached content
+ */
+export const updateGlobalCacheVersion = async (): Promise<boolean> => {
+  try {
+    // Generate a new timestamp-based version
+    const newVersion = `v${Date.now()}`;
+    
+    // Update in the database
+    const { error } = await supabase
+      .from('website_settings')
+      .upsert({ 
+        key: 'global_cache_version', 
+        value: newVersion,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'key'
+      });
+
+    if (error) {
+      console.error('Failed to update global cache version:', error);
+      return false;
+    }
+    
+    // Clear URL cache to force regeneration with new version
+    clearImageUrlCache();
+    
+    // Update in-memory cache
+    urlCache.set('global:cache:version', newVersion, 60000); // 1 minute TTL
+    
+    console.log(`Global cache version updated to ${newVersion}`);
+    return true;
+  } catch (e) {
+    console.error('Error updating global cache version:', e);
+    return false;
+  }
 };
 
 /**

@@ -12,7 +12,7 @@ interface CacheDebugInfoProps {
 
 /**
  * Component to display cache debugging information
- * Only shown when debugCache prop is true in parent component
+ * Enhanced with version information display
  */
 export const CacheDebugInfo = ({ 
   dynamicKey, 
@@ -22,17 +22,21 @@ export const CacheDebugInfo = ({
   contentHash,
   lastUpdated
 }: CacheDebugInfoProps) => {
-  // Extract version from URL if present
-  const getVersionFromUrl = (url: string): string => {
+  // Extract version and global version from URL if present
+  const getVersionInfo = (url: string): { version: string, globalVersion: string | null } => {
     try {
       const urlObj = new URL(url);
-      return urlObj.searchParams.get('v') || 'none';
+      return {
+        version: urlObj.searchParams.get('v') || 'none',
+        globalVersion: urlObj.searchParams.get('gv') || null
+      };
     } catch {
-      return 'none';
+      return { version: 'none', globalVersion: null };
     }
   };
 
-  const urlVersion = url ? getVersionFromUrl(url) : 'none';
+  const urlInfo = url ? getVersionInfo(url) : { version: 'none', globalVersion: null };
+  const displayVersion = contentHash || urlInfo.version;
   
   return (
     <div className="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white text-xs p-1 z-10 w-full overflow-hidden">
@@ -44,7 +48,10 @@ export const CacheDebugInfo = ({
           </span>
         </div>
       </div>
-      <div className="truncate">Hash: {contentHash || urlVersion}</div>
+      <div className="truncate">Hash: {displayVersion}</div>
+      {urlInfo.globalVersion && (
+        <div className="truncate">GV: {urlInfo.globalVersion}</div>
+      )}
       {lastUpdated && (
         <div className="truncate">Updated: {new Date(lastUpdated).toLocaleTimeString()}</div>
       )}

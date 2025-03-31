@@ -16,7 +16,9 @@ export {
   getImageUrlByKeyAndSize,
   getImagePlaceholdersByKey,
   clearImageUrlCache,
-  clearImageUrlCacheForKey 
+  clearImageUrlCacheForKey,
+  getGlobalCacheVersion,
+  updateGlobalCacheVersion 
 } from './getUrlByKey';
 
 // Export fetchService functions explicitly to avoid naming conflicts

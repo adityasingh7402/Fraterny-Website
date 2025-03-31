@@ -1,16 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
   getImageUrlByKeyAndSize, 
   getImagePlaceholdersByKey,
-  clearImageUrlCacheForKey 
+  clearImageUrlCacheForKey,
+  getGlobalCacheVersion
 } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 
 /**
  * Custom hook to handle dynamic image loading from storage
- * Simplified version that doesn't rely on metadata column
+ * Enhanced with versioning and cache coordination
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
@@ -42,8 +44,11 @@ export const useResponsiveImage = (
     
     const fetchImage = async () => {
       try {
+        // Get the global cache version for proper cache coordination
+        const globalVersion = await getGlobalCacheVersion();
+        
         // Load from performance cache if available
-        const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}`;
+        const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}:${globalVersion || ''}`;
         const cachedData = sessionStorage.getItem(cacheKey);
         let cachedImageInfo: any = null;
         
@@ -89,9 +94,20 @@ export const useResponsiveImage = (
         let imageUrl: string;
         let fallbackToDesktop = false;
         
+        // Extract any content hash and cache metadata from the URL
+        let extractedContentHash = null;
+        
         // If size is specified, try to get that specific size
         if (size) {
           imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
           
           if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
@@ -104,6 +120,14 @@ export const useResponsiveImage = (
         } else {
           // Otherwise get the original image
           imageUrl = await getImageUrlByKey(dynamicKey);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
           
           if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
@@ -130,14 +154,16 @@ export const useResponsiveImage = (
         const aspectRatio = await getImageAspectRatio(imageUrl);
         
         // Cache this response in sessionStorage for faster subsequent loads
+        // Include the global version in the cached data for cache coordination
         const imageInfo = {
           url: imageUrl,
           aspectRatio,
           tinyPlaceholder,
           colorPlaceholder,
-          contentHash: null, // No content hash yet
+          contentHash: extractedContentHash,
           timestamp: Date.now(),
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          globalVersion
         };
         
         sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
@@ -149,7 +175,7 @@ export const useResponsiveImage = (
           aspectRatio,
           tinyPlaceholder,
           colorPlaceholder,
-          contentHash: null,
+          contentHash: extractedContentHash,
           isCached: false,
           lastUpdated: imageInfo.lastUpdated
         }));

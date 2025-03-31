@@ -10,6 +10,7 @@ import { UploadModal } from './components/upload';
 import EditModal from './components/EditModal';
 import DeleteModal from './components/DeleteModal';
 import { useImageManagement } from './hooks/useImageManagement';
+import CacheVersionControl from './components/CacheVersionControl';
 
 const AdminImages = () => {
   const {
@@ -51,31 +52,36 @@ const AdminImages = () => {
       <div className="max-w-6xl mx-auto">
         <PageHeader onUploadClick={() => setIsUploadModalOpen(true)} />
         
-        <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-          <ImageHeader 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onSearch={handleSearch}
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-          />
+        <div className="grid gap-6 mb-8">
+          {/* Cache Version Control Card */}
+          <CacheVersionControl />
           
-          <InfoBanner />
-          
-          <ImageContainer 
-            images={images}
-            selectedCategory={selectedCategory}
-            searchTerm={searchTerm}
-            onClearFilter={clearFilters}
-            onUploadClick={() => setIsUploadModalOpen(true)}
-            onEdit={openEditModal}
-            onDelete={openDeleteModal}
-            page={page}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onPageChange={handlePageChange}
-          />
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <ImageHeader 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearch}
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+            />
+            
+            <InfoBanner />
+            
+            <ImageContainer 
+              images={images}
+              selectedCategory={selectedCategory}
+              searchTerm={searchTerm}
+              onClearFilter={clearFilters}
+              onUploadClick={() => setIsUploadModalOpen(true)}
+              onEdit={openEditModal}
+              onDelete={openDeleteModal}
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </div>
         
         <UploadModal 
