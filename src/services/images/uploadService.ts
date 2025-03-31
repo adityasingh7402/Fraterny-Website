@@ -51,7 +51,7 @@ export const uploadImage = async (
       
     if (existingImage) {
       console.log(`Found existing image with key: ${key}, will replace it`);
-      await removeExistingImage(existingImage);
+      await removeExistingImage(existingImage as WebsiteImage);
     }
     
     // Generate placeholders for better loading experience (especially on mobile)
@@ -130,7 +130,7 @@ export const uploadImage = async (
     invalidateImageCache(key);
     
     console.log(`Successfully uploaded and created record for image with key: ${key}`);
-    return data;
+    return data as WebsiteImage;
   } catch (error) {
     console.error('Error in upload process:', error);
     return handleApiError(error, 'Error in image upload process', false) as null;

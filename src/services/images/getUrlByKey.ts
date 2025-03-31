@@ -49,7 +49,10 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     }
 
     // Extract content hash from metadata if available
-    const contentHash = data.metadata?.contentHash || null;
+    // Use safe type checking to avoid errors with different metadata formats
+    const contentHash = typeof data.metadata === 'object' && data.metadata !== null
+      ? data.metadata.contentHash || null
+      : null;
     
     // Build the final URL with both content hash and global version for cache busting
     let finalUrl = urlData.publicUrl;
@@ -116,8 +119,10 @@ export const getImageUrlByKeyAndSize = async (
     // Get the global cache version from website settings
     const globalVersion = await getGlobalCacheVersion();
     
-    // Extract content hash from metadata if available
-    const contentHash = data.metadata?.contentHash || null;
+    // Extract content hash from metadata if available using safe type checking
+    const contentHash = typeof data.metadata === 'object' && data.metadata !== null
+      ? data.metadata.contentHash || null
+      : null;
     
     // Check if sizes exists and if the requested size is available
     if (data.sizes && data.sizes[size]) {
@@ -194,8 +199,17 @@ export const getImagePlaceholdersByKey = async (
       return { tinyPlaceholder: null, colorPlaceholder: null };
     }
 
-    const tinyPlaceholder = data.metadata.placeholders?.tiny || null;
-    const colorPlaceholder = data.metadata.placeholders?.color || null;
+    // Safe access to nested properties using type checking
+    let tinyPlaceholder = null;
+    let colorPlaceholder = null;
+    
+    if (typeof data.metadata === 'object' && data.metadata !== null) {
+      const placeholders = data.metadata.placeholders;
+      if (typeof placeholders === 'object' && placeholders !== null) {
+        tinyPlaceholder = placeholders.tiny || null;
+        colorPlaceholder = placeholders.color || null;
+      }
+    }
 
     // Cache the placeholders if they exist
     if (tinyPlaceholder) {

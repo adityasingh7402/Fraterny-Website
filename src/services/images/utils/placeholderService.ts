@@ -105,4 +105,3 @@ export const generateColorPlaceholder = async (file: File): Promise<string | nul
     return null;
   }
 };
-

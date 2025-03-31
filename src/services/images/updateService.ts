@@ -24,5 +24,5 @@ export const updateImage = async (
     return null;
   }
   
-  return updatedImage;
+  return updatedImage as WebsiteImage;
 };
