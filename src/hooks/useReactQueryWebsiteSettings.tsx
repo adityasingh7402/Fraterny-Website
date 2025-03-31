@@ -19,8 +19,8 @@ export const useReactQueryWebsiteSettings = () => {
   } = useQuery({
     queryKey: ['websiteSettings'],
     queryFn: fetchWebsiteSettings,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes (matches existing cache duration)
-    cacheTime: 30 * 60 * 1000, // Keep inactive data in cache for 30 minutes
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 30 * 60 * 1000,  // Keep inactive data in cache for 30 minutes (formerly cacheTime)
   });
 
   /**
