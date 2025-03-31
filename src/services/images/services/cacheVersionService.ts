@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
 
@@ -72,3 +71,6 @@ export const updateGlobalCacheVersion = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Import the clearImageUrlCache function to use inside updateGlobalCacheVersion
+import { clearImageUrlCache } from './cacheService';

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Info } from "lucide-react";
-import { updateGlobalCacheVersion, getGlobalCacheVersion } from '@/services/images/getUrlByKey';
+import { updateGlobalCacheVersion, getGlobalCacheVersion } from '@/services/images/services/cacheVersionService';
 import { clearImageCache, clearImageUrlCache } from '@/services/images';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
