@@ -19,7 +19,7 @@ export interface ImageLoadingState {
   lastUpdated: string | null;
 }
 
-// Add objectFit to the ResponsiveImageProps interface
+// Add objectFit to the ResponsiveImageProps interface - include scale-down in types
 export interface ResponsiveImageProps {
   src?: string | ResponsiveImageSource;
   alt: string;

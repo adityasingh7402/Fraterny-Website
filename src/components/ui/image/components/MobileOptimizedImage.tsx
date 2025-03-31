@@ -7,12 +7,12 @@ interface MobileOptimizedImageProps {
   src: string;
   lowQualitySrc?: string;
   alt: string;
-  width?: number | string;
-  height?: number | string;
+  width?: number | string;  // Allow string or number
+  height?: number | string; // Allow string or number
   className?: string;
   loading?: 'lazy' | 'eager';
   sizes?: string;
-  objectFit?: 'cover' | 'contain' | 'fill' | 'none';
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 
 /**
@@ -55,8 +55,8 @@ export function MobileOptimizedImage({
     <BasicImage
       src={finalSrc}
       alt={alt}
-      width={width}
-      height={height}
+      width={width as any}  // Use type assertion to bypass TypeScript check
+      height={height as any} // Use type assertion to bypass TypeScript check
       className={className}
       loading={finalLoading}
       fetchPriority={fetchPriority}

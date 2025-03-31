@@ -17,6 +17,11 @@ interface PerformanceMetrics {
   slowestImageTime: number | null;
 }
 
+// Define the extended PerformanceResourceTiming interface
+interface PerformanceResourceEntry extends PerformanceResourceTiming {
+  initiatorType: string;
+}
+
 /**
  * Component for monitoring and displaying mobile performance metrics
  */
@@ -44,7 +49,9 @@ export const MobilePerformanceMonitor: React.FC = () => {
     // Observer for images loading
     const imageObserver = new PerformanceObserver((entries) => {
       entries.getEntries().forEach(entry => {
-        if (entry.initiatorType === 'img') {
+        // Cast to PerformanceResourceEntry to access initiatorType
+        const resourceEntry = entry as PerformanceResourceEntry;
+        if (resourceEntry.initiatorType === 'img') {
           const loadTime = entry.duration;
           // Only count substantial load times
           if (loadTime > 10) {
