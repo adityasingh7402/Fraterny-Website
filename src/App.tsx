@@ -1,61 +1,37 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Outlet } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { useEffect } from "react";
-import { initializeAnalytics } from "@/utils/analyticsInitializer";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// Import pages
+import Index from './pages/Index';
+import Experience from './pages/Experience';
+import Process from './pages/Process';
+import Pricing from './pages/Pricing';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import AdminImages from './pages/admin/images/AdminImages';
+import NotFound from './pages/NotFound';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false
-    }
-  }
-});
+// Import providers
+import ReactQueryProvider from './components/providers/ReactQueryProvider';
 
-const App = () => {
-  // Initialize analytics when the app loads
-  useEffect(() => {
-    initializeAnalytics();
-  }, []);
-  
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          {/* Default Shadcn UI toast notification system */}
-          <Toaster />
-          
-          {/* Sonner toast notification system with customizations */}
-          <Sonner 
-            position="top-right"
-            closeButton={true}
-            toastOptions={{
-              style: {
-                background: 'white',
-                color: '#0A1A2F', // Navy color
-                border: '1px solid #e2e8f0',
-              },
-              classNames: {
-                toast: 'group',
-                success: 'border-green-500 text-green-600',
-                error: 'border-red-500 text-red-600',
-                info: 'border-blue-500 text-blue-600',
-              }
-            }}
-          />
-          
-          <Outlet />
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ReactQueryProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/experience" element={<Experience />} />
+          <Route path="/process" element={<Process />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/admin/images" element={<AdminImages />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </BrowserRouter>
+    </ReactQueryProvider>
   );
-};
+}
 
 export default App;

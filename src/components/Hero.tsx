@@ -2,13 +2,13 @@
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
-import { useWebsiteSettings } from '@/hooks/useWebsiteSettings';
+import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
   
-  // Use our custom hook to fetch settings
-  const { settings, isLoading } = useWebsiteSettings();
+  // Use our React Query powered hook
+  const { settings, isLoading } = useReactQueryWebsiteSettings();
 
   useEffect(() => {
     // If we have settings from the database, use them

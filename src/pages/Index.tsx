@@ -7,6 +7,10 @@ import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a client
+const queryClient = new QueryClient();
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -21,7 +25,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const Index = () => {
+const IndexContent = () => {
   // Initialize analytics and performance monitoring
   useEffect(() => {
     // Initialize analytics tracking
@@ -82,6 +86,14 @@ const Index = () => {
       
       <Footer />
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <IndexContent />
+    </QueryClientProvider>
   );
 };
 
