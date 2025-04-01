@@ -58,6 +58,11 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
-  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
+  // Use fetchpriority (lowercase) as per HTML spec
+  return <img 
+    {...imgProps} 
+    style={style} 
+    onClick={onClick} 
+    fetchpriority={fetchPriority} 
+  />;
 };

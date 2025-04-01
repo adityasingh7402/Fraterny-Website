@@ -95,17 +95,22 @@ export const getCdnUrl = (
           return imagePath;
         }
         
+        // Include query parameters in the CDN URL
+        const urlObj = new URL(imagePath);
+        const queryString = urlObj.search;
+        
         // Use CDN if enabled
         const useCdn = forceCdn || shouldUseCdn();
-        return useCdn ? `${CDN_URL}${pathForCdn}` : imagePath;
+        return useCdn ? `${CDN_URL}${pathForCdn}${queryString}` : imagePath;
       }
     }
     return imagePath;
   }
 
-  // Special handling for placeholder.svg - always use local version
+  // Special handling for placeholder.svg - always use CDN version
   if (imagePath.includes('placeholder.svg')) {
-    return imagePath;
+    const useCdn = forceCdn || shouldUseCdn();
+    return useCdn ? `${CDN_URL}/placeholder.svg` : imagePath;
   }
   
   // Ensure path starts with /
