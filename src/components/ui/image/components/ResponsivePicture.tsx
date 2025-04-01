@@ -71,7 +71,7 @@ export const ResponsivePicture = ({
       {processedSources.mobile && <source media="(max-width: 640px)" srcSet={processedSources.mobile} />}
       {processedSources.tablet && <source media="(max-width: 1024px)" srcSet={processedSources.tablet} />}
       <source media="(min-width: 641px)" srcSet={processedSources.desktop} />
-      <img {...imgProps} style={style} fetchpriority={fetchPriority} />
+      <img {...imgProps} style={style} fetchPriority={fetchPriority} />
     </picture>
   );
 };

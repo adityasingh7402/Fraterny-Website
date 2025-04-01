@@ -58,11 +58,11 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Use fetchpriority (lowercase) as per HTML spec
+  // Use fetchPriority (camelCase) as per React TypeScript definitions
   return <img 
     {...imgProps} 
     style={style} 
     onClick={onClick} 
-    fetchpriority={fetchPriority} 
+    fetchPriority={fetchPriority} 
   />;
 };
