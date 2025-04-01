@@ -1,11 +1,9 @@
-
 /**
  * Utility for managing image CDN URLs
  */
 
-// Your Cloudflare Worker URL - can be replaced with environment variable later
-// This will be replaced with your actual Cloudflare Worker URL once you have it set up
-const CDN_URL = 'https://image-handler.pages.dev';
+// Your Cloudflare Worker URL - replace with environment variable later if needed
+const CDN_URL = 'https://jolly-grass-2d52.yashmaihotra.workers.dev';
 
 // Storage key for CDN toggle in development
 const CDN_STORAGE_KEY = 'use_cdn_development';
