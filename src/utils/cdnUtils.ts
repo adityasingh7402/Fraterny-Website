@@ -83,6 +83,23 @@ export const getCdnUrl = (
   
   // Don't process already absolute URLs (including data URLs)
   if (imagePath.startsWith('http') || imagePath.startsWith('data:')) {
+    // If the URL is already pointing to Supabase, route it through the CDN
+    if (imagePath.includes('supabase.co/storage/v1/object/public')) {
+      // Extract the path part after "public" to send to our CDN
+      const publicPathMatch = imagePath.match(/\/public(\/.*)/);
+      if (publicPathMatch && publicPathMatch[1]) {
+        const pathForCdn = publicPathMatch[1];
+        // Check if this path should bypass the CDN
+        if (!forceCdn && shouldExcludePath(pathForCdn)) {
+          console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${pathForCdn}`);
+          return imagePath;
+        }
+        
+        // Use CDN if enabled
+        const useCdn = forceCdn || shouldUseCdn();
+        return useCdn ? `${CDN_URL}${pathForCdn}` : imagePath;
+      }
+    }
     return imagePath;
   }
 

@@ -43,13 +43,23 @@ async function handleRequest(request) {
       });
     }
     
-    // If path starts with image request
-    if (url.pathname.startsWith('/images/')) {
+    // If path starts with any recognizable image path
+    if (url.pathname.startsWith('/images/') || url.pathname.startsWith('/website-images/')) {
       // Extract the path to forward to origin
       const imagePath = url.pathname
       
       // Forward to origin (your actual storage/server)
-      const originUrl = `https://nzceuozudxipzmpwavmw.supabase.co/storage/v1/object/public${imagePath}`
+      let originUrl;
+      
+      // Handle direct references to website-images bucket
+      if (url.pathname.startsWith('/website-images/')) {
+        originUrl = `https://nzceuozudxipzmpwavmw.supabase.co/storage/v1/object/public${imagePath}`
+      } else {
+        // Regular images path
+        originUrl = `https://nzceuozudxipzmpwavmw.supabase.co/storage/v1/object/public${imagePath}`
+      }
+      
+      console.log(`Forwarding request to: ${originUrl}`)
       
       // Fetch the image from origin
       let response = await fetch(originUrl, {
