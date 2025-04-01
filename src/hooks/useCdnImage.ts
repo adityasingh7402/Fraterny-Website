@@ -71,6 +71,9 @@ export const useCdnImage = (
             isAvailable,
             timestamp: Date.now()
           };
+          
+          // Log the availability result for debugging
+          console.log(`[useCdnImage] CDN availability test result: ${isAvailable}`);
         } catch (error) {
           console.error('Error testing CDN connection:', error);
           cdnAvailabilityCache = {
@@ -86,7 +89,9 @@ export const useCdnImage = (
       
       if (shouldUseCdn) {
         try {
+          // Get the URL through CDN
           processedUrl = getCdnUrl(imagePath, forceCdn) || imagePath;
+          console.log(`[useCdnImage] Processed URL: ${processedUrl} (original: ${imagePath})`);
         } catch (error) {
           console.error('Error processing CDN URL:', error);
           processedUrl = imagePath; // Fallback to direct URL on error
