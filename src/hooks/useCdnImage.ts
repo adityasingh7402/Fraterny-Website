@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getCdnUrl, testCdnConnection } from '@/utils/cdnUtils';
+import { getCdnUrl, testCdnConnection, isCdnEnabled } from '@/utils/cdnUtils';
 
 /**
  * Global cache for CDN availability status
@@ -28,17 +28,21 @@ export const useCdnImage = (imagePath: string | null | undefined) => {
         return;
       }
       
-      // If we haven't tested the CDN yet, do it now
-      if (isCdnAvailable === null) {
+      // Skip CDN check if CDN is disabled via settings
+      const cdnEnabled = isCdnEnabled();
+      
+      // If CDN is enabled and we haven't tested it yet, do it now
+      if (cdnEnabled && isCdnAvailable === null) {
         isCdnAvailable = await testCdnConnection();
       }
       
       // Get the appropriate URL
-      const cdnUrl = isCdnAvailable ? getCdnUrl(imagePath) : imagePath;
+      const shouldUseCdn = cdnEnabled && isCdnAvailable;
+      const processedUrl = shouldUseCdn ? getCdnUrl(imagePath) : imagePath;
       
       if (isMounted) {
-        setUrl(cdnUrl);
-        setIsFallback(!isCdnAvailable);
+        setUrl(processedUrl);
+        setIsFallback(!shouldUseCdn);
         setIsLoading(false);
       }
     };
