@@ -12,6 +12,9 @@ const CDN_STORAGE_KEY = 'use_cdn_development';
 // Storage key for path exclusions (paths that should bypass the CDN)
 const CDN_EXCLUSIONS_KEY = 'cdn_path_exclusions';
 
+// Default exclusions that should always bypass CDN
+const DEFAULT_EXCLUSIONS = ['/placeholder.svg'];
+
 /**
  * Check if CDN should be used
  * - In production: Always use CDN unless disabled via localStorage
@@ -37,17 +40,19 @@ const shouldUseCdn = (): boolean => {
  */
 const getPathExclusions = (): string[] => {
   if (typeof window === 'undefined') {
-    return [];
+    return DEFAULT_EXCLUSIONS;
   }
   
   try {
     const exclusions = localStorage.getItem(CDN_EXCLUSIONS_KEY);
-    if (!exclusions) return [];
+    if (!exclusions) return DEFAULT_EXCLUSIONS;
     
-    return JSON.parse(exclusions);
+    const parsed = JSON.parse(exclusions);
+    // Ensure default exclusions are always included
+    return Array.from(new Set([...parsed, ...DEFAULT_EXCLUSIONS]));
   } catch (error) {
     console.error('Error parsing CDN path exclusions:', error);
-    return [];
+    return DEFAULT_EXCLUSIONS;
   }
 };
 
@@ -78,6 +83,11 @@ export const getCdnUrl = (
   
   // Don't process already absolute URLs (including data URLs)
   if (imagePath.startsWith('http') || imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+
+  // Special handling for placeholder.svg - always use local version
+  if (imagePath.includes('placeholder.svg')) {
     return imagePath;
   }
   
@@ -178,3 +188,6 @@ export const isCdnEnabled = () => shouldUseCdn();
 
 // Export path exclusion list
 export const getCdnPathExclusions = getPathExclusions;
+
+// Export default exclusions
+export const getDefaultExclusions = () => DEFAULT_EXCLUSIONS;
