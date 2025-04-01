@@ -4,7 +4,7 @@
  */
 
 // Your Cloudflare Worker URL - replace with environment variable later if needed
-const CDN_URL = 'https://yash.yashmaihotra.workers.dev';
+const CDN_URL = 'https://image-handler.yashmalhotra.workers.dev';
 
 // Storage key for CDN toggle in development
 const CDN_STORAGE_KEY = 'use_cdn_development';
