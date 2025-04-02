@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "routes": [
     {
-      "pattern": "*",
-      "zone_name": "yashmalhotra.workers.dev"
+      "pattern": "image-handler.yashmalhotra.workers.dev/*",
+      "custom_domain": true
     }
   ],
   "triggers": {
