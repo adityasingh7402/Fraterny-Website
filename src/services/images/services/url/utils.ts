@@ -56,14 +56,20 @@ export const createSignedUrl = async (
 ): Promise<string> => {
   if (!storagePath) return '/placeholder.svg';
 
-  const { data: { signedUrl }, error } = await supabase.storage
-    .from('images')
-    .createSignedUrl(storagePath, expirySeconds);
-  
-  if (error || !signedUrl) {
-    console.error(`Error creating signed URL for "${storagePath}":`, error);
+  try {
+    // Fix: Use the more direct path for storage access
+    const { data, error } = await supabase.storage
+      .from('images')
+      .createSignedUrl(storagePath, expirySeconds);
+    
+    if (error || !data?.signedUrl) {
+      console.error(`Error creating signed URL for "${storagePath}":`, error);
+      return '/placeholder.svg';
+    }
+    
+    return data.signedUrl;
+  } catch (err) {
+    console.error(`Failed to create signed URL for "${storagePath}":`, err);
     return '/placeholder.svg';
   }
-  
-  return signedUrl;
 };
