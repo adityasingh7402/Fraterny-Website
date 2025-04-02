@@ -1,5 +1,5 @@
 
-import { urlCache } from "../cacheService";
+import { urlCache } from "../cache";
 
 /**
  * Clear URL cache to force fresh URL generation

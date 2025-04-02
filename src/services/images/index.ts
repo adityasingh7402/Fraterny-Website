@@ -16,7 +16,7 @@ export {
   getImageUrlByKeyAndSize,
   getImageUrlBatched,
   batchGetImageUrls
-} from './services/urlService';
+} from './services/url';
 
 // Export placeholder functions
 export { 
@@ -45,7 +45,7 @@ export {
 } from './fetchService';
 
 // Export cache instances for advanced usage
-export { imageCache, urlCache } from './cacheService';
+export { imageCache, urlCache } from './cache';
 
 // Export utility functions for broader use
 export * from './utils/cacheUtils';

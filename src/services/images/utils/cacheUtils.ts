@@ -2,7 +2,7 @@
 /**
  * Utility functions for cache management
  */
-import { imageCache } from "../cacheService";
+import { imageCache } from "../cache";
 
 /**
  * Clear image cache
