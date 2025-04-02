@@ -13,9 +13,7 @@ export const clearImageUrlCache = (): void => {
  * Clear URL cache for a specific key
  */
 export const clearImageUrlCacheForKey = (key: string): void => {
-  console.log(`Clearing URL cache for key: ${key}`);
-  
-  // Clear all related cache entries
+  // Use less verbose logging for individual key clears
   urlCache.delete(`url:${key}`);
   urlCache.delete(`placeholder:tiny:${key}`);
   urlCache.delete(`placeholder:color:${key}`);
@@ -25,14 +23,14 @@ export const clearImageUrlCacheForKey = (key: string): void => {
     urlCache.delete(`url:${key}:${size}`);
   });
   
-  console.log(`Cache entries for key ${key} cleared`);
+  // Since we're using batch deletion, this will be processed efficiently
 };
 
 /**
  * Selectively clear URL cache for images in a specific category
  */
 export const clearImageUrlCacheByCategory = (category: string): number => {
-  console.log(`Selectively clearing URL cache for category: ${category}`);
+  console.log(`Clearing URL cache for category: ${category}`);
   
   // This is an estimate since we don't store category in the URL cache directly
   let count = 0;
@@ -48,7 +46,7 @@ export const clearImageUrlCacheByCategory = (category: string): number => {
  * Selectively clear URL cache based on a pattern
  */
 export const selectiveClearImageUrlCache = (pattern: string): number => {
-  console.log(`Selectively clearing URL cache with pattern: ${pattern}`);
+  console.log(`Clearing URL cache with pattern: ${pattern}`);
   
   let count = 0;
   count = urlCache.invalidateByMatcher(key => key.includes(pattern));
@@ -71,4 +69,3 @@ export const clearImageUrlCacheByPrefix = (prefix: string): number => {
   
   return count;
 };
-

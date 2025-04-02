@@ -16,8 +16,8 @@ export const clearImageCache = (): void => {
  * Invalidate cache for specific image
  */
 export const invalidateImageCache = (key: string): void => {
+  // Less verbose logging for individual invalidations
   imageCache.invalidate(key);
-  console.log(`Cache invalidated for image with key: ${key}`);
 };
 
 /**
@@ -62,7 +62,6 @@ export const selectiveInvalidateCache = (pattern: string, options: {
     count = imageCache.invalidateByMatcher(key => key.includes(pattern));
   }
   
-  console.log(`Invalidated ${count} cache entries`);
   return count;
 };
 
@@ -74,7 +73,7 @@ export const getCachedImage = (key: string): any | undefined => {
   const cached = imageCache.get(cacheKey);
   
   if (cached !== undefined) {
-    console.log(`Cache hit for image key: ${key}`);
+    // Removed verbose logging for cache hits
     return cached;
   }
   
@@ -88,4 +87,3 @@ export const cacheImage = (key: string, data: any): void => {
   const cacheKey = `image:${key.trim()}`;
   imageCache.set(cacheKey, data);
 };
-
