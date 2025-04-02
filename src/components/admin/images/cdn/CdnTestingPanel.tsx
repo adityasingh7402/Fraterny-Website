@@ -8,7 +8,7 @@ import UrlTester from './UrlTester';
 import CdnTestButton from './CdnTestButton';
 import WarningBanner from './WarningBanner';
 import AdvancedSettingsToggle from './AdvancedSettingsToggle';
-import { testCdnConnection, getCdnAvailability } from '@/utils/cdn';
+import { testCdnConnection, getCdnAvailability, getCdnBaseUrl, getPathExclusions } from '@/utils/cdn';
 
 /**
  * Component for testing and configuring CDN settings
@@ -16,11 +16,15 @@ import { testCdnConnection, getCdnAvailability } from '@/utils/cdn';
 const CdnTestingPanel: React.FC = () => {
   const [isTestingCdn, setIsTestingCdn] = useState(false);
   const [cdnAvailable, setCdnAvailable] = useState<boolean | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [isCdnEnabled, setIsCdnEnabled] = useState(false);
+  const [pathExclusions, setPathExclusions] = useState<string[]>([]);
+  const cdnUrl = getCdnBaseUrl();
   
   // Check CDN availability on first render
   useEffect(() => {
     checkCdnAvailability();
+    refreshPathExclusions();
   }, []);
   
   // Test CDN availability
@@ -47,21 +51,30 @@ const CdnTestingPanel: React.FC = () => {
     }
   };
   
-  // Toggle advanced settings
-  const toggleAdvancedSettings = () => {
-    setShowAdvanced(!showAdvanced);
+  // Toggle CDN enabled state
+  const toggleCdnEnabled = () => {
+    setIsCdnEnabled(!isCdnEnabled);
+  };
+  
+  // Refresh path exclusions list
+  const refreshPathExclusions = () => {
+    const currentExclusions = getPathExclusions();
+    setPathExclusions(currentExclusions);
   };
   
   return (
     <div className="space-y-4">
-      <CdnStatusHeader isAvailable={cdnAvailable} />
+      <CdnStatusHeader isCdnAvailable={cdnAvailable} />
       
-      <CdnInfoBanner />
+      <CdnInfoBanner cdnUrl={cdnUrl} />
       
       <div className="grid gap-4">
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-4">
-            <CdnToggle cdnAvailable={cdnAvailable} />
+            <CdnToggle 
+              isCdnEnabled={isCdnEnabled} 
+              toggleCdnEnabled={toggleCdnEnabled} 
+            />
             
             <div className="pt-1">
               <CdnTestButton 
@@ -75,18 +88,24 @@ const CdnTestingPanel: React.FC = () => {
             )}
           </div>
           
-          <UrlTester />
+          <UrlTester 
+            isTestingCdn={isTestingCdn} 
+            setIsTestingCdn={setIsTestingCdn} 
+          />
         </div>
         
         <div className="pt-2">
           <AdvancedSettingsToggle 
-            showAdvanced={showAdvanced}
-            toggleAdvanced={toggleAdvancedSettings}
+            showAdvancedSettings={showAdvancedSettings}
+            setShowAdvancedSettings={setShowAdvancedSettings}
           />
           
-          {showAdvanced && (
+          {showAdvancedSettings && (
             <div className="mt-3 border rounded-md p-3">
-              <PathExclusions />
+              <PathExclusions 
+                refreshPathExclusions={refreshPathExclusions}
+                pathExclusions={pathExclusions}
+              />
             </div>
           )}
         </div>
