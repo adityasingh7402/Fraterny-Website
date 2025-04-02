@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +12,7 @@ import {
 import { 
   testCdnConnection, 
   getCdnBaseUrl, 
-  getCdnPathExclusions,
+  getPathExclusions,
   addCdnPathExclusion,
   removeCdnPathExclusion,
   clearCdnPathExclusions,
@@ -53,7 +52,7 @@ const CdnTestingPanel = () => {
 
   // Load path exclusions from storage
   const refreshPathExclusions = () => {
-    setPathExclusions(getCdnPathExclusions());
+    setPathExclusions(getPathExclusions());
   };
 
   // Save preference to local storage when changed
