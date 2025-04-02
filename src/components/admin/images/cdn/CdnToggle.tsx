@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface CdnToggleProps {
   isCdnEnabled: boolean;
-  toggleCdnEnabled: () => void;
+  toggleCdnEnabled: (newState: boolean) => void;
 }
 
 const CdnToggle: React.FC<CdnToggleProps> = ({ isCdnEnabled, toggleCdnEnabled }) => {
@@ -18,7 +18,7 @@ const CdnToggle: React.FC<CdnToggleProps> = ({ isCdnEnabled, toggleCdnEnabled })
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Info className="h-4 w-4 text-gray-500" />
+                <Info className="h-4 w-4 text-gray-500 cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>Toggle CDN usage in development environment for testing.</p>

@@ -8,7 +8,14 @@ import UrlTester from './UrlTester';
 import CdnTestButton from './CdnTestButton';
 import WarningBanner from './WarningBanner';
 import AdvancedSettingsToggle from './AdvancedSettingsToggle';
-import { testCdnConnection, getCdnAvailability, getCdnBaseUrl, getPathExclusions } from '@/utils/cdn';
+import { 
+  testCdnConnection, 
+  getCdnAvailability, 
+  getCdnBaseUrl, 
+  getPathExclusions,
+  isCdnEnabled,
+  CDN_STORAGE_KEY
+} from '@/utils/cdn';
 
 /**
  * Component for testing and configuring CDN settings
@@ -17,14 +24,20 @@ const CdnTestingPanel: React.FC = () => {
   const [isTestingCdn, setIsTestingCdn] = useState(false);
   const [cdnAvailable, setCdnAvailable] = useState<boolean | null>(null);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [isCdnEnabled, setIsCdnEnabled] = useState(false);
+  const [isCdnToggleEnabled, setIsCdnToggleEnabled] = useState(false);
   const [pathExclusions, setPathExclusions] = useState<string[]>([]);
   const cdnUrl = getCdnBaseUrl();
   
-  // Check CDN availability on first render
+  // Check CDN availability on first render and initialize toggle state
   useEffect(() => {
     checkCdnAvailability();
     refreshPathExclusions();
+    
+    // Initialize CDN toggle state from localStorage
+    if (typeof window !== 'undefined') {
+      const storedValue = localStorage.getItem(CDN_STORAGE_KEY);
+      setIsCdnToggleEnabled(storedValue === 'true');
+    }
   }, []);
   
   // Test CDN availability
@@ -52,8 +65,11 @@ const CdnTestingPanel: React.FC = () => {
   };
   
   // Toggle CDN enabled state
-  const toggleCdnEnabled = () => {
-    setIsCdnEnabled(!isCdnEnabled);
+  const toggleCdnEnabled = (newState: boolean) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CDN_STORAGE_KEY, newState ? 'true' : 'false');
+      setIsCdnToggleEnabled(newState);
+    }
   };
   
   // Refresh path exclusions list
@@ -72,7 +88,7 @@ const CdnTestingPanel: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-4">
             <CdnToggle 
-              isCdnEnabled={isCdnEnabled} 
+              isCdnEnabled={isCdnToggleEnabled} 
               toggleCdnEnabled={toggleCdnEnabled} 
             />
             

@@ -12,6 +12,7 @@ import { CDN_URL, CACHE_EXPIRATION } from './cdnConfig';
 type CdnAvailabilityCache = {
   isAvailable: boolean | null;
   timestamp: number;
+  error?: string;
 };
 
 let cdnAvailabilityCache: CdnAvailabilityCache = {
@@ -39,8 +40,13 @@ export const testCdnConnection = async (): Promise<boolean> => {
     console.log(`[CDN] Testing CDN health with URL: ${healthUrl}`);
     
     try {
+      // Create an AbortController for the health check
+      const healthController = new AbortController();
+      const healthTimeoutId = setTimeout(() => healthController.abort(), 5000); // 5-second timeout
+      
       const healthResponse = await fetch(healthUrl, { 
         method: 'GET',
+        signal: healthController.signal,
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -49,19 +55,26 @@ export const testCdnConnection = async (): Promise<boolean> => {
         }
       });
       
+      clearTimeout(healthTimeoutId);
+      
       if (healthResponse.ok) {
-        const data = await healthResponse.json();
-        if (data.status === 'ok') {
-          console.log(`[CDN] Health check passed`);
-          cdnAvailabilityCache = {
-            isAvailable: true,
-            timestamp: Date.now()
-          };
-          return true;
+        try {
+          const data = await healthResponse.json();
+          if (data.status === 'ok') {
+            console.log(`[CDN] Health check passed`);
+            cdnAvailabilityCache = {
+              isAvailable: true,
+              timestamp: Date.now()
+            };
+            return true;
+          }
+        } catch (jsonError) {
+          console.error('[CDN] Failed to parse health check response:', jsonError);
+          // Continue to fallback test
         }
       }
     } catch (healthError) {
-      console.error('[CDN] Health check failed:', healthError);
+      console.error('[CDN] Health check failed:', healthError instanceof Error ? healthError.message : 'Unknown error');
       // Continue to fallback test
     }
     
@@ -90,45 +103,71 @@ export const testCdnConnection = async (): Promise<boolean> => {
       
       cdnAvailabilityCache = {
         isAvailable: response.ok,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        error: response.ok ? undefined : `HTTP Error: ${response.status} ${response.statusText}`
       };
       
       return response.ok;
     } catch (fetchError) {
       clearTimeout(timeoutId);
       
+      const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error';
+      
       if (fetchError.name === 'AbortError') {
         console.error('[CDN] Connection test timed out after 10 seconds');
+        cdnAvailabilityCache = {
+          isAvailable: false,
+          timestamp: Date.now(),
+          error: 'Connection timed out after 10 seconds'
+        };
       } else {
-        console.error('[CDN] Connection test failed:', fetchError);
+        console.error('[CDN] Connection test failed:', errorMessage);
+        cdnAvailabilityCache = {
+          isAvailable: false,
+          timestamp: Date.now(),
+          error: errorMessage
+        };
       }
       
       // Try one more test with a different path as a last resort
       try {
         const lastResortUrl = `${CDN_URL}/health`;
-        const lastResponse = await fetch(lastResortUrl, { method: 'HEAD' });
+        const lastController = new AbortController();
+        const lastTimeoutId = setTimeout(() => lastController.abort(), 5000); // 5-second timeout
+        
+        const lastResponse = await fetch(lastResortUrl, { 
+          method: 'HEAD',
+          signal: lastController.signal
+        });
+        
+        clearTimeout(lastTimeoutId);
         
         cdnAvailabilityCache = {
           isAvailable: lastResponse.ok,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          error: lastResponse.ok ? undefined : `HTTP Error: ${lastResponse.status} ${lastResponse.statusText}`
         };
         
         return lastResponse.ok;
       } catch (lastError) {
-        console.error('[CDN] Last resort test failed:', lastError);
+        const lastErrorMessage = lastError instanceof Error ? lastError.message : 'Unknown error';
+        console.error('[CDN] Last resort test failed:', lastErrorMessage);
         cdnAvailabilityCache = {
           isAvailable: false,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          error: lastErrorMessage
         };
         return false;
       }
     }
   } catch (error) {
-    console.error('[CDN] Connection test failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[CDN] Connection test failed:', errorMessage);
     
     cdnAvailabilityCache = {
       isAvailable: false,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      error: errorMessage
     };
     
     return false;
@@ -143,6 +182,13 @@ export const getCdnAvailability = async (): Promise<boolean> => {
     await testCdnConnection();
   }
   return cdnAvailabilityCache.isAvailable || false;
+};
+
+/**
+ * Get the last CDN error if any
+ */
+export const getCdnError = (): string | undefined => {
+  return cdnAvailabilityCache.error;
 };
 
 /**

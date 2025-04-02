@@ -53,13 +53,17 @@ async function handleRequest(request) {
     
     // If no conditions match, return 404
     console.log(`No handler for path: ${url.pathname}`);
-    return new Response(`Not found: ${url.pathname}`, {
+    return new Response(JSON.stringify({
+      error: 'Not found',
+      path: url.pathname,
+      message: `The requested path "${url.pathname}" is not supported by this CDN.`
+    }), {
       status: 404,
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/plain'
+        'Content-Type': 'application/json'
       }
-    })
+    });
   } catch (err) {
     return handleWorkerError(err, corsHeaders);
   }
@@ -69,9 +73,8 @@ async function handleRequest(request) {
 function createHealthCheckResponse(corsHeaders) {
   return new Response(JSON.stringify({
     status: 'ok',
-    version: '1.1.0',
-    timestamp: new Date().toISOString(),
-    supabase: 'healthy'
+    version: '1.2.0',
+    timestamp: new Date().toISOString()
   }), {
     headers: {
       ...corsHeaders,
@@ -106,37 +109,84 @@ function isImageRequest(pathname) {
 }
 
 async function handleImageRequest(url, request, corsHeaders) {
-  // Extract the path to forward to origin
-  const imagePath = url.pathname;
-  
-  // Determine the origin URL to fetch
-  let originUrl = constructOriginUrl(url);
-  
-  console.log(`Forwarding request to: ${originUrl}`);
-  
-  // Fetch the image with retry logic
-  const response = await fetchWithRetry(originUrl, request);
-  
-  // If the image exists, return it with proper headers
-  if (response && response.ok) {
-    let newHeaders = new Headers(response.headers);
+  try {
+    // Extract the path to forward to origin
+    const imagePath = url.pathname;
     
-    // Add CORS headers
-    Object.keys(corsHeaders).forEach(key => {
-      newHeaders.set(key, corsHeaders[key]);
-    });
+    // Determine the origin URL to fetch
+    let originUrl = constructOriginUrl(url);
     
-    // Add caching headers for better performance
-    newHeaders.set('Cache-Control', 'public, max-age=31536000');
+    console.log(`Forwarding request to: ${originUrl}`);
     
-    // Return the response with the updated headers
-    return new Response(response.body, {
-      status: response.status,
-      headers: newHeaders
-    });
-  } else {
-    // If image doesn't exist, return placeholder
-    return createErrorPlaceholderSvg(imagePath, corsHeaders);
+    // Fetch the image with retry logic
+    const response = await fetchWithRetry(originUrl, request);
+    
+    // If the image exists, return it with proper headers
+    if (response && response.ok) {
+      let newHeaders = new Headers(response.headers);
+      
+      // Add CORS headers
+      Object.keys(corsHeaders).forEach(key => {
+        newHeaders.set(key, corsHeaders[key]);
+      });
+      
+      // Add caching headers for better performance
+      newHeaders.set('Cache-Control', 'public, max-age=31536000');
+      newHeaders.set('CDN-Cache', 'HIT');
+      newHeaders.set('CDN-Provider', 'Cloudflare-Worker');
+      
+      // Return the response with the updated headers
+      return new Response(response.body, {
+        status: response.status,
+        headers: newHeaders
+      });
+    } else {
+      // Get error status or default to 404
+      const errorStatus = response ? response.status : 404;
+      const errorMessage = response ? `Origin returned ${response.status}` : 'Image not found';
+      
+      // If image doesn't exist, return proper error response with placeholder
+      if (url.searchParams.get('format') === 'json') {
+        // Return JSON error if requested
+        return new Response(JSON.stringify({
+          error: 'Image not found',
+          path: imagePath,
+          status: errorStatus,
+          message: errorMessage
+        }), {
+          status: errorStatus,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store'
+          }
+        });
+      } else {
+        // Return placeholder SVG
+        return createErrorPlaceholderSvg(imagePath, corsHeaders);
+      }
+    }
+  } catch (error) {
+    console.error(`Error handling image request for ${url.pathname}:`, error);
+    
+    // Return JSON error if requested
+    if (url.searchParams.get('format') === 'json') {
+      return new Response(JSON.stringify({
+        error: 'Error processing image',
+        path: url.pathname,
+        message: error.message || 'Unknown error'
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store'
+        }
+      });
+    }
+    
+    // Otherwise return error placeholder
+    return createErrorPlaceholderSvg(url.pathname, corsHeaders, error.message);
   }
 }
 
@@ -157,7 +207,7 @@ function constructOriginUrl(url) {
   }
 }
 
-async function fetchWithRetry(url, request, maxAttempts = 3) {
+async function fetchWithRetry(url, request, maxAttempts = 2) {
   let attempts = 0;
   let response = null;
   
@@ -188,6 +238,8 @@ async function fetchWithRetry(url, request, maxAttempts = 3) {
       // If not found, no need to retry
       if (response.status === 404) break;
       
+      console.log(`Attempt ${attempts + 1} failed with status ${response.status}`);
+      
     } catch (fetchError) {
       console.error(`Attempt ${attempts + 1} failed: ${fetchError.message}`);
     }
@@ -195,7 +247,7 @@ async function fetchWithRetry(url, request, maxAttempts = 3) {
     // Exponential backoff before retry
     attempts++;
     if (attempts < maxAttempts) {
-      const backoffMs = Math.min(1000 * Math.pow(2, attempts), 5000);
+      const backoffMs = Math.min(1000 * Math.pow(2, attempts), 3000);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
     }
   }
@@ -203,11 +255,14 @@ async function fetchWithRetry(url, request, maxAttempts = 3) {
   return response;
 }
 
-function createErrorPlaceholderSvg(path, corsHeaders) {
+function createErrorPlaceholderSvg(path, corsHeaders, errorMessage) {
+  const errorText = errorMessage ? `Error: ${errorMessage}` : 'Image Not Found';
+  
   const errorSvg = `<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="600" fill="#0A1A2F"/>
-    <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" fill="#fff">Image Not Found</text>
-    <text x="50%" y="58%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#E07A5F">Path: ${path}</text>
+    <text x="50%" y="45%" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" fill="#fff">Image Not Found</text>
+    <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#E07A5F">Path: ${path}</text>
+    ${errorMessage ? `<text x="50%" y="65%" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#D4AF37">${errorText}</text>` : ''}
   </svg>`;
   
   return new Response(errorSvg, {
@@ -215,7 +270,9 @@ function createErrorPlaceholderSvg(path, corsHeaders) {
     headers: {
       ...corsHeaders,
       'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=3600'
+      'Cache-Control': 'public, max-age=3600',
+      'CDN-Cache': 'MISS',
+      'CDN-Error': errorMessage || 'Image not found'
     }
   });
 }
@@ -225,21 +282,19 @@ function handleWorkerError(err, corsHeaders) {
   console.error(`Worker error: ${err.message}`);
   
   // Generate a request ID to help with debugging
-  const requestId = crypto.randomUUID();
+  const requestId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
   
   return new Response(JSON.stringify({
     error: 'An error occurred processing your request',
+    message: err.message || 'Unknown error',
     requestId: requestId,
-    // Don't expose full error details in production
-    ...(process.env.NODE_ENV !== 'production' ? { 
-      message: err.message,
-      stack: err.stack 
-    } : {})
+    timestamp: new Date().toISOString()
   }), {
     status: 500,
     headers: {
       ...corsHeaders,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store'
     }
   });
 }

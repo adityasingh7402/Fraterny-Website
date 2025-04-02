@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ImageIcon, RefreshCw } from 'lucide-react';
+import { ImageIcon, RefreshCw, AlertCircle } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getCdnUrl } from '@/utils/cdn';
@@ -14,6 +14,7 @@ interface UrlTesterProps {
 const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) => {
   const [testImageUrl, setTestImageUrl] = useState<string>('/images/hero/luxury-villa-mobile.webp');
   const [cdnTransformedUrl, setCdnTransformedUrl] = useState<string | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
 
   // Update CDN transformed URL when test URL changes
   useEffect(() => {
@@ -21,9 +22,11 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       try {
         const transformed = getCdnUrl(testImageUrl, true);
         setCdnTransformedUrl(transformed);
+        setTestError(null); // Clear any previous errors
       } catch (e) {
         console.error('Error transforming URL:', e);
         setCdnTransformedUrl(null);
+        setTestError('Error transforming URL. Please check your URL format.');
       }
     }
   }, [testImageUrl]);
@@ -33,10 +36,13 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
     if (!testImageUrl) return;
     
     setIsTestingCdn(true);
+    setTestError(null); // Clear any previous errors
+    
     try {
       const transformedUrl = getCdnUrl(testImageUrl, true);
       
       if (!transformedUrl) {
+        setTestError('URL transformation failed. Check your URL syntax.');
         toast.error('URL transformation failed', {
           description: 'Could not transform the URL for CDN. Check your URL syntax.',
         });
@@ -72,6 +78,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
             description: `The image was successfully fetched through your CDN.`,
           });
         } else {
+          setTestError(`HTTP Error: ${response.status} ${response.statusText}`);
           toast.error('URL test failed', {
             description: `Could not fetch the image through your CDN. Status: ${response.status}.`,
           });
@@ -79,18 +86,23 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
+        const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error';
+        setTestError(errorMessage);
+        
         if (fetchError.name === 'AbortError') {
           toast.error('URL test timed out', {
             description: 'The request took too long to complete. Your CDN might be slow or unreachable.',
           });
         } else {
           toast.error('URL test error', {
-            description: fetchError.message || 'An unknown error occurred while testing the URL.',
+            description: errorMessage || 'An unknown error occurred while testing the URL.',
           });
         }
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error testing specific URL:', error);
+      setTestError(errorMessage);
       toast.error('URL test error', {
         description: 'An error occurred while testing the URL.',
       });
@@ -118,6 +130,16 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
           <div className="bg-gray-50 p-2 rounded-md">
             <p className="text-xs text-gray-500">Transformed URL:</p>
             <p className="text-xs font-mono break-all">{cdnTransformedUrl}</p>
+          </div>
+        )}
+        
+        {testError && (
+          <div className="bg-red-50 p-2 rounded-md flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs font-medium text-red-700">URL test error</p>
+              <p className="text-xs text-red-600 break-words">{testError}</p>
+            </div>
           </div>
         )}
         
