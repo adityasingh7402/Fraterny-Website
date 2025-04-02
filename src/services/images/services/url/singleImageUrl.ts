@@ -1,9 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
 import { getContentHashFromMetadata, createVersionedUrl, createSignedUrl } from "./utils";
-import { debugStoragePath, monitorNetworkRequest } from "@/utils/debugUtils";
+import { debugStoragePath, monitorNetworkRequest, isValidUrl } from "@/utils/debugUtils";
+import { handleError } from "@/utils/errorHandling";
 
 /**
  * Get a signed URL for an image by its key
@@ -16,7 +18,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   
   // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
-  if (cachedUrl) {
+  if (cachedUrl && isValidUrl(cachedUrl)) {
     return cachedUrl;
   }
   
@@ -40,23 +42,20 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     if (error) {
       monitor.failure(error);
-      console.error(`Error loading image with key "${normalizedKey}":`, error);
-      return '/placeholder.svg';
+      throw new Error(`Error loading image with key "${normalizedKey}": ${error.message}`);
     }
     
     monitor.success();
     
     if (!image) {
-      console.error(`No image found with key "${normalizedKey}"`);
-      return '/placeholder.svg';
+      return handleImageNotFound(normalizedKey);
     }
     
     // Get storage path
     const { storage_path: storagePath } = image;
     
     if (!storagePath) {
-      console.error(`No storage path found for image with key "${normalizedKey}"`);
-      return '/placeholder.svg';
+      return handleImageWithoutPath(normalizedKey);
     }
     
     // Validate storage path
@@ -82,10 +81,25 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     return finalUrl;
   } catch (error) {
-    console.error(`Unexpected error in getImageUrlByKey for "${normalizedKey}":`, error);
+    handleError(
+      error,
+      `Error getting URL for image "${normalizedKey}"`,
+      { silent: true, context: { key: normalizedKey } }
+    );
     return '/placeholder.svg';
   }
 };
+
+// Helper functions to centralize error handling patterns
+function handleImageNotFound(key: string): string {
+  console.warn(`No image found with key "${key}"`);
+  return '/placeholder.svg';
+}
+
+function handleImageWithoutPath(key: string): string {
+  console.error(`No storage path found for image with key "${key}"`);
+  return '/placeholder.svg';
+}
 
 /**
  * Get a signed URL for an image by its key and size variant
@@ -101,7 +115,7 @@ export const getImageUrlByKeyAndSize = async (
   
   // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
-  if (cachedUrl) {
+  if (cachedUrl && isValidUrl(cachedUrl)) {
     return cachedUrl;
   }
   
@@ -120,16 +134,14 @@ export const getImageUrlByKeyAndSize = async (
       .maybeSingle();
     
     if (error || !image) {
-      console.error(`Error loading image with key "${normalizedKey}":`, error);
-      return '/placeholder.svg';
+      throw new Error(`Error loading image with key "${normalizedKey}": ${error?.message || 'No image found'}`);
     }
     
     // Get storage path
     const { storage_path: storagePath } = image;
     
     if (!storagePath) {
-      console.error(`No storage path found for image with key "${normalizedKey}"`);
-      return '/placeholder.svg';
+      return handleImageWithoutPath(normalizedKey);
     }
     
     // Get content hash for cache busting
@@ -150,7 +162,11 @@ export const getImageUrlByKeyAndSize = async (
     
     return finalUrl;
   } catch (error) {
-    console.error(`Unexpected error in getImageUrlByKeyAndSize for "${normalizedKey}":`, error);
+    handleError(
+      error,
+      `Error getting URL for image "${normalizedKey}" with size ${size}`,
+      { silent: true, context: { key: normalizedKey, size } }
+    );
     return '/placeholder.svg';
   }
 };

@@ -4,10 +4,12 @@ import {
   getCdnUrl, 
   isCdnEnabled, 
   getCdnAvailability
-} from '@/utils/cdn';
+} from '@/utils/cdnUtils';
+import { isValidUrl } from '@/utils/debugUtils';
 
 /**
  * Hook to get a CDN URL for an image, with fallback to direct URL
+ * Now with better error handling and validation
  * 
  * @param imagePath - Original image path
  * @param forceCdn - Force using CDN regardless of settings (optional)
@@ -20,14 +22,20 @@ export const useCdnImage = (
   const [url, setUrl] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     
     const initializeUrl = async () => {
+      // Reset error state on new path
+      setError(null);
+      
       if (!imagePath) {
-        setUrl(null);
-        setIsLoading(false);
+        if (isMounted) {
+          setUrl(null);
+          setIsLoading(false);
+        }
         return;
       }
       
@@ -35,37 +43,59 @@ export const useCdnImage = (
       const cdnEnabled = forceCdn || isCdnEnabled();
       
       if (!cdnEnabled) {
-        setUrl(imagePath);
-        setIsFallback(true);
-        setIsLoading(false);
+        if (isMounted) {
+          setUrl(imagePath);
+          setIsFallback(true);
+          setIsLoading(false);
+        }
         return;
       }
       
-      // Check CDN availability
-      let cdnAvailable = false;
       try {
-        cdnAvailable = await getCdnAvailability();
-      } catch (error) {
-        console.error('Error checking CDN availability:', error);
-      }
-      
-      // Get the appropriate URL
-      const shouldUseCdn = cdnEnabled && cdnAvailable;
-      let processedUrl = imagePath;
-      
-      if (shouldUseCdn) {
+        // Check CDN availability
+        let cdnAvailable = false;
         try {
-          processedUrl = getCdnUrl(imagePath, forceCdn) || imagePath;
+          cdnAvailable = await getCdnAvailability();
         } catch (error) {
-          console.error('Error processing CDN URL:', error);
-          processedUrl = imagePath; // Fallback to direct URL on error
+          console.error('Error checking CDN availability:', error);
         }
-      }
-      
-      if (isMounted) {
-        setUrl(processedUrl);
-        setIsFallback(!shouldUseCdn);
-        setIsLoading(false);
+        
+        // Get the appropriate URL
+        const shouldUseCdn = cdnEnabled && cdnAvailable;
+        let processedUrl = imagePath;
+        
+        if (shouldUseCdn) {
+          try {
+            processedUrl = getCdnUrl(imagePath, forceCdn) || imagePath;
+            
+            // Validate the URL
+            if (!isValidUrl(processedUrl)) {
+              throw new Error(`Invalid URL generated: ${processedUrl}`);
+            }
+          } catch (error) {
+            console.error('Error processing CDN URL:', error);
+            processedUrl = imagePath; // Fallback to direct URL on error
+          }
+        }
+        
+        if (isMounted) {
+          setUrl(processedUrl);
+          setIsFallback(!shouldUseCdn);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error);
+        } else {
+          setError(new Error('Unknown error processing image URL'));
+        }
+        
+        // Still set a URL to avoid breaking the UI
+        if (isMounted) {
+          setUrl(imagePath);
+          setIsFallback(true);
+          setIsLoading(false);
+        }
       }
     };
     
@@ -76,7 +106,7 @@ export const useCdnImage = (
     };
   }, [imagePath, forceCdn]);
   
-  return { url, isFallback, isLoading };
+  return { url, isFallback, isLoading, error };
 };
 
 export default useCdnImage;

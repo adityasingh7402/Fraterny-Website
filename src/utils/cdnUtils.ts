@@ -1,10 +1,13 @@
 
 /**
- * Utilities for handling CDN URLs
+ * Unified CDN utilities for image loading
  */
 
 // Environment configuration - whether to use the CDN or not
 const useCdn = process.env.NODE_ENV === 'production';
+
+// Cache of CDN availability to avoid repeated network requests
+let cdnAvailabilityCache: { available: boolean; timestamp: number } | null = null;
 
 /**
  * Convert a regular URL to use the CDN if enabled
@@ -16,7 +19,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
   if (!url) return url;
   
   // Skip CDN for data URLs, blob URLs, and placeholders
-  if (url.startsWith('data:') || url.startsWith('blob:') || url.includes('placeholder.svg')) {
+  if (url.startsWith('data:') || url.startsWith('blob:') || url.includes('placeholder')) {
     return url;
   }
   
@@ -34,10 +37,25 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       return url;
     }
     
-    console.log(`Using CDN URL for: ${url}`);
+    // For Supabase URLs, we need to rewrite them to use the CDN
+    if (parsedUrl.hostname.includes('supabase')) {
+      // Extract the bucket and path
+      const pathParts = parsedUrl.pathname.split('/');
+      const isStorageUrl = pathParts.includes('storage') && pathParts.includes('object');
+      
+      if (isStorageUrl) {
+        // Get index of 'public' in the path
+        const publicIndex = pathParts.indexOf('public');
+        if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
+          // Extract everything after 'public'
+          const bucketAndPath = pathParts.slice(publicIndex + 1).join('/');
+          // Construct CDN URL
+          return `https://lovable-cdn.com/${bucketAndPath}${parsedUrl.search}`;
+        }
+      }
+    }
     
-    // For simplicity and testing, we're just returning the original URL
-    // In production, you would rewrite this to your actual CDN URL pattern
+    // If not a Supabase URL or we couldn't parse it properly, return the original URL
     return url;
   } catch (error) {
     // If URL parsing fails, return the original URL
@@ -58,7 +76,45 @@ export const isCdnEnabled = (): boolean => {
  * @returns Promise resolving to true if CDN is available
  */
 export const getCdnAvailability = async (): Promise<boolean> => {
-  // For now, just return true to indicate CDN is always available
-  // In production, you could make a test request to your CDN
-  return Promise.resolve(true);
+  // Use cache if available and not expired (5 minutes)
+  if (cdnAvailabilityCache && (Date.now() - cdnAvailabilityCache.timestamp < 5 * 60 * 1000)) {
+    return cdnAvailabilityCache.available;
+  }
+  
+  try {
+    // Make a test request to the CDN health endpoint
+    const response = await fetch('https://lovable-cdn.com/health', {
+      method: 'HEAD',
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    
+    const available = response.ok;
+    
+    // Cache the result
+    cdnAvailabilityCache = {
+      available,
+      timestamp: Date.now()
+    };
+    
+    return available;
+  } catch (error) {
+    // If there's an error, assume CDN is not available
+    console.warn('CDN availability check failed:', error);
+    
+    // Cache the negative result
+    cdnAvailabilityCache = {
+      available: false,
+      timestamp: Date.now()
+    };
+    
+    return false;
+  }
+};
+
+/**
+ * Reset CDN availability cache
+ */
+export const resetCdnAvailabilityCache = (): void => {
+  cdnAvailabilityCache = null;
 };

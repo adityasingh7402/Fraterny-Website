@@ -20,7 +20,7 @@ interface BasicImageProps {
 
 /**
  * Basic image component for simple URL sources
- * Now with optional CDN support
+ * With CDN support, proper error handling, and correct React props
  */
 export const BasicImage = ({
   src,
@@ -40,6 +40,14 @@ export const BasicImage = ({
   const processedSrc = useCdn ? getCdnUrl(src) || src : src;
   const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
+  // Handle error state
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    // If the image fails to load, replace with fallback
+    if (e.currentTarget.src !== processedFallbackSrc) {
+      e.currentTarget.src = processedFallbackSrc;
+    }
+  };
+  
   const imgProps = createImageProps(
     processedSrc, 
     alt, 
@@ -58,12 +66,13 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Fix: Use the correct React prop name 'fetchPriority' (camelCase)
+  // Use the correct React prop name 'fetchPriority' (camelCase)
   // React will automatically translate this to the lowercase HTML attribute 'fetchpriority'
   return <img 
     {...imgProps} 
     style={style} 
     onClick={onClick}
-    fetchPriority={fetchPriority} 
+    fetchPriority={fetchPriority}
+    onError={handleError}
   />;
 };
