@@ -15,7 +15,6 @@ export const CDN_EXCLUSIONS_KEY = 'cdn_path_exclusions';
 
 // Default exclusions that should always bypass CDN
 export const DEFAULT_EXCLUSIONS = [
-  '/placeholder.svg', 
   '/favicon.ico',
   '/og-image.png'
 ];

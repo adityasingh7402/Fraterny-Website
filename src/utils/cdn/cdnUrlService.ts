@@ -29,7 +29,7 @@ export const shouldUseCdn = (): boolean => {
 
 /**
  * Converts a local image path to a CDN URL
- * @param imagePath - The path to the image (e.g., /images/hero/image.webp)
+ * @param imagePath - The path to the image (e.g., /images/hero/image.webp or Supabase URL)
  * @param forceCdn - Override settings and force CDN usage (optional)
  * @returns The CDN URL or original path based on environment
  */
@@ -43,13 +43,18 @@ export const getCdnUrl = (
   if (imagePath.startsWith('http') || imagePath.startsWith('data:')) {
     // If the URL is already pointing to Supabase, route it through the CDN
     if (imagePath.includes('supabase.co/storage/v1/object/public')) {
-      // Extract the path part after "public" to send to our CDN
-      const publicPathMatch = imagePath.match(/\/public(\/.*)/);
-      if (publicPathMatch && publicPathMatch[1]) {
-        const pathForCdn = publicPathMatch[1];
+      // Extract the bucket name and path part after "public" to send to our CDN
+      const publicPathMatch = imagePath.match(/\/public\/([^\/]+)(\/.*)/);
+      if (publicPathMatch && publicPathMatch[1] && publicPathMatch[2]) {
+        const bucket = publicPathMatch[1]; // e.g., "website-images"
+        const pathInBucket = publicPathMatch[2]; // e.g., "/abc-123.jpg"
+        
+        // Full path for CDN should be "bucket/path-in-bucket"
+        const cdnPath = `/${bucket}${pathInBucket}`;
+        
         // Check if this path should bypass the CDN
-        if (!forceCdn && shouldExcludePath(pathForCdn)) {
-          console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${pathForCdn}`);
+        if (!forceCdn && shouldExcludePath(cdnPath)) {
+          console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
           return imagePath;
         }
         
@@ -59,16 +64,15 @@ export const getCdnUrl = (
         
         // Use CDN if enabled
         const useCdn = forceCdn || shouldUseCdn();
-        return useCdn ? `${CDN_URL}${pathForCdn}${queryString}` : imagePath;
+        return useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
       }
     }
     return imagePath;
   }
 
-  // Special handling for placeholder.svg - always use CDN version
+  // Special handling for placeholder.svg - always use local version
   if (imagePath.includes('placeholder.svg')) {
-    const useCdn = forceCdn || shouldUseCdn();
-    return useCdn ? `${CDN_URL}/placeholder.svg` : imagePath;
+    return imagePath;
   }
   
   // Ensure path starts with /

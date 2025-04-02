@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ImageIcon, RefreshCw, AlertCircle } from 'lucide-react';
+import { ImageIcon, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getCdnUrl } from '@/utils/cdn';
@@ -12,9 +12,10 @@ interface UrlTesterProps {
 }
 
 const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) => {
-  const [testImageUrl, setTestImageUrl] = useState<string>('/images/hero/luxury-villa-mobile.webp');
+  const [testImageUrl, setTestImageUrl] = useState<string>('/website-images/placeholder.svg');
   const [cdnTransformedUrl, setCdnTransformedUrl] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
+  const [testSuccess, setTestSuccess] = useState<boolean>(false);
 
   // Update CDN transformed URL when test URL changes
   useEffect(() => {
@@ -23,10 +24,12 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         const transformed = getCdnUrl(testImageUrl, true);
         setCdnTransformedUrl(transformed);
         setTestError(null); // Clear any previous errors
+        setTestSuccess(false); // Reset success state
       } catch (e) {
         console.error('Error transforming URL:', e);
         setCdnTransformedUrl(null);
         setTestError('Error transforming URL. Please check your URL format.');
+        setTestSuccess(false);
       }
     }
   }, [testImageUrl]);
@@ -37,6 +40,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
     
     setIsTestingCdn(true);
     setTestError(null); // Clear any previous errors
+    setTestSuccess(false); // Reset success state
     
     try {
       const transformedUrl = getCdnUrl(testImageUrl, true);
@@ -57,9 +61,10 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
       try {
-        // Test the URL with a timeout
+        // Test the URL with a timeout - using actual image fetch 
+        // instead of HEAD to ensure proper testing
         const response = await fetch(transformedUrl, { 
-          method: 'HEAD',
+          method: 'GET',
           signal: controller.signal,
           cache: 'no-cache',
           headers: {
@@ -74,6 +79,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         console.log(`[CDN] Test result: ${response.status} ${response.ok}`);
         
         if (response.ok) {
+          setTestSuccess(true);
           toast.success('URL test successful', {
             description: `The image was successfully fetched through your CDN.`,
           });
@@ -86,7 +92,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
-        const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error';
+        const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
         setTestError(errorMessage);
         
         if (fetchError.name === 'AbortError') {
@@ -100,7 +106,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error testing specific URL:', error);
       setTestError(errorMessage);
       toast.error('URL test error', {
@@ -119,17 +125,33 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       </div>
       
       <div className="space-y-2">
+        <div className="text-xs text-gray-500 mb-1">
+          Enter a storage path (e.g., /website-images/your-image.png) or Supabase URL
+        </div>
         <Input 
           value={testImageUrl}
           onChange={(e) => setTestImageUrl(e.target.value)}
-          placeholder="/images/your-image-path.jpg or https://your-domain.com/images/image.jpg"
+          placeholder="/website-images/your-image-path.jpg"
           className="w-full font-mono text-sm"
         />
         
         {cdnTransformedUrl && (
-          <div className="bg-gray-50 p-2 rounded-md">
+          <div className={`${testSuccess ? 'bg-green-50' : 'bg-gray-50'} p-2 rounded-md`}>
             <p className="text-xs text-gray-500">Transformed URL:</p>
             <p className="text-xs font-mono break-all">{cdnTransformedUrl}</p>
+            {testSuccess && (
+              <div className="mt-2">
+                <a 
+                  href={cdnTransformedUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs flex items-center text-blue-600 hover:underline"
+                >
+                  Open image in new tab
+                  <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
+              </div>
+            )}
           </div>
         )}
         
