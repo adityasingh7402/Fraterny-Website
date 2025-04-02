@@ -1,10 +1,10 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   uploadImage, 
   clearImageCache, 
   clearImageUrlCache, 
-  updateGlobalCacheVersion 
+  updateGlobalCacheVersion,
+  clearImageUrlCacheForKey
 } from '@/services/images';
 import { toast } from 'sonner';
 
@@ -102,7 +102,3 @@ export const useUploadImageMutation = (onSuccess?: () => void) => {
   
   return mutation;
 };
-
-// Import the needed function
-import { clearImageUrlCacheForKey } from '@/services/images/services/cacheService';
-

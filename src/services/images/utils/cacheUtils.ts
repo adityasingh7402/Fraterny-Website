@@ -1,8 +1,7 @@
-
 /**
  * Utility functions for cache management
  */
-import { imageCache } from "../cache";
+import { imageCache } from "../cache/instances";
 
 /**
  * Clear image cache

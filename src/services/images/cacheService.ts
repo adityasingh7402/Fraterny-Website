@@ -3,7 +3,7 @@
 // for backward compatibility
 
 // Re-export cache instances
-export { imageCache, urlCache } from './cache';
+export { imageCache, urlCache } from './cache/instances';
 
 // Re-export cache utility functions
 export { 
