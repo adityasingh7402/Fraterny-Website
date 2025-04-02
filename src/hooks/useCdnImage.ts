@@ -1,32 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { getCdnUrl, testCdnConnection, isCdnEnabled } from '@/utils/cdnUtils';
-
-/**
- * Global cache for CDN availability status with expiration
- */
-type CdnAvailabilityCache = {
-  isAvailable: boolean | null;
-  timestamp: number;
-};
-
-let cdnAvailabilityCache: CdnAvailabilityCache = {
-  isAvailable: null,
-  timestamp: 0
-};
-
-// Cache expiration time in milliseconds (5 minutes)
-const CACHE_EXPIRATION = 5 * 60 * 1000;
-
-/**
- * Check if the cached CDN availability status is still valid
- */
-const isCdnAvailabilityCacheValid = (): boolean => {
-  return (
-    cdnAvailabilityCache.isAvailable !== null &&
-    Date.now() - cdnAvailabilityCache.timestamp < CACHE_EXPIRATION
-  );
-};
+import { 
+  getCdnUrl, 
+  isCdnEnabled, 
+  getCdnAvailability
+} from '@/utils/cdn';
 
 /**
  * Hook to get a CDN URL for an image, with fallback to direct URL
@@ -63,25 +41,16 @@ export const useCdnImage = (
         return;
       }
       
-      // If CDN is enabled and the cache has expired, test connection
-      if (!isCdnAvailabilityCacheValid()) {
-        try {
-          const isAvailable = await testCdnConnection();
-          cdnAvailabilityCache = {
-            isAvailable,
-            timestamp: Date.now()
-          };
-        } catch (error) {
-          console.error('Error testing CDN connection:', error);
-          cdnAvailabilityCache = {
-            isAvailable: false,
-            timestamp: Date.now()
-          };
-        }
+      // Check CDN availability
+      let cdnAvailable = false;
+      try {
+        cdnAvailable = await getCdnAvailability();
+      } catch (error) {
+        console.error('Error checking CDN availability:', error);
       }
       
       // Get the appropriate URL
-      const shouldUseCdn = cdnEnabled && cdnAvailabilityCache.isAvailable;
+      const shouldUseCdn = cdnEnabled && cdnAvailable;
       let processedUrl = imagePath;
       
       if (shouldUseCdn) {
