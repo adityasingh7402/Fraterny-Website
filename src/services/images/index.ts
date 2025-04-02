@@ -13,7 +13,9 @@ export * from './deleteService';
 // Export URL service functions directly
 export { 
   getImageUrlByKey, 
-  getImageUrlByKeyAndSize 
+  getImageUrlByKeyAndSize,
+  getImageUrlBatched,
+  batchGetImageUrls
 } from './services/urlService';
 
 // Export placeholder functions

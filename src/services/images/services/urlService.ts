@@ -1,171 +1,286 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
-import { WebsiteImage } from "../types";
-import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
+import { trackApiCall } from "@/utils/apiMonitoring";
+import { createBatchedFunction } from "@/utils/batchApiRequests";
 
 /**
- * Get the image URL by key
+ * Get a signed URL for an image by its key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  // First check if this URL is in the URL cache
-  const cachedUrl = urlCache.get(`url:${key}`);
+  if (!key) return '/placeholder.svg';
+  
+  const normalizedKey = key.trim();
+  const cacheKey = `url:${normalizedKey}`;
+  
+  // Try to get from cache first
+  const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl) {
-    console.log(`[getImageUrlByKey] Using cached URL for ${key}`);
     return cachedUrl;
   }
-
+  
+  // Track API call
+  trackApiCall('getImageUrlByKey');
+  
   try {
-    console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
-
-    // Fetch the image record to get the storage path and metadata
-    const { data, error } = await supabase
+    // Get global cache version for proper versioning
+    const cacheVersion = await getGlobalCacheVersion();
+    
+    // Get image record from database
+    const { data: image, error } = await supabase
       .from('website_images')
       .select('storage_path, metadata')
-      .eq('key', key)
+      .eq('key', normalizedKey)
       .maybeSingle();
-
-    if (error) {
-      console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
+    
+    if (error || !image) {
+      console.error(`Error loading image with key "${normalizedKey}":`, error);
       return '/placeholder.svg';
-    }
-
-    if (!data || !data.storage_path) {
-      console.warn(`[getImageUrlByKey] No image or storage path found for key ${key}`);
-      return '/placeholder.svg';
-    }
-
-    // Get the global cache version from website settings
-    const globalVersion = await getGlobalCacheVersion();
-
-    // Get the public URL for this storage path
-    const { data: urlData } = supabase.storage
-      .from('website-images')
-      .getPublicUrl(data.storage_path);
-
-    if (!urlData || !urlData.publicUrl) {
-      console.warn(`[getImageUrlByKey] Failed to get public URL for storage path: ${data.storage_path}`);
-      return '/placeholder.svg';
-    }
-
-    // Extract content hash from metadata if available
-    // Use safe type checking to avoid errors with different metadata formats
-    let contentHash = null;
-    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      contentHash = data.metadata.contentHash || null;
     }
     
-    // Build the final URL with both content hash and global version for cache busting
-    let finalUrl = urlData.publicUrl;
+    // Get storage path
+    const { storage_path: storagePath } = image;
+    
+    if (!storagePath) {
+      console.error(`No storage path found for image with key "${normalizedKey}"`);
+      return '/placeholder.svg';
+    }
+    
+    // Get content hash for cache busting
+    const contentHash = image.metadata?.contentHash || '';
+    
+    // Create signed URL
+    const { data: { signedUrl }, error: signedUrlError } = await supabase.storage
+      .from('images')
+      .createSignedUrl(storagePath, 60 * 60); // 1 hour expiry
+    
+    if (signedUrlError || !signedUrl) {
+      console.error(`Error creating signed URL for "${normalizedKey}":`, signedUrlError);
+      return '/placeholder.svg';
+    }
+    
+    // Add versioning to URL for cache busting
+    const versionedUrl = new URL(signedUrl);
     if (contentHash) {
-      // Use content hash as primary cache key
-      finalUrl = addHashToUrl(finalUrl, contentHash);
+      versionedUrl.searchParams.append('v', contentHash);
+    } else if (cacheVersion) {
+      versionedUrl.searchParams.append('v', cacheVersion);
     }
     
-    // Add global version as secondary cache parameter if available
-    if (globalVersion) {
-      finalUrl = finalUrl.includes('?') 
-        ? `${finalUrl}&gv=${globalVersion}` 
-        : `${finalUrl}?gv=${globalVersion}`;
-    }
-
-    console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
-
-    // Cache the URL for future use
-    urlCache.set(`url:${key}`, finalUrl);
-
+    const finalUrl = versionedUrl.toString();
+    
+    // Cache the URL
+    urlCache.set(cacheKey, finalUrl);
+    
     return finalUrl;
-  } catch (e) {
-    console.error(`[getImageUrlByKey] Unexpected error for key ${key}:`, e);
+  } catch (error) {
+    console.error(`Unexpected error in getImageUrlByKey for "${normalizedKey}":`, error);
     return '/placeholder.svg';
   }
 };
 
 /**
- * Get the image URL by key and size
+ * Get a signed URL for an image by its key and size variant
  */
 export const getImageUrlByKeyAndSize = async (
   key: string, 
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
-  const cacheKey = `url:${key}:${size}`;
+  if (!key) return '/placeholder.svg';
   
-  // First check if this URL is already cached
+  const normalizedKey = key.trim();
+  const cacheKey = `url:${normalizedKey}:${size}`;
+  
+  // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl) {
-    console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size})`);
     return cachedUrl;
   }
-
+  
+  // Track API call
+  trackApiCall('getImageUrlByKeyAndSize');
+  
   try {
-    console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
-
-    // Fetch the image record to get sizes and metadata
-    const { data, error } = await supabase
+    // Get global cache version for proper versioning
+    const cacheVersion = await getGlobalCacheVersion();
+    
+    // Get image record from database
+    const { data: image, error } = await supabase
       .from('website_images')
-      .select('sizes, storage_path, metadata')
-      .eq('key', key)
+      .select('storage_path, metadata')
+      .eq('key', normalizedKey)
       .maybeSingle();
-
-    if (error) {
-      console.error(`[getImageUrlByKeyAndSize] Error fetching image with key ${key}:`, error);
-      return '/placeholder.svg';
-    }
-
-    if (!data) {
-      console.warn(`[getImageUrlByKeyAndSize] No image found for key ${key}`);
+    
+    if (error || !image) {
+      console.error(`Error loading image with key "${normalizedKey}":`, error);
       return '/placeholder.svg';
     }
     
-    // Get the global cache version from website settings
-    const globalVersion = await getGlobalCacheVersion();
+    // Get storage path
+    const { storage_path: storagePath } = image;
     
-    // Extract content hash from metadata if available using safe type checking
-    let contentHash = null;
-    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      contentHash = data.metadata.contentHash || null;
+    if (!storagePath) {
+      console.error(`No storage path found for image with key "${normalizedKey}"`);
+      return '/placeholder.svg';
     }
     
-    // Check if sizes exists and if the requested size is available
-    if (data.sizes && data.sizes[size]) {
-      // Get the public URL for this optimized size
-      const { data: urlData } = supabase.storage
-        .from('website-images')
-        .getPublicUrl(data.sizes[size]);
-
-      if (!urlData || !urlData.publicUrl) {
-        console.warn(`[getImageUrlByKeyAndSize] Failed to get public URL for size path: ${data.sizes[size]}`);
-        return '/placeholder.svg';
-      }
-
-      // Build the final URL with both content hash and global version for cache busting
-      let finalUrl = urlData.publicUrl;
-      if (contentHash) {
-        // Use content hash as primary cache key
-        finalUrl = addHashToUrl(finalUrl, contentHash);
-      }
-      
-      // Add global version as secondary cache parameter if available
-      if (globalVersion) {
-        finalUrl = finalUrl.includes('?') 
-          ? `${finalUrl}&gv=${globalVersion}` 
-          : `${finalUrl}?gv=${globalVersion}`;
-      }
-
-      console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
-
-      // Cache the URL for future use
-      urlCache.set(cacheKey, finalUrl);
-      
-      return finalUrl;
+    // Get content hash for cache busting
+    const contentHash = image.metadata?.contentHash || '';
+    
+    // Create signed URL
+    const { data: { signedUrl }, error: signedUrlError } = await supabase.storage
+      .from('images')
+      .createSignedUrl(storagePath, 60 * 60); // 1 hour expiry
+    
+    if (signedUrlError || !signedUrl) {
+      console.error(`Error creating signed URL for "${normalizedKey}":`, signedUrlError);
+      return '/placeholder.svg';
     }
-
-    // If the requested size doesn't exist, fall back to the original image
-    console.log(`[getImageUrlByKeyAndSize] Size ${size} not found for ${key}, falling back to original`);
-    return getImageUrlByKey(key);
-  } catch (e) {
-    console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}, size ${size}:`, e);
+    
+    // Add versioning to URL for cache busting
+    const versionedUrl = new URL(signedUrl);
+    if (contentHash) {
+      versionedUrl.searchParams.append('v', contentHash);
+    } else if (cacheVersion) {
+      versionedUrl.searchParams.append('v', cacheVersion);
+    }
+    
+    const finalUrl = versionedUrl.toString();
+    
+    // Cache the URL
+    urlCache.set(cacheKey, finalUrl);
+    
+    return finalUrl;
+  } catch (error) {
+    console.error(`Unexpected error in getImageUrlByKey for "${normalizedKey}":`, error);
     return '/placeholder.svg';
   }
 };
+
+/**
+ * Batch implementation for getting multiple image URLs at once
+ */
+export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, string>> => {
+  if (!keys || keys.length === 0) return {};
+  
+  // Track as a single API call
+  trackApiCall('batchGetImageUrls');
+  
+  try {
+    // Get global cache version for proper versioning
+    const cacheVersion = await getGlobalCacheVersion();
+    
+    // Normalize keys
+    const normalizedKeys = keys.map(k => k.trim());
+    
+    // Check cache first for all keys
+    const result: Record<string, string> = {};
+    const keysToFetch: string[] = [];
+    
+    for (const key of normalizedKeys) {
+      const cacheKey = `url:${key}`;
+      const cachedUrl = urlCache.get(cacheKey);
+      
+      if (cachedUrl) {
+        result[key] = cachedUrl;
+      } else {
+        keysToFetch.push(key);
+      }
+    }
+    
+    // If all keys were in cache, return early
+    if (keysToFetch.length === 0) {
+      return result;
+    }
+    
+    // Fetch all missing keys in a single query
+    const { data: images, error } = await supabase
+      .from('website_images')
+      .select('key, storage_path, metadata')
+      .in('key', keysToFetch);
+    
+    if (error) {
+      console.error('Error batch loading images:', error);
+      // Fill missing keys with placeholders
+      for (const key of keysToFetch) {
+        result[key] = '/placeholder.svg';
+      }
+      return result;
+    }
+    
+    // Create a map for easy lookup
+    const imageMap = new Map(images?.map(img => [img.key, img]) || []);
+    
+    // For each key, either get the image or use a placeholder
+    const storagePaths: Array<{key: string, storagePath: string, contentHash?: string}> = [];
+    
+    for (const key of keysToFetch) {
+      const image = imageMap.get(key);
+      if (!image || !image.storage_path) {
+        result[key] = '/placeholder.svg';
+      } else {
+        storagePaths.push({
+          key, 
+          storagePath: image.storage_path,
+          contentHash: image.metadata?.contentHash
+        });
+      }
+    }
+    
+    // Batch sign URLs (if Supabase allows)
+    for (const { key, storagePath, contentHash } of storagePaths) {
+      try {
+        const { data: { signedUrl }, error: signedUrlError } = await supabase.storage
+          .from('images')
+          .createSignedUrl(storagePath, 60 * 60); // 1 hour expiry
+        
+        if (signedUrlError || !signedUrl) {
+          result[key] = '/placeholder.svg';
+          continue;
+        }
+        
+        // Add versioning to URL for cache busting
+        const versionedUrl = new URL(signedUrl);
+        if (contentHash) {
+          versionedUrl.searchParams.append('v', contentHash);
+        } else if (cacheVersion) {
+          versionedUrl.searchParams.append('v', cacheVersion);
+        }
+        
+        const finalUrl = versionedUrl.toString();
+        
+        // Update result and cache
+        result[key] = finalUrl;
+        urlCache.set(`url:${key}`, finalUrl);
+      } catch (error) {
+        console.error(`Error creating signed URL for "${key}":`, error);
+        result[key] = '/placeholder.svg';
+      }
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Unexpected error in batchGetImageUrls:', error);
+    return keys.reduce((acc, key) => {
+      acc[key] = '/placeholder.svg';
+      return acc;
+    }, {} as Record<string, string>);
+  }
+};
+
+// Create batched versions of the functions
+export const getImageUrlBatched = createBatchedFunction(
+  getImageUrlByKey,
+  'getImageUrl',
+  50, // 50ms delay to collect batch requests
+  async (items) => {
+    // Extract all keys
+    const keys = items.map(item => item.args[0]);
+    
+    // Fetch all URLs in a batch
+    const urlMap = await batchGetImageUrls(keys);
+    
+    // Return URLs in the same order as the keys
+    return keys.map(key => urlMap[key] || '/placeholder.svg');
+  }
+);

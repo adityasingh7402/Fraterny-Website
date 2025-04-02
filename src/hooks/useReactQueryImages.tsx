@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   fetchImageByKey,
@@ -5,6 +6,7 @@ import {
   fetchImagesByCategory,
   getImageUrlByKey,
   getImageUrlByKeyAndSize,
+  getImageUrlBatched,
   WebsiteImage,
   clearImageCache,
   clearImageUrlCache
@@ -61,6 +63,34 @@ export const useReactQueryImages = () => {
   };
 
   /**
+   * Fetch multiple images by keys in a single query
+   */
+  const useMultipleImages = (keys: string[] | undefined) => {
+    const { staleTime, gcTime } = getCacheConfig();
+    
+    // Create a unique, stable key for caching that's sorted to avoid duplicates
+    const stableQueryKey = keys?.slice().sort().join(',') || '';
+    
+    return useQuery({
+      queryKey: ['images', 'batch', stableQueryKey],
+      queryFn: async () => {
+        if (!keys || keys.length === 0) return [];
+        
+        // Use Promise.all with fetchImageByKey for batch efficiency
+        // Supabase will automatically batch these requests if they're close enough together
+        const images = await Promise.all(
+          keys.map(key => fetchImageByKey(key))
+        );
+        
+        return images.filter(img => img !== null) as WebsiteImage[];
+      },
+      staleTime,
+      gcTime,
+      enabled: !!keys && keys.length > 0,
+    });
+  };
+
+  /**
    * Fetch all images with pagination and search
    */
   const useImages = (
@@ -113,9 +143,10 @@ export const useReactQueryImages = () => {
         if (!key) return null;
         
         try {
+          // Use batched version for better performance
           const url = size 
             ? await getImageUrlByKeyAndSize(key, size)
-            : await getImageUrlByKey(key);
+            : await getImageUrlBatched(key);
             
           return { url, key, size };
         } catch (error) {
@@ -128,6 +159,48 @@ export const useReactQueryImages = () => {
       enabled: !!key,
       // This prevents unnecessary refetches when the component remounts
       refetchOnMount: false,
+    });
+  };
+
+  /**
+   * Get URLs for multiple images in one batch
+   */
+  const useMultipleImageUrls = (keys: string[] | undefined, size?: 'small' | 'medium' | 'large') => {
+    const { staleTime, gcTime } = getCacheConfig();
+    
+    // Create a unique, stable key for caching
+    const stableQueryKey = keys?.slice().sort().join(',') || '';
+    
+    return useQuery({
+      queryKey: ['imageUrls', 'batch', stableQueryKey, size],
+      queryFn: async () => {
+        if (!keys || keys.length === 0) return {};
+        
+        // Use the batch function directly
+        const urls: Record<string, string> = {};
+        
+        // Process in batches of 10 to avoid overwhelming the system
+        for (let i = 0; i < keys.length; i += 10) {
+          const batch = keys.slice(i, i + 10);
+          
+          // For each key in the batch, get the URL (with or without size)
+          const batchResults = await Promise.all(
+            batch.map(key => 
+              size ? getImageUrlByKeyAndSize(key, size) : getImageUrlBatched(key)
+            )
+          );
+          
+          // Add batch results to the url map
+          batch.forEach((key, index) => {
+            urls[key] = batchResults[index] || '/placeholder.svg';
+          });
+        }
+        
+        return urls;
+      },
+      staleTime,
+      gcTime,
+      enabled: !!keys && keys.length > 0,
     });
   };
 
@@ -177,6 +250,8 @@ export const useReactQueryImages = () => {
     useImages,
     useImagesByCategory,
     useImageUrl,
+    useMultipleImages,
+    useMultipleImageUrls,
     prefetchImage,
     prefetchImages,
     invalidateImageCache,
