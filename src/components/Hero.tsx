@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
+  const isMobile = useIsMobile();
   
   // Use our React Query powered hook
   const { settings, isLoading } = useReactQueryWebsiteSettings();
@@ -35,6 +37,11 @@ const Hero = () => {
       console.warn('No registration_close_date found in settings');
     }
   }, [settings]);
+
+  // Debug the mobile status
+  useEffect(() => {
+    console.log('Hero component - isMobile value:', isMobile);
+  }, [isMobile]);
 
   // Gradient style for the overlay
   const gradientStyle = {

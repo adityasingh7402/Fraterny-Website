@@ -1,8 +1,16 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const HeroSection = () => {
+  const isMobile = useIsMobile();
+  
+  // Debug the mobile status
+  useEffect(() => {
+    console.log('HeroSection component - isMobile value:', isMobile);
+  }, [isMobile]);
+  
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative">
       {/* Optimized background hero image with responsive sizes - using dynamicKey */}
