@@ -1,9 +1,8 @@
-
 /**
  * Utility for managing image CDN URLs
  */
 
-// Your Cloudflare Worker URL - replace with environment variable later if needed
+// Your Cloudflare Worker URL - update this with your actual deployed worker URL
 const CDN_URL = 'https://image-handler.yashmalhotra.workers.dev';
 
 // Storage key for CDN toggle in development
