@@ -57,12 +57,13 @@ export const createSignedUrl = async (
   if (!storagePath) return '/placeholder.svg';
 
   try {
-    // Fix: Use the more direct path for storage access
+    // Get signed URL from Supabase storage
     const { data, error } = await supabase.storage
       .from('images')
       .createSignedUrl(storagePath, expirySeconds);
     
-    if (error || !data?.signedUrl) {
+    // Check if we have valid data and signedUrl
+    if (error || !data || !data.signedUrl) {
       console.error(`Error creating signed URL for "${storagePath}":`, error);
       return '/placeholder.svg';
     }
