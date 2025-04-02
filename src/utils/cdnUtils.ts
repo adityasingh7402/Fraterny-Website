@@ -8,3 +8,6 @@
 
 // Re-export all functionality from the new modular structure
 export * from './cdn';
+
+// Add backwards compatibility for renamed functions
+export { getPathExclusions as getCdnPathExclusions } from './cdn';

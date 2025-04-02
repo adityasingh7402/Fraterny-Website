@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,7 +18,7 @@ import {
   removeCdnPathExclusion,
   clearCdnPathExclusions,
   getCdnUrl
-} from '@/utils/cdnUtils';
+} from '@/utils/cdn';
 import { toast } from 'sonner';
 
 const CDN_STORAGE_KEY = 'use_cdn_development';
