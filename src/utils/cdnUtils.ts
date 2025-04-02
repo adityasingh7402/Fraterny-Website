@@ -1,8 +1,10 @@
+
 /**
  * Utility for managing image CDN URLs
  */
 
 // Your Cloudflare Worker URL - update this with your actual deployed worker URL
+// By default, we'll use the local development URL for testing
 const CDN_URL = 'https://image-handler.yashmalhotra.workers.dev';
 
 // Storage key for CDN toggle in development
