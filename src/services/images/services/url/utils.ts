@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -65,9 +66,9 @@ export const createSignedUrl = async (
   try {
     console.log(`Generating signed URL for: ${storagePath}`);
     
-    // Get signed URL from Supabase storage
+    // Get signed URL from Supabase storage - Fixed bucket name to match upload service
     const { data, error } = await supabase.storage
-      .from('images')
+      .from('website-images')
       .createSignedUrl(storagePath, expirySeconds);
     
     // Debug the response
