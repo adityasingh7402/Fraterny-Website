@@ -32,15 +32,11 @@ const VillaLab = () => {
     return () => clearInterval(interval);
   }, [network.effectiveConnectionType, isMobile]);
 
-  // Updated to use dynamic image keys and include width/height for CLS optimization
+  // Updated to use ONLY dynamic image keys
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
       dynamicKey: "villalab-workshop",
-      fallbackSrc: {
-        mobile: "/images/villalab/workshop-mobile.webp",
-        desktop: "/images/villalab/workshop-desktop.webp"
-      },
       alt: "Interactive workshop session",
       width: 600,
       height: 600
@@ -48,10 +44,6 @@ const VillaLab = () => {
     { 
       title: "Gourmet Meals", 
       dynamicKey: "villalab-gourmet",
-      fallbackSrc: {
-        mobile: "/images/villalab/gourmet-mobile.webp",
-        desktop: "/images/villalab/gourmet-desktop.webp"
-      },
       alt: "Premium dining experience",
       width: 600,
       height: 600
@@ -59,10 +51,6 @@ const VillaLab = () => {
     { 
       title: "Group Activities", 
       dynamicKey: "villalab-group",
-      fallbackSrc: {
-        mobile: "/images/villalab/group-mobile.webp",
-        desktop: "/images/villalab/group-desktop.webp"
-      },
       alt: "Team-building activity in progress",
       width: 600,
       height: 600
@@ -70,10 +58,6 @@ const VillaLab = () => {
     { 
       title: "Candid Interactions", 
       dynamicKey: "villalab-candid",
-      fallbackSrc: {
-        mobile: "/images/villalab/candid-mobile.webp",
-        desktop: "/images/villalab/candid-desktop.webp"
-      },
       alt: "Natural conversation between participants",
       width: 600,
       height: 600
@@ -81,10 +65,6 @@ const VillaLab = () => {
     { 
       title: "Networking", 
       dynamicKey: "villalab-networking",
-      fallbackSrc: {
-        mobile: "/images/villalab/networking-mobile.webp",
-        desktop: "/images/villalab/networking-desktop.webp"
-      },
       alt: "Professional connections being formed",
       width: 600,
       height: 600
@@ -92,10 +72,6 @@ const VillaLab = () => {
     { 
       title: "Evening Sessions", 
       dynamicKey: "villalab-evening",
-      fallbackSrc: {
-        mobile: "/images/villalab/evening-mobile.webp",
-        desktop: "/images/villalab/evening-desktop.webp"
-      },
       alt: "Deep discussions in evening setting",
       width: 600,
       height: 600
@@ -103,10 +79,6 @@ const VillaLab = () => {
     { 
       title: "Brainstorming", 
       dynamicKey: "villalab-brainstorm",
-      fallbackSrc: {
-        mobile: "/images/villalab/brainstorm-mobile.webp",
-        desktop: "/images/villalab/brainstorm-desktop.webp"
-      },
       alt: "Collaborative ideation session",
       width: 600,
       height: 600
@@ -114,10 +86,6 @@ const VillaLab = () => {
     { 
       title: "Mentorship", 
       dynamicKey: "villalab-mentorship",
-      fallbackSrc: {
-        mobile: "/images/villalab/mentorship-mobile.webp",
-        desktop: "/images/villalab/mentorship-desktop.webp"
-      },
       alt: "One-on-one guidance session",
       width: 600,
       height: 600
@@ -125,10 +93,6 @@ const VillaLab = () => {
     { 
       title: "Social Events", 
       dynamicKey: "villalab-social",
-      fallbackSrc: {
-        mobile: "/images/villalab/social-mobile.webp", 
-        desktop: "/images/villalab/social-desktop.webp"
-      },
       alt: "Relaxed social gathering",
       width: 600,
       height: 600
@@ -181,11 +145,10 @@ const VillaLab = () => {
                 }}
               >
                 <ResponsiveImage
-                  src={activity.fallbackSrc}
+                  dynamicKey={activity.dynamicKey}
                   alt={activity.alt}
                   className="w-full h-full"
                   loading={loadingStrategy}
-                  dynamicKey={activity.dynamicKey}
                   width={activity.width}
                   height={activity.height}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"

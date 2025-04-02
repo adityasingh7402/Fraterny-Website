@@ -80,72 +80,76 @@ const ResponsiveImage = ({
     }
   }, [dynamicKey, dynamicSrc, useLowQualityOnPoorConnection]);
 
-  // If we're loading a dynamic image and it's still loading
-  if (dynamicKey && isLoading) {
-    return (
-      <LoadingPlaceholder
-        alt={alt}
-        className={className}
-        width={width}
-        height={height}
-        aspectRatio={aspectRatio}
-        placeholderSrc={tinyPlaceholder || undefined}
-        colorPlaceholder={colorPlaceholder || undefined}
-      />
-    );
-  }
-
-  // If there was an error loading the dynamic image
-  if (dynamicKey && error) {
-    return (
-      <ErrorPlaceholder 
-        alt={alt} 
-        className={className}
-        width={width}
-        height={height}
-        aspectRatio={aspectRatio || 16/9}
-        fallbackSrc={fallbackSrc}
-      />
-    );
-  }
-
-  // If we have a dynamic source, use it with mobile optimization
-  if (dynamicKey && dynamicSrc) {
-    return (
-      <div className={`relative ${className}`} style={{ width, height }}>
-        <MobileOptimizedImage
-          src={dynamicSrc}
-          lowQualitySrc={tinyPlaceholder || undefined}
+  // PRIORITY 1: If dynamicKey is provided, use it exclusively
+  if (dynamicKey) {
+    // If we're loading a dynamic image and it's still loading
+    if (isLoading) {
+      return (
+        <LoadingPlaceholder
           alt={alt}
-          loading={loading}
-          className="w-full h-full"
+          className={className}
           width={width}
           height={height}
-          sizes={sizes}
-          objectFit={objectFit}
+          aspectRatio={aspectRatio}
+          placeholderSrc={tinyPlaceholder || undefined}
+          colorPlaceholder={colorPlaceholder || undefined}
         />
-        {onClick && (
-          <div 
-            className="absolute inset-0 cursor-pointer" 
-            onClick={onClick}
-            aria-label={`Click to interact with ${alt}`}
+      );
+    }
+
+    // If there was an error loading the dynamic image
+    if (error) {
+      return (
+        <ErrorPlaceholder 
+          alt={alt} 
+          className={className}
+          width={width}
+          height={height}
+          aspectRatio={aspectRatio || 16/9}
+          fallbackSrc={fallbackSrc}
+        />
+      );
+    }
+
+    // If we have a dynamic source, use it with mobile optimization
+    if (dynamicSrc) {
+      return (
+        <div className={`relative ${className}`} style={{ width, height }}>
+          <MobileOptimizedImage
+            src={dynamicSrc}
+            lowQualitySrc={tinyPlaceholder || undefined}
+            alt={alt}
+            loading={loading}
+            className="w-full h-full"
+            width={width}
+            height={height}
+            sizes={sizes}
+            objectFit={objectFit}
           />
-        )}
-        {debugCache && (
-          <CacheDebugInfo
-            dynamicKey={dynamicKey}
-            url={dynamicSrc}
-            isLoading={isLoading}
-            isCached={isCached}
-            contentHash={contentHash}
-            lastUpdated={lastUpdated}
-          />
-        )}
-      </div>
-    );
+          {onClick && (
+            <div 
+              className="absolute inset-0 cursor-pointer" 
+              onClick={onClick}
+              aria-label={`Click to interact with ${alt}`}
+            />
+          )}
+          {debugCache && (
+            <CacheDebugInfo
+              dynamicKey={dynamicKey}
+              url={dynamicSrc}
+              isLoading={isLoading}
+              isCached={isCached}
+              contentHash={contentHash}
+              lastUpdated={lastUpdated}
+            />
+          )}
+        </div>
+      );
+    }
   }
 
-  // For responsive image object with mobile, tablet, desktop variants
+  // PRIORITY 2: For static responsive image object with mobile, tablet, desktop variants
+  // Only used for local images not managed through database
   if (typeof src === 'object' && 'mobile' in src && 'desktop' in src) {
     console.log('[ResponsiveImage] Rendering responsive image with sources:', src);
     console.log(`[ResponsiveImage] Device detection for ${alt}: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
@@ -182,7 +186,7 @@ const ResponsiveImage = ({
     );
   }
 
-  // Default case: simple image
+  // PRIORITY 3: Default case: simple image for local assets
   return (
     <div className="relative" style={{ width, height }}>
       <BasicImage
