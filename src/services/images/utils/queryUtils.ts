@@ -44,7 +44,7 @@ export const processQueryResponse = (
   errorMessage: string
 ): { images: WebsiteImage[], total: number } => {
   if (error) {
-    return handleApiError(error, errorMessage, false) as unknown as { images: WebsiteImage[], total: number };
+    return handleApiError(error, errorMessage, { silent: true }) as unknown as { images: WebsiteImage[], total: number };
   }
   
   return { 

@@ -28,7 +28,7 @@ export const showError = (
   options: ErrorOptions = {}
 ): ApiError => {
   // Process the error using our existing error handling utility
-  const apiError = handleApiError(error, userMessage, options.silent);
+  const apiError = handleApiError(error, userMessage, options);
   
   // If silent mode is enabled, don't show any toast
   if (options.silent) {

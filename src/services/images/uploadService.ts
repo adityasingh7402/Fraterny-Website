@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage, ImageMetadata } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
@@ -82,7 +83,7 @@ export const uploadImage = async (
     
     if (uploadError) {
       console.error('Upload error:', uploadError);
-      return handleApiError(uploadError, 'Error uploading image', false) as null;
+      return handleApiError(uploadError, 'Error uploading image', { silent: true }) as null;
     }
     
     // Create optimized versions if it's an image
@@ -122,7 +123,7 @@ export const uploadImage = async (
       // Clean up the uploaded file if we couldn't create the record
       await cleanupUploadedFiles(storagePath, optimizedSizes);
       
-      return handleApiError(insertError, 'Error creating image record', false) as null;
+      return handleApiError(insertError, 'Error creating image record', { silent: true }) as null;
     }
     
     // Invalidate cache for this key to ensure fresh data
@@ -132,6 +133,6 @@ export const uploadImage = async (
     return data as WebsiteImage;
   } catch (error) {
     console.error('Error in upload process:', error);
-    return handleApiError(error, 'Error in image upload process', false) as null;
+    return handleApiError(error, 'Error in image upload process', { silent: true }) as null;
   }
 };

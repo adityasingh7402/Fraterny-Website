@@ -46,7 +46,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     if (error) {
       console.error(`Error fetching image with key "${normalizedKey}":`, error);
-      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, false) as null;
+      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, { silent: true }) as null;
     }
     
     if (!data) {
@@ -60,7 +60,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     return data;
   } catch (error) {
-    return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, false) as null;
+    return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
   }
 };
 
@@ -86,7 +86,7 @@ export const fetchAllImages = async (
     
     return processQueryResponse(data, error, count, 'Error fetching images');
   } catch (error) {
-    handleApiError(error, 'Unexpected error in fetchAllImages', false);
+    handleApiError(error, 'Unexpected error in fetchAllImages', { silent: true });
     return { images: [], total: 0 };
   }
 };
@@ -119,7 +119,7 @@ export const fetchImagesByCategory = async (
       `Error fetching images by category "${category}"`
     );
   } catch (error) {
-    handleApiError(error, `Unexpected error in fetchImagesByCategory for category "${category}"`, false);
+    handleApiError(error, `Unexpected error in fetchImagesByCategory for category "${category}"`, { silent: true });
     return { images: [], total: 0 };
   }
 };
