@@ -32,7 +32,7 @@ const ResponsiveImage = ({
   objectFit = 'cover',
   debugCache = false
 }: ResponsiveImageProps) => {
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
   const network = useNetworkStatus();
   
   // Log detection of mobile state for this component instance with more context
