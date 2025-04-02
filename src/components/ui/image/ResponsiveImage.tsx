@@ -35,9 +35,9 @@ const ResponsiveImage = ({
   const isMobile = useIsMobile();
   const network = useNetworkStatus();
   
-  // Log detection of mobile state for this component instance
+  // Log detection of mobile state for this component instance with more context
   useEffect(() => {
-    console.log(`ResponsiveImage (${dynamicKey || alt}) - isMobile:`, isMobile);
+    console.log(`[ResponsiveImage] (${dynamicKey || alt}) - Device detected as: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
   }, [isMobile, dynamicKey, alt]);
   
   // Determine if we should use lower quality images based on network conditions
@@ -147,7 +147,9 @@ const ResponsiveImage = ({
 
   // For responsive image object with mobile, tablet, desktop variants
   if (typeof src === 'object' && 'mobile' in src && 'desktop' in src) {
-    console.log('Rendering responsive image with sources:', src, 'isMobile:', isMobile);
+    console.log('[ResponsiveImage] Rendering responsive image with sources:', src);
+    console.log(`[ResponsiveImage] Device detection for ${alt}: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
+    console.log(`[ResponsiveImage] Will use ${isMobile ? 'MOBILE' : 'DESKTOP'} source for ${alt}`);
     
     return (
       <div className="relative" style={{ width, height }}>

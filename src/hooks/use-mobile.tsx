@@ -8,11 +8,17 @@ export function useIsMobile() {
 
   // Initialize immediately with current window size to avoid flicker
   React.useEffect(() => {
-    // Set initial value synchronously
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    const checkIfMobile = () => {
+      const isCurrentlyMobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setIsMobile(isCurrentlyMobile);
+      console.log(`[useIsMobile] Window width: ${window.innerWidth}px, detected as: ${isCurrentlyMobile ? 'MOBILE' : 'DESKTOP'}`);
+    };
+    
+    // Set initial value and log it
+    checkIfMobile();
     
     const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      checkIfMobile();
     }
     
     // Add event listener for resize
@@ -45,7 +51,7 @@ export function useIsMobile() {
 
   // For debugging
   React.useEffect(() => {
-    console.log('useIsMobile hook value:', isMobile)
+    console.log('[useIsMobile] Current device state:', isMobile ? 'MOBILE' : 'DESKTOP');
   }, [isMobile])
 
   return isMobile

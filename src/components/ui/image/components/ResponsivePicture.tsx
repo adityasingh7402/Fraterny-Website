@@ -39,11 +39,15 @@ export const ResponsivePicture = ({
   objectFit = 'cover',
   useCdn = true
 }: ResponsivePictureProps) => {
-  // Log out the sources to debug
+  // Enhanced logging for better debugging
   useEffect(() => {
-    console.log('[ResponsivePicture] sources:', sources);
-    console.log('[ResponsivePicture] useMobileSrc:', useMobileSrc);
-  }, [sources, useMobileSrc]);
+    console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
+      mobile: sources.mobile ? '✓' : '✗',
+      tablet: sources.tablet ? '✓' : '✗', 
+      desktop: sources.desktop ? '✓' : '✗'
+    });
+    console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
+  }, [sources, useMobileSrc, alt]);
 
   // Process all URLs through CDN if enabled
   const processedSources = useCdn ? {
@@ -60,7 +64,8 @@ export const ResponsivePicture = ({
     ? processedSources.mobile
     : processedSources.desktop;
   
-  console.log('[ResponsivePicture] Selected defaultImgSrc:', defaultImgSrc, 'based on useMobileSrc:', useMobileSrc);
+  console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
+  console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
   
   const imgProps = createImageProps(
     defaultImgSrc, 
