@@ -9,13 +9,27 @@ export type MobileDetectionState = {
 }
 
 export function useIsMobile(): MobileDetectionState {
-  const [state, setState] = React.useState<MobileDetectionState>({
-    isDetecting: true, // Start with detecting state
-    isMobile: false
+  // Initialize with server-safe values
+  const [state, setState] = React.useState<MobileDetectionState>(() => {
+    // Check if we can access window during initial render
+    if (typeof window !== 'undefined') {
+      const isCurrentlyMobile = window.innerWidth < MOBILE_BREAKPOINT;
+      return {
+        // Still mark as detecting briefly to allow for hydration consistency
+        isDetecting: true,
+        isMobile: isCurrentlyMobile
+      };
+    }
+    
+    return {
+      isDetecting: true,
+      isMobile: false
+    };
   });
 
-  // Initialize immediately with current window size to avoid flicker
-  React.useEffect(() => {
+  // Use layout effect for synchronous detection before paint
+  // This runs before useEffect and before the browser paints
+  React.useLayoutEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -29,11 +43,8 @@ export function useIsMobile(): MobileDetectionState {
       console.log(`[useIsMobile] Window width: ${window.innerWidth}px, detected as: ${isCurrentlyMobile ? 'MOBILE' : 'DESKTOP'}`);
     };
     
-    // Small timeout to ensure DOM is fully ready
-    // This helps with SSR and initial render consistency
-    const initialDetectionTimeout = setTimeout(() => {
-      checkIfMobile();
-    }, 10);
+    // Execute immediately for fastest possible detection
+    checkIfMobile();
     
     const handleResize = () => {
       checkIfMobile();
@@ -53,6 +64,13 @@ export function useIsMobile(): MobileDetectionState {
       // Fallback for older browsers
       mql.addListener(handleResize)
     }
+    
+    // Complete detection after a very short delay to ensure proper hydration
+    const initialDetectionTimeout = setTimeout(() => {
+      if (state.isDetecting) {
+        checkIfMobile();
+      }
+    }, 5); // Reduced from 10ms to 5ms for faster detection
     
     return () => {
       clearTimeout(initialDetectionTimeout);

@@ -7,17 +7,19 @@ interface DeviceDetectionWrapperProps {
   children: React.ReactNode;
   loadingHeight?: string | number;
   skipDetection?: boolean;
+  priority?: boolean; // New prop for critical UI elements that need immediate rendering
 }
 
 export const DeviceDetectionWrapper: React.FC<DeviceDetectionWrapperProps> = ({ 
   children, 
   loadingHeight = '16rem',
-  skipDetection = false
+  skipDetection = false,
+  priority = false
 }) => {
-  const { isDetecting } = useIsMobile();
+  const { isDetecting, isMobile } = useIsMobile();
   
-  // If skipDetection is true, render children regardless of detection state
-  if (skipDetection || !isDetecting) {
+  // If skipDetection is true or this is a high priority component, render children regardless
+  if (skipDetection || priority || !isDetecting) {
     return <>{children}</>;
   }
   
