@@ -4,14 +4,17 @@ import { useMemo, useEffect, useState } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { DeviceDetectionWrapper } from './ui/DeviceDetectionWrapper';
 
 const VillaLab = () => {
   const network = useNetworkStatus();
-  const isMobile = useIsMobile();
+  const { isMobile, isDetecting } = useIsMobile();
   const [visibleCount, setVisibleCount] = useState<number>(0);
   
   // Determine how many images to initially show based on network conditions & device
   useEffect(() => {
+    if (isDetecting) return; // Skip if still detecting
+    
     // Start with a small number on slow connections, more on fast connections
     const baseCount = ['slow-2g', '2g'].includes(network.effectiveConnectionType) ? 2 : 
                       network.effectiveConnectionType === '3g' ? 4 : 
@@ -30,7 +33,7 @@ const VillaLab = () => {
     }, isMobile ? 400 : 300); // Slower on mobile
     
     return () => clearInterval(interval);
-  }, [network.effectiveConnectionType, isMobile]);
+  }, [network.effectiveConnectionType, isMobile, isDetecting]);
 
   // Updated to use ONLY dynamic image keys
   const activities = useMemo(() => [
@@ -106,76 +109,78 @@ const VillaLab = () => {
   const shouldDelayNonEssentialImages = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType);
 
   return (
-    <section className="py-16 sm:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="mb-8 sm:mb-12">
-          {/* CUSTOMIZATION: Villa Lab Section Title */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4">
-            The Villa Lab
-          </h2>
-          {/* CUSTOMIZATION: Villa Lab Section Tagline */}
-          <p className="text-lg sm:text-xl text-gray-600">
-            Work hard. Bond harder.
-          </p>
-        </div>
+    <DeviceDetectionWrapper>
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="mb-8 sm:mb-12">
+            {/* CUSTOMIZATION: Villa Lab Section Title */}
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4">
+              The Villa Lab
+            </h2>
+            {/* CUSTOMIZATION: Villa Lab Section Tagline */}
+            <p className="text-lg sm:text-xl text-gray-600">
+              Work hard. Bond harder.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-hidden">
-          {activities.slice(0, displayCount).map((activity, index) => {
-            // Determine loading strategy:
-            // - First images load eagerly
-            // - On good connections, load more eagerly
-            // - On poor connections, lazy load most images
-            const loadingStrategy = 
-              index < 2 ? "eager" : // First 2 always eager
-              (index < 4 && network.effectiveConnectionType === '4g') ? "eager" : // More eager on fast connections
-              "lazy"; // Rest are lazy
-            
-            // Apply visual appearance based on loading status
-            // This creates a progressive reveal effect
-            const isVisible = index < visibleCount;
-            
-            return (
-              <div 
-                key={index}
-                className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 ${
-                  isVisible ? 'opacity-100' : 'opacity-0'
-                }`}
-                style={{
-                  transitionDelay: `${index * 100}ms`
-                }}
-              >
-                <ResponsiveImage
-                  dynamicKey={activity.dynamicKey}
-                  alt={activity.alt}
-                  className="w-full h-full"
-                  loading={loadingStrategy}
-                  width={activity.width}
-                  height={activity.height}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                  objectFit="cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                  <span className="text-white p-4 font-medium">{activity.title}</span>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-hidden">
+            {activities.slice(0, displayCount).map((activity, index) => {
+              // Determine loading strategy:
+              // - First images load eagerly
+              // - On good connections, load more eagerly
+              // - On poor connections, lazy load most images
+              const loadingStrategy = 
+                index < 2 ? "eager" : // First 2 always eager
+                (index < 4 && network.effectiveConnectionType === '4g') ? "eager" : // More eager on fast connections
+                "lazy"; // Rest are lazy
+              
+              // Apply visual appearance based on loading status
+              // This creates a progressive reveal effect
+              const isVisible = index < visibleCount;
+              
+              return (
+                <div 
+                  key={index}
+                  className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 ${
+                    isVisible ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{
+                    transitionDelay: `${index * 100}ms`
+                  }}
+                >
+                  <ResponsiveImage
+                    dynamicKey={activity.dynamicKey}
+                    alt={activity.alt}
+                    className="w-full h-full"
+                    loading={loadingStrategy}
+                    width={activity.width}
+                    height={activity.height}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                    objectFit="cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                    <span className="text-white p-4 font-medium">{activity.title}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="mt-8 sm:mt-12 text-right">
-          {/* CUSTOMIZATION: Villa Lab "See More" Link */}
-          <a 
-            href="https://www.instagram.com/join.fraterny/?hl=en" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="inline-flex items-center text-navy hover:text-terracotta transition-colors group"
-          >
-            <span className="mr-2">see more</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </a>
+          <div className="mt-8 sm:mt-12 text-right">
+            {/* CUSTOMIZATION: Villa Lab "See More" Link */}
+            <a 
+              href="https://www.instagram.com/join.fraterny/?hl=en" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center text-navy hover:text-terracotta transition-colors group"
+            >
+              <span className="mr-2">see more</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </DeviceDetectionWrapper>
   );
 };
 

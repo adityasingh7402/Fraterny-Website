@@ -4,6 +4,7 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import HeroSection from '../components/experience/HeroSection';
 import { useIsMobile } from '../hooks/use-mobile';
+import { DeviceDetectionWrapper } from '../components/ui/DeviceDetectionWrapper';
 
 // Lazy load components that are below the fold
 const TimelineSection = lazy(() => import('../components/experience/TimelineSection'));
@@ -19,7 +20,7 @@ const LoadingFallback = () => (
 );
 
 const Experience = () => {
-  const isMobile = useIsMobile();
+  const { isMobile, isDetecting } = useIsMobile();
   
   return (
     <div className="min-h-screen bg-white">
@@ -34,7 +35,7 @@ const Experience = () => {
       </Suspense>
 
       {/* Image Gallery - hidden on mobile */}
-      {!isMobile && (
+      {!isDetecting && !isMobile && (
         <Suspense fallback={<LoadingFallback />}>
           <ImageGallery />
         </Suspense>

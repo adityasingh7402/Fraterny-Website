@@ -3,19 +3,37 @@ import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean>(false)
+export type MobileDetectionState = {
+  isDetecting: boolean;
+  isMobile: boolean;
+}
+
+export function useIsMobile(): MobileDetectionState {
+  const [state, setState] = React.useState<MobileDetectionState>({
+    isDetecting: true, // Start with detecting state
+    isMobile: false
+  });
 
   // Initialize immediately with current window size to avoid flicker
   React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const checkIfMobile = () => {
       const isCurrentlyMobile = window.innerWidth < MOBILE_BREAKPOINT;
-      setIsMobile(isCurrentlyMobile);
+      setState({
+        isDetecting: false, // Detection complete
+        isMobile: isCurrentlyMobile
+      });
       console.log(`[useIsMobile] Window width: ${window.innerWidth}px, detected as: ${isCurrentlyMobile ? 'MOBILE' : 'DESKTOP'}`);
     };
     
-    // Set initial value and log it
-    checkIfMobile();
+    // Small timeout to ensure DOM is fully ready
+    // This helps with SSR and initial render consistency
+    const initialDetectionTimeout = setTimeout(() => {
+      checkIfMobile();
+    }, 10);
     
     const handleResize = () => {
       checkIfMobile();
@@ -37,6 +55,7 @@ export function useIsMobile() {
     }
     
     return () => {
+      clearTimeout(initialDetectionTimeout);
       window.removeEventListener('resize', handleResize) 
       window.removeEventListener('orientationchange', handleResize)
       
@@ -51,8 +70,8 @@ export function useIsMobile() {
 
   // For debugging
   React.useEffect(() => {
-    console.log('[useIsMobile] Current device state:', isMobile ? 'MOBILE' : 'DESKTOP');
-  }, [isMobile])
+    console.log(`[useIsMobile] Current device detection state:`, state.isDetecting ? 'DETECTING' : (state.isMobile ? 'MOBILE' : 'DESKTOP'));
+  }, [state])
 
-  return isMobile
+  return state
 }
