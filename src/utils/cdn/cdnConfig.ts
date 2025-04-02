@@ -14,7 +14,11 @@ export const CDN_STORAGE_KEY = 'use_cdn_development';
 export const CDN_EXCLUSIONS_KEY = 'cdn_path_exclusions';
 
 // Default exclusions that should always bypass CDN
-export const DEFAULT_EXCLUSIONS = ['/placeholder.svg'];
+export const DEFAULT_EXCLUSIONS = [
+  '/placeholder.svg', 
+  '/favicon.ico',
+  '/og-image.png'
+];
 
 // Cache expiration time in milliseconds (5 minutes)
 export const CACHE_EXPIRATION = 5 * 60 * 1000;

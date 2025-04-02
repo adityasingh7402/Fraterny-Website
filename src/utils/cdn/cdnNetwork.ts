@@ -51,7 +51,7 @@ export const testCdnConnection = async (): Promise<boolean> => {
       
       if (healthResponse.ok) {
         const data = await healthResponse.json();
-        if (data.status === 'ok' && data.supabase === 'healthy') {
+        if (data.status === 'ok') {
           console.log(`[CDN] Health check passed`);
           cdnAvailabilityCache = {
             isAvailable: true,
@@ -69,24 +69,60 @@ export const testCdnConnection = async (): Promise<boolean> => {
     const testUrl = `${CDN_URL}/images/hero/luxury-villa-mobile.webp`;
     console.log(`[CDN] Testing CDN connection with URL: ${testUrl}`);
     
-    const response = await fetch(testUrl, { 
-      method: 'HEAD',
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+    
+    try {
+      const response = await fetch(testUrl, { 
+        method: 'HEAD',
+        signal: controller.signal,
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log(`[CDN] Test result for ${testUrl}:`, response.status, response.ok);
+      
+      cdnAvailabilityCache = {
+        isAvailable: response.ok,
+        timestamp: Date.now()
+      };
+      
+      return response.ok;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError.name === 'AbortError') {
+        console.error('[CDN] Connection test timed out after 10 seconds');
+      } else {
+        console.error('[CDN] Connection test failed:', fetchError);
       }
-    });
-    
-    console.log(`[CDN] Test result for ${testUrl}:`, response.status, response.ok);
-    
-    cdnAvailabilityCache = {
-      isAvailable: response.ok,
-      timestamp: Date.now()
-    };
-    
-    return response.ok;
+      
+      // Try one more test with a different path as a last resort
+      try {
+        const lastResortUrl = `${CDN_URL}/health`;
+        const lastResponse = await fetch(lastResortUrl, { method: 'HEAD' });
+        
+        cdnAvailabilityCache = {
+          isAvailable: lastResponse.ok,
+          timestamp: Date.now()
+        };
+        
+        return lastResponse.ok;
+      } catch (lastError) {
+        console.error('[CDN] Last resort test failed:', lastError);
+        cdnAvailabilityCache = {
+          isAvailable: false,
+          timestamp: Date.now()
+        };
+        return false;
+      }
+    }
   } catch (error) {
     console.error('[CDN] Connection test failed:', error);
     

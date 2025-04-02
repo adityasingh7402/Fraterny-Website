@@ -40,32 +40,54 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         toast.error('URL transformation failed', {
           description: 'Could not transform the URL for CDN. Check your URL syntax.',
         });
+        setIsTestingCdn(false);
         return;
       }
       
       console.log(`[CDN] Testing specific URL: ${transformedUrl}`);
       
-      // Test the URL
-      const response = await fetch(transformedUrl, { 
-        method: 'HEAD',
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
+      // Create an AbortController to handle timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        // Test the URL with a timeout
+        const response = await fetch(transformedUrl, { 
+          method: 'HEAD',
+          signal: controller.signal,
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log(`[CDN] Test result: ${response.status} ${response.ok}`);
+        
+        if (response.ok) {
+          toast.success('URL test successful', {
+            description: `The image was successfully fetched through your CDN.`,
+          });
+        } else {
+          toast.error('URL test failed', {
+            description: `Could not fetch the image through your CDN. Status: ${response.status}.`,
+          });
         }
-      });
-      
-      console.log(`[CDN] Test result: ${response.status} ${response.ok}`);
-      
-      if (response.ok) {
-        toast.success('URL test successful', {
-          description: `The URL was successfully fetched through your CDN.`,
-        });
-      } else {
-        toast.error('URL test failed', {
-          description: `Could not fetch the URL through your CDN. Status: ${response.status}.`,
-        });
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError.name === 'AbortError') {
+          toast.error('URL test timed out', {
+            description: 'The request took too long to complete. Your CDN might be slow or unreachable.',
+          });
+        } else {
+          toast.error('URL test error', {
+            description: fetchError.message || 'An unknown error occurred while testing the URL.',
+          });
+        }
       }
     } catch (error) {
       console.error('Error testing specific URL:', error);

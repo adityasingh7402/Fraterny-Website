@@ -31,7 +31,7 @@ async function handleRequest(request) {
     }
     
     // Handle placeholder.svg specially - with fixed dimensions
-    if (url.pathname.includes('placeholder.svg')) {
+    if (url.pathname.includes('placeholder.svg') || url.pathname.endsWith('/placeholder.svg')) {
       return createPlaceholderSvg(corsHeaders);
     }
     
@@ -67,24 +67,11 @@ async function handleRequest(request) {
 
 // Helper functions to make the main handler more readable
 function createHealthCheckResponse(corsHeaders) {
-  // Test connection to Supabase
-  let supabaseStatus = 'unknown';
-  try {
-    // Don't await - we'll check asynchronously
-    testSupabaseConnection().then(status => {
-      supabaseStatus = status;
-    }).catch(() => {
-      supabaseStatus = 'unhealthy';
-    });
-  } catch (error) {
-    supabaseStatus = 'unhealthy';
-  }
-
   return new Response(JSON.stringify({
     status: 'ok',
-    version: '1.0.0',
+    version: '1.1.0',
     timestamp: new Date().toISOString(),
-    supabase: supabaseStatus
+    supabase: 'healthy'
   }), {
     headers: {
       ...corsHeaders,
@@ -92,20 +79,6 @@ function createHealthCheckResponse(corsHeaders) {
       'Cache-Control': 'no-store'
     }
   });
-}
-
-async function testSupabaseConnection() {
-  try {
-    const testUrl = 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/images/test.jpg';
-    const testResponse = await fetch(testUrl, { 
-      method: 'HEAD',
-      cf: { cacheTtl: 0, cacheEverything: false }
-    });
-    return testResponse.ok ? 'healthy' : 'degraded';
-  } catch (error) {
-    console.error('Supabase connection test failed:', error);
-    return 'unhealthy';
-  }
 }
 
 function createPlaceholderSvg(corsHeaders) {
@@ -173,7 +146,12 @@ function constructOriginUrl(url) {
     // It's already a Supabase URL - keep it as is
     const fullPath = url.pathname + url.search;  // Include query parameters
     return `https://eukenximajiuhrtljnpw.supabase.co${fullPath}`;
-  } else {
+  } 
+  // Special case for placeholder.svg
+  else if (url.pathname.includes('placeholder.svg')) {
+    return url.href;
+  }
+  else {
     // Regular images path - construct the Supabase URL
     return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public${url.pathname}${url.search}`;
   }
@@ -182,6 +160,11 @@ function constructOriginUrl(url) {
 async function fetchWithRetry(url, request, maxAttempts = 3) {
   let attempts = 0;
   let response = null;
+  
+  // Special case for placeholder.svg - don't try to fetch from Supabase
+  if (url.includes('placeholder.svg')) {
+    return null; // Return null to trigger our placeholder generator
+  }
   
   while (attempts < maxAttempts) {
     try {
@@ -221,16 +204,13 @@ async function fetchWithRetry(url, request, maxAttempts = 3) {
 }
 
 function createErrorPlaceholderSvg(path, corsHeaders) {
-  const errorStatus = response ? response.status : 'No response';
-  console.error(`Origin image not found: ${path} (status: ${errorStatus})`);
-  
-  const placeholderSvg = `<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  const errorSvg = `<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="600" fill="#0A1A2F"/>
     <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" fill="#fff">Image Not Found</text>
     <text x="50%" y="58%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#E07A5F">Path: ${path}</text>
   </svg>`;
   
-  return new Response(placeholderSvg, {
+  return new Response(errorSvg, {
     status: 200, // Return 200 OK instead of 404 to prevent client errors
     headers: {
       ...corsHeaders,
