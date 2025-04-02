@@ -34,10 +34,12 @@ const Experience = () => {
         <TimelineSection />
       </Suspense>
 
-      {/* Image Gallery - hidden on mobile */}
-      {!isDetecting && !isMobile && (
+      {/* Image Gallery - can be forced to desktop view even on mobile devices */}
+      {!isDetecting && (
         <Suspense fallback={<LoadingFallback />}>
-          <ImageGallery />
+          <DeviceDetectionWrapper forceMobile={false}>
+            <ImageGallery />
+          </DeviceDetectionWrapper>
         </Suspense>
       )}
       

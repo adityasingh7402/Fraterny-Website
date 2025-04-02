@@ -30,15 +30,22 @@ const ResponsiveImage = ({
   height,
   sizes,
   objectFit = 'cover',
-  debugCache = false
+  debugCache = false,
+  forceMobile
 }: ResponsiveImageProps) => {
   const { isMobile } = useIsMobile();
   const network = useNetworkStatus();
   
+  // Use forceMobile prop if provided, otherwise use detected state
+  const effectiveIsMobile = forceMobile !== undefined ? forceMobile : isMobile;
+  
   // Log detection of mobile state for this component instance with more context
   useEffect(() => {
     console.log(`[ResponsiveImage] (${dynamicKey || alt}) - Device detected as: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
-  }, [isMobile, dynamicKey, alt]);
+    if (forceMobile !== undefined) {
+      console.log(`[ResponsiveImage] (${dynamicKey || alt}) - Mobile mode FORCED to: ${forceMobile ? 'MOBILE' : 'DESKTOP'}`);
+    }
+  }, [isMobile, dynamicKey, alt, forceMobile]);
   
   // Determine if we should use lower quality images based on network conditions
   const useLowQualityOnPoorConnection = 
@@ -152,8 +159,8 @@ const ResponsiveImage = ({
   // Only used for local images not managed through database
   if (typeof src === 'object' && 'mobile' in src && 'desktop' in src) {
     console.log('[ResponsiveImage] Rendering responsive image with sources:', src);
-    console.log(`[ResponsiveImage] Device detection for ${alt}: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
-    console.log(`[ResponsiveImage] Will use ${isMobile ? 'MOBILE' : 'DESKTOP'} source for ${alt}`);
+    console.log(`[ResponsiveImage] Device detection for ${alt}: ${effectiveIsMobile ? 'MOBILE' : 'DESKTOP'}`);
+    console.log(`[ResponsiveImage] Will use ${effectiveIsMobile ? 'MOBILE' : 'DESKTOP'} source for ${alt}`);
     
     return (
       <div className="relative" style={{ width, height }}>
@@ -172,12 +179,12 @@ const ResponsiveImage = ({
           height={height}
           sizes={sizes}
           fallbackSrc={fallbackSrc}
-          useMobileSrc={isMobile}
+          useMobileSrc={effectiveIsMobile}
           objectFit={objectFit}
         />
         {debugCache && (
           <CacheDebugInfo
-            url={isMobile ? src.mobile : (src.desktop || src.mobile)}
+            url={effectiveIsMobile ? src.mobile : (src.desktop || src.mobile)}
             isLoading={false}
             isCached={false}
           />

@@ -1,4 +1,3 @@
-
 // Define the responsive image source type
 export interface ResponsiveImageSource {
   mobile: string;
@@ -36,4 +35,5 @@ export interface ResponsiveImageProps {
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   debugCache?: boolean;
+  forceMobile?: boolean; // New prop to override automatic mobile detection
 }

@@ -138,6 +138,10 @@ const VillaLab = () => {
               // This creates a progressive reveal effect
               const isVisible = index < visibleCount;
               
+              // For featured items (index 0 and 1), we might want to force desktop version
+              // even on mobile devices for better quality
+              const shouldForceDesktop = index <= 1;
+              
               return (
                 <div 
                   key={index}
@@ -157,6 +161,7 @@ const VillaLab = () => {
                     height={activity.height}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
                     objectFit="cover"
+                    forceMobile={shouldForceDesktop ? false : undefined}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                     <span className="text-white p-4 font-medium">{activity.title}</span>

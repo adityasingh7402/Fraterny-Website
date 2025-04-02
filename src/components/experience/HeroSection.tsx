@@ -15,7 +15,7 @@ const HeroSection = () => {
   }, [isMobile, isDetecting]);
   
   return (
-    <DeviceDetectionWrapper loadingHeight="100vh">
+    <DeviceDetectionWrapper loadingHeight="100vh" priority={true}>
       <section className="pt-32 pb-16 bg-navy text-white relative">
         {/* Optimized background hero image with responsive sizes - using ONLY dynamicKey */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
@@ -24,6 +24,7 @@ const HeroSection = () => {
             alt="Luxury villa experience setting"
             className="h-full w-full object-cover"
             loading="eager"
+            // We could override mobile detection here with forceMobile if needed
           />
         </div>
         
