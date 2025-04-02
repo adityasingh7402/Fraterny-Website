@@ -1,8 +1,32 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
 import { getGlobalCacheVersion } from "./cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
 import { createBatchedFunction } from "@/utils/batchApiRequests";
+import { Json } from "@/integrations/supabase/types";
+
+// Helper function to safely extract contentHash from metadata
+const getContentHashFromMetadata = (metadata: Json | null): string | null => {
+  if (!metadata) return null;
+  
+  // If metadata is a string (JSON string), try to parse it
+  if (typeof metadata === 'string') {
+    try {
+      const parsed = JSON.parse(metadata);
+      return parsed?.contentHash || null;
+    } catch {
+      return null;
+    }
+  }
+  
+  // If metadata is an object (already parsed JSON), access contentHash directly
+  if (typeof metadata === 'object' && metadata !== null) {
+    return (metadata as Record<string, any>).contentHash || null;
+  }
+  
+  return null;
+};
 
 /**
  * Get a signed URL for an image by its key
@@ -46,8 +70,8 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // Get content hash for cache busting
-    const contentHash = image.metadata?.contentHash || '';
+    // Get content hash for cache busting using the helper function
+    const contentHash = getContentHashFromMetadata(image.metadata);
     
     // Create signed URL
     const { data: { signedUrl }, error: signedUrlError } = await supabase.storage
@@ -124,8 +148,8 @@ export const getImageUrlByKeyAndSize = async (
       return '/placeholder.svg';
     }
     
-    // Get content hash for cache busting
-    const contentHash = image.metadata?.contentHash || '';
+    // Get content hash for cache busting using the helper function
+    const contentHash = getContentHashFromMetadata(image.metadata);
     
     // Create signed URL
     const { data: { signedUrl }, error: signedUrlError } = await supabase.storage
@@ -222,7 +246,7 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
         storagePaths.push({
           key, 
           storagePath: image.storage_path,
-          contentHash: image.metadata?.contentHash
+          contentHash: getContentHashFromMetadata(image.metadata)
         });
       }
     }

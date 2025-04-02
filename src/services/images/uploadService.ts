@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { WebsiteImage } from "./types";
+import { WebsiteImage, ImageMetadata } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { invalidateImageCache } from "./fetchService";
 import { getImageDimensions } from "./utils/dimensions";
@@ -92,7 +91,7 @@ export const uploadImage = async (
     console.log('Optimized sizes:', optimizedSizes);
     
     // Create an entry in the website_images table with enhanced metadata including content hash
-    const metadata = {
+    const metadata: ImageMetadata = {
       placeholders: {
         tiny: placeholderData,
         color: colorPlaceholder
