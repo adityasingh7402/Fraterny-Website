@@ -27,7 +27,9 @@ export {
 export {
   testCdnConnection,
   getCdnAvailability,
-  isCdnAvailabilityCacheValid
+  isCdnAvailabilityCacheValid,
+  getCdnError,          // Added this export
+  resetCdnAvailabilityCache
 } from './cdnNetwork';
 
 // Re-export from url service
