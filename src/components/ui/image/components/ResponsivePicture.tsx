@@ -48,8 +48,14 @@ export const ResponsivePicture = ({
   
   const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
+  // Determine which source to use for the img element (for browsers that don't support picture)
+  // If on mobile and we have a mobile source, use that, otherwise use desktop
+  const defaultImgSrc = useMobileSrc && processedSources.mobile ? 
+                         processedSources.mobile : 
+                         processedSources.desktop;
+  
   const imgProps = createImageProps(
-    processedSources.desktop, 
+    defaultImgSrc, 
     alt, 
     className, 
     loading, 

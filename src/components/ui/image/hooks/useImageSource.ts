@@ -1,4 +1,3 @@
-
 import { ResponsiveImageSource } from '../types';
 
 type ImageSourceResult = {
@@ -22,35 +21,34 @@ export const useImageSource = (
   // Handle string src with dynamic sources
   if (typeof src === 'string' || src === undefined) {
     if (hasDynamicDesktop) {
-      // For blogs, we use the same image for both mobile and desktop
-      // So we prioritize desktop image even on mobile devices if mobile image doesn't exist
+      // On mobile device with mobile image available, prioritize mobile image
       if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
-        // Use mobile image if on mobile device and mobile image exists
         resolvedSrc = mobileDynamicSrc;
-      } else if (desktopDynamicSrc) {
-        // Otherwise use desktop image for both device types
+      } 
+      // Otherwise use desktop image
+      else if (desktopDynamicSrc) {
         resolvedSrc = desktopDynamicSrc;
       }
     }
   } 
   // Handle responsive object src
   else if (typeof src === 'object') {
+    // If dynamic sources are available, use them and override the static sources
     if (hasDynamicDesktop) {
-      // If we have both desktop and mobile images
-      if (hasDynamicMobile && mobileDynamicSrc) {
-        // Create a new responsive object with both dynamic sources
-        resolvedSrc = {
-          mobile: mobileDynamicSrc,
-          desktop: desktopDynamicSrc!
-        };
-      } 
-      // If we only have the desktop image, use it for both mobile and desktop
-      else if (desktopDynamicSrc) {
-        resolvedSrc = {
-          mobile: desktopDynamicSrc,
-          desktop: desktopDynamicSrc
-        };
-      }
+      // Create a new responsive object with dynamic sources
+      resolvedSrc = {
+        // For mobile view, prefer the mobile dynamic image if available
+        mobile: (isMobile && hasDynamicMobile && mobileDynamicSrc) ? mobileDynamicSrc : 
+                (mobileDynamicSrc || src.mobile),
+        
+        // For desktop, use the desktop dynamic image
+        desktop: desktopDynamicSrc || src.desktop
+      };
+    }
+    // If no dynamic sources but on mobile device, ensure we use the mobile property
+    else if (isMobile) {
+      // Ensure mobile source is prioritized on mobile devices
+      resolvedSrc = src.mobile || src.desktop;
     }
   }
   
