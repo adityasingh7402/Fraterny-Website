@@ -27,3 +27,48 @@ export const clearImageUrlCacheForKey = (key: string): void => {
   
   console.log(`Cache entries for key ${key} cleared`);
 };
+
+/**
+ * Selectively clear URL cache for images in a specific category
+ */
+export const clearImageUrlCacheByCategory = (category: string): number => {
+  console.log(`Selectively clearing URL cache for category: ${category}`);
+  
+  // This is an estimate since we don't store category in the URL cache directly
+  let count = 0;
+  
+  // We'll need to get the list of keys in this category from the DB or another source
+  // For now, we'll just do a pattern-based invalidation if possible
+  count = urlCache.invalidateByMatcher(key => key.includes(`:${category}:`));
+  
+  return count;
+};
+
+/**
+ * Selectively clear URL cache based on a pattern
+ */
+export const selectiveClearImageUrlCache = (pattern: string): number => {
+  console.log(`Selectively clearing URL cache with pattern: ${pattern}`);
+  
+  let count = 0;
+  count = urlCache.invalidateByMatcher(key => key.includes(pattern));
+  
+  return count;
+};
+
+/**
+ * Clear URL cache for images matching a prefix
+ */
+export const clearImageUrlCacheByPrefix = (prefix: string): number => {
+  console.log(`Clearing URL cache for keys with prefix: ${prefix}`);
+  
+  let count = 0;
+  count = urlCache.invalidateByMatcher(key => {
+    // Extract the image key from cache keys like "url:hero-image" or "url:hero-image:small"
+    const matches = key.match(/^(?:url|placeholder:[^:]+):([^:]+)(?::.+)?$/);
+    return matches && matches[1].startsWith(prefix);
+  });
+  
+  return count;
+};
+

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
 
@@ -36,17 +37,39 @@ export const getGlobalCacheVersion = async (): Promise<string | null> => {
 
 /**
  * Update the global cache version to invalidate all cached content
+ * Now with optional scope parameter for more targeted invalidation
  */
-export const updateGlobalCacheVersion = async (): Promise<boolean> => {
+export const updateGlobalCacheVersion = async (options?: {
+  scope?: 'global' | 'category' | 'prefix';
+  target?: string;
+}): Promise<boolean> => {
   try {
+    const scope = options?.scope || 'global';
+    const target = options?.target;
+    
     // Generate a new timestamp-based version
     const newVersion = `v${Date.now()}`;
+    let cacheVersionKey = 'global_cache_version';
+    let invalidationTarget = '';
+    
+    // Create different version keys based on scope
+    if (scope === 'category' && target) {
+      cacheVersionKey = `cache_version_category_${target}`;
+      invalidationTarget = `category:${target}`;
+      console.log(`Updating cache version for category: ${target}`);
+    } else if (scope === 'prefix' && target) {
+      cacheVersionKey = `cache_version_prefix_${target}`;
+      invalidationTarget = `prefix:${target}`;
+      console.log(`Updating cache version for prefix: ${target}`);
+    } else {
+      console.log('Updating global cache version');
+    }
     
     // Update in the database
     const { error } = await supabase
       .from('website_settings')
       .upsert({ 
-        key: 'global_cache_version', 
+        key: cacheVersionKey, 
         value: newVersion,
         updated_at: new Date().toISOString()
       }, {
@@ -54,23 +77,37 @@ export const updateGlobalCacheVersion = async (): Promise<boolean> => {
       });
 
     if (error) {
-      console.error('Failed to update global cache version:', error);
+      console.error(`Failed to update cache version for ${scope}:`, error);
       return false;
     }
     
-    // Clear URL cache to force regeneration with new version
-    clearImageUrlCache();
+    // Clear URL cache selectively based on scope
+    if (scope === 'global') {
+      // Full clear for global updates
+      clearImageUrlCache();
+    } else if (scope === 'category' && target) {
+      // Selective clear for category
+      clearImageUrlCacheByCategory(target);
+    } else if (scope === 'prefix' && target) {
+      // Selective clear for prefix
+      clearImageUrlCacheByPrefix(target);
+    }
     
     // Update in-memory cache
-    urlCache.set('global:cache:version', newVersion, 60000); // 1 minute TTL
+    urlCache.set(`cache:version:${invalidationTarget || 'global'}`, newVersion, 60000); // 1 minute TTL
     
-    console.log(`Global cache version updated to ${newVersion}`);
+    console.log(`Cache version updated to ${newVersion} for ${scope}${target ? ': ' + target : ''}`);
     return true;
   } catch (e) {
-    console.error('Error updating global cache version:', e);
+    console.error('Error updating cache version:', e);
     return false;
   }
 };
 
 // Import the clearImageUrlCache function to use inside updateGlobalCacheVersion
-import { clearImageUrlCache } from './cacheService';
+import { 
+  clearImageUrlCache, 
+  clearImageUrlCacheByCategory,
+  clearImageUrlCacheByPrefix
+} from './cacheService';
+

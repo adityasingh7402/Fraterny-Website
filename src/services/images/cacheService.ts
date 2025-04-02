@@ -59,26 +59,92 @@ export class GenericCache<T> {
     return this.cache.delete(key);
   }
   
+  // Enhanced invalidation with pattern matching
   invalidate(keyPattern: string): void {
+    let invalidatedCount = 0;
+    
     // Remove all entries that match the pattern
     for (const key of this.cache.keys()) {
       if (key.includes(keyPattern)) {
         this.cache.delete(key);
+        invalidatedCount++;
       }
     }
+    
+    if (invalidatedCount > 0) {
+      console.log(`Invalidated ${invalidatedCount} cache entries matching pattern: ${keyPattern}`);
+    }
+  }
+  
+  // New method: Invalidate by custom matcher function
+  invalidateByMatcher(matcher: (key: string, value?: CacheEntry<T>) => boolean): number {
+    let invalidatedCount = 0;
+    
+    // Remove all entries that match the matcher function
+    for (const [key, value] of this.cache.entries()) {
+      if (matcher(key, value)) {
+        this.cache.delete(key);
+        invalidatedCount++;
+      }
+    }
+    
+    return invalidatedCount;
+  }
+  
+  // Invalidate entries by tag (if entries have associated tags)
+  invalidateByTag(tag: string): number {
+    let invalidatedCount = 0;
+    
+    for (const [key, entry] of this.cache.entries()) {
+      // Check if entry has tags and if it includes the specified tag
+      if (entry.data && typeof entry.data === 'object' && entry.data !== null) {
+        const dataTags = (entry.data as any).tags;
+        if (Array.isArray(dataTags) && dataTags.includes(tag)) {
+          this.cache.delete(key);
+          invalidatedCount++;
+        }
+      }
+    }
+    
+    return invalidatedCount;
   }
   
   cleanExpired(): void {
     const now = Date.now();
+    let expiredCount = 0;
+    
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.expiresAt) {
         this.cache.delete(key);
+        expiredCount++;
       }
+    }
+    
+    if (expiredCount > 0) {
+      console.log(`Cleaned ${expiredCount} expired cache entries`);
     }
   }
   
   clear(): void {
+    const count = this.cache.size;
     this.cache.clear();
+    console.log(`Cleared entire cache (${count} entries)`);
+  }
+  
+  // Get cache statistics
+  getStats(): { size: number, oldestTimestamp: number | null } {
+    let oldestTimestamp: number | null = null;
+    
+    if (this.cache.size > 0) {
+      oldestTimestamp = Math.min(
+        ...[...this.cache.values()].map(entry => entry.timestamp)
+      );
+    }
+    
+    return {
+      size: this.cache.size,
+      oldestTimestamp
+    };
   }
 }
 
@@ -90,3 +156,4 @@ export const urlCache = new GenericCache<string>((2 * 60 * 1000)); // 2 minutes 
 
 // Re-export types needed for the cache
 import { WebsiteImage } from './types';
+
