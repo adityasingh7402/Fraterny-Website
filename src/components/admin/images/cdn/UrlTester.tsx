@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ImageIcon, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getCdnUrl } from '@/utils/cdn';
+import { getCdnUrl, parseSupabaseUrl } from '@/utils/cdn';
 import { toast } from 'sonner';
 
 interface UrlTesterProps {
@@ -16,11 +16,16 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
   const [cdnTransformedUrl, setCdnTransformedUrl] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testSuccess, setTestSuccess] = useState<boolean>(false);
+  const [isSupabaseUrl, setIsSupabaseUrl] = useState<boolean>(false);
 
   // Update CDN transformed URL when test URL changes
   useEffect(() => {
     if (testImageUrl) {
       try {
+        // Check if it's a Supabase URL
+        setIsSupabaseUrl(testImageUrl.includes('supabase.co/storage/v1/object/public') || 
+                          testImageUrl.includes('supabase.in/storage/v1/object/public'));
+        
         const transformed = getCdnUrl(testImageUrl, true);
         setCdnTransformedUrl(transformed);
         setTestError(null); // Clear any previous errors
@@ -139,6 +144,14 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
           <div className={`${testSuccess ? 'bg-green-50' : 'bg-gray-50'} p-2 rounded-md`}>
             <p className="text-xs text-gray-500">Transformed URL:</p>
             <p className="text-xs font-mono break-all">{cdnTransformedUrl}</p>
+            
+            {isSupabaseUrl && (
+              <div className="mt-2 text-xs bg-blue-50 p-2 rounded border border-blue-100">
+                <p className="font-medium text-blue-600">Supabase URL detected</p>
+                <p className="text-blue-700">This URL will be properly routed through the CDN.</p>
+              </div>
+            )}
+            
             {testSuccess && (
               <div className="mt-2">
                 <a 

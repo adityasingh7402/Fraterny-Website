@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { 
   getCdnUrl, 
   isCdnEnabled, 
-  getCdnAvailability
-} from '@/utils/cdnUtils';
+  getCdnAvailability,
+  parseSupabaseUrl
+} from '@/utils/cdn';
 import { isValidUrl } from '@/utils/debugUtils';
 
 /**
@@ -66,6 +67,14 @@ export const useCdnImage = (
         
         if (shouldUseCdn) {
           try {
+            // Check if it's a Supabase URL that we need to transform
+            const isSupabaseUrl = imagePath.includes('supabase.co/storage/v1/object/public') || 
+                                 imagePath.includes('supabase.in/storage/v1/object/public');
+            
+            if (isSupabaseUrl) {
+              console.log('[CDN] Transforming Supabase URL:', imagePath);
+            }
+            
             processedUrl = getCdnUrl(imagePath, forceCdn) || imagePath;
             
             // Validate the URL

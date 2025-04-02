@@ -1,4 +1,3 @@
-
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -28,6 +27,26 @@ export const shouldUseCdn = (): boolean => {
 };
 
 /**
+ * Parse a Supabase URL to extract bucket and path information
+ * @param url - The Supabase URL to parse
+ * @returns Extracted bucket and path, or null if not a valid Supabase URL
+ */
+export const parseSupabaseUrl = (url: string): { bucket: string; path: string } | null => {
+  // Match Supabase storage URLs
+  const supabasePattern = /\/storage\/v1\/object\/public\/([^\/]+)(\/.*)/;
+  const matches = url.match(supabasePattern);
+  
+  if (matches && matches[1] && matches[2]) {
+    return {
+      bucket: matches[1],
+      path: matches[2]
+    };
+  }
+  
+  return null;
+};
+
+/**
  * Converts a local image path to a CDN URL
  * @param imagePath - The path to the image (e.g., /images/hero/image.webp or Supabase URL)
  * @param forceCdn - Override settings and force CDN usage (optional)
@@ -39,41 +58,45 @@ export const getCdnUrl = (
 ): string | null => {
   if (!imagePath) return null;
   
-  // Don't process already absolute URLs (including data URLs)
-  if (imagePath.startsWith('http') || imagePath.startsWith('data:')) {
-    // If the URL is already pointing to Supabase, route it through the CDN
-    if (imagePath.includes('supabase.co/storage/v1/object/public')) {
-      // Extract the bucket name and path part after "public" to send to our CDN
-      const publicPathMatch = imagePath.match(/\/public\/([^\/]+)(\/.*)/);
-      if (publicPathMatch && publicPathMatch[1] && publicPathMatch[2]) {
-        const bucket = publicPathMatch[1]; // e.g., "website-images"
-        const pathInBucket = publicPathMatch[2]; // e.g., "/abc-123.jpg"
-        
-        // Full path for CDN should be "bucket/path-in-bucket"
-        const cdnPath = `/${bucket}${pathInBucket}`;
-        
-        // Check if this path should bypass the CDN
-        if (!forceCdn && shouldExcludePath(cdnPath)) {
-          console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
-          return imagePath;
-        }
-        
-        // Include query parameters in the CDN URL
-        const urlObj = new URL(imagePath);
-        const queryString = urlObj.search;
-        
-        // Use CDN if enabled
-        const useCdn = forceCdn || shouldUseCdn();
-        return useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
-      }
-    }
+  // Don't process data URLs
+  if (imagePath.startsWith('data:')) {
     return imagePath;
   }
-
+  
   // Special handling for placeholder.svg - always use local version
   if (imagePath.includes('placeholder.svg')) {
     return imagePath;
   }
+  
+  // Handle absolute URLs (including Supabase storage URLs)
+  if (imagePath.startsWith('http')) {
+    // Check if this is a Supabase storage URL
+    const parsedSupabaseUrl = parseSupabaseUrl(imagePath);
+    
+    if (parsedSupabaseUrl) {
+      const { bucket, path } = parsedSupabaseUrl;
+      const cdnPath = `/${bucket}${path}`;
+      
+      // Check if this path should bypass the CDN
+      if (!forceCdn && shouldExcludePath(cdnPath)) {
+        console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
+        return imagePath;
+      }
+      
+      // Extract and preserve query parameters
+      const urlObj = new URL(imagePath);
+      const queryString = urlObj.search;
+      
+      // Use CDN if enabled
+      const useCdn = forceCdn || shouldUseCdn();
+      return useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
+    }
+    
+    // Not a Supabase URL, return unchanged
+    return imagePath;
+  }
+
+  // Handle relative paths (local assets)
   
   // Ensure path starts with /
   const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
