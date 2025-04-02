@@ -1,3 +1,4 @@
+
 /**
  * Image CDN Worker
  * Handles image optimization and delivery
@@ -26,7 +27,7 @@ async function handleRequest(request) {
     const url = new URL(request.url)
     
     // Debug logging
-    console.log(`Processing request for: ${url.pathname}`)
+    console.log(`Processing request for: ${url.pathname}${url.search}`)
     
     // Handle placeholder.svg specially - with fixed dimensions
     if (url.pathname.includes('placeholder.svg')) {
@@ -45,11 +46,15 @@ async function handleRequest(request) {
       });
     }
     
+    // Log all incoming requests for debugging
+    console.log(`CDN request received for: ${url.pathname}${url.search}`);
+    
     // If path starts with any recognizable image path
     if (url.pathname.startsWith('/images/') || 
         url.pathname.startsWith('/website-images/') ||
         url.pathname.match(/\/\d+\-ChatGPT\-Image/) ||  // Handle timestamps with ChatGPT image paths
-        url.pathname.includes('/storage/v1/object/public')) {
+        url.pathname.includes('/storage/v1/object/public') ||
+        url.pathname.startsWith('/lovable-uploads/')) {
       
       // Extract the path to forward to origin
       const imagePath = url.pathname
@@ -72,19 +77,25 @@ async function handleRequest(request) {
       console.log(`Forwarding request to: ${originUrl}`)
       
       // Fetch the image from origin
-      let response = await fetch(originUrl, {
-        cf: {
-          // Enable Cloudflare's image optimization if available
-          image: {
-            quality: 85,
-            fit: "scale-down",
+      let response
+      try {
+        response = await fetch(originUrl, {
+          cf: {
+            // Enable Cloudflare's image optimization if available
+            image: {
+              quality: 85,
+              fit: "scale-down",
+            },
+            cacheTtl: 31536000, // Cache for 1 year
+            cacheEverything: true,
           },
-          cacheTtl: 31536000, // Cache for 1 year
-          cacheEverything: true,
-        },
-        headers: request.headers,
-        method: request.method
-      })
+          headers: request.headers,
+          method: request.method
+        })
+      } catch (fetchError) {
+        console.error(`Error fetching from origin: ${fetchError.message}`);
+        throw new Error(`Origin fetch failed: ${fetchError.message}`);
+      }
       
       // If the image exists, return it with proper headers
       if (response.ok) {
@@ -113,6 +124,7 @@ async function handleRequest(request) {
         </svg>`;
         
         return new Response(placeholderSvg, {
+          status: 200, // Return 200 OK instead of 404 to prevent client errors
           headers: {
             ...corsHeaders,
             'Content-Type': 'image/svg+xml',
@@ -122,8 +134,20 @@ async function handleRequest(request) {
       }
     }
     
+    // Special handler for the root path - return a status message
+    if (url.pathname === '/' || url.pathname === '') {
+      return new Response('Image CDN is running. Use /images/path/to/image.jpg to access images.', {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/plain'
+        }
+      });
+    }
+    
     // If no conditions match, return 404
-    return new Response('Not found', {
+    console.log(`No handler for path: ${url.pathname}`);
+    return new Response(`Not found: ${url.pathname}`, {
       status: 404,
       headers: {
         ...corsHeaders,
@@ -131,8 +155,9 @@ async function handleRequest(request) {
       }
     })
   } catch (err) {
-    // Return error response
-    return new Response(`Error: ${err.message}`, {
+    // Return detailed error response
+    console.error(`Worker error: ${err.message}`);
+    return new Response(`Error: ${err.message}\n\nStack: ${err.stack || 'No stack trace available'}`, {
       status: 500,
       headers: {
         ...corsHeaders,
