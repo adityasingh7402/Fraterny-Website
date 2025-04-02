@@ -18,7 +18,7 @@ export const useImageSource = (
 ): ImageSourceResult => {
   let resolvedSrc = src;
   
-  console.log('useImageSource inputs:', { 
+  console.log('[useImageSource] inputs:', { 
     isMobile, 
     hasDynamicMobile,
     mobileDynamicSrc,
@@ -32,60 +32,60 @@ export const useImageSource = (
     if (hasDynamicDesktop) {
       // On mobile device with mobile image available, prioritize mobile image
       if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
-        console.log('Using mobile dynamic source for string src on mobile');
+        console.log('[useImageSource] Using mobile dynamic source for string src on mobile');
         resolvedSrc = mobileDynamicSrc;
       } 
       // Otherwise use desktop image
       else if (desktopDynamicSrc) {
-        console.log('Using desktop dynamic source for string src');
+        console.log('[useImageSource] Using desktop dynamic source for string src');
         resolvedSrc = desktopDynamicSrc;
       }
     }
   } 
   // Handle responsive object src
   else if (typeof src === 'object') {
-    console.log('Processing responsive object:', src);
+    console.log('[useImageSource] Processing responsive object:', src);
     
     // If on mobile device, prioritize mobile source regardless of dynamic availability
     if (isMobile) {
-      console.log('On mobile device, prioritizing mobile source');
+      console.log('[useImageSource] On mobile device, prioritizing mobile source');
       
       // If we have a dynamic mobile source, use it
       if (hasDynamicMobile && mobileDynamicSrc) {
-        console.log('Using dynamic mobile source on mobile');
+        console.log('[useImageSource] Using dynamic mobile source on mobile');
         resolvedSrc = mobileDynamicSrc;
       }
       // Otherwise use the mobile property from the responsive object if available
       else if (src.mobile) {
-        console.log('Using static mobile source on mobile');
+        console.log('[useImageSource] Using static mobile source on mobile');
         resolvedSrc = src.mobile;
       }
       // Fallback to desktop source if no mobile source available
       else if (hasDynamicDesktop && desktopDynamicSrc) {
-        console.log('No mobile source, falling back to dynamic desktop source');
+        console.log('[useImageSource] No mobile source, falling back to dynamic desktop source');
         resolvedSrc = desktopDynamicSrc;
       }
       else {
-        console.log('No mobile source, falling back to static desktop source');
+        console.log('[useImageSource] No mobile source, falling back to static desktop source');
         resolvedSrc = src.desktop;
       }
     }
     // On desktop, use desktop source
     else {
-      console.log('On desktop device, using desktop source');
+      console.log('[useImageSource] On desktop device, using desktop source');
       // If we have a dynamic desktop source, use it
       if (hasDynamicDesktop && desktopDynamicSrc) {
-        console.log('Using dynamic desktop source on desktop');
+        console.log('[useImageSource] Using dynamic desktop source on desktop');
         resolvedSrc = desktopDynamicSrc;
       }
       // Otherwise use the desktop property from the responsive object
       else {
-        console.log('Using static desktop source on desktop');
+        console.log('[useImageSource] Using static desktop source on desktop');
         resolvedSrc = src.desktop;
       }
     }
   }
   
-  console.log('Final resolved source:', resolvedSrc);
+  console.log('[useImageSource] Final resolved source:', resolvedSrc);
   return { resolvedSrc };
 };

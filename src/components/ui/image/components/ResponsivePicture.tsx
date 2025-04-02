@@ -41,8 +41,8 @@ export const ResponsivePicture = ({
 }: ResponsivePictureProps) => {
   // Log out the sources to debug
   useEffect(() => {
-    console.log('ResponsivePicture sources:', sources);
-    console.log('useMobileSrc:', useMobileSrc);
+    console.log('[ResponsivePicture] sources:', sources);
+    console.log('[ResponsivePicture] useMobileSrc:', useMobileSrc);
   }, [sources, useMobileSrc]);
 
   // Process all URLs through CDN if enabled
@@ -55,11 +55,12 @@ export const ResponsivePicture = ({
   const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
   // Determine which source to use for the img element (for browsers that don't support picture)
+  // CRITICAL FIX: Ensure we use mobile source when on mobile
   const defaultImgSrc = useMobileSrc && processedSources.mobile 
     ? processedSources.mobile
     : processedSources.desktop;
   
-  console.log('ResponsivePicture defaultImgSrc:', defaultImgSrc, 'based on useMobileSrc:', useMobileSrc);
+  console.log('[ResponsivePicture] Selected defaultImgSrc:', defaultImgSrc, 'based on useMobileSrc:', useMobileSrc);
   
   const imgProps = createImageProps(
     defaultImgSrc, 

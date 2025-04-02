@@ -8,7 +8,7 @@ const HeroSection = () => {
   
   // Debug the mobile status
   useEffect(() => {
-    console.log('HeroSection component - isMobile value:', isMobile);
+    console.log('[HeroSection] component - isMobile value:', isMobile);
   }, [isMobile]);
   
   return (
