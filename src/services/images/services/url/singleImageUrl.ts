@@ -1,9 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
 import { getContentHashFromMetadata, createVersionedUrl, createSignedUrl } from "./utils";
+import { debugStoragePath, monitorNetworkRequest } from "@/utils/debugUtils";
 
 /**
  * Get a signed URL for an image by its key
@@ -22,10 +22,14 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   
   // Track API call
   trackApiCall('getImageUrlByKey');
+  console.log(`Fetching signed URL for image key: "${normalizedKey}"`);
   
   try {
     // Get global cache version for proper versioning
     const cacheVersion = await getGlobalCacheVersion();
+    
+    // Monitor this database request
+    const monitor = monitorNetworkRequest('supabase:website_images');
     
     // Get image record from database
     const { data: image, error } = await supabase
@@ -34,8 +38,16 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .eq('key', normalizedKey)
       .maybeSingle();
     
-    if (error || !image) {
+    if (error) {
+      monitor.failure(error);
       console.error(`Error loading image with key "${normalizedKey}":`, error);
+      return '/placeholder.svg';
+    }
+    
+    monitor.success();
+    
+    if (!image) {
+      console.error(`No image found with key "${normalizedKey}"`);
       return '/placeholder.svg';
     }
     
@@ -44,6 +56,11 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     if (!storagePath) {
       console.error(`No storage path found for image with key "${normalizedKey}"`);
+      return '/placeholder.svg';
+    }
+    
+    // Validate storage path
+    if (!debugStoragePath(storagePath)) {
       return '/placeholder.svg';
     }
     

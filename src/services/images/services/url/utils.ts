@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,15 +35,22 @@ export const createVersionedUrl = (
 ): string => {
   if (!url) return url;
   
-  const versionedUrl = new URL(url);
-  
-  if (contentHash) {
-    versionedUrl.searchParams.append('v', contentHash);
-  } else if (cacheVersion) {
-    versionedUrl.searchParams.append('v', cacheVersion);
+  // Check if url is already a valid URL object
+  try {
+    const versionedUrl = new URL(url);
+    
+    if (contentHash) {
+      versionedUrl.searchParams.append('v', contentHash);
+    } else if (cacheVersion) {
+      versionedUrl.searchParams.append('v', cacheVersion);
+    }
+    
+    return versionedUrl.toString();
+  } catch (error) {
+    // If the URL is not valid, return it unchanged
+    console.error(`Invalid URL format: ${url}`, error);
+    return url;
   }
-  
-  return versionedUrl.toString();
 };
 
 /**
@@ -55,18 +61,30 @@ export const createSignedUrl = async (
   expirySeconds: number = 60 * 60
 ): Promise<string> => {
   if (!storagePath) return '/placeholder.svg';
-
+  
   try {
+    console.log(`Generating signed URL for: ${storagePath}`);
+    
     // Get signed URL from Supabase storage
     const { data, error } = await supabase.storage
       .from('images')
       .createSignedUrl(storagePath, expirySeconds);
     
+    // Debug the response
+    console.log(`Signed URL response for ${storagePath}:`, { data, error });
+    
     // Check if we have valid data and signedUrl
-    if (error || !data || !data.signedUrl) {
+    if (error) {
       console.error(`Error creating signed URL for "${storagePath}":`, error);
       return '/placeholder.svg';
     }
+    
+    if (!data || !data.signedUrl) {
+      console.error(`No signed URL returned for "${storagePath}"`);
+      return '/placeholder.svg';
+    }
+    
+    console.log(`Successfully generated signed URL for "${storagePath}": ${data.signedUrl.substring(0, 50)}...`);
     
     return data.signedUrl;
   } catch (err) {
