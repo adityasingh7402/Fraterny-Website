@@ -58,11 +58,12 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Fix: Use correct HTML attribute name 'fetchpriority' instead of 'fetchPriority'
+  // Fix: Use the correct React prop name 'fetchPriority' (camelCase)
+  // React will automatically translate this to the lowercase HTML attribute 'fetchpriority'
   return <img 
     {...imgProps} 
     style={style} 
     onClick={onClick}
-    fetchpriority={fetchPriority} 
+    fetchPriority={fetchPriority} 
   />;
 };
