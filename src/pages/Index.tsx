@@ -1,5 +1,5 @@
 
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -91,11 +91,20 @@ const Index = () => {
     };
   }, []);
 
-  // Preload critical images for main page
+  // Memoize critical image paths to prevent recreating the array on each render
+  const criticalImagePaths = useMemo(() => {
+    return CRITICAL_IMAGE_KEYS.map(key => `/images/${key}.webp`);
+  }, []);
+
+  // Preload critical images for main page - only once with memoized paths
   useImagePreloader(
-    CRITICAL_IMAGE_KEYS.map(key => `/images/${key}.webp`), 
+    criticalImagePaths, 
     true, 
-    { priority: 'high' }
+    { 
+      priority: 'high',
+      // Add a unique name to help with debugging
+      name: 'index-critical-images'
+    }
   );
 
   // Create refs for each section to use with intersection observer

@@ -19,17 +19,23 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
   priority = false,
 }) => {
   const [isNearViewport, setIsNearViewport] = useState(priority); // Start as true if priority
+  const [debugEnabled, setDebugEnabled] = useState(false);
   
+  // Create a more stable ref with a consistent identity
   const [galleryRef, isVisible] = useIntersectionObserver<HTMLDivElement>({
     rootMargin: '500px', // Increased to ensure more eager loading
     triggerOnce: false,
     threshold: 0.01, // Trigger with minimal visibility
   });
 
+  // Unique identifier for this gallery instance for better logging
+  const galleryId = useMemo(() => `gallery-${Math.floor(Math.random() * 10000)}`, []);
+
   // Memoize the image sources to prevent unnecessary re-renders
   const imageSourcesToPreload = useMemo(() => {
-    return imageSrcs && imageSrcs.length > 0 ? [...imageSrcs] : undefined;
-  }, [imageSrcs]);
+    if (!imageSrcs || imageSrcs.length === 0) return undefined;
+    return [...imageSrcs];
+  }, [imageSrcs?.length, imageSrcs ? JSON.stringify(imageSrcs) : null]);
 
   // Track when gallery is approaching viewport - with useCallback to stabilize function reference
   const updateNearViewport = useCallback((isVisible: boolean) => {
@@ -43,10 +49,12 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
     updateNearViewport(isVisible);
   }, [isVisible, updateNearViewport]);
 
-  // More controlled logging - only log when state changes
+  // More controlled logging - only log when state changes AND debug is enabled
   useEffect(() => {
-    console.log(`[ViewportAwareGallery] Near viewport: ${isNearViewport}, Visible: ${isVisible}, Priority: ${priority}`);
-  }, [isNearViewport, isVisible, priority]);
+    if (debugEnabled) {
+      console.log(`[ViewportAwareGallery:${galleryId}] Near viewport: ${isNearViewport}, Visible: ${isVisible}, Priority: ${priority}`);
+    }
+  }, [isNearViewport, isVisible, priority, debugEnabled, galleryId]);
 
   // Preload images when gallery is near viewport
   const { preloadedImages } = useImagePreloader(
@@ -54,9 +62,14 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
     isNearViewport,
     { 
       priority: priority ? 'high' : 'low',
+      name: `gallery-${galleryId}`,
       // Use inline functions but they depend on stable values
-      onLoad: useCallback((src) => console.log(`[Gallery] Preloaded: ${src}`), []),
-      onError: useCallback((src, error) => console.error(`[Gallery] Failed to preload: ${src}`, error), [])
+      onLoad: useCallback((src) => {
+        if (debugEnabled) console.log(`[Gallery:${galleryId}] Preloaded: ${src}`);
+      }, [debugEnabled, galleryId]),
+      onError: useCallback((src, error) => {
+        console.error(`[Gallery:${galleryId}] Failed to preload: ${src}`, error);
+      }, [galleryId])
     }
   );
 
@@ -66,7 +79,8 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
     'data-near-viewport': isNearViewport ? 'true' : 'false',
     'data-visible': isVisible ? 'true' : 'false',
     'data-priority': priority ? 'true' : 'false',
-  }), [isNearViewport, isVisible, preloadedImages.size, priority]);
+    'data-gallery-id': galleryId,
+  }), [isNearViewport, isVisible, preloadedImages.size, priority, galleryId]);
 
   return (
     <div 

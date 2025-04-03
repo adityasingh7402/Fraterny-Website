@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
 import { getImageUrlByKey } from '@/services/images';
@@ -48,6 +48,15 @@ const ImageGallery = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Create a persistent cache for image promises
+  const imagePromisesRef = useRef<Record<string, Promise<string>>>({});
+  
+  // Create stable image keys for dependency tracking
+  const imageKeys = useMemo(() => 
+    experienceImages.map(img => img.dynamicKey), 
+    []
+  );
+  
   // Use abortController for cleanup
   useEffect(() => {
     const abortController = new AbortController();
@@ -57,13 +66,10 @@ const ImageGallery = () => {
       try {
         setIsLoading(true);
         
-        // Create cache of promises to avoid duplicate fetches
-        const imagePromises: Record<string, Promise<string>> = {};
-        
-        // Initialize all promises first to avoid race conditions
-        experienceImages.forEach(img => {
-          if (!imagePromises[img.dynamicKey]) {
-            imagePromises[img.dynamicKey] = getImageUrlByKey(img.dynamicKey);
+        // Only create new promises for keys that don't have promises yet
+        imageKeys.forEach(key => {
+          if (!imagePromisesRef.current[key]) {
+            imagePromisesRef.current[key] = getImageUrlByKey(key);
           }
         });
         
@@ -71,7 +77,7 @@ const ImageGallery = () => {
         if (signal.aborted) return;
         
         const results = await Promise.all(
-          experienceImages.map(img => imagePromises[img.dynamicKey])
+          imageKeys.map(key => imagePromisesRef.current[key])
         );
         
         // Check if component is still mounted before updating state
@@ -100,31 +106,36 @@ const ImageGallery = () => {
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [imageKeys]); // Only depends on imageKeys which is memoized and stable
+  
+  // Memoize the gallery component to prevent recreation on renders
+  const GalleryComponent = useMemo(() => (
+    <ViewportAwareGallery 
+      imageSrcs={imageUrls}
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1"
+      priority={true} // Mark as high priority content
+    >
+      {experienceImages.map((image, index) => (
+        <div key={index} className="aspect-[4/3] w-full">
+          <ResponsiveImage 
+            dynamicKey={image.dynamicKey}
+            alt={image.alt}
+            className="w-full h-full"
+            loading={index < 2 ? "eager" : "lazy"}
+            priority={index < 2} // First two images have higher priority
+            width={image.width}
+            height={image.height}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+            objectFit="cover"
+          />
+        </div>
+      ))}
+    </ViewportAwareGallery>
+  ), [imageUrls]);
   
   return (
     <section className="w-full overflow-hidden">
-      <ViewportAwareGallery 
-        imageSrcs={imageUrls}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1"
-        priority={true} // Mark as high priority content
-      >
-        {experienceImages.map((image, index) => (
-          <div key={index} className="aspect-[4/3] w-full">
-            <ResponsiveImage 
-              dynamicKey={image.dynamicKey}
-              alt={image.alt}
-              className="w-full h-full"
-              loading={index < 2 ? "eager" : "lazy"}
-              priority={index < 2} // First two images have higher priority
-              width={image.width}
-              height={image.height}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-              objectFit="cover"
-            />
-          </div>
-        ))}
-      </ViewportAwareGallery>
+      {GalleryComponent}
     </section>
   );
 };

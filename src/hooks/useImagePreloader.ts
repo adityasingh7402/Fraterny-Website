@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 
 interface PreloadOptions {
   priority?: 'high' | 'low' | 'auto';
   onLoad?: (src: string) => void;
   onError?: (src: string, error: Error) => void;
+  name?: string; // Added for better debugging
 }
 
 /**
@@ -16,13 +18,16 @@ export function useImagePreloader(
   enabled: boolean = true,
   options: PreloadOptions = {}
 ) {
-  const { priority = 'low', onLoad, onError } = options;
+  const { priority = 'low', onLoad, onError, name = 'unnamed' } = options;
   const network = useNetworkStatus();
   
   // Use ref to track loaded images instead of directly updating state in event handlers
   const loadedImagesRef = useRef<Set<string>>(new Set());
   // Track images that are currently in the loading process to prevent duplicates
   const loadingImagesRef = useRef<Set<string>>(new Set());
+  // Track if this hook instance has already initiated preloading
+  const hasInitiatedPreloadingRef = useRef<boolean>(false);
+  
   const [loadingStatus, setLoadingStatus] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({});
   
   // Memoize callbacks to prevent recreation on every render
@@ -44,24 +49,40 @@ export function useImagePreloader(
     setLoadingStatus(prev => ({ ...prev, [src]: 'error' }));
     onError?.(src, error);
   }, [onError]);
+
+  // Memoize the actual array of image sources for stable dependency comparison
+  // This prevents the effect from running on every render due to array reference changes
+  const stableImageSrcs = useMemo(() => {
+    if (!imageSrcs) return [];
+    return [...imageSrcs].filter(Boolean);
+  }, [imageSrcs ? JSON.stringify(imageSrcs) : null]);
+  
+  // Memoize network conditions to create a stable dependency
+  const networkConditions = useMemo(() => ({
+    saveDataEnabled: network.saveDataEnabled,
+    effectiveConnectionType: network.effectiveConnectionType
+  }), [network.saveDataEnabled, network.effectiveConnectionType]);
   
   useEffect(() => {
-    // Skip if disabled or no images to load
-    if (!enabled || !imageSrcs || imageSrcs.length === 0) {
+    // Skip if disabled or no images to load or already initiated preloading
+    if (!enabled || stableImageSrcs.length === 0 || hasInitiatedPreloadingRef.current) {
       return;
     }
+
+    // Mark that this hook instance has initiated preloading
+    hasInitiatedPreloadingRef.current = true;
     
     // Skip preloading on extremely poor connections unless high priority
-    const poorConnection = network.saveDataEnabled && 
-      ['slow-2g', '2g'].includes(network.effectiveConnectionType);
+    const poorConnection = networkConditions.saveDataEnabled && 
+      ['slow-2g', '2g'].includes(networkConditions.effectiveConnectionType);
     
     if (poorConnection && priority !== 'high') {
-      console.log('[ImagePreloader] Skipping preload due to poor network conditions');
+      console.log(`[ImagePreloader:${name}] Skipping preload due to poor network conditions`);
       return;
     }
     
     // Filter out already loaded/loading images and empty/invalid URLs
-    const imagesToLoad = imageSrcs
+    const imagesToLoad = stableImageSrcs
       .filter(src => src && src.trim() !== '' && 
               !loadedImagesRef.current.has(src) && 
               !loadingImagesRef.current.has(src))
@@ -73,7 +94,7 @@ export function useImagePreloader(
     
     // Log only once per batch
     if (imagesToLoad.length > 0) {
-      console.log(`[ImagePreloader] Preloading ${imagesToLoad.length} images (priority: ${priority})`);
+      console.log(`[ImagePreloader:${name}] Preloading ${imagesToLoad.length} images (priority: ${priority})`);
     }
     
     // Update loading status for all images
@@ -146,13 +167,12 @@ export function useImagePreloader(
     };
   }, [
     enabled, 
-    // Stringify array for stable dependency comparison
-    imageSrcs ? JSON.stringify(imageSrcs) : null, 
+    stableImageSrcs, // Use the memoized stable array instead of recreating it
     priority, 
-    network.saveDataEnabled, 
-    network.effectiveConnectionType,
+    networkConditions, // Use the memoized network conditions object
     handleImageLoad,
-    handleImageError
+    handleImageError,
+    name
   ]);
   
   return {
