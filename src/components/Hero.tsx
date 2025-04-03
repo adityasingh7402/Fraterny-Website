@@ -65,8 +65,7 @@ const Hero = () => {
             alt="Stunning luxury villa with breathtaking views"
             className="w-full h-full object-cover"
             loading="eager"
-            // Fix fetchPriority warning by using lowercase
-            fetchpriority="high"
+            fetchPriority="high"
           />
         </div>
         
