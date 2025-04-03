@@ -1,283 +1,137 @@
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateGlobalCacheVersion, getGlobalCacheVersion } from '@/services/images';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
+import ServiceWorkerStatus from '@/components/admin/images/cdn/ServiceWorkerStatus';
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { RefreshCw, Info, Settings, FolderTree } from "lucide-react";
-import { updateGlobalCacheVersion, getGlobalCacheVersion } from '@/services/images/services/cacheVersionService';
-import { clearImageCache, clearImageUrlCache } from '@/services/images';
-import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import CdnTestingPanel from '@/components/admin/images/CdnTestingPanel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-/**
- * Admin panel component for managing cache versions with enhanced selective invalidation
- */
 const CacheVersionControl = () => {
+  const queryClient = useQueryClient();
+  const [isUpdating, setIsUpdating] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [showCdnPanel, setShowCdnPanel] = useState(false);
-  const [invalidationScope, setInvalidationScope] = useState<'global' | 'category' | 'prefix'>('global');
-  const [invalidationTarget, setInvalidationTarget] = useState('');
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-
-  // Fetch the current cache version and categories when the component mounts
+  const [scope, setScope] = useState<'global' | 'prefix' | 'category'>('global');
+  const [target, setTarget] = useState<string>('');
+  
   useEffect(() => {
-    fetchCurrentVersion();
-    fetchCategories();
-  }, []);
-
-  // Get the current cache version
-  const fetchCurrentVersion = async () => {
-    const version = await getGlobalCacheVersion();
-    setCurrentVersion(version);
+    const fetchCacheVersion = async () => {
+      const version = await getGlobalCacheVersion();
+      setCurrentVersion(version);
+    };
     
-    if (version && version.startsWith('v')) {
-      const timestamp = parseInt(version.substring(1));
-      if (!isNaN(timestamp)) {
-        const date = new Date(timestamp);
-        setLastUpdated(date.toLocaleString());
-      }
-    }
-  };
+    fetchCacheVersion();
+  }, []);
   
-  // Fetch available image categories for the dropdown
-  const fetchCategories = async () => {
+  const handleUpdateCacheVersion = async () => {
+    setIsUpdating(true);
     try {
-      const response = await fetch('/api/images/categories');
-      const data = await response.json();
-      
-      if (data.categories && Array.isArray(data.categories)) {
-        setAvailableCategories(data.categories);
-      }
-    } catch (error) {
-      console.error('Error fetching image categories:', error);
-      // Use some defaults if we can't fetch categories
-      setAvailableCategories(['hero', 'blog', 'product', 'gallery']);
-    }
-  };
-
-  // Update the cache version based on selected scope and target
-  const handleUpdateVersion = async () => {
-    setIsLoading(true);
-    try {
-      // Validate target if scope is not global
-      if (invalidationScope !== 'global' && !invalidationTarget) {
-        toast.error('Target required', {
-          description: `Please specify a ${invalidationScope} target for selective cache invalidation.`,
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      const options = invalidationScope === 'global' 
-        ? undefined 
-        : { scope: invalidationScope, target: invalidationTarget };
-      
-      const success = await updateGlobalCacheVersion(options);
-      
+      const success = await updateGlobalCacheVersion({ scope, target });
       if (success) {
-        const scopeMessage = invalidationScope === 'global' 
-          ? 'All cached images' 
-          : `Images in ${invalidationScope} "${invalidationTarget}"`;
-          
-        toast.success('Cache version updated', {
-          description: `${scopeMessage} will be refreshed on next load.`,
+        toast({
+          title: "Cache version updated",
+          description: "The global cache version has been updated. Clients will now refresh their caches.",
         });
-        await fetchCurrentVersion();
+        
+        // Invalidate the query to refetch the cache version
+        queryClient.invalidateQueries({ queryKey: ['cacheVersion'] });
+        
+        // Update local state
+        const newVersion = await getGlobalCacheVersion();
+        setCurrentVersion(newVersion);
       } else {
-        toast.error('Failed to update cache version', {
-          description: 'Please try again or check the console for errors.',
+        toast({
+          title: "Error updating cache version",
+          description: "Failed to update the global cache version. Please try again.",
+          variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error('Error updating cache version:', error);
-      toast.error('An error occurred', {
-        description: 'Could not update cache version.',
-      });
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
-  // Clear all caches
-  const handleClearCache = async () => {
-    setIsLoading(true);
-    try {
-      // Clear both in-memory and URL caches
-      clearImageCache();
-      clearImageUrlCache();
-      
-      toast.success('All caches cleared', {
-        description: 'The application will fetch fresh data on next load.',
-      });
-    } catch (error) {
-      console.error('Error clearing caches:', error);
-      toast.error('An error occurred', {
-        description: 'Could not clear caches.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Toggle CDN panel visibility
-  const toggleCdnPanel = () => {
-    setShowCdnPanel(!showCdnPanel);
+  const handleCacheUpdated = () => {
+    // This function will be called when the service worker cache is cleared
+    queryClient.invalidateQueries({ queryKey: ['cacheVersion'] });
+    toast({
+      title: "Cache refreshed",
+      description: "Service worker cache has been cleared.",
+    });
   };
 
   return (
-    <Card className="bg-white shadow-sm border">
-      <CardHeader className="bg-navy bg-opacity-5 pb-2">
-        <CardTitle className="text-navy text-lg flex items-center gap-2">
-          <RefreshCw className="h-5 w-5" />
+    <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+      <div className="px-4 py-5 sm:px-6">
+        <h3 className="text-lg font-medium text-gray-900">
           Cache Version Control
-        </CardTitle>
-        <CardDescription>
-          Manage image caching and versioning
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="pt-4 px-4">
-        <div className="space-y-4">
-          <div className="flex flex-col space-y-1">
-            <span className="text-sm font-medium text-navy">Current Cache Version</span>
-            <span className="bg-navy bg-opacity-5 px-3 py-2 rounded text-sm font-mono">
-              {currentVersion || 'No version set'}
-            </span>
-            {lastUpdated && (
-              <span className="text-xs text-gray-500 mt-1">
-                Last updated: {lastUpdated}
-              </span>
-            )}
-          </div>
+        </h3>
+        <p className="mt-1 max-w-2xl text-sm text-gray-500">
+          Manage the global cache version to force clients to refresh their caches.
+        </p>
+      </div>
 
-          <Tabs defaultValue="selective" className="w-full">
-            <TabsList className="grid grid-cols-2 mb-2">
-              <TabsTrigger value="selective">Selective Invalidation</TabsTrigger>
-              <TabsTrigger value="global">Global Invalidation</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="selective" className="space-y-3">
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Invalidation Scope</label>
-                <Select 
-                  value={invalidationScope} 
-                  onValueChange={(value) => setInvalidationScope(value as any)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select scope" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="global">Global (All Images)</SelectItem>
-                    <SelectItem value="category">By Category</SelectItem>
-                    <SelectItem value="prefix">By Path Prefix</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {invalidationScope !== 'global' && (
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium">
-                    {invalidationScope === 'category' ? 'Category' : 'Path Prefix'}
-                  </label>
-                  
-                  {invalidationScope === 'category' ? (
-                    <Select 
-                      value={invalidationTarget} 
-                      onValueChange={setInvalidationTarget}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableCategories.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <FolderTree className="h-4 w-4 text-gray-500" />
-                      <Input
-                        value={invalidationTarget}
-                        onChange={(e) => setInvalidationTarget(e.target.value)}
-                        placeholder="e.g., hero/, blog/"
-                        className="flex-1"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div className="pt-2">
-                <Button 
-                  variant="default" 
-                  className="bg-navy text-white hover:bg-navy hover:bg-opacity-90 w-full"
-                  onClick={handleUpdateVersion} 
-                  disabled={isLoading || (invalidationScope !== 'global' && !invalidationTarget)}
-                >
-                  {isLoading ? 'Updating...' : `Update ${invalidationScope === 'global' ? 'All' : 'Selected'} Cache`}
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="global">
-              <div className="flex items-center p-3 border border-amber-200 bg-amber-50 rounded-md mb-3">
-                <Info className="h-4 w-4 text-amber-500 mr-2 flex-shrink-0" />
-                <p className="text-xs text-amber-700">
-                  Updating the global cache version will force browsers to download fresh copies of all images, 
-                  even if they were previously cached. Use this when you've updated images but users are still seeing old versions.
-                </p>
-              </div>
-              
-              <Button 
-                variant="default" 
-                className="bg-navy text-white hover:bg-navy hover:bg-opacity-90 w-full"
-                onClick={() => {
-                  setInvalidationScope('global');
-                  setInvalidationTarget('');
-                  handleUpdateVersion();
-                }} 
-                disabled={isLoading}
-              >
-                {isLoading ? 'Updating...' : 'Update All Cache Versions'}
-              </Button>
-              
-              <div className="mt-3">
-                <Button 
-                  variant="outline" 
-                  onClick={handleClearCache} 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  Clear All Caches
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          {/* CDN Settings Section */}
-          <div className="border-t pt-4">
-            <Button 
-              variant="outline" 
-              className="flex items-center space-x-2 mb-4 text-sm"
-              onClick={toggleCdnPanel}
-              size="sm"
-            >
-              <Settings className="h-4 w-4" />
-              <span>{showCdnPanel ? 'Hide CDN Settings' : 'Show CDN Settings'}</span>
-            </Button>
-            
-            {showCdnPanel && <CdnTestingPanel />}
-          </div>
+      <div className="p-4 grid gap-6">
+        {/* Add Service Worker Status Component */}
+        <ServiceWorkerStatus onCacheClear={handleCacheUpdated} />
+        
+        <div>
+          <Label htmlFor="current-version">Current Version</Label>
+          <Input 
+            type="text" 
+            id="current-version" 
+            className="mt-1" 
+            value={currentVersion || 'Loading...'} 
+            readOnly 
+          />
         </div>
-      </CardContent>
-    </Card>
+        
+        <div>
+          <Label htmlFor="scope">Invalidation Scope</Label>
+          <select 
+            id="scope" 
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            value={scope}
+            onChange={(e) => setScope(e.target.value as 'global' | 'prefix' | 'category')}
+          >
+            <option value="global">Global</option>
+            <option value="prefix">Prefix</option>
+            <option value="category">Category</option>
+          </select>
+        </div>
+        
+        {scope !== 'global' && (
+          <div>
+            <Label htmlFor="target">Target</Label>
+            <Input 
+              type="text" 
+              id="target" 
+              className="mt-1" 
+              placeholder={`Enter ${scope} to invalidate`}
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+            />
+          </div>
+        )}
+        
+        <Button 
+          onClick={handleUpdateCacheVersion}
+          disabled={isUpdating}
+        >
+          {isUpdating ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              Updating Cache...
+            </>
+          ) : (
+            "Update Cache Version"
+          )}
+        </Button>
+      </div>
+    </div>
   );
 };
 

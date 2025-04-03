@@ -8,6 +8,7 @@ import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
+import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -63,6 +64,17 @@ const Index = () => {
     } catch (error) {
       console.warn('Failed to initialize localStorage cache:', error);
     }
+    
+    // Register service worker for improved caching
+    registerServiceWorker()
+      .then(registration => {
+        if (registration) {
+          console.log('Service Worker registered for enhanced caching');
+        }
+      })
+      .catch(error => {
+        console.warn('Service Worker registration failed:', error);
+      });
     
     // Return a composite cleanup function
     return () => {

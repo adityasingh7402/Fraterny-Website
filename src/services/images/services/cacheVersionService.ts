@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { localStorageCacheService } from '../cache/localStorageCacheService';
+import { updateServiceWorkerCacheVersion } from "@/utils/serviceWorkerRegistration";
 
 // Cache for global version
 let cachedGlobalVersion: string | null = null;
@@ -95,6 +96,21 @@ export const updateGlobalCacheVersion = async (options: {
     // Update localStorage
     if (localStorageCacheService.isValid()) {
       localStorageCacheService.updateGlobalVersion(versionString);
+    }
+    
+    // Also update the service worker cache version if available
+    try {
+      updateServiceWorkerCacheVersion(versionString)
+        .then(success => {
+          if (success) {
+            console.log('Service worker cache version updated successfully');
+          }
+        })
+        .catch(err => {
+          console.warn('Failed to update service worker cache version:', err);
+        });
+    } catch (err) {
+      console.warn('Error while trying to update service worker cache:', err);
     }
     
     console.log(`Global cache version updated: ${versionString}`);
