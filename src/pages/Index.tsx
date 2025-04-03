@@ -11,6 +11,7 @@ import { localStorageCacheService } from '@/services/images/cache/localStorageCa
 import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
+import CdnInitializer from '@/components/admin/images/cdn/CdnInitializer';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -125,6 +126,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Add CDN Initializer to ensure CDN is enabled */}
+      <CdnInitializer />
+      
       <Navigation />
       <Hero />
       

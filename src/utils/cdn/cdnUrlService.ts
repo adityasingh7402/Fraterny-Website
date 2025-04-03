@@ -1,3 +1,4 @@
+
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -8,6 +9,9 @@ import { CDN_URL } from './cdnConfig';
 import { shouldExcludePath } from './cdnExclusions';
 import { CDN_STORAGE_KEY } from './cdnConfig';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
+
+// Add a debug mode flag - will output helpful console logs
+const DEBUG_CDN = process.env.NODE_ENV === 'development';
 
 /**
  * Check if CDN should be used
@@ -24,8 +28,21 @@ export const shouldUseCdn = (): boolean => {
     return localStorage.getItem('disable_cdn_production') !== 'true';
   }
   
+  // FIXED: Initialize dev mode to true if not set previously
+  if (localStorage.getItem(CDN_STORAGE_KEY) === null) {
+    if (DEBUG_CDN) console.log('[CDN] First run detected, enabling CDN in development');
+    localStorage.setItem(CDN_STORAGE_KEY, 'true');
+    return true;
+  }
+  
   // In development, check localStorage preference
-  return localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+  const isEnabled = localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+  
+  if (DEBUG_CDN) {
+    console.log(`[CDN] Development mode CDN is ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+  
+  return isEnabled;
 };
 
 /**
@@ -99,7 +116,7 @@ export const getCdnUrl = (
       
       // Check if this path should bypass the CDN
       if (!forceCdn && shouldExcludePath(cdnPath)) {
-        console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
+        if (DEBUG_CDN) console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
         transformedUrl = imagePath;
       } else {
         // Extract and preserve query parameters
@@ -109,6 +126,10 @@ export const getCdnUrl = (
         // Use CDN if enabled
         const useCdn = forceCdn || shouldUseCdn();
         transformedUrl = useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
+        
+        if (DEBUG_CDN && useCdn) {
+          console.log(`[CDN] Transformed Supabase URL:\nFrom: ${imagePath}\nTo: ${transformedUrl}`);
+        }
       }
     } else {
       // Not a Supabase URL, return unchanged
@@ -122,12 +143,16 @@ export const getCdnUrl = (
     
     // Check if this path should bypass the CDN
     if (!forceCdn && shouldExcludePath(normalizedPath)) {
-      console.log(`[CDN] Bypassing CDN for excluded path: ${normalizedPath}`);
+      if (DEBUG_CDN) console.log(`[CDN] Bypassing CDN for excluded path: ${normalizedPath}`);
       transformedUrl = normalizedPath;
     } else {
       // Use CDN if enabled (production or manually in development)
       const useCdn = forceCdn || shouldUseCdn();
       transformedUrl = useCdn ? `${CDN_URL}${normalizedPath}` : normalizedPath;
+      
+      if (DEBUG_CDN && useCdn) {
+        console.log(`[CDN] Transformed local path:\nFrom: ${normalizedPath}\nTo: ${transformedUrl}`);
+      }
     }
   }
   

@@ -1,7 +1,11 @@
+
 /**
  * Handler for image requests
  */
 import { createErrorPlaceholderSvg } from './placeholderHandler';
+
+// Added debug mode for worker
+const DEBUG_WORKER = true;
 
 /**
  * Determines if a path is an image request
@@ -9,11 +13,13 @@ import { createErrorPlaceholderSvg } from './placeholderHandler';
  * @returns {boolean} True if the path is an image request
  */
 export function isImageRequest(pathname) {
+  // Enhanced path detection for better matching
   return pathname.startsWith('/images/') || 
     pathname.startsWith('/website-images/') ||
     pathname.match(/\/\d+\-ChatGPT\-Image/) ||  // Handle timestamps with ChatGPT image paths
     pathname.includes('/storage/v1/object/public') ||
-    pathname.startsWith('/lovable-uploads/');
+    pathname.startsWith('/lovable-uploads/') ||
+    pathname.startsWith('/website-images'); // Added without trailing slash
 }
 
 /**
@@ -26,15 +32,19 @@ export function constructOriginUrl(url) {
   if (url.pathname.includes('/storage/v1/object/public')) {
     // It's already a Supabase URL - keep it as is
     const fullPath = url.pathname + url.search;  // Include query parameters
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Supabase URL detected, using path: ${fullPath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${fullPath}`;
   } 
   // Special case for placeholder.svg
   else if (url.pathname.includes('placeholder.svg')) {
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Placeholder SVG detected`);
     return url.href;
   }
   else {
     // Regular images path - construct the Supabase URL
-    return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public${url.pathname}${url.search}`;
+    const supabasePath = `/storage/v1/object/public${url.pathname}${url.search}`;
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${url.pathname} -> ${supabasePath}`);
+    return `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
   }
 }
 
@@ -56,6 +66,8 @@ export async function fetchWithRetry(url, request, maxAttempts = 2) {
   
   while (attempts < maxAttempts) {
     try {
+      if (DEBUG_WORKER) console.log(`[CDN Worker] Attempt ${attempts + 1} to fetch: ${url}`);
+      
       response = await fetch(url, {
         cf: {
           // Enable Cloudflare's image optimization if available
@@ -70,16 +82,23 @@ export async function fetchWithRetry(url, request, maxAttempts = 2) {
         method: request.method
       });
       
+      if (DEBUG_WORKER) {
+        console.log(`[CDN Worker] Response for ${url}: Status ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
+      }
+      
       // If successful, break out of retry loop
       if (response.ok) break;
       
       // If not found, no need to retry
-      if (response.status === 404) break;
+      if (response.status === 404) {
+        console.error(`[CDN Worker] 404 Not Found: ${url}`);
+        break;
+      }
       
-      console.log(`Attempt ${attempts + 1} failed with status ${response.status}`);
+      console.log(`[CDN Worker] Attempt ${attempts + 1} failed with status ${response.status}`);
       
     } catch (fetchError) {
-      console.error(`Attempt ${attempts + 1} failed: ${fetchError.message}`);
+      console.error(`[CDN Worker] Attempt ${attempts + 1} failed: ${fetchError.message}`);
     }
     
     // Exponential backoff before retry
@@ -108,7 +127,7 @@ export async function handleImageRequest(url, request, corsHeaders) {
     // Determine the origin URL to fetch
     let originUrl = constructOriginUrl(url);
     
-    console.log(`Forwarding request to: ${originUrl}`);
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Forwarding request to: ${originUrl}`);
     
     // Fetch the image with retry logic
     const response = await fetchWithRetry(originUrl, request);
@@ -127,6 +146,13 @@ export async function handleImageRequest(url, request, corsHeaders) {
       newHeaders.set('CDN-Cache', 'HIT');
       newHeaders.set('CDN-Provider', 'Cloudflare-Worker');
       
+      // Debug info about the successful response
+      if (DEBUG_WORKER) {
+        console.log(`[CDN Worker] Successfully served: ${imagePath}`);
+        console.log(`[CDN Worker] Content-Type: ${newHeaders.get('Content-Type')}`);
+        console.log(`[CDN Worker] Content-Length: ${newHeaders.get('Content-Length')}`);
+      }
+      
       // Return the response with the updated headers
       return new Response(response.body, {
         status: response.status,
@@ -136,6 +162,8 @@ export async function handleImageRequest(url, request, corsHeaders) {
       // Get error status or default to 404
       const errorStatus = response ? response.status : 404;
       const errorMessage = response ? `Origin returned ${response.status}` : 'Image not found';
+      
+      console.error(`[CDN Worker] Error serving ${imagePath}: ${errorMessage}`);
       
       // If image doesn't exist, return proper error response with placeholder
       if (url.searchParams.get('format') === 'json') {
@@ -159,7 +187,7 @@ export async function handleImageRequest(url, request, corsHeaders) {
       }
     }
   } catch (error) {
-    console.error(`Error handling image request for ${url.pathname}:`, error);
+    console.error(`[CDN Worker] Error handling image request for ${url.pathname}:`, error);
     
     // Return JSON error if requested
     if (url.searchParams.get('format') === 'json') {
