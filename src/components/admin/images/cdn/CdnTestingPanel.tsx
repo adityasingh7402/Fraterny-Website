@@ -1,132 +1,82 @@
 
 import React, { useState, useEffect } from 'react';
-import CdnToggle from './CdnToggle';
-import PathExclusions from './PathExclusions';
-import CdnInfoBanner from './CdnInfoBanner';
-import CdnStatusHeader from './CdnStatusHeader';
-import UrlTester from './UrlTester';
-import CdnTestButton from './CdnTestButton';
-import WarningBanner from './WarningBanner';
-import AdvancedSettingsToggle from './AdvancedSettingsToggle';
-import { 
-  testCdnConnection, 
-  getCdnAvailability, 
-  getCdnBaseUrl, 
-  getPathExclusions,
-  isCdnEnabled,
-  CDN_STORAGE_KEY
-} from '@/utils/cdn';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { testCdnConnection } from '@/utils/cdn';
+import { Button } from '@/components/ui/button';
+import { RotateCw, CheckCircle, XCircle } from 'lucide-react';
 
-/**
- * Component for testing and configuring CDN settings
- */
-const CdnTestingPanel: React.FC = () => {
-  const [isTestingCdn, setIsTestingCdn] = useState(false);
-  const [cdnAvailable, setCdnAvailable] = useState<boolean | null>(null);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [isCdnToggleEnabled, setIsCdnToggleEnabled] = useState(false);
-  const [pathExclusions, setPathExclusions] = useState<string[]>([]);
-  const cdnUrl = getCdnBaseUrl();
-  
-  // Check CDN availability on first render and initialize toggle state
-  useEffect(() => {
-    checkCdnAvailability();
-    refreshPathExclusions();
-    
-    // Initialize CDN toggle state from localStorage
-    if (typeof window !== 'undefined') {
-      const storedValue = localStorage.getItem(CDN_STORAGE_KEY);
-      setIsCdnToggleEnabled(storedValue === 'true');
-    }
-  }, []);
-  
-  // Test CDN availability
-  const testCdnAvailability = async () => {
-    setIsTestingCdn(true);
+const CdnTestingPanel = () => {
+  const [isChecking, setIsChecking] = useState(false);
+  const [lastCheckResult, setLastCheckResult] = useState<boolean | null>(null);
+  const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
+
+  const checkCdnConnection = async () => {
+    setIsChecking(true);
     try {
       const isAvailable = await testCdnConnection();
-      setCdnAvailable(isAvailable);
+      setLastCheckResult(isAvailable);
+      setLastCheckTime(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('Error testing CDN:', error);
-      setCdnAvailable(false);
+      console.error('Error testing CDN connection:', error);
+      setLastCheckResult(false);
+      setLastCheckTime(new Date().toLocaleTimeString());
     } finally {
-      setIsTestingCdn(false);
+      setIsChecking(false);
     }
   };
-  
-  // Check CDN availability without UI indicators
-  const checkCdnAvailability = async () => {
-    try {
-      const isAvailable = await getCdnAvailability();
-      setCdnAvailable(isAvailable);
-    } catch (error) {
-      console.error('Error checking CDN availability:', error);
-    }
-  };
-  
-  // Toggle CDN enabled state
-  const toggleCdnEnabled = (newState: boolean) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CDN_STORAGE_KEY, newState ? 'true' : 'false');
-      setIsCdnToggleEnabled(newState);
-    }
-  };
-  
-  // Refresh path exclusions list
-  const refreshPathExclusions = () => {
-    const currentExclusions = getPathExclusions();
-    setPathExclusions(currentExclusions);
-  };
-  
+
   return (
-    <div className="space-y-4">
-      <CdnStatusHeader isCdnAvailable={cdnAvailable} />
-      
-      <CdnInfoBanner cdnUrl={cdnUrl} />
-      
-      <div className="grid gap-4">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <CdnToggle 
-              isCdnEnabled={isCdnToggleEnabled} 
-              toggleCdnEnabled={toggleCdnEnabled} 
-            />
-            
-            <div className="pt-1">
-              <CdnTestButton 
-                testCdnAvailability={testCdnAvailability}
-                isTestingCdn={isTestingCdn}
-              />
-            </div>
-            
-            {cdnAvailable === false && (
-              <WarningBanner />
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-navy flex items-center gap-2">
+          CDN Connection Test
+        </CardTitle>
+        <CardDescription>
+          Test the connection to the Content Delivery Network
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div>
+            {lastCheckResult !== null && (
+              <div className="flex items-center gap-2">
+                <span>Last check result:</span>
+                {lastCheckResult ? (
+                  <span className="flex items-center text-green-600">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center text-red-600">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Disconnected
+                  </span>
+                )}
+                {lastCheckTime && <span className="text-gray-500 text-sm">at {lastCheckTime}</span>}
+              </div>
             )}
           </div>
-          
-          <UrlTester 
-            isTestingCdn={isTestingCdn} 
-            setIsTestingCdn={setIsTestingCdn} 
-          />
+          <Button 
+            onClick={checkCdnConnection} 
+            disabled={isChecking}
+            variant="outline"
+            className="flex items-center gap-1"
+          >
+            {isChecking ? (
+              <>
+                <RotateCw className="w-4 h-4 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <RotateCw className="w-4 h-4" />
+                Test Connection
+              </>
+            )}
+          </Button>
         </div>
-        
-        <div className="pt-2">
-          <AdvancedSettingsToggle 
-            showAdvancedSettings={showAdvancedSettings}
-            setShowAdvancedSettings={setShowAdvancedSettings}
-          />
-          
-          {showAdvancedSettings && (
-            <div className="mt-3 border rounded-md p-3">
-              <PathExclusions 
-                refreshPathExclusions={refreshPathExclusions}
-                pathExclusions={pathExclusions}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
