@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { CDN_STORAGE_KEY } from '@/utils/cdn';
 import { testCdnConnection } from '@/utils/cdn';
 
