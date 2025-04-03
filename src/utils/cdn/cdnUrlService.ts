@@ -1,4 +1,3 @@
-
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -9,40 +8,101 @@ import { CDN_URL } from './cdnConfig';
 import { shouldExcludePath } from './cdnExclusions';
 import { CDN_STORAGE_KEY } from './cdnConfig';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
+import { isCdnAvailabilityCacheValid, getCdnAvailability } from './cdnNetwork';
 
 // Add a debug mode flag - will output helpful console logs
 const DEBUG_CDN = process.env.NODE_ENV === 'development';
+
+// Cache CDN availability in memory to avoid constant checks
+let cdnEnabledCache: { enabled: boolean; timestamp: number } | null = null;
+const CDN_CACHE_DURATION = 60000; // 1 minute
 
 /**
  * Check if CDN should be used
  * - In production: Always use CDN unless disabled via localStorage
  * - In development: Use CDN only if explicitly enabled via localStorage
+ * @param forceCdn Override all settings and force CDN usage
  */
-export const shouldUseCdn = (): boolean => {
+export const shouldUseCdn = async (forceCdn?: boolean): Promise<boolean> => {
+  // Force CDN if requested
+  if (forceCdn) {
+    return true;
+  }
+  
+  // Check if we have a recent cache
+  if (cdnEnabledCache && (Date.now() - cdnEnabledCache.timestamp < CDN_CACHE_DURATION)) {
+    return cdnEnabledCache.enabled;
+  }
+  
   if (typeof window === 'undefined') {
     return process.env.NODE_ENV === 'production';
   }
   
   // In production, default to true unless explicitly disabled
-  if (process.env.NODE_ENV === 'production') {
-    return localStorage.getItem('disable_cdn_production') !== 'true';
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Get user preference from localStorage
+  let isEnabled = false;
+  if (isProduction) {
+    isEnabled = localStorage.getItem('disable_cdn_production') !== 'true';
+  } else {
+    // In development, initialize to true if not set
+    if (localStorage.getItem(CDN_STORAGE_KEY) === null) {
+      if (DEBUG_CDN) console.log('[CDN] First run detected, enabling CDN in development');
+      localStorage.setItem(CDN_STORAGE_KEY, 'true');
+      isEnabled = true;
+    } else {
+      isEnabled = localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+    }
   }
   
-  // FIXED: Initialize dev mode to true if not set previously
-  if (localStorage.getItem(CDN_STORAGE_KEY) === null) {
-    if (DEBUG_CDN) console.log('[CDN] First run detected, enabling CDN in development');
-    localStorage.setItem(CDN_STORAGE_KEY, 'true');
-    return true;
+  // Check availability only if enabled by settings
+  if (isEnabled) {
+    try {
+      const isAvailable = await getCdnAvailability();
+      if (!isAvailable) {
+        if (DEBUG_CDN) console.warn('[CDN] CDN is unavailable, falling back to direct URLs');
+        isEnabled = false;
+      }
+    } catch (error) {
+      console.error('[CDN] Error checking availability:', error);
+      isEnabled = false;
+    }
   }
   
-  // In development, check localStorage preference
-  const isEnabled = localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+  // Cache the result
+  cdnEnabledCache = {
+    enabled: isEnabled,
+    timestamp: Date.now()
+  };
   
   if (DEBUG_CDN) {
-    console.log(`[CDN] Development mode CDN is ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`[CDN] ${isProduction ? 'Production' : 'Development'} mode CDN is ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
   }
   
   return isEnabled;
+};
+
+// Synchronous version for when async is not possible
+export const isCdnEnabled = (): boolean => {
+  if (typeof window === 'undefined') {
+    return process.env.NODE_ENV === 'production';
+  }
+  
+  // Use cached result if available
+  if (cdnEnabledCache && (Date.now() - cdnEnabledCache.timestamp < CDN_CACHE_DURATION)) {
+    return cdnEnabledCache.enabled;
+  }
+  
+  // Otherwise, just check localStorage without availability test
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    return localStorage.getItem('disable_cdn_production') !== 'true';
+  } else {
+    // In development, use the value from localStorage
+    return localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+  }
 };
 
 /**
@@ -124,7 +184,8 @@ export const getCdnUrl = (
         const queryString = urlObj.search;
         
         // Use CDN if enabled
-        const useCdn = forceCdn || shouldUseCdn();
+        // For synchronous contexts, we have to use the sync version
+        const useCdn = forceCdn || isCdnEnabled();
         transformedUrl = useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
         
         if (DEBUG_CDN && useCdn) {
@@ -147,7 +208,8 @@ export const getCdnUrl = (
       transformedUrl = normalizedPath;
     } else {
       // Use CDN if enabled (production or manually in development)
-      const useCdn = forceCdn || shouldUseCdn();
+      // For synchronous contexts, we have to use the sync version
+      const useCdn = forceCdn || isCdnEnabled();
       transformedUrl = useCdn ? `${CDN_URL}${normalizedPath}` : normalizedPath;
       
       if (DEBUG_CDN && useCdn) {
@@ -172,5 +234,7 @@ export const getCdnUrl = (
 // Export the CDN URL for other components to use
 export const getCdnBaseUrl = () => CDN_URL;
 
-// Export function to check if CDN is enabled
-export const isCdnEnabled = () => shouldUseCdn();
+// Reset the CDN enabled cache
+export const resetCdnEnabledCache = () => {
+  cdnEnabledCache = null;
+};

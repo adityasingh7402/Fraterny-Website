@@ -1,3 +1,4 @@
+
 /**
  * CDN Network Module
  * Handles CDN connectivity testing and availability tracking
@@ -18,14 +19,22 @@ let cdnAvailabilityCache: {
  */
 export const testCdnConnection = async (): Promise<boolean> => {
   try {
-    console.log(`[CDN] Testing connection to ${CDN_URL}/health...`);
+    console.log(`[CDN] Testing connection to ${CDN_URL}...`);
     
-    // We'll use a simple HEAD request to check if the CDN is available
-    const response = await fetch(`${CDN_URL}/website-images/placeholder.svg`, {
+    // Use a timeout to prevent hanging if CDN is unreachable
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    // Use a simple HEAD request with a timeout to check if the CDN is available
+    const response = await fetch(`${CDN_URL}/health`, {
       method: 'HEAD',
       cache: 'no-cache',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+      signal: controller.signal
     });
+    
+    // Clear the timeout
+    clearTimeout(timeoutId);
     
     const available = response.ok;
     console.log(`[CDN] Test result: ${available ? 'Connected' : 'Disconnected'}`);
@@ -54,6 +63,7 @@ export const testCdnConnection = async (): Promise<boolean> => {
 
 /**
  * Get CDN availability from cache or check network if cache is invalid
+ * Cache result to avoid repeated network requests
  * @returns Promise that resolves to cached or fresh CDN availability
  */
 export const getCdnAvailability = async (): Promise<boolean> => {
@@ -96,4 +106,17 @@ export const isCdnAvailabilityCacheValid = (): boolean => {
  */
 export const resetCdnAvailabilityCache = (): void => {
   cdnAvailabilityCache = null;
+};
+
+/**
+ * Force CDN availability to a known state (for testing)
+ * @param available Whether the CDN should be considered available
+ * @param error Optional error message
+ */
+export const forceCdnAvailability = (available: boolean, error?: string): void => {
+  cdnAvailabilityCache = {
+    available,
+    timestamp: Date.now(),
+    error
+  };
 };
