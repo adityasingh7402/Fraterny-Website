@@ -1,11 +1,13 @@
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
+ * Enhanced with localStorage cache support
  */
 
 import { CDN_URL } from './cdnConfig';
 import { shouldExcludePath } from './cdnExclusions';
 import { CDN_STORAGE_KEY } from './cdnConfig';
+import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
 /**
  * Check if CDN should be used
@@ -47,7 +49,7 @@ export const parseSupabaseUrl = (url: string): { bucket: string; path: string } 
 };
 
 /**
- * Converts a local image path to a CDN URL
+ * Converts a local image path to a CDN URL with localStorage caching
  * @param imagePath - The path to the image (e.g., /images/hero/image.webp or Supabase URL)
  * @param forceCdn - Override settings and force CDN usage (optional)
  * @returns The CDN URL or original path based on environment
@@ -68,9 +70,27 @@ export const getCdnUrl = (
     return imagePath;
   }
   
+  // Generate a cache key for this URL transformation
+  const cacheKey = `cdn-url:${imagePath}:${forceCdn ? 'forced' : 'auto'}`;
+  
+  // Try to get from localStorage cache first
+  try {
+    if (localStorageCacheService.isValid()) {
+      const cachedUrl = localStorageCacheService.getUrl(cacheKey);
+      if (cachedUrl) {
+        return cachedUrl;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to check localStorage cache:', err);
+  }
+  
+  // If not in cache, proceed with normal URL transformation
+  let transformedUrl: string | null = null;
+  
   // Handle absolute URLs (including Supabase storage URLs)
   if (imagePath.startsWith('http')) {
-    // Check if this is a Supabase storage URL
+    // Check if it's a Supabase URL
     const parsedSupabaseUrl = parseSupabaseUrl(imagePath);
     
     if (parsedSupabaseUrl) {
@@ -80,37 +100,48 @@ export const getCdnUrl = (
       // Check if this path should bypass the CDN
       if (!forceCdn && shouldExcludePath(cdnPath)) {
         console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
-        return imagePath;
+        transformedUrl = imagePath;
+      } else {
+        // Extract and preserve query parameters
+        const urlObj = new URL(imagePath);
+        const queryString = urlObj.search;
+        
+        // Use CDN if enabled
+        const useCdn = forceCdn || shouldUseCdn();
+        transformedUrl = useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
       }
-      
-      // Extract and preserve query parameters
-      const urlObj = new URL(imagePath);
-      const queryString = urlObj.search;
-      
-      // Use CDN if enabled
-      const useCdn = forceCdn || shouldUseCdn();
-      return useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
+    } else {
+      // Not a Supabase URL, return unchanged
+      transformedUrl = imagePath;
     }
+  } else {
+    // Handle relative paths (local assets)
     
-    // Not a Supabase URL, return unchanged
-    return imagePath;
+    // Ensure path starts with /
+    const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    
+    // Check if this path should bypass the CDN
+    if (!forceCdn && shouldExcludePath(normalizedPath)) {
+      console.log(`[CDN] Bypassing CDN for excluded path: ${normalizedPath}`);
+      transformedUrl = normalizedPath;
+    } else {
+      // Use CDN if enabled (production or manually in development)
+      const useCdn = forceCdn || shouldUseCdn();
+      transformedUrl = useCdn ? `${CDN_URL}${normalizedPath}` : normalizedPath;
+    }
   }
-
-  // Handle relative paths (local assets)
   
-  // Ensure path starts with /
-  const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  
-  // Check if this path should bypass the CDN
-  if (!forceCdn && shouldExcludePath(normalizedPath)) {
-    console.log(`[CDN] Bypassing CDN for excluded path: ${normalizedPath}`);
-    return normalizedPath;
+  // Cache the result in localStorage for future use
+  try {
+    if (transformedUrl && localStorageCacheService.isValid()) {
+      // Cache with lower priority (4) since these can be regenerated easily
+      localStorageCacheService.setUrl(cacheKey, transformedUrl, 4);
+    }
+  } catch (err) {
+    console.warn('Failed to cache CDN URL in localStorage:', err);
   }
   
-  // Use CDN if enabled (production or manually in development)
-  const useCdn = forceCdn || shouldUseCdn();
-  
-  return useCdn ? `${CDN_URL}${normalizedPath}` : normalizedPath;
+  return transformedUrl;
 };
 
 // Export the CDN URL for other components to use

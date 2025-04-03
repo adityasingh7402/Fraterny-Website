@@ -7,10 +7,11 @@ import {
   parseSupabaseUrl
 } from '@/utils/cdn';
 import { isValidUrl } from '@/utils/debugUtils';
+import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
 /**
  * Hook to get a CDN URL for an image, with fallback to direct URL
- * Now with better error handling and validation
+ * Enhanced with localStorage persistence for improved performance
  * 
  * @param imagePath - Original image path
  * @param forceCdn - Force using CDN regardless of settings (optional)
@@ -24,6 +25,7 @@ export const useCdnImage = (
   const [isFallback, setIsFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isCached, setIsCached] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -36,6 +38,31 @@ export const useCdnImage = (
         if (isMounted) {
           setUrl(null);
           setIsLoading(false);
+          setIsCached(false);
+        }
+        return;
+      }
+      
+      // Generate a consistent cache key for this request
+      const normalizedKey = imagePath.trim();
+      const cacheKey = `cdnimage:${normalizedKey}:${forceCdn ? 'forced' : 'auto'}`;
+      
+      // Check localStorage cache first
+      let cachedData = null;
+      try {
+        if (localStorageCacheService.isValid()) {
+          cachedData = localStorageCacheService.getUrl(cacheKey);
+        }
+      } catch (err) {
+        console.warn('Failed to check localStorage cache:', err);
+      }
+      
+      if (cachedData && isValidUrl(cachedData)) {
+        if (isMounted) {
+          setUrl(cachedData);
+          setIsFallback(false); // Assume cached URLs are CDN URLs
+          setIsLoading(false);
+          setIsCached(true);
         }
         return;
       }
@@ -48,6 +75,7 @@ export const useCdnImage = (
           setUrl(imagePath);
           setIsFallback(true);
           setIsLoading(false);
+          setIsCached(false);
         }
         return;
       }
@@ -87,10 +115,21 @@ export const useCdnImage = (
           }
         }
         
+        // Cache the result for future use
+        try {
+          if (localStorageCacheService.isValid()) {
+            // Use priority 3 for CDN URLs
+            localStorageCacheService.setUrl(cacheKey, processedUrl, 3);
+          }
+        } catch (err) {
+          console.warn('Failed to cache CDN URL in localStorage:', err);
+        }
+        
         if (isMounted) {
           setUrl(processedUrl);
           setIsFallback(!shouldUseCdn);
           setIsLoading(false);
+          setIsCached(false);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -104,6 +143,7 @@ export const useCdnImage = (
           setUrl(imagePath);
           setIsFallback(true);
           setIsLoading(false);
+          setIsCached(false);
         }
       }
     };
@@ -115,7 +155,7 @@ export const useCdnImage = (
     };
   }, [imagePath, forceCdn]);
   
-  return { url, isFallback, isLoading, error };
+  return { url, isFallback, isLoading, error, isCached };
 };
 
 export default useCdnImage;

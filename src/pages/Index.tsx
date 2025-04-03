@@ -7,6 +7,7 @@ import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
+import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -51,6 +52,17 @@ const Index = () => {
         }
       });
     }, 'Asia/Kolkata');
+    
+    // Initialize localStorage cache service
+    try {
+      localStorageCacheService.initialize();
+      console.log('LocalStorage cache service initialized');
+      
+      // Clean expired entries from local storage
+      localStorageCacheService.cleanExpired();
+    } catch (error) {
+      console.warn('Failed to initialize localStorage cache:', error);
+    }
     
     // Return a composite cleanup function
     return () => {

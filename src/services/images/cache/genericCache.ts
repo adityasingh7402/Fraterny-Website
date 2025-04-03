@@ -1,7 +1,10 @@
+
 import { CacheEntry } from './types';
+import { localStorageCacheService } from './localStorageCacheService';
 
 /**
  * A generic cache service for storing and retrieving data with expiration
+ * Enhanced with localStorage persistence
  */
 export class GenericCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
@@ -11,28 +14,93 @@ export class GenericCache<T> {
   private batchDeleteTimeout: NodeJS.Timeout | null = null;
   private BATCH_DELETE_DELAY: number = 100; // 100ms delay for batching
   private verboseLogging: boolean = false; // Control logging verbosity
+  private name: string; // Name of this cache instance for localStorage persistence
+  private persistToStorage: boolean = false; // Whether to persist to localStorage
+  private storageInitialized: boolean = false; // Whether localStorage has been initialized
   
-  constructor(defaultTtl: number = 5 * 60 * 1000, maxCacheSize: number = 100, verboseLogging: boolean = false) {
+  constructor(
+    name: string = 'default',
+    defaultTtl: number = 5 * 60 * 1000, 
+    maxCacheSize: number = 100, 
+    verboseLogging: boolean = false,
+    persistToStorage: boolean = true
+  ) {
     this.DEFAULT_TTL = defaultTtl;
     this.MAX_CACHE_SIZE = maxCacheSize;
     this.verboseLogging = verboseLogging;
+    this.name = name;
+    this.persistToStorage = persistToStorage;
+    
+    // Initialize storage if persistence is enabled
+    if (this.persistToStorage) {
+      try {
+        this.storageInitialized = localStorageCacheService.initialize();
+        
+        // Clean expired entries on initialization
+        if (this.storageInitialized) {
+          localStorageCacheService.cleanExpired();
+        }
+      } catch (err) {
+        console.error(`[GenericCache:${this.name}] Error initializing storage:`, err);
+        this.storageInitialized = false;
+      }
+    }
     
     // Periodically clean expired cache entries
     setInterval(() => this.cleanExpired(), 60 * 1000); // Clean every minute
   }
 
   get(key: string): T | undefined {
+    // First try memory cache
     const entry = this.cache.get(key);
     
-    if (!entry) return undefined;
-    
-    // Check if entry has expired
-    if (Date.now() > entry.expiresAt) {
-      this.delete(key);
-      return undefined;
+    if (entry) {
+      // Check if memory entry has expired
+      if (Date.now() > entry.expiresAt) {
+        this.delete(key);
+        
+        // If persistence is enabled, try localStorage before returning undefined
+        if (this.persistToStorage && this.storageInitialized) {
+          if (this.name === 'imageCache') {
+            return localStorageCacheService.getImage(key) as unknown as T;
+          } else if (this.name === 'urlCache') {
+            return localStorageCacheService.getUrl(key) as unknown as T;
+          }
+        }
+        
+        return undefined;
+      }
+      
+      return entry.data;
     }
     
-    return entry.data;
+    // If not in memory and persistence is enabled, try localStorage
+    if (this.persistToStorage && this.storageInitialized) {
+      let persistedData: any = null;
+      
+      if (this.name === 'imageCache') {
+        persistedData = localStorageCacheService.getImage(key);
+      } else if (this.name === 'urlCache') {
+        persistedData = localStorageCacheService.getUrl(key);
+      }
+      
+      // If found in localStorage, add to memory cache
+      if (persistedData !== null) {
+        if (this.verboseLogging) {
+          console.log(`[GenericCache:${this.name}] Cache hit from localStorage for key: ${key}`);
+        }
+        
+        this.cache.set(key, {
+          data: persistedData as T,
+          timestamp: Date.now(),
+          expiresAt: Date.now() + this.DEFAULT_TTL
+        });
+        
+        return persistedData as T;
+      }
+    }
+    
+    return undefined;
   }
   
   set(key: string, data: T, ttl: number = this.DEFAULT_TTL): void {
@@ -46,11 +114,38 @@ export class GenericCache<T> {
       }
     }
     
+    // Add to memory cache
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
       expiresAt: Date.now() + ttl
     });
+    
+    // If persistence is enabled, also persist to localStorage
+    if (this.persistToStorage && this.storageInitialized) {
+      try {
+        // Calculate priority based on key patterns
+        let priority = 3; // Default priority
+        
+        // Higher priority (1) for frequently used items
+        if (key.includes('hero-') || key.includes('logo') || 
+            key.includes('navigation') || key.includes('header')) {
+          priority = 1;
+        } 
+        // Medium priority (2) for common content items
+        else if (key.includes('feature-') || key.includes('product-')) {
+          priority = 2;
+        }
+        
+        if (this.name === 'imageCache') {
+          localStorageCacheService.setImage(key, data as any, priority);
+        } else if (this.name === 'urlCache') {
+          localStorageCacheService.setUrl(key, data as any, priority);
+        }
+      } catch (err) {
+        console.error(`[GenericCache:${this.name}] Error persisting to localStorage:`, err);
+      }
+    }
   }
   
   // Enhanced delete method with batching support
@@ -61,6 +156,15 @@ export class GenericCache<T> {
     // Schedule batch processing if not already scheduled
     if (!this.batchDeleteTimeout) {
       this.batchDeleteTimeout = setTimeout(() => this.processBatchDeletes(), this.BATCH_DELETE_DELAY);
+    }
+    
+    // Also remove from localStorage if persistence is enabled
+    if (this.persistToStorage && this.storageInitialized && this.name === 'urlCache') {
+      try {
+        localStorageCacheService.clearUrlCacheForKey(key);
+      } catch (err) {
+        console.error(`[GenericCache:${this.name}] Error removing from localStorage:`, err);
+      }
     }
     
     return true; // Indicate pending deletion (will be processed in batch)
@@ -81,7 +185,7 @@ export class GenericCache<T> {
     
     // Only log if verbose or if deleting multiple entries (important operation)
     if (this.verboseLogging || deleteCount > 1) {
-      console.log(`Batch deleted ${deleteCount} cache entries`);
+      console.log(`[GenericCache:${this.name}] Batch deleted ${deleteCount} cache entries`);
     }
     
     // Clear pending set and timeout reference
@@ -110,7 +214,7 @@ export class GenericCache<T> {
     
     // Only log if verbose or if invalidating multiple entries (important operation)
     if ((this.verboseLogging || keysToInvalidate.length > 1) && keysToInvalidate.length > 0) {
-      console.log(`Scheduled invalidation of ${keysToInvalidate.length} cache entries matching pattern: ${keyPattern}`);
+      console.log(`[GenericCache:${this.name}] Scheduled invalidation of ${keysToInvalidate.length} cache entries matching pattern: ${keyPattern}`);
     }
   }
   
@@ -135,7 +239,7 @@ export class GenericCache<T> {
     
     // Only log if verbose or if invalidating multiple entries
     if ((this.verboseLogging || keysToInvalidate.length > 1) && keysToInvalidate.length > 0) {
-      console.log(`Scheduled invalidation of ${keysToInvalidate.length} cache entries by matcher function`);
+      console.log(`[GenericCache:${this.name}] Scheduled invalidation of ${keysToInvalidate.length} cache entries by matcher function`);
     }
     
     return keysToInvalidate.length;
@@ -165,7 +269,7 @@ export class GenericCache<T> {
     
     // Only log if verbose or if invalidating multiple entries
     if ((this.verboseLogging || keysToInvalidate.length > 1) && keysToInvalidate.length > 0) {
-      console.log(`Scheduled invalidation of ${keysToInvalidate.length} cache entries with tag: ${tag}`);
+      console.log(`[GenericCache:${this.name}] Scheduled invalidation of ${keysToInvalidate.length} cache entries with tag: ${tag}`);
     }
     
     return keysToInvalidate.length;
@@ -199,7 +303,7 @@ export class GenericCache<T> {
     
     // Only log if multiple entries are expired or verbose logging is on
     if ((this.verboseLogging || expiredKeys.length > 1) && expiredKeys.length > 0) {
-      console.log(`Cleaned ${expiredKeys.length} expired cache entries`);
+      console.log(`[GenericCache:${this.name}] Cleaned ${expiredKeys.length} expired cache entries`);
     }
   }
   
@@ -214,8 +318,17 @@ export class GenericCache<T> {
     }
     this.pendingDeletes.clear();
     
+    // Also clear localStorage if persistence is enabled
+    if (this.persistToStorage && this.storageInitialized) {
+      try {
+        localStorageCacheService.clearCache();
+      } catch (err) {
+        console.error(`[GenericCache:${this.name}] Error clearing localStorage:`, err);
+      }
+    }
+    
     // Always log full cache clear as it's a significant operation
-    console.log(`Cleared entire cache (${count} entries)`);
+    console.log(`[GenericCache:${this.name}] Cleared entire cache (${count} entries)`);
   }
   
   // Set logging verbosity

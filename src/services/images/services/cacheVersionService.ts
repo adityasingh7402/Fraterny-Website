@@ -1,109 +1,106 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../cache";
-import { 
-  clearImageUrlCache, 
-  clearImageUrlCacheByCategory,
-  clearImageUrlCacheByPrefix
-} from "./cacheService";
+import { localStorageCacheService } from '../cache/localStorageCacheService';
+
+// Cache for global version
+let cachedGlobalVersion: string | null = null;
+let cachedVersionTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Helper function to retrieve the global cache version from website settings
+ * Get the global cache version, with localStorage support
  */
 export const getGlobalCacheVersion = async (): Promise<string | null> => {
   try {
-    // Check in-memory cache first
-    const cachedVersion = urlCache.get('global:cache:version');
-    if (cachedVersion) {
-      return cachedVersion;
+    // First check if we have a valid cached version
+    if (cachedGlobalVersion && (Date.now() - cachedVersionTimestamp < CACHE_DURATION)) {
+      return cachedGlobalVersion;
     }
-
-    // Fetch from database
+    
+    // Then check if we have a version in localStorage
+    if (localStorageCacheService.isValid()) {
+      const storedVersion = localStorageCacheService.getGlobalVersion();
+      if (storedVersion) {
+        cachedGlobalVersion = storedVersion;
+        cachedVersionTimestamp = Date.now();
+        return storedVersion;
+      }
+    }
+    
+    // If not, fetch from the database
     const { data, error } = await supabase
       .from('website_settings')
       .select('value')
-      .eq('key', 'global_cache_version')
+      .eq('key', 'cache_version')
       .maybeSingle();
-
-    if (error || !data) {
-      console.log('No global cache version found in settings, using default');
+    
+    if (error) {
+      console.error('Error fetching global cache version:', error);
       return null;
     }
-
-    // Cache for future use (short TTL)
-    urlCache.set('global:cache:version', data.value, 60000); // 1 minute TTL
     
-    return data.value;
-  } catch (e) {
-    console.error('Error fetching global cache version:', e);
+    const version = data?.value || null;
+    
+    // Cache the version
+    cachedGlobalVersion = version;
+    cachedVersionTimestamp = Date.now();
+    
+    // Also store in localStorage
+    if (version && localStorageCacheService.isValid()) {
+      localStorageCacheService.updateGlobalVersion(version);
+    }
+    
+    return version;
+  } catch (error) {
+    console.error('Unexpected error fetching global cache version:', error);
     return null;
   }
 };
 
 /**
- * Update the global cache version to invalidate all cached content
- * Now with optional scope parameter for more targeted invalidation
+ * Update the global cache version
+ * This will force all clients to regenerate their caches
  */
-export const updateGlobalCacheVersion = async (options?: {
-  scope?: 'global' | 'category' | 'prefix';
+export const updateGlobalCacheVersion = async (options: {
+  scope?: 'global' | 'prefix' | 'category';
   target?: string;
-}): Promise<boolean> => {
+} = {}): Promise<boolean> => {
   try {
-    const scope = options?.scope || 'global';
-    const target = options?.target;
+    const { scope = 'global', target } = options;
     
-    // Generate a new timestamp-based version
-    const newVersion = `v${Date.now()}`;
-    let cacheVersionKey = 'global_cache_version';
-    let invalidationTarget = '';
-    
-    // Create different version keys based on scope
-    if (scope === 'category' && target) {
-      cacheVersionKey = `cache_version_category_${target}`;
-      invalidationTarget = `category:${target}`;
-      console.log(`Updating cache version for category: ${target}`);
-    } else if (scope === 'prefix' && target) {
-      cacheVersionKey = `cache_version_prefix_${target}`;
-      invalidationTarget = `prefix:${target}`;
-      console.log(`Updating cache version for prefix: ${target}`);
-    } else {
-      console.log('Updating global cache version');
-    }
+    // Generate a new version string
+    const timestamp = Date.now();
+    const randomPart = Math.floor(Math.random() * 1000);
+    const versionString = `${scope}${target ? `:${target}` : ''}:${timestamp}-${randomPart}`;
     
     // Update in the database
     const { error } = await supabase
       .from('website_settings')
-      .upsert({ 
-        key: cacheVersionKey, 
-        value: newVersion,
+      .upsert({
+        key: 'cache_version',
+        value: versionString,
+        description: 'Global cache version for coordinating client cache invalidation',
         updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'key'
       });
-
+    
     if (error) {
-      console.error(`Failed to update cache version for ${scope}:`, error);
+      console.error('Error updating global cache version:', error);
       return false;
     }
     
-    // Clear URL cache selectively based on scope
-    if (scope === 'global') {
-      // Full clear for global updates
-      clearImageUrlCache();
-    } else if (scope === 'category' && target) {
-      // Selective clear for category
-      clearImageUrlCacheByCategory(target);
-    } else if (scope === 'prefix' && target) {
-      // Selective clear for prefix
-      clearImageUrlCacheByPrefix(target);
+    // Update our local cache
+    cachedGlobalVersion = versionString;
+    cachedVersionTimestamp = Date.now();
+    
+    // Update localStorage
+    if (localStorageCacheService.isValid()) {
+      localStorageCacheService.updateGlobalVersion(versionString);
     }
     
-    // Update in-memory cache
-    urlCache.set(`cache:version:${invalidationTarget || 'global'}`, newVersion, 60000); // 1 minute TTL
-    
-    console.log(`Cache version updated to ${newVersion} for ${scope}${target ? ': ' + target : ''}`);
+    console.log(`Global cache version updated: ${versionString}`);
     return true;
-  } catch (e) {
-    console.error('Error updating cache version:', e);
+  } catch (error) {
+    console.error('Unexpected error updating global cache version:', error);
     return false;
   }
 };
