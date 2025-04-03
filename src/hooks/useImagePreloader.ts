@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 
 interface PreloadOptions {
@@ -20,26 +20,39 @@ export function useImagePreloader(
   const { priority = 'low', onLoad, onError } = options;
   const network = useNetworkStatus();
   const loadedImagesRef = useRef<Set<string>>(new Set());
+  const [loadingStatus, setLoadingStatus] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({});
   
   useEffect(() => {
     if (!enabled || !imageSrcs || imageSrcs.length === 0) {
       return;
     }
     
-    // Don't preload if on slow connection and data saver is enabled
-    if (network.saveDataEnabled && ['slow-2g', '2g'].includes(network.effectiveConnectionType)) {
+    // Skip preloading on extremely poor connections unless high priority
+    const poorConnection = network.saveDataEnabled && 
+      ['slow-2g', '2g'].includes(network.effectiveConnectionType);
+    
+    if (poorConnection && priority !== 'high') {
       console.log('[ImagePreloader] Skipping preload due to poor network conditions');
       return;
     }
     
-    // Filter out already loaded images
-    const imagesToLoad = imageSrcs.filter(src => !loadedImagesRef.current.has(src));
+    // Filter out already loaded images and empty/invalid URLs
+    const imagesToLoad = imageSrcs
+      .filter(src => src && src.trim() !== '' && !loadedImagesRef.current.has(src))
+      .filter(src => !src.startsWith('data:') && !src.includes('placeholder'));
     
     if (imagesToLoad.length === 0) {
       return;
     }
     
-    console.log(`[ImagePreloader] Preloading ${imagesToLoad.length} images`);
+    console.log(`[ImagePreloader] Preloading ${imagesToLoad.length} images (priority: ${priority})`);
+    
+    // Update loading status for all images
+    const newStatus: Record<string, 'loading' | 'loaded' | 'error'> = {};
+    imagesToLoad.forEach(src => {
+      newStatus[src] = 'loading';
+    });
+    setLoadingStatus(prev => ({ ...prev, ...newStatus }));
     
     // Create link rel=preload elements for high priority images
     if (priority === 'high' && typeof document !== 'undefined') {
@@ -48,11 +61,14 @@ export function useImagePreloader(
         link.rel = 'preload';
         link.as = 'image';
         link.href = src;
+        link.crossOrigin = 'anonymous'; // Add cross-origin support
         link.onload = () => {
           loadedImagesRef.current.add(src);
+          setLoadingStatus(prev => ({ ...prev, [src]: 'loaded' }));
           onLoad?.(src);
         };
         link.onerror = (e) => {
+          setLoadingStatus(prev => ({ ...prev, [src]: 'error' }));
           onError?.(src, new Error(`Failed to preload image: ${src}`));
         };
         document.head.appendChild(link);
@@ -60,17 +76,20 @@ export function useImagePreloader(
     } 
     // Use Image for lower priority preloading
     else {
-      // Schedule preloading with some delay for low priority images
-      const delay = priority === 'auto' ? 200 : 500;
+      // Schedule preloading with appropriate delay
+      const delay = priority === 'auto' ? 100 : 300;
       
       const timeoutId = setTimeout(() => {
         imagesToLoad.forEach(src => {
           const img = new Image();
+          img.crossOrigin = 'anonymous'; // Add cross-origin support
           img.onload = () => {
             loadedImagesRef.current.add(src);
+            setLoadingStatus(prev => ({ ...prev, [src]: 'loaded' }));
             onLoad?.(src);
           };
           img.onerror = () => {
+            setLoadingStatus(prev => ({ ...prev, [src]: 'error' }));
             onError?.(src, new Error(`Failed to preload image: ${src}`));
           };
           img.src = src;
@@ -79,9 +98,10 @@ export function useImagePreloader(
       
       return () => clearTimeout(timeoutId);
     }
-  }, [imageSrcs, enabled, priority, network.saveDataEnabled, network.effectiveConnectionType]);
+  }, [imageSrcs, enabled, priority, network.saveDataEnabled, network.effectiveConnectionType, onLoad, onError]);
   
   return {
     preloadedImages: loadedImagesRef.current,
+    loadingStatus
   };
 }

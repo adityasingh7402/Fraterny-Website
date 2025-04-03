@@ -1,7 +1,6 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
-import { DeviceDetectionWrapper } from '../ui/DeviceDetectionWrapper';
 import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
 import { getImageUrlByKey } from '@/services/images';
@@ -48,23 +47,30 @@ const experienceImages = [
 
 const ImageGallery = () => {
   // Pre-resolve image keys to URLs for preloading
-  const [imageUrls, setImageUrls] = React.useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Prefetch critical images (first two) aggressively
-  React.useEffect(() => {
-    const preloadFirstTwoImages = async () => {
+  // Prefetch all images aggressively on mount
+  useEffect(() => {
+    const fetchAllImages = async () => {
       try {
-        const firstTwoImages = experienceImages.slice(0, 2);
+        setIsLoading(true);
         const urls = await Promise.all(
-          firstTwoImages.map(img => getImageUrlByKey(img.dynamicKey))
+          experienceImages.map(img => getImageUrlByKey(img.dynamicKey))
         );
-        setImageUrls(urls.filter(Boolean) as string[]);
+        
+        // Filter out any null/undefined results
+        const validUrls = urls.filter(Boolean) as string[];
+        console.log('[ExperienceGallery] All image URLs resolved:', validUrls.length);
+        setImageUrls(validUrls);
       } catch (error) {
-        console.error("Error prefetching critical gallery images:", error);
+        console.error("[ExperienceGallery] Error fetching gallery images:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    preloadFirstTwoImages();
+    fetchAllImages();
   }, []);
   
   return (
@@ -72,6 +78,7 @@ const ImageGallery = () => {
       <ViewportAwareGallery 
         imageSrcs={imageUrls}
         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1"
+        priority={true} // Mark as high priority content
       >
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
@@ -80,12 +87,11 @@ const ImageGallery = () => {
               alt={image.alt}
               className="w-full h-full"
               loading={index < 2 ? "eager" : "lazy"}
+              priority={index < 2} // First two images have higher priority
               width={image.width}
               height={image.height}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
               objectFit="cover"
-              // For images that should always display in desktop mode even on mobile
-              // forceMobile={false}
             />
           </div>
         ))}
