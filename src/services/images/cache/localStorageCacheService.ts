@@ -1,3 +1,4 @@
+
 import { storageUtils } from "@/utils/storageUtils";
 
 class LocalStorageCacheService {
@@ -5,12 +6,15 @@ class LocalStorageCacheService {
 
   /**
    * Initialize the localStorage cache service
+   * @returns boolean indicating if localStorage is available
    */
-  initialize(): void {
+  initialize(): boolean {
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       console.log('LocalStorage cache service is available');
+      return true;
     } else {
       console.warn('LocalStorage is not available in this environment');
+      return false;
     }
   }
 
@@ -134,7 +138,7 @@ class LocalStorageCacheService {
         const key = localStorage.key(i);
         if (key && key.startsWith(this.storageKeyPrefix) && key.endsWith('_expiry')) {
           const baseKey = key.replace('_expiry', '');
-          const expiry = this.get(key);
+          const expiry = this.get(key.replace(this.storageKeyPrefix, ''));
           if (expiry && expiry < Date.now()) {
             localStorage.removeItem(key);
             localStorage.removeItem(baseKey);
@@ -158,7 +162,7 @@ class LocalStorageCacheService {
     try {
       if (!this.isValid()) return null;
 
-      const stored = this.getWithDecompression(`${this.storageKeyPrefix}global_version`);
+      const stored = this.getWithDecompression('global_version');
       return stored ? stored.value : null;
     } catch (error) {
       console.error('Error getting global version from localStorage:', error);
@@ -188,6 +192,142 @@ class LocalStorageCacheService {
       return true;
     } catch (error) {
       console.error('Failed to update global version:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get an image from localStorage cache
+   * @param key The cache key for the image
+   */
+  getImage(key: string): any | null {
+    try {
+      if (!this.isValid()) return null;
+      
+      const cacheKey = `image:${key}`;
+      return this.getWithDecompression(cacheKey);
+    } catch (error) {
+      console.error(`Error getting image ${key} from localStorage:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Set an image in localStorage cache
+   * @param key The cache key for the image
+   * @param data The image data to cache
+   * @param priority Priority level (1-5, 1 being highest)
+   */
+  setImage(key: string, data: any, priority: number = 3): boolean {
+    try {
+      if (!this.isValid()) return false;
+      
+      const cacheKey = `image:${key}`;
+      const cacheEntry = {
+        data,
+        timestamp: Date.now(),
+        priority: priority, // Used for cache eviction policies
+        expiresAt: Date.now() + (15 * 60 * 1000) // 15 minutes expiry
+      };
+      
+      return this.setWithCompression(cacheKey, cacheEntry);
+    } catch (error) {
+      console.error(`Error setting image ${key} in localStorage:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get a URL from localStorage cache
+   * @param key The cache key for the URL
+   */
+  getUrl(key: string): string | null {
+    try {
+      if (!this.isValid()) return null;
+      
+      const cacheKey = `url:${key}`;
+      const entry = this.getWithDecompression(cacheKey);
+      if (!entry) return null;
+      
+      // Check if expired
+      if (entry.expiresAt && entry.expiresAt < Date.now()) {
+        this.remove(cacheKey);
+        return null;
+      }
+      
+      return entry.data;
+    } catch (error) {
+      console.error(`Error getting URL ${key} from localStorage:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Set a URL in localStorage cache
+   * @param key The cache key for the URL
+   * @param url The URL to cache
+   * @param priority Priority level (1-5, 1 being highest)
+   */
+  setUrl(key: string, url: string, priority: number = 3): boolean {
+    try {
+      if (!this.isValid()) return false;
+      
+      const cacheKey = `url:${key}`;
+      const cacheEntry = {
+        data: url,
+        timestamp: Date.now(),
+        priority: priority, // Used for cache eviction policies
+        expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes expiry
+      };
+      
+      return this.setWithCompression(cacheKey, cacheEntry);
+    } catch (error) {
+      console.error(`Error setting URL ${key} in localStorage:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Clear URL cache for a specific key
+   * @param key The URL cache key to clear
+   */
+  clearUrlCacheForKey(key: string): boolean {
+    try {
+      if (!this.isValid()) return false;
+      
+      const cacheKey = `url:${key}`;
+      this.remove(cacheKey);
+      return true;
+    } catch (error) {
+      console.error(`Error clearing URL cache for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Clear all image and URL caches
+   */
+  clearCache(): boolean {
+    try {
+      if (!this.isValid()) return false;
+      
+      // Clear all entries that start with image: or url:
+      let count = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(this.storageKeyPrefix)) {
+          const pureName = key.substring(this.storageKeyPrefix.length);
+          if (pureName.startsWith('image:') || pureName.startsWith('url:')) {
+            localStorage.removeItem(key);
+            count++;
+          }
+        }
+      }
+      
+      console.log(`Cleared ${count} image and URL cache entries`);
+      return true;
+    } catch (error) {
+      console.error('Error clearing image and URL cache:', error);
       return false;
     }
   }

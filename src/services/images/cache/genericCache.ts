@@ -1,4 +1,3 @@
-
 import { CacheEntry } from './types';
 import { localStorageCacheService } from './localStorageCacheService';
 
@@ -34,7 +33,7 @@ export class GenericCache<T> {
     // Initialize storage if persistence is enabled
     if (this.persistToStorage) {
       try {
-        this.storageInitialized = localStorageCacheService.initialize();
+        this.storageInitialized = localStorageCacheService.isValid();
         
         // Clean expired entries on initialization
         if (this.storageInitialized) {
@@ -148,7 +147,6 @@ export class GenericCache<T> {
     }
   }
   
-  // Enhanced delete method with batching support
   delete(key: string): boolean {
     // Add to pending batch
     this.pendingDeletes.add(key);
@@ -170,8 +168,7 @@ export class GenericCache<T> {
     return true; // Indicate pending deletion (will be processed in batch)
   }
   
-  // Process all pending deletes in a single batch
-  private processBatchDeletes(): void {
+  processBatchDeletes(): void {
     const deleteCount = this.pendingDeletes.size;
     if (deleteCount === 0) {
       this.batchDeleteTimeout = null;
@@ -193,7 +190,6 @@ export class GenericCache<T> {
     this.batchDeleteTimeout = null;
   }
   
-  // Enhanced invalidation with batching and reduced logging
   invalidate(keyPattern: string): void {
     let keysToInvalidate: string[] = [];
     
@@ -218,7 +214,6 @@ export class GenericCache<T> {
     }
   }
   
-  // Invalidate by custom matcher function with batching
   invalidateByMatcher(matcher: (key: string, value?: CacheEntry<T>) => boolean): number {
     let keysToInvalidate: string[] = [];
     
@@ -245,7 +240,6 @@ export class GenericCache<T> {
     return keysToInvalidate.length;
   }
   
-  // Invalidate entries by tag (if entries have associated tags)
   invalidateByTag(tag: string): number {
     let keysToInvalidate: string[] = [];
     
@@ -275,7 +269,6 @@ export class GenericCache<T> {
     return keysToInvalidate.length;
   }
   
-  // Force immediate processing of any pending deletes
   flushBatchDeletes(): void {
     if (this.batchDeleteTimeout) {
       clearTimeout(this.batchDeleteTimeout);
@@ -331,12 +324,10 @@ export class GenericCache<T> {
     console.log(`[GenericCache:${this.name}] Cleared entire cache (${count} entries)`);
   }
   
-  // Set logging verbosity
   setVerboseLogging(verbose: boolean): void {
     this.verboseLogging = verbose;
   }
   
-  // Get cache statistics
   getStats(): { size: number, oldestTimestamp: number | null, pendingDeletes: number } {
     let oldestTimestamp: number | null = null;
     
