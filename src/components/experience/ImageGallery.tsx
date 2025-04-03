@@ -2,6 +2,9 @@
 import React from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 import { DeviceDetectionWrapper } from '../ui/DeviceDetectionWrapper';
+import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
+import { getImageUrlByKey } from '@/services/images';
 
 // Updated to use ONLY dynamic keys
 const experienceImages = [
@@ -44,9 +47,32 @@ const experienceImages = [
 ];
 
 const ImageGallery = () => {
+  // Pre-resolve image keys to URLs for preloading
+  const [imageUrls, setImageUrls] = React.useState<string[]>([]);
+  
+  // Prefetch critical images (first two) aggressively
+  React.useEffect(() => {
+    const preloadFirstTwoImages = async () => {
+      try {
+        const firstTwoImages = experienceImages.slice(0, 2);
+        const urls = await Promise.all(
+          firstTwoImages.map(img => getImageUrlByKey(img.dynamicKey))
+        );
+        setImageUrls(urls.filter(Boolean) as string[]);
+      } catch (error) {
+        console.error("Error prefetching critical gallery images:", error);
+      }
+    };
+    
+    preloadFirstTwoImages();
+  }, []);
+  
   return (
     <section className="w-full overflow-hidden">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
+      <ViewportAwareGallery 
+        imageSrcs={imageUrls}
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1"
+      >
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 
@@ -63,7 +89,7 @@ const ImageGallery = () => {
             />
           </div>
         ))}
-      </div>
+      </ViewportAwareGallery>
     </section>
   );
 };

@@ -10,10 +10,12 @@ import { BasicImage } from './components/BasicImage';
 import { CacheDebugInfo } from './components/CacheDebugInfo';
 import { MobileOptimizedImage } from './components/MobileOptimizedImage';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { ViewportAwareImage } from './components/ViewportAwareImage';
 
 /**
  * A component that renders responsive images with different sources for mobile, tablet, and desktop
- * Enhanced with content-based cache keys, debugging capabilities, and mobile optimization
+ * Enhanced with content-based cache keys, debugging capabilities, mobile optimization,
+ * and viewport-based loading
  */
 const ResponsiveImage = ({
   src,
@@ -87,6 +89,9 @@ const ResponsiveImage = ({
     }
   }, [dynamicKey, dynamicSrc, useLowQualityOnPoorConnection]);
 
+  // Function to handle click events (wrapper to stop propagation if needed)
+  const handleClick = onClick ? () => onClick() : undefined;
+
   // PRIORITY 1: If dynamicKey is provided, use it exclusively
   if (dynamicKey) {
     // If we're loading a dynamic image and it's still loading
@@ -118,25 +123,28 @@ const ResponsiveImage = ({
       );
     }
 
-    // If we have a dynamic source, use it with mobile optimization
+    // If we have a dynamic source, use it with viewport-aware loading
     if (dynamicSrc) {
       return (
         <div className={`relative ${className}`} style={{ width, height }}>
-          <MobileOptimizedImage
+          <ViewportAwareImage
             src={dynamicSrc}
-            lowQualitySrc={tinyPlaceholder || undefined}
+            lowQualitySrc={tinyPlaceholder}
             alt={alt}
-            loading={loading}
             className="w-full h-full"
             width={width}
             height={height}
             sizes={sizes}
             objectFit={objectFit}
+            fallbackSrc={fallbackSrc}
+            fetchPriority={finalFetchPriority}
+            onLoad={() => console.log(`[ResponsiveImage] Loaded ${dynamicKey}`)}
+            onError={() => console.error(`[ResponsiveImage] Error loading ${dynamicKey}`)}
           />
           {onClick && (
             <div 
               className="absolute inset-0 cursor-pointer" 
-              onClick={onClick}
+              onClick={handleClick}
               aria-label={`Click to interact with ${alt}`}
             />
           )}
@@ -162,29 +170,31 @@ const ResponsiveImage = ({
     console.log(`[ResponsiveImage] Device detection for ${alt}: ${effectiveIsMobile ? 'MOBILE' : 'DESKTOP'}`);
     console.log(`[ResponsiveImage] Will use ${effectiveIsMobile ? 'MOBILE' : 'DESKTOP'} source for ${alt}`);
     
+    const imageSrc = effectiveIsMobile ? src.mobile : (src.desktop || src.mobile);
+    
     return (
       <div className="relative" style={{ width, height }}>
-        <ResponsivePicture
-          sources={{
-            mobile: src.mobile,
-            tablet: src.tablet,
-            desktop: src.desktop
-          }}
+        <ViewportAwareImage
+          src={imageSrc}
           alt={alt}
           className={className}
-          loading={loading}
-          fetchPriority={finalFetchPriority}
-          onClick={onClick}
           width={width}
           height={height}
           sizes={sizes}
-          fallbackSrc={fallbackSrc}
-          useMobileSrc={effectiveIsMobile}
           objectFit={objectFit}
+          fallbackSrc={fallbackSrc}
+          fetchPriority={finalFetchPriority}
         />
+        {onClick && (
+          <div 
+            className="absolute inset-0 cursor-pointer" 
+            onClick={handleClick}
+            aria-label={`Click to interact with ${alt}`}
+          />
+        )}
         {debugCache && (
           <CacheDebugInfo
-            url={effectiveIsMobile ? src.mobile : (src.desktop || src.mobile)}
+            url={imageSrc}
             isLoading={false}
             isCached={false}
           />
@@ -196,19 +206,24 @@ const ResponsiveImage = ({
   // PRIORITY 3: Default case: simple image for local assets
   return (
     <div className="relative" style={{ width, height }}>
-      <BasicImage
+      <ViewportAwareImage
         src={typeof src === 'string' ? src : fallbackSrc}
         alt={alt}
-        loading={loading}
-        fetchPriority={finalFetchPriority}
-        onClick={onClick}
         className={className || "w-full h-full"}
         width={width}
         height={height}
         sizes={sizes}
-        fallbackSrc={fallbackSrc}
         objectFit={objectFit}
+        fallbackSrc={fallbackSrc}
+        fetchPriority={finalFetchPriority}
       />
+      {onClick && (
+        <div 
+          className="absolute inset-0 cursor-pointer" 
+          onClick={handleClick}
+          aria-label={`Click to interact with ${alt}`}
+        />
+      )}
       {debugCache && (
         <CacheDebugInfo
           url={typeof src === 'string' ? src : fallbackSrc}

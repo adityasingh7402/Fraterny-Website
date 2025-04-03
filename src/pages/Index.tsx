@@ -9,6 +9,8 @@ import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -22,6 +24,13 @@ const LoadingFallback = () => (
     <div className="w-8 h-8 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
   </div>
 );
+
+// Critical paths to preload for better performance
+const CRITICAL_IMAGE_KEYS = [
+  "hero-background", 
+  "logo-main", 
+  "villa-thumbnail"
+];
 
 const Index = () => {
   // Initialize analytics and performance monitoring
@@ -82,6 +91,29 @@ const Index = () => {
     };
   }, []);
 
+  // Preload critical images for main page
+  useImagePreloader(
+    CRITICAL_IMAGE_KEYS.map(key => `/images/${key}.webp`), 
+    true, 
+    { priority: 'high' }
+  );
+
+  // Create refs for each section to use with intersection observer
+  const [villasRef, isVillasVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '300px',
+    triggerOnce: true
+  });
+  
+  const [valuesRef, isValuesVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '300px',
+    triggerOnce: true
+  });
+  
+  const [howItWorksRef, isHowItWorksVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '300px',
+    triggerOnce: true
+  });
+
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -92,17 +124,29 @@ const Index = () => {
         <NavalQuote />
       </Suspense>
       
-      <Suspense fallback={<LoadingFallback />}>
-        <VillaLab />
-      </Suspense>
+      <div ref={villasRef}>
+        {isVillasVisible && (
+          <Suspense fallback={<LoadingFallback />}>
+            <VillaLab />
+          </Suspense>
+        )}
+      </div>
       
-      <Suspense fallback={<LoadingFallback />}>
-        <OurValues />
-      </Suspense>
+      <div ref={valuesRef}>
+        {isValuesVisible && (
+          <Suspense fallback={<LoadingFallback />}>
+            <OurValues />
+          </Suspense>
+        )}
+      </div>
       
-      <Suspense fallback={<LoadingFallback />}>
-        <HowItWorks />
-      </Suspense>
+      <div ref={howItWorksRef}>
+        {isHowItWorksVisible && (
+          <Suspense fallback={<LoadingFallback />}>
+            <HowItWorks />
+          </Suspense>
+        )}
+      </div>
       
       <Footer />
     </div>
