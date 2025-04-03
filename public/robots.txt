@@ -1,0 +1,22 @@
+
+# robots.txt for Fraterny website
+# Last updated: 2025-04-03
+
+User-agent: *
+Allow: /
+
+# Disallow admin routes
+Disallow: /admin/
+Disallow: /admin/*
+
+# Allow specific directories to be crawled
+Allow: /blog/
+Allow: /experience/
+Allow: /pricing/
+Allow: /images/
+
+# Crawl delay to reduce server load
+Crawl-delay: 10
+
+# Sitemap location
+Sitemap: https://fraterny.in/sitemap.xml
