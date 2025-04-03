@@ -1,8 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
-import { useImagePreloader } from '@/hooks/useImagePreloader';
 import { getImageUrlByKey } from '@/services/images';
 
 // Updated to use ONLY dynamic keys
@@ -46,31 +45,61 @@ const experienceImages = [
 ];
 
 const ImageGallery = () => {
-  // Pre-resolve image keys to URLs for preloading
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Prefetch all images aggressively on mount
+  // Use abortController for cleanup
   useEffect(() => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    
     const fetchAllImages = async () => {
       try {
         setIsLoading(true);
-        const urls = await Promise.all(
-          experienceImages.map(img => getImageUrlByKey(img.dynamicKey))
+        
+        // Create cache of promises to avoid duplicate fetches
+        const imagePromises: Record<string, Promise<string>> = {};
+        
+        // Initialize all promises first to avoid race conditions
+        experienceImages.forEach(img => {
+          if (!imagePromises[img.dynamicKey]) {
+            imagePromises[img.dynamicKey] = getImageUrlByKey(img.dynamicKey);
+          }
+        });
+        
+        // Only wait for all promises if the component is still mounted
+        if (signal.aborted) return;
+        
+        const results = await Promise.all(
+          experienceImages.map(img => imagePromises[img.dynamicKey])
         );
         
+        // Check if component is still mounted before updating state
+        if (signal.aborted) return;
+        
         // Filter out any null/undefined results
-        const validUrls = urls.filter(Boolean) as string[];
+        const validUrls = results.filter(Boolean) as string[];
         console.log('[ExperienceGallery] All image URLs resolved:', validUrls.length);
         setImageUrls(validUrls);
       } catch (error) {
-        console.error("[ExperienceGallery] Error fetching gallery images:", error);
+        // Only log error if not due to component unmounting
+        if (!signal.aborted) {
+          console.error("[ExperienceGallery] Error fetching gallery images:", error);
+        }
       } finally {
-        setIsLoading(false);
+        // Only update loading state if component is still mounted
+        if (!signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
     
     fetchAllImages();
+    
+    // Cleanup to prevent state updates after unmount
+    return () => {
+      abortController.abort();
+    };
   }, []);
   
   return (
