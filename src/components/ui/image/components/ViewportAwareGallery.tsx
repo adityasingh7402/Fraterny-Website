@@ -11,7 +11,10 @@ interface ViewportAwareGalleryProps {
   priority?: boolean; // New prop to indicate if gallery should be treated as high priority
 }
 
-export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
+/**
+ * Optimized gallery component that intelligently loads images based on viewport visibility
+ */
+export const ViewportAwareGallery = React.memo<ViewportAwareGalleryProps>(({
   children,
   imageSrcs,
   preloadThreshold = 3,
@@ -51,25 +54,31 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
 
   // More controlled logging - only log when state changes AND debug is enabled
   useEffect(() => {
-    if (debugEnabled) {
+    if (debugEnabled && process.env.NODE_ENV === 'development') {
       console.log(`[ViewportAwareGallery:${galleryId}] Near viewport: ${isNearViewport}, Visible: ${isVisible}, Priority: ${priority}`);
     }
   }, [isNearViewport, isVisible, priority, debugEnabled, galleryId]);
 
-  // Preload images when gallery is near viewport
+  // Preload images when gallery is near viewport - with memoized callbacks
+  const onImageLoad = useCallback((src: string) => {
+    if (debugEnabled && process.env.NODE_ENV === 'development') {
+      console.log(`[Gallery:${galleryId}] Preloaded: ${src}`);
+    }
+  }, [debugEnabled, galleryId]);
+
+  const onImageError = useCallback((src: string, error: Error) => {
+    console.error(`[Gallery:${galleryId}] Failed to preload: ${src}`, error);
+  }, [galleryId]);
+  
+  // Use the memoized callbacks with the preloader hook
   const { preloadedImages } = useImagePreloader(
     imageSourcesToPreload,
     isNearViewport,
     { 
       priority: priority ? 'high' : 'low',
       name: `gallery-${galleryId}`,
-      // Use inline functions but they depend on stable values
-      onLoad: useCallback((src) => {
-        if (debugEnabled) console.log(`[Gallery:${galleryId}] Preloaded: ${src}`);
-      }, [debugEnabled, galleryId]),
-      onError: useCallback((src, error) => {
-        console.error(`[Gallery:${galleryId}] Failed to preload: ${src}`, error);
-      }, [galleryId])
+      onLoad: onImageLoad,
+      onError: onImageError
     }
   );
 
@@ -91,4 +100,7 @@ export const ViewportAwareGallery: React.FC<ViewportAwareGalleryProps> = ({
       {children}
     </div>
   );
-};
+});
+
+// Add display name for better debugging
+ViewportAwareGallery.displayName = 'ViewportAwareGallery';

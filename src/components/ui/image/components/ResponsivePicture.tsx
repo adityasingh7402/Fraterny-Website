@@ -22,7 +22,7 @@ interface ResponsivePictureProps {
 
 /**
  * Responsive picture component for different device sizes
- * Now with improved mobile detection support
+ * Now with improved mobile detection support and proper DOM properties
  */
 export const ResponsivePicture = ({
   sources,
@@ -41,12 +41,14 @@ export const ResponsivePicture = ({
 }: ResponsivePictureProps) => {
   // Enhanced logging for better debugging
   useEffect(() => {
-    console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
-      mobile: sources.mobile ? '✓' : '✗',
-      tablet: sources.tablet ? '✓' : '✗', 
-      desktop: sources.desktop ? '✓' : '✗'
-    });
-    console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
+        mobile: sources.mobile ? '✓' : '✗',
+        tablet: sources.tablet ? '✓' : '✗', 
+        desktop: sources.desktop ? '✓' : '✗'
+      });
+      console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
+    }
   }, [sources, useMobileSrc, alt]);
 
   // Process all URLs through CDN if enabled
@@ -64,8 +66,10 @@ export const ResponsivePicture = ({
     ? processedSources.mobile
     : processedSources.desktop;
   
-  console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
-  console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
+    console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
+  }
   
   const imgProps = createImageProps(
     defaultImgSrc, 
@@ -75,8 +79,7 @@ export const ResponsivePicture = ({
     sizes,
     width, 
     height, 
-    processedFallbackSrc, 
-    fetchPriority
+    processedFallbackSrc
   );
   
   // Apply object-fit directly to the style object for the img element
@@ -84,6 +87,13 @@ export const ResponsivePicture = ({
     ...imgProps.style, 
     objectFit 
   };
+  
+  // Fix: Convert React's fetchPriority prop to lowercase DOM attribute
+  // This prevents the React warning about unrecognized props
+  const imgAttributes: any = {};
+  if (fetchPriority) {
+    imgAttributes.fetchpriority = fetchPriority; // lowercase for DOM
+  }
   
   return (
     <picture onClick={onClick}>
@@ -108,8 +118,8 @@ export const ResponsivePicture = ({
       />
       <img 
         {...imgProps} 
+        {...imgAttributes} // Use our fixed attributes
         style={style} 
-        fetchPriority={fetchPriority} 
         data-mobile={useMobileSrc ? "true" : "false"}
       />
     </picture>
