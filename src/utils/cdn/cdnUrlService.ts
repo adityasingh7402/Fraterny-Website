@@ -1,3 +1,4 @@
+
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -9,6 +10,7 @@ import { shouldExcludePath } from './cdnExclusions';
 import { CDN_STORAGE_KEY } from './cdnConfig';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 import { isCdnAvailabilityCacheValid, getCdnAvailability } from './cdnNetwork';
+import { normalizeStoragePath, constructCdnPath } from '@/utils/pathUtils';
 
 // Add a debug mode flag - will output helpful console logs
 const DEBUG_CDN = process.env.NODE_ENV === 'development';
@@ -118,7 +120,7 @@ export const parseSupabaseUrl = (url: string): { bucket: string; path: string } 
   if (matches && matches[1] && matches[2]) {
     return {
       bucket: matches[1],
-      path: matches[2]
+      path: matches[2].startsWith('/') ? matches[2].substring(1) : matches[2]
     };
   }
   
@@ -173,34 +175,45 @@ export const getCdnUrl = (
     if (parsedSupabaseUrl) {
       const { bucket, path } = parsedSupabaseUrl;
       
-      // Avoid duplicate bucket paths - check if path already starts with bucket name
-      const cdnPath = path.startsWith(`/${bucket}`) ? path : `/${bucket}${path}`;
-      
-      if (DEBUG_CDN) {
-        console.log(`[CDN] Parsed Supabase URL:`, {
-          bucket,
-          path,
-          cdnPath
-        });
-      }
-      
-      // Check if this path should bypass the CDN
-      if (!forceCdn && shouldExcludePath(cdnPath)) {
-        if (DEBUG_CDN) console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
-        transformedUrl = imagePath;
-      } else {
-        // Extract and preserve query parameters
-        const urlObj = new URL(imagePath);
-        const queryString = urlObj.search;
+      // Use our path normalization utility to handle duplicates and ensure proper formatting
+      let normalizedPath = path;
+      if (bucket === 'website-images') {
+        // If this is our main bucket, use the specialized normalization
+        normalizedPath = normalizeStoragePath(`${path}`);
         
-        // Use CDN if enabled
-        // For synchronous contexts, we have to use the sync version
-        const useCdn = forceCdn || isCdnEnabled();
-        transformedUrl = useCdn ? `${CDN_URL}${cdnPath}${queryString}` : imagePath;
+        // Ensure proper prefix format for CDN
+        const cdnPath = constructCdnPath(normalizedPath);
         
-        if (DEBUG_CDN && useCdn) {
-          console.log(`[CDN] Transformed Supabase URL:\nFrom: ${imagePath}\nTo: ${transformedUrl}`);
+        if (DEBUG_CDN) {
+          console.log(`[CDN] Parsed Supabase URL:`, {
+            bucket,
+            path,
+            normalizedPath,
+            cdnPath
+          });
         }
+        
+        // Check if this path should bypass the CDN
+        if (!forceCdn && shouldExcludePath(cdnPath)) {
+          if (DEBUG_CDN) console.log(`[CDN] Bypassing CDN for excluded Supabase path: ${cdnPath}`);
+          transformedUrl = imagePath;
+        } else {
+          // Extract and preserve query parameters
+          const urlObj = new URL(imagePath);
+          const queryString = urlObj.search;
+          
+          // Use CDN if enabled
+          // For synchronous contexts, we have to use the sync version
+          const useCdn = forceCdn || isCdnEnabled();
+          transformedUrl = useCdn ? `${CDN_URL}/${cdnPath}${queryString}` : imagePath;
+          
+          if (DEBUG_CDN && useCdn) {
+            console.log(`[CDN] Transformed Supabase URL:\nFrom: ${imagePath}\nTo: ${transformedUrl}`);
+          }
+        }
+      } else {
+        // For other buckets, just use the URL as is
+        transformedUrl = imagePath;
       }
     } else {
       // Not a Supabase URL, return unchanged
@@ -220,7 +233,10 @@ export const getCdnUrl = (
       // Use CDN if enabled (production or manually in development)
       // For synchronous contexts, we have to use the sync version
       const useCdn = forceCdn || isCdnEnabled();
-      transformedUrl = useCdn ? `${CDN_URL}${normalizedPath}` : normalizedPath;
+      
+      // Use constructCdnPath to ensure proper format for the CDN
+      const cdnPath = constructCdnPath(normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath);
+      transformedUrl = useCdn ? `${CDN_URL}/${cdnPath}` : normalizedPath;
       
       if (DEBUG_CDN && useCdn) {
         console.log(`[CDN] Transformed local path:\nFrom: ${normalizedPath}\nTo: ${transformedUrl}`);

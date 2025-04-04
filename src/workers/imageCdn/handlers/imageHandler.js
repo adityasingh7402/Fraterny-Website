@@ -25,18 +25,44 @@ function normalizeStoragePath(path) {
   const bucketName = 'website-images';
   const bucketPrefix = `${bucketName}/`;
   
-  // If path starts with duplicate bucket names, normalize it
-  const bucketPrefixCount = normalizedPath.split(bucketPrefix).length - 1;
-  
-  if (bucketPrefixCount > 1) {
-    // Remove all occurrences and add back once
-    const pathWithoutBucket = normalizedPath.replace(new RegExp(bucketPrefix, 'g'), '');
-    return `${bucketPrefix}${pathWithoutBucket}`;
+  // If path contains multiple bucket prefixes, normalize it
+  if (normalizedPath.includes(bucketPrefix)) {
+    // Split by bucket prefix to identify duplicates
+    const parts = normalizedPath.split(bucketPrefix);
+    
+    // If we have more than one part after splitting (excluding first empty part if any),
+    // it means we have at least one bucket prefix
+    if (parts.length > 1) {
+      // Join all non-empty parts after the first occurrence of the bucket prefix
+      const pathWithoutDuplicates = parts.slice(1).filter(Boolean).join('/');
+      return `${bucketPrefix}${pathWithoutDuplicates}`;
+    }
   }
   
-  // Return the path with proper bucket prefix
+  // If no bucket prefix found, path is already normalized or needs prefix
   if (!normalizedPath.startsWith(bucketPrefix)) {
     return `${bucketPrefix}${normalizedPath}`;
+  }
+  
+  // Path already has exactly one bucket prefix
+  return normalizedPath;
+}
+
+/**
+ * Constructs a properly formatted CDN path
+ * Ensures path always has the format: website-images/image-path.ext
+ * 
+ * @param {string} storagePath The raw storage path
+ * @returns {string} A properly formatted CDN path
+ */
+function constructCdnPath(storagePath) {
+  // Normalize first to ensure consistency and remove any duplicate prefixes
+  const normalizedPath = normalizeStoragePath(storagePath);
+  
+  // Ensure the normalized path includes the bucket name exactly once
+  const bucketName = 'website-images';
+  if (!normalizedPath.startsWith(`${bucketName}/`)) {
+    return `${bucketName}/${normalizedPath.replace(`${bucketName}/`, '')}`;
   }
   
   return normalizedPath;
@@ -93,17 +119,25 @@ export function constructOriginUrl(url) {
   }
   else {
     // Regular images path - normalize first
-    let normalizedPath = normalizeStoragePath(path);
+    // Remove any leading slash for consistent normalization
+    const pathWithoutLeadingSlash = path.startsWith('/') ? path.substring(1) : path;
+    const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
     
     // Ensure the path is properly formatted for Supabase
-    if (!normalizedPath.startsWith('/')) {
-      normalizedPath = '/' + normalizedPath;
-    }
+    const formattedPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
     
     // Construct the Supabase URL with normalized path
-    const supabasePath = `/storage/v1/object/public${normalizedPath}${url.search}`;
+    const supabasePath = `/storage/v1/object/public${formattedPath}${url.search}`;
     
-    if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${path} -> ${supabasePath}`);
+    if (DEBUG_WORKER) {
+      console.log(`[CDN Worker] Constructing Supabase URL:`, {
+        originalPath: path,
+        normalizedPath: normalizedPath,
+        formattedPath: formattedPath,
+        supabasePath: supabasePath
+      });
+    }
+    
     return `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
   }
 }

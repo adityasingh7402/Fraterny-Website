@@ -1,3 +1,4 @@
+
 /**
  * Path normalization utilities for consistent image path handling
  */
@@ -21,13 +22,26 @@ export const normalizeStoragePath = (path: string): string => {
   const bucketName = 'website-images';
   const bucketPrefix = `${bucketName}/`;
   
-  // Check if path starts with bucket prefix
-  if (normalizedPath.startsWith(bucketPrefix)) {
-    // If it already has the bucket name, just return the path as is
-    return normalizedPath;
+  // If path contains multiple bucket prefixes, normalize it
+  if (normalizedPath.includes(bucketPrefix)) {
+    // Split by bucket prefix to identify duplicates
+    const parts = normalizedPath.split(bucketPrefix);
+    
+    // If we have more than one part after splitting (excluding first empty part if any),
+    // it means we have at least one bucket prefix
+    if (parts.length > 1) {
+      // Join all non-empty parts after the first occurrence of the bucket prefix
+      const pathWithoutDuplicates = parts.slice(1).filter(Boolean).join('/');
+      return `${bucketPrefix}${pathWithoutDuplicates}`;
+    }
   }
   
-  // Path doesn't have bucket prefix, so it's already correct
+  // If no bucket prefix found, path is already normalized or needs prefix
+  if (!normalizedPath.startsWith(bucketPrefix)) {
+    return `${bucketPrefix}${normalizedPath}`;
+  }
+  
+  // Path already has exactly one bucket prefix
   return normalizedPath;
 }
 
@@ -43,7 +57,7 @@ export const constructStoragePath = (
   storagePath: string, 
   bucketName: string = 'website-images'
 ): string => {
-  // Normalize the path first
+  // Normalize the path first to remove any duplicate bucket names
   const normalizedPath = normalizeStoragePath(storagePath);
   
   // If the path already starts with the bucket name, return it
@@ -57,19 +71,20 @@ export const constructStoragePath = (
 
 /**
  * Constructs a properly formatted URL for the CDN
+ * Ensures path always has the format: website-images/image-path.ext
  * 
  * @param storagePath The raw storage path
  * @returns A properly formatted CDN path
  */
 export const constructCdnPath = (storagePath: string): string => {
-  // Normalize first to ensure consistency
+  // Normalize first to ensure consistency and remove any duplicate prefixes
   const normalizedPath = normalizeStoragePath(storagePath);
   
-  // For CDN, we need to ensure the path includes the bucket name
-  if (normalizedPath.startsWith('website-images/')) {
-    return normalizedPath;
+  // Ensure the normalized path includes the bucket name exactly once
+  const bucketName = 'website-images';
+  if (!normalizedPath.startsWith(`${bucketName}/`)) {
+    return `${bucketName}/${normalizedPath.replace(`${bucketName}/`, '')}`;
   }
   
-  // Otherwise, add the bucket name prefix
-  return `website-images/${normalizedPath}`;
+  return normalizedPath;
 }

@@ -50,10 +50,11 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
         const publicIndex = pathParts.indexOf('public');
         if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
           // Extract everything after 'public', this should directly be the storage_path
-          // Use our path normalization utility to handle potential duplicates
+          // Join parts after 'public' to get the storage path
           const storagePath = pathParts.slice(publicIndex + 1).join('/');
           
-          // Create a properly formatted CDN path
+          // Use our path normalization utility to handle potential duplicates
+          // and create a properly formatted CDN path
           const cdnPath = constructCdnPath(storagePath);
           
           // Construct CDN URL using the normalized path
@@ -90,7 +91,7 @@ export const getCdnAvailability = async (): Promise<boolean> => {
   
   try {
     // Make a test request to the CDN health endpoint
-    const response = await fetch('https://lovable-cdn.com/health', {
+    const response = await fetch('https://image-handler.yashmalhotra.workers.dev/health', {
       method: 'HEAD',
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' }
