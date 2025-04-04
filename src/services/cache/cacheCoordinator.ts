@@ -1,3 +1,4 @@
+
 /**
  * Cache Coordinator Service
  * 
@@ -240,10 +241,16 @@ export const createCacheCoordinator = (): CacheCoordinator => {
           }
           
           if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            // Fix: Cast the cached data to WebsiteImage if it's not null
-            const imageData = cachedData as WebsiteImage | null;
-            if (imageData) {
-              localStorageCacheService.setImage(key, imageData, opts.priority);
+            // Fix: Properly check and type the cached data before storing in localStorage
+            if (cachedData !== null && 
+                typeof cachedData === 'object' && 
+                'id' in cachedData && 
+                'key' in cachedData && 
+                'description' in cachedData && 
+                'storage_path' in cachedData && 
+                'alt_text' in cachedData) {
+              // Now we're sure this meets WebsiteImage requirements
+              localStorageCacheService.setImage(key, cachedData as WebsiteImage, opts.priority || 3);
             }
           }
           
@@ -342,7 +349,16 @@ export const createCacheCoordinator = (): CacheCoordinator => {
     
     // Set in localStorage
     if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-      localStorageCacheService.setImage(key, data, opts.priority);
+      // Check if data is a valid WebsiteImage before storing in localStorage
+      if (data !== null && 
+          typeof data === 'object' && 
+          'id' in data && 
+          'key' in data && 
+          'description' in data && 
+          'storage_path' in data && 
+          'alt_text' in data) {
+        localStorageCacheService.setImage(key, data as WebsiteImage, opts.priority || 3);
+      }
     }
     
     // Set in React Query cache
