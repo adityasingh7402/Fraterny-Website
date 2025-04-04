@@ -2,6 +2,7 @@
 /**
  * Unified CDN utilities for image loading
  */
+import { normalizeStoragePath, constructCdnPath } from "./pathUtils";
 
 // Environment configuration - whether to use the CDN or not
 const useCdn = process.env.NODE_ENV === 'production';
@@ -49,11 +50,14 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
         const publicIndex = pathParts.indexOf('public');
         if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
           // Extract everything after 'public', this should directly be the storage_path
-          // We don't need to add 'website-images' as it's already in the storage_path
+          // Use our path normalization utility to handle potential duplicates
           const storagePath = pathParts.slice(publicIndex + 1).join('/');
           
-          // Construct CDN URL using just the storage path
-          return `${CDN_ORIGIN}/${storagePath}${parsedUrl.search}`;
+          // Create a properly formatted CDN path
+          const cdnPath = constructCdnPath(storagePath);
+          
+          // Construct CDN URL using the normalized path
+          return `${CDN_ORIGIN}/${cdnPath}${parsedUrl.search}`;
         }
       }
     }

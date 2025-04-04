@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getCdnUrl } from '@/utils/cdnUtils';
 import { toast } from 'sonner';
+import { normalizeStoragePath, constructCdnPath } from '@/utils/pathUtils';
 
 interface UrlTesterProps {
   isTestingCdn: boolean;
@@ -17,7 +18,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
   const [testError, setTestError] = useState<string | null>(null);
   const [testSuccess, setTestSuccess] = useState<boolean>(false);
   const [isSupabaseUrl, setIsSupabaseUrl] = useState<boolean>(false);
-  const [pathInfo, setPathInfo] = useState<{original: string, transformed: string} | null>(null);
+  const [pathInfo, setPathInfo] = useState<{original: string, normalized: string, transformed: string} | null>(null);
 
   // Update CDN transformed URL when test URL changes
   useEffect(() => {
@@ -32,13 +33,16 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         // Create a full Supabase URL if it's just a path
         let fullUrl = testImageUrl;
         if (!isSupabaseFullUrl && !testImageUrl.startsWith('http')) {
-          // If it's just a path, convert to full Supabase URL for testing
-          const path = testImageUrl.startsWith('/') ? testImageUrl : `/${testImageUrl}`;
-          fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images${path}`;
+          // If it's just a path, normalize it first
+          const normalizedPath = normalizeStoragePath(testImageUrl);
+          
+          // Then construct full Supabase URL for testing
+          fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${normalizedPath}`;
         }
         
-        // Track the original path
+        // Track the original path and normalized path
         const originalPath = testImageUrl;
+        const normalizedPath = normalizeStoragePath(testImageUrl);
         
         // Force CDN for testing
         const transformed = getCdnUrl(fullUrl, true);
@@ -48,6 +52,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         if (transformed) {
           setPathInfo({
             original: originalPath,
+            normalized: normalizedPath,
             transformed
           });
         }
@@ -173,6 +178,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
               <div className="mt-2 text-xs bg-yellow-50 p-2 rounded border border-yellow-100">
                 <p className="font-medium text-yellow-700">Path Transformation</p>
                 <p className="text-gray-600">Original: <span className="font-mono">{pathInfo.original}</span></p>
+                <p className="text-gray-600">Normalized: <span className="font-mono">{pathInfo.normalized}</span></p>
                 <p className="text-gray-600">Transformed: <span className="font-mono">{pathInfo.transformed}</span></p>
               </div>
             )}

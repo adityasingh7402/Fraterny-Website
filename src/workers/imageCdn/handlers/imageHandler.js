@@ -1,3 +1,4 @@
+
 /**
  * Handler for image requests
  */
@@ -5,6 +6,41 @@ import { createErrorPlaceholderSvg } from './placeholderHandler';
 
 // Added debug mode for worker
 const DEBUG_WORKER = true;
+
+/**
+ * Normalizes storage paths to ensure consistent formatting
+ * This is a JavaScript version of the TypeScript util since workers use plain JS
+ * 
+ * @param {string} path Storage path to normalize
+ * @returns {string} Normalized path without duplicate bucket prefixes
+ */
+function normalizeStoragePath(path) {
+  if (!path) return '';
+  
+  // Normalize slashes - ensure path doesn't start with slash for consistent joining
+  let normalizedPath = path.trim();
+  normalizedPath = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
+  
+  // Remove duplicate bucket prefixes
+  const bucketName = 'website-images';
+  const bucketPrefix = `${bucketName}/`;
+  
+  // If path starts with duplicate bucket names, normalize it
+  const bucketPrefixCount = normalizedPath.split(bucketPrefix).length - 1;
+  
+  if (bucketPrefixCount > 1) {
+    // Remove all occurrences and add back once
+    const pathWithoutBucket = normalizedPath.replace(new RegExp(bucketPrefix, 'g'), '');
+    return `${bucketPrefix}${pathWithoutBucket}`;
+  }
+  
+  // Return the path with proper bucket prefix
+  if (!normalizedPath.startsWith(bucketPrefix)) {
+    return `${bucketPrefix}${normalizedPath}`;
+  }
+  
+  return normalizedPath;
+}
 
 /**
  * Determines if a path is an image request
@@ -26,13 +62,27 @@ export function isImageRequest(pathname) {
  * @returns {string} Origin URL
  */
 export function constructOriginUrl(url) {
-  // Remove duplicate 'website-images' from path if present
+  // Get the path and normalize it
   let path = url.pathname;
   
   // If the URL already contains the Supabase domain, extract just the path
   if (path.includes('/storage/v1/object/public')) {
-    // It's already a Supabase URL - keep it as is
-    const fullPath = path + url.search;  // Include query parameters
+    // It's already a Supabase URL - parse out the path after 'public'
+    const pathParts = path.split('/public/');
+    if (pathParts.length >= 2) {
+      // Normalize the path after '/public/'
+      const storagePath = pathParts[1];
+      const normalizedPath = normalizeStoragePath(storagePath);
+      
+      // Reconstruct the full path with normalized storage path
+      const fullPath = `/storage/v1/object/public/${normalizedPath}${url.search}`;  // Include query parameters
+      
+      if (DEBUG_WORKER) console.log(`[CDN Worker] Supabase URL detected, normalized path: ${fullPath}`);
+      return `https://eukenximajiuhrtljnpw.supabase.co${fullPath}`;
+    }
+    
+    // Fallback for unexpected format
+    const fullPath = path + url.search;
     if (DEBUG_WORKER) console.log(`[CDN Worker] Supabase URL detected, using path: ${fullPath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${fullPath}`;
   } 
@@ -42,13 +92,17 @@ export function constructOriginUrl(url) {
     return url.href;
   }
   else {
-    // Regular images path - construct the Supabase URL
-    // We need to ensure path starts with /website-images/ only once
-    if (!path.startsWith('/website-images/')) {
-      path = '/website-images' + path;
+    // Regular images path - normalize first
+    let normalizedPath = normalizeStoragePath(path);
+    
+    // Ensure the path is properly formatted for Supabase
+    if (!normalizedPath.startsWith('/')) {
+      normalizedPath = '/' + normalizedPath;
     }
     
-    const supabasePath = `/storage/v1/object/public${path}${url.search}`;
+    // Construct the Supabase URL with normalized path
+    const supabasePath = `/storage/v1/object/public${normalizedPath}${url.search}`;
+    
     if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${path} -> ${supabasePath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
   }

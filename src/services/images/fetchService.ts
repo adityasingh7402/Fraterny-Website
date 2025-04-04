@@ -16,6 +16,7 @@ import {
   applyPagination,
   processQueryResponse
 } from "./utils/queryUtils";
+import { normalizeStoragePath } from "@/utils/pathUtils";
 
 /**
  * Fetch image metadata by key with improved caching
@@ -63,8 +64,15 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     if (data) {
       // The WebsiteImage type doesn't have 'url' property directly, so we create a new object
       // that combines the WebsiteImage data with a url property
+      
+      // Use the path normalization utility to avoid duplicate bucket prefixes
       const storagePath = data.storage_path;
-      const constructedUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${storagePath}`;
+      
+      // Normalize the storage path to avoid duplicate bucket names
+      const normalizedStoragePath = normalizeStoragePath(storagePath);
+      
+      // Construct the URL with the normalized path, ensuring bucket name is present
+      const constructedUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${normalizedStoragePath}`;
       const cdnUrl = getCdnUrl(constructedUrl) || constructedUrl;
       
       console.log(`[Image Service] Constructed URL for ${key}: ${cdnUrl}`);
