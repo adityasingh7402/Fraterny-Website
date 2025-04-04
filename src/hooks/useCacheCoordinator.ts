@@ -1,7 +1,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { cacheCoordinator, setQueryClient, CacheLayerType, CacheOptions } from '@/services/cache/cacheCoordinator';
+import { cacheCoordinator, setQueryClient, CacheLayerType, CacheOptions } from '@/services/cache';
 import { useNetworkStatus } from './use-network-status';
 
 /**
