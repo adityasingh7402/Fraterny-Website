@@ -188,6 +188,19 @@ const communicateWithServiceWorker = async (
   }
 };
 
+// Helper function to check if an object is a valid WebsiteImage
+const isValidWebsiteImage = (data: any): data is WebsiteImage => {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    'id' in data &&
+    'key' in data &&
+    'description' in data &&
+    'storage_path' in data &&
+    'alt_text' in data
+  );
+};
+
 /**
  * Create the cache coordinator
  */
@@ -241,16 +254,9 @@ export const createCacheCoordinator = (): CacheCoordinator => {
           }
           
           if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            // Fix: Properly check and type the cached data before storing in localStorage
-            if (cachedData !== null && 
-                typeof cachedData === 'object' && 
-                'id' in cachedData && 
-                'key' in cachedData && 
-                'description' in cachedData && 
-                'storage_path' in cachedData && 
-                'alt_text' in cachedData) {
-              // Now we're sure this meets WebsiteImage requirements
-              localStorageCacheService.setImage(key, cachedData as WebsiteImage, opts.priority || 3);
+            // Check if cachedData is a valid WebsiteImage before storing
+            if (isValidWebsiteImage(cachedData)) {
+              localStorageCacheService.setImage(key, cachedData, opts.priority || 3);
             }
           }
           
@@ -350,14 +356,8 @@ export const createCacheCoordinator = (): CacheCoordinator => {
     // Set in localStorage
     if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
       // Check if data is a valid WebsiteImage before storing in localStorage
-      if (data !== null && 
-          typeof data === 'object' && 
-          'id' in data && 
-          'key' in data && 
-          'description' in data && 
-          'storage_path' in data && 
-          'alt_text' in data) {
-        localStorageCacheService.setImage(key, data as WebsiteImage, opts.priority || 3);
+      if (isValidWebsiteImage(data)) {
+        localStorageCacheService.setImage(key, data, opts.priority || 3);
       }
     }
     
