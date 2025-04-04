@@ -12,6 +12,7 @@ import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
 import CdnInitializer from '@/components/admin/images/cdn/CdnInitializer';
+import { cacheCoordinator } from '@/services/cache/cacheCoordinator';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -73,6 +74,20 @@ const Index = () => {
       localStorageCacheService.cleanExpired();
     } catch (error) {
       console.warn('Failed to initialize localStorage cache:', error);
+    }
+    
+    // Initialize cache coordinator with service worker
+    try {
+      // Sync with service worker
+      cacheCoordinator.syncWithServiceWorker().then(success => {
+        if (success) {
+          console.log('Successfully synced cache coordinator with service worker');
+        } else {
+          console.warn('Failed to sync cache coordinator with service worker');
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to initialize cache coordinator:', error);
     }
     
     // Register service worker for improved caching
