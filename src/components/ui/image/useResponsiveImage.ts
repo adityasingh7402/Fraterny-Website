@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { fetchImageByKey } from "@/services/images/fetchService";
+import { getCdnUrl } from '@/utils/cdnUtils';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -124,18 +126,20 @@ export const useResponsiveImage = (
         
         // Handle mobile variant keys
         const isMobileKey = dynamicKey.includes('-mobile');
-        let imageUrl: string;
         let fallbackToDesktop = false;
         
         // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
-        // Assume fetchService returns image object with CDN-based `url`
-const imageMetadata = await fetchImageByKey(dynamicKey); // Using the correct function name
-const imageUrl = imageMetadata?.url || getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${dynamicKey}`);
-if (!imageUrl) {
-  throw new Error(`No image URL found for key: ${dynamicKey}`);
-}      
+        // Fetch the image metadata and get the URL
+        const imageMetadata = await fetchImageByKey(dynamicKey);
+        const imageUrl = imageMetadata?.url || 
+                         getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${dynamicKey}`);
+        
+        if (!imageUrl) {
+          throw new Error(`No image URL found for key: ${dynamicKey}`);
+        }
+        
         // Get placeholders if we didn't fetch them earlier
         if (!fetchPlaceholdersFirst) {
           const placeholders = await placeholdersPromise;
