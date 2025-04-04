@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { getCdnUrl } from "@/utils/cdnUtils";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { urlCache } from "./cacheService";
@@ -57,8 +58,10 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     // Cache the result
     cacheImage(normalizedKey, data as WebsiteImage | null);
-    
-    return data;
+    return {
+  ...data,
+  url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`)
+};
   } catch (error) {
     return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
   }
