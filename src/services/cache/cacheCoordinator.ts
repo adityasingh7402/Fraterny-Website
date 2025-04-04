@@ -1,4 +1,3 @@
-
 /**
  * Cache Coordinator Service
  * 
@@ -189,15 +188,21 @@ const communicateWithServiceWorker = async (
 };
 
 // Helper function to check if an object is a valid WebsiteImage
-const isValidWebsiteImage = (data: any): data is WebsiteImage => {
+const isValidWebsiteImage = (data: unknown): data is WebsiteImage => {
+  if (!data || typeof data !== 'object') return false;
+  
+  const imageData = data as Record<string, unknown>;
   return (
-    data !== null &&
-    typeof data === 'object' &&
-    'id' in data &&
-    'key' in data &&
-    'description' in data &&
-    'storage_path' in data &&
-    'alt_text' in data
+    'id' in imageData &&
+    'key' in imageData &&
+    'description' in imageData &&
+    'storage_path' in imageData &&
+    'alt_text' in imageData &&
+    typeof imageData.id === 'string' &&
+    typeof imageData.key === 'string' &&
+    typeof imageData.description === 'string' &&
+    typeof imageData.storage_path === 'string' &&
+    typeof imageData.alt_text === 'string'
   );
 };
 
@@ -244,7 +249,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
       try {
         // Attempt to get from React Query cache without triggering a refetch
         const queryKey = ['image', key];
-        const cachedData = queryClientInstance?.getQueryData(queryKey);
+        const cachedData: unknown = queryClientInstance?.getQueryData(queryKey);
         
         if (cachedData !== undefined) {
           // Update other caches
@@ -254,9 +259,12 @@ export const createCacheCoordinator = (): CacheCoordinator => {
           }
           
           if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            // Check if cachedData is a valid WebsiteImage before storing
+            // Use the type guard to ensure cachedData is a valid WebsiteImage
             if (isValidWebsiteImage(cachedData)) {
+              // Now TypeScript knows cachedData is WebsiteImage
               localStorageCacheService.setImage(key, cachedData, opts.priority || 3);
+            } else {
+              console.warn(`[CacheCoordinator] Data from React Query cache is not a valid WebsiteImage:`, cachedData);
             }
           }
           
@@ -313,23 +321,28 @@ export const createCacheCoordinator = (): CacheCoordinator => {
       try {
         // Attempt to get from React Query cache without triggering a refetch
         const queryKey = ['imageUrl', key, size];
-        const cachedData = queryClientInstance?.getQueryData(queryKey);
+        const cachedData: unknown = queryClientInstance?.getQueryData(queryKey);
         
-        if (cachedData !== undefined && (cachedData as any)?.url) {
-          const url = (cachedData as any).url;
-          
-          // Update other caches
-          if (shouldIncludeLayer('memory', opts)) {
-            const cacheKey = `url:${urlKey}`;
-            urlCache.set(cacheKey, url);
+        if (cachedData !== undefined) {
+          // Safely access the url property
+          const url = typeof cachedData === 'object' && cachedData !== null && 'url' in cachedData && typeof cachedData.url === 'string' 
+            ? cachedData.url 
+            : null;
+            
+          if (url) {
+            // Update other caches
+            if (shouldIncludeLayer('memory', opts)) {
+              const cacheKey = `url:${urlKey}`;
+              urlCache.set(cacheKey, url);
+            }
+            
+            if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
+              localStorageCacheService.setUrl(`url:${urlKey}`, url, opts.priority);
+            }
+            
+            logCacheOperation('get', `url:${urlKey}`, { source: 'reactQuery', hit: true }, opts);
+            return url;
           }
-          
-          if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            localStorageCacheService.setUrl(`url:${urlKey}`, url, opts.priority);
-          }
-          
-          logCacheOperation('get', `url:${urlKey}`, { source: 'reactQuery', hit: true }, opts);
-          return url;
         }
       } catch (error) {
         console.error(`[CacheCoordinator] Error getting URL from React Query cache:`, error);
@@ -358,6 +371,8 @@ export const createCacheCoordinator = (): CacheCoordinator => {
       // Check if data is a valid WebsiteImage before storing in localStorage
       if (isValidWebsiteImage(data)) {
         localStorageCacheService.setImage(key, data, opts.priority || 3);
+      } else {
+        console.warn(`[CacheCoordinator] Attempted to cache invalid WebsiteImage data:`, data);
       }
     }
     
