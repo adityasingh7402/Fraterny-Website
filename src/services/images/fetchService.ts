@@ -65,8 +65,8 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
       return {
         ...data,
         // Use CDN URL if available
-        url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`) || 
-             `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`
+        url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.storage_path}`) || 
+             `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.storage_path}`
       };
     }
     
