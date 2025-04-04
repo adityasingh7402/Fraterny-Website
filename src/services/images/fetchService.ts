@@ -19,21 +19,21 @@ import {
 /**
  * Fetch image metadata by key with improved caching
  */
-export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null> => {
+export const fetchImageByPath = async (storage_path: string): Promise<WebsiteImage | null> => {
   try {
-    if (!key) {
-      throw new Error('Image key is required');
+    if (!storage_path) {
+      throw new Error('Image Storage_path is required');
     }
     
     // Normalize the key by trimming whitespace
-    const normalizedKey = key.trim();
-    console.log(`Fetching image with normalized key: "${normalizedKey}"`);
+    const normalizedKey = storage_path.trim();
+    console.log(`Fetching image with normalized storage_path: "${normalizedstorage_path}"`);
 
     // Invalidate any URL cache for this key to ensure we get fresh data
-    urlCache.invalidate(`key:${normalizedKey}`);
+    urlCache.invalidate(`storage_path:${normalizedstorage_path}`);
 
     // Check cache first
-    const cached = getCachedImage(normalizedKey);
+    const cached = getCachedImage(normalizedstorage_path);
     if (cached !== undefined) {
       return cached;
     }
@@ -41,22 +41,22 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     const { data, error } = await supabase
       .from('website_images')
       .select('*')
-      .eq('key', normalizedKey)
+      .eq('storage_path', normalizedstorage_path)
       .maybeSingle();
     
     if (error) {
-      console.error(`Error fetching image with key "${normalizedKey}":`, error);
-      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, { silent: true }) as null;
+      console.error(`Error fetching image with key "${normalizedstorage_path}":`, error);
+      return handleApiError(error, `Error fetching image with storage_path "${normalizedstorage_path}"`, { silent: true }) as null;
     }
     
     if (!data) {
-      console.warn(`No image found with key "${normalizedKey}"`);
+      console.warn(`No image found with storage_path "${normalizedstorage_path}"`);
     } else {
-      console.log(`Found image with key "${normalizedKey}":`, data.id);
+      console.log(`Found image with storage_path "${normalizedstorage_path}":`, data.id);
     }
     
     // Cache the result
-    cacheImage(normalizedKey, data as WebsiteImage | null);
+    cacheImage(normalizedstorage_path, data as WebsiteImage | null);
     
     // Add a computed url property to the returned object
     if (data) {
@@ -72,7 +72,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     return null;
   } catch (error) {
-    return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
+    return handleApiError(error, `Unexpected error in fetchImageByPath for storage_path "${storage_path}"`, { silent: true }) as null;
   }
 };
 
