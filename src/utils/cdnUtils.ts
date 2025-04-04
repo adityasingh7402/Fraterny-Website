@@ -48,17 +48,12 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
         // Get index of 'public' in the path
         const publicIndex = pathParts.indexOf('public');
         if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
-          // Extract everything after 'public'
-          const bucketAndPath = pathParts.slice(publicIndex + 1).join('/');
+          // Extract everything after 'public', this should directly be the storage_path
+          // We don't need to add 'website-images' as it's already in the storage_path
+          const storagePath = pathParts.slice(publicIndex + 1).join('/');
           
-          // Avoid duplicate website-images in path
-          let cdnPath = bucketAndPath;
-          if (cdnPath.startsWith('website-images/website-images/')) {
-            cdnPath = cdnPath.replace('website-images/website-images/', 'website-images/');
-          }
-          
-          // Construct CDN URL
-          return `${CDN_ORIGIN}/${cdnPath}${parsedUrl.search}`;
+          // Construct CDN URL using just the storage path
+          return `${CDN_ORIGIN}/${storagePath}${parsedUrl.search}`;
         }
       }
     }

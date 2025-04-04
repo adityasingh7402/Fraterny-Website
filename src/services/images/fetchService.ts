@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getCdnUrl } from "@/utils/cdnUtils";
 import { WebsiteImage } from "./types";
@@ -62,11 +63,15 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     if (data) {
       // The WebsiteImage type doesn't have 'url' property directly, so we create a new object
       // that combines the WebsiteImage data with a url property
+      const storagePath = data.storage_path;
+      const constructedUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${storagePath}`;
+      const cdnUrl = getCdnUrl(constructedUrl) || constructedUrl;
+      
+      console.log(`[Image Service] Constructed URL for ${key}: ${cdnUrl}`);
+      
       return {
         ...data,
-        // Use CDN URL if available
-        url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`) || 
-             `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`
+        url: cdnUrl
       };
     }
     

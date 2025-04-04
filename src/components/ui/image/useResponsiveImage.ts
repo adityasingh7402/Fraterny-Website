@@ -139,8 +139,12 @@ export const useResponsiveImage = (
           throw new Error(`No image found for key: ${dynamicKey}`);
         }
         
-        // Use CDN URL if available
+        // Use direct URL from metadata to avoid duplicate path segments
         imageUrl = imageMetadata.url;
+        
+        if (debugCache && imageUrl) {
+          console.log(`Image URL for ${dynamicKey}: ${imageUrl}`);
+        }
         
         // Get placeholders if we didn't fetch them earlier
         if (!fetchPlaceholdersFirst) {

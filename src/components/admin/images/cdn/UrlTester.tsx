@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ImageIcon, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getCdnUrl, parseSupabaseUrl } from '@/utils/cdn';
+import { getCdnUrl } from '@/utils/cdnUtils';
 import { toast } from 'sonner';
 
 interface UrlTesterProps {
@@ -29,11 +29,20 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
                           
         setIsSupabaseUrl(isSupabaseFullUrl);
         
+        // Create a full Supabase URL if it's just a path
+        let fullUrl = testImageUrl;
+        if (!isSupabaseFullUrl && !testImageUrl.startsWith('http')) {
+          // If it's just a path, convert to full Supabase URL for testing
+          const path = testImageUrl.startsWith('/') ? testImageUrl : `/${testImageUrl}`;
+          fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images${path}`;
+        }
+        
         // Track the original path
         const originalPath = testImageUrl;
         
-        const transformed = getCdnUrl(testImageUrl, true);
-        setCdnTransformedUrl(transformed);
+        // Force CDN for testing
+        const transformed = getCdnUrl(fullUrl, true);
+        setCdnTransformedUrl(transformed || fullUrl);
         
         // Set path info for debugging
         if (transformed) {

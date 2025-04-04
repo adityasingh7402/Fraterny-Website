@@ -17,8 +17,7 @@ export function isImageRequest(pathname) {
     pathname.startsWith('/website-images/') ||
     pathname.match(/\/\d+\-ChatGPT\-Image/) ||  // Handle timestamps with ChatGPT image paths
     pathname.includes('/storage/v1/object/public') ||
-    pathname.startsWith('/lovable-uploads/') ||
-    pathname.startsWith('/website-images'); // Added without trailing slash
+    pathname.startsWith('/lovable-uploads/');
 }
 
 /**
@@ -29,12 +28,6 @@ export function isImageRequest(pathname) {
 export function constructOriginUrl(url) {
   // Remove duplicate 'website-images' from path if present
   let path = url.pathname;
-  
-  // Handle the duplicate website-images in the path
-  if (path.startsWith('/website-images/website-images/')) {
-    path = path.replace('/website-images/website-images/', '/website-images/');
-    if (DEBUG_WORKER) console.log(`[CDN Worker] Fixed duplicate path segments: ${url.pathname} -> ${path}`);
-  }
   
   // If the URL already contains the Supabase domain, extract just the path
   if (path.includes('/storage/v1/object/public')) {
@@ -50,6 +43,11 @@ export function constructOriginUrl(url) {
   }
   else {
     // Regular images path - construct the Supabase URL
+    // We need to ensure path starts with /website-images/ only once
+    if (!path.startsWith('/website-images/')) {
+      path = '/website-images' + path;
+    }
+    
     const supabasePath = `/storage/v1/object/public${path}${url.search}`;
     if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${path} -> ${supabasePath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
