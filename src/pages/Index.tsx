@@ -11,7 +11,6 @@ import { localStorageCacheService } from '@/services/images/cache/localStorageCa
 import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
-import CdnInitializer from '@/components/admin/images/cdn/CdnInitializer';
 import { cacheCoordinator } from '@/services/cache/cacheCoordinator';
 
 // Lazy load components that are below the fold
@@ -19,6 +18,7 @@ const NavalQuote = lazy(() => import('../components/NavalQuote'));
 const VillaLab = lazy(() => import('../components/VillaLab'));
 const OurValues = lazy(() => import('../components/OurValues'));
 const HowItWorks = lazy(() => import('../components/HowItWorks'));
+const CdnInitializer = lazy(() => import('@/components/admin/images/cdn/CdnInitializer'));
 
 // Simple loading fallback with better UX
 const LoadingFallback = () => (
@@ -141,8 +141,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Add CDN Initializer to ensure CDN is enabled */}
-      <CdnInitializer />
+      {/* Add CDN Initializer using Suspense to ensure proper loading */}
+      <Suspense fallback={null}>
+        <CdnInitializer />
+      </Suspense>
       
       <Navigation />
       <Hero />
