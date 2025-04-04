@@ -132,14 +132,15 @@ export const useResponsiveImage = (
         let extractedContentHash = null;
         
         // Fetch the image metadata and get the URL
-       const imageMetadata = await getImageByKey(dynamicKey); // This returns storage_path
-const cdnBaseUrl = "https://image-handler.yashmalhotra.workers.dev/website-images";
-
-if (!imageMetadata?.storage_path) {
-  throw new Error(`No storage_path found for key: ${dynamicKey}`);
-}
-
-imageUrl = `${cdnBaseUrl}/${imageMetadata.storage_path}`;
+        const imageMetadata = await fetchImageByKey(dynamicKey);
+        let imageUrl;
+        
+        if (!imageMetadata) {
+          throw new Error(`No image found for key: ${dynamicKey}`);
+        }
+        
+        // Use CDN URL if available
+        imageUrl = imageMetadata.url;
         
         // Get placeholders if we didn't fetch them earlier
         if (!fetchPlaceholdersFirst) {
