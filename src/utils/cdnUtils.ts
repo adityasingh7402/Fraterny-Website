@@ -50,7 +50,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
           // Extract everything after 'public'
           const bucketAndPath = pathParts.slice(publicIndex + 1).join('/');
           // Construct CDN URL
-          return `https://lovable-cdn.com/${bucketAndPath}${parsedUrl.search}`;
+          return `https://image-handler.yashmalhotra.workers.dev/website-images/${bucketAndPath}${parsedUrl.search}`;
         }
       }
     }
