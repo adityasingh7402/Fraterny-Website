@@ -3,12 +3,7 @@
  * Cache Coordinator Service
  * 
  * This service coordinates all caching operations across different cache layers:
-
-/**
- * Type guard for WebsiteImage
-///
-///
-function isValidWebsiteImage(obj: any): obj is WebsiteImage {
+ */
 
 /**
  * Cache layers used:
@@ -16,17 +11,7 @@ function isValidWebsiteImage(obj: any): obj is WebsiteImage {
  * - Memory caches (imageCache, urlCache)
  * - LocalStorage cache
  * - Service Worker cache
-///
-///
-
-  return obj && typeof obj === 'object' &&
-    'id' in obj &&
-    'key' in obj &&
-    'description' in obj &&
-    'storage_path' in obj &&
-    'width' in obj &&
-    'height' in obj;
-}
+ */
 
 // 
 // It ensures consistent cache behavior and proper invalidation across all layers.
@@ -45,49 +30,59 @@ let queryClientInstance: QueryClient | null = null;
 const DEBUG_CACHE = process.env.NODE_ENV === 'development';
 
 /**
+ * Type guard for WebsiteImage
+ * Ensures an object has all required properties to be a valid WebsiteImage
+ */
+function isValidWebsiteImage(obj: any): obj is WebsiteImage {
+  return obj && typeof obj === 'object' &&
+    'id' in obj &&
+    'key' in obj &&
+    'description' in obj &&
+    'storage_path' in obj &&
+    'alt_text' in obj &&
+    typeof obj.id === 'string' &&
+    typeof obj.key === 'string' &&
+    typeof obj.description === 'string' &&
+    typeof obj.storage_path === 'string';
+}
+
+/**
  * Set the Query Client instance to be used by the coordinator
-///
-///
+ */
 export const setQueryClient = (queryClient: QueryClient) => {
   queryClientInstance = queryClient;
 };
 
 /**
  * Get the current Query Client instance
-///
-///
+ */
 export const getQueryClient = (): QueryClient | null => {
   return queryClientInstance;
 };
 
 /**
  * Cache Layer Types
-///
-///
+ */
 export type CacheLayerType = 'memory' | 'localStorage' | 'reactQuery' | 'serviceWorker' | 'all';
 
 /**
  * Cache Operation Types
-///
-///
+ */
 export type CacheOperationType = 'get' | 'set' | 'invalidate' | 'clear';
 
 /**
  * Cache Invalidation Scope
-///
-///
+ */
 export type CacheInvalidationScope = 'global' | 'category' | 'prefix' | 'key';
 
 /**
  * Cache Priority - used to determine which items to keep in limited storage
-///
-///
+ */
 export type CachePriority = 1 | 2 | 3 | 4 | 5; // 1 is highest priority
 
 /**
  * Cache Coordinator Interface
-///
-///
+ */
 export interface CacheCoordinator {
   // Get operations
   getImage: (key: string, options?: CacheOptions) => Promise<any>;
@@ -113,8 +108,7 @@ export interface CacheCoordinator {
 
 /**
  * Cache Options
-///
-///
+ */
 export interface CacheOptions {
   layers?: CacheLayerType[];
   priority?: CachePriority;
@@ -126,8 +120,7 @@ export interface CacheOptions {
 
 /**
  * Invalidation Options
-///
-///
+ */
 export interface InvalidationOptions {
   layers?: CacheLayerType[];
   cascade?: boolean; // Whether to cascade invalidation to related items
@@ -137,8 +130,7 @@ export interface InvalidationOptions {
 
 /**
  * Default cache options
-///
-///
+ */
 const defaultCacheOptions: CacheOptions = {
   layers: ['all'],
   priority: 3,
@@ -150,8 +142,7 @@ const defaultCacheOptions: CacheOptions = {
 
 /**
  * Default invalidation options
-///
-///
+ */
 const defaultInvalidationOptions: InvalidationOptions = {
   layers: ['all'],
   cascade: true,
@@ -161,8 +152,7 @@ const defaultInvalidationOptions: InvalidationOptions = {
 
 /**
  * Log cache operations in debug mode
-///
-///
+ */
 const logCacheOperation = (
   operation: CacheOperationType, 
   key: string, 
@@ -176,8 +166,7 @@ const logCacheOperation = (
 
 /**
  * Check if a cache layer should be included in the operation
-///
-///
+ */
 const shouldIncludeLayer = (
   layer: CacheLayerType, 
   options?: CacheOptions | InvalidationOptions
@@ -192,16 +181,14 @@ const shouldIncludeLayer = (
 
 /**
  * Check if React Query is available
-///
-///
+ */
 const isReactQueryAvailable = (): boolean => {
   return !!queryClientInstance;
 };
 
 /**
  * Communicate with the service worker
-///
-///
+ */
 const communicateWithServiceWorker = async (
   action: string, 
   payload: Record<string, any> = {}
@@ -224,34 +211,13 @@ const communicateWithServiceWorker = async (
   }
 };
 
-// Helper function to check if an object is a valid WebsiteImage
-const isValidWebsiteImage = (data: unknown): data is WebsiteImage => {
-  if (!data || typeof data !== 'object') return false;
-  
-  const imageData = data as Record<string, unknown>;
-  return (
-    'id' in imageData &&
-    'key' in imageData &&
-    'description' in imageData &&
-    'storage_path' in imageData &&
-    'alt_text' in imageData &&
-    typeof imageData.id === 'string' &&
-    typeof imageData.key === 'string' &&
-    typeof imageData.description === 'string' &&
-    typeof imageData.storage_path === 'string' &&
-    typeof imageData.alt_text === 'string'
-  );
-};
-
 /**
  * Create the cache coordinator
-///
-///
+ */
 export const createCacheCoordinator = (): CacheCoordinator => {
   /**
    * Get an image from cache
-///
-///
+   */
   const getImage = async (key: string, options?: CacheOptions): Promise<any> => {
     const opts = { ...defaultCacheOptions, ...options };
     let result = null;
@@ -288,20 +254,23 @@ export const createCacheCoordinator = (): CacheCoordinator => {
       try {
         // Attempt to get from React Query cache without triggering a refetch
         const queryKey = ['image', key];
-        const cachedData: unknown = queryClientInstance?.getQueryData(queryKey);
+        const cachedData = queryClientInstance?.getQueryData(queryKey);
         
-        if (cachedData !== undefined && isValidWebsiteImage(cachedData)) {
-          const validImageData: WebsiteImage = cachedData;
-          imageCache.set(cacheKey, validImageData);
+        if (cachedData !== undefined) {
+          // FIX: Add proper validation before using the data
+          if (isValidWebsiteImage(cachedData)) {
+            const cacheKey = `image:${key}`;
+            imageCache.set(cacheKey, cachedData);
 
-          if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            localStorageCacheService.setImage(key, validImageData, opts.priority || 3);
+            if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
+              localStorageCacheService.setImage(key, cachedData, opts.priority || 3);
+            }
+
+            logCacheOperation('get', key, { source: 'reactQuery', hit: true }, opts);
+            return cachedData;
+          } else {
+            console.warn(`[CacheCoordinator] Data from React Query cache is not a valid WebsiteImage:`, cachedData);
           }
-
-          return validImageData;
-        } else {
-          console.warn(`[CacheCoordinator] Data from React Query cache is not a valid WebsiteImage:`, cachedData);
-        }
         }
       } catch (error) {
         console.error(`[CacheCoordinator] Error getting data from React Query cache:`, error);
@@ -315,8 +284,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Get an image URL from cache
-///
-///
+   */
   const getImageUrl = async (key: string, size?: string, options?: CacheOptions): Promise<string | null> => {
     const opts = { ...defaultCacheOptions, ...options };
     const urlKey = size ? `${key}:${size}` : key;
@@ -354,40 +322,48 @@ export const createCacheCoordinator = (): CacheCoordinator => {
       try {
         // Attempt to get from React Query cache without triggering a refetch
         const queryKey = ['imageUrl', key, size];
-        const cachedData: unknown = queryClientInstance?.getQueryData(queryKey);
+        const cachedData = queryClientInstance?.getQueryData(queryKey);
         
         if (cachedData !== undefined) {
-          // Safely access the url property
-        if (isValidWebsiteImage(cachedData)) {
-          const validImageData: WebsiteImage = cachedData;
-          const url = typeof validImageData.url === 'string' ? validImageData.url : null;
-          if (url) {
-            if (shouldIncludeLayer('memory', opts)) {
-              const cacheKey = `imageUrl:${urlKey}:${size}`;
-              imageCache.set(cacheKey, url);
+          // FIX: Add proper type checking and access
+          if (typeof cachedData === 'object' && cachedData !== null) {
+            // First check if it's a WebsiteImage object
+            if (isValidWebsiteImage(cachedData) && typeof cachedData.url === 'string') {
+              const url = cachedData.url;
+              
+              // Update other caches
+              if (shouldIncludeLayer('memory', opts)) {
+                const cacheKey = `url:${urlKey}`;
+                urlCache.set(cacheKey, url);
+              }
+              
+              if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
+                localStorageCacheService.setUrl(`url:${urlKey}`, url, opts.priority);
+              }
+              
+              logCacheOperation('get', `url:${urlKey}`, { source: 'reactQuery', hit: true }, opts);
+              return url;
+            } 
+            // Then check if it's a simple URL object structure
+            else if ('url' in cachedData && typeof cachedData.url === 'string') {
+              const url = cachedData.url;
+              
+              // Update other caches
+              if (shouldIncludeLayer('memory', opts)) {
+                const cacheKey = `url:${urlKey}`;
+                urlCache.set(cacheKey, url);
+              }
+              
+              if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
+                localStorageCacheService.setUrl(`url:${urlKey}`, url, opts.priority);
+              }
+              
+              logCacheOperation('get', `url:${urlKey}`, { source: 'reactQuery', hit: true }, opts);
+              return url;
             }
-            if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-              localStorageCacheService.setUrl(urlKey, size, url, opts.priority || 3);
-            }
-            return url;
           }
-        } else {
-          console.warn(`[CacheCoordinator] Invalid WebsiteImage while resolving imageUrl:`, cachedData);
-        }
-          if (url) {
-            // Update other caches
-            if (shouldIncludeLayer('memory', opts)) {
-              const cacheKey = `url:${urlKey}`;
-              urlCache.set(cacheKey, url);
-            }
-            
-            if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-              localStorageCacheService.setUrl(`url:${urlKey}`, url, opts.priority);
-            }
-            
-            logCacheOperation('get', `url:${urlKey}`, { source: 'reactQuery', hit: true }, opts);
-            return url;
-          }
+          
+          console.warn('[CacheCoordinator] Invalid URL data format in React Query cache:', cachedData);
         }
       } catch (error) {
         console.error(`[CacheCoordinator] Error getting URL from React Query cache:`, error);
@@ -401,10 +377,15 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Set an image in cache
-///
-///
+   */
   const setImage = async (key: string, data: any, options?: CacheOptions): Promise<void> => {
     const opts = { ...defaultCacheOptions, ...options };
+    
+    // FIX: Validate the data before storing
+    if (!isValidWebsiteImage(data)) {
+      console.warn(`[CacheCoordinator] Attempted to cache invalid WebsiteImage data:`, data);
+      return;
+    }
     
     // Set in memory cache
     if (shouldIncludeLayer('memory', opts)) {
@@ -414,13 +395,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
     
     // Set in localStorage
     if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-      // FIX #2: Check if data is a valid WebsiteImage before storing in localStorage
-      if (isValidWebsiteImage(data)) {
-        const validImageData: WebsiteImage = data;
-        localStorageCacheService.setImage(key, validImageData, opts.priority || 3);
-      } else {
-        console.warn(`[CacheCoordinator] Attempted to cache invalid WebsiteImage data:`, data);
-      }
+      localStorageCacheService.setImage(key, data, opts.priority || 3);
     }
     
     // Set in React Query cache
@@ -438,11 +413,16 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Set an image URL in cache
-///
-///
+   */
   const setImageUrl = async (key: string, url: string, size?: string, options?: CacheOptions): Promise<void> => {
     const opts = { ...defaultCacheOptions, ...options };
     const urlKey = size ? `${key}:${size}` : key;
+    
+    // Validate URL
+    if (typeof url !== 'string' || url.trim() === '') {
+      console.warn(`[CacheCoordinator] Attempted to cache invalid URL:`, url);
+      return;
+    }
     
     // Set in memory cache
     if (shouldIncludeLayer('memory', opts)) {
@@ -470,8 +450,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Invalidate an image in cache
-///
-///
+   */
   const invalidateImage = async (key: string, options?: InvalidationOptions): Promise<void> => {
     const opts = { ...defaultInvalidationOptions, ...options };
     
@@ -522,8 +501,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Invalidate a category of images
-///
-///
+   */
   const invalidateCategory = async (category: string, options?: InvalidationOptions): Promise<void> => {
     const opts = { ...defaultInvalidationOptions, ...options };
     
@@ -576,8 +554,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Invalidate images by prefix
-///
-///
+   */
   const invalidateByPrefix = async (prefix: string, options?: InvalidationOptions): Promise<void> => {
     const opts = { ...defaultInvalidationOptions, ...options };
     
@@ -641,8 +618,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Invalidate all images
-///
-///
+   */
   const invalidateAll = async (options?: InvalidationOptions): Promise<void> => {
     const opts = { ...defaultInvalidationOptions, ...options };
     
@@ -698,8 +674,7 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Update the cache version
-///
-///
+   */
   const updateCacheVersion = async (scope: CacheInvalidationScope, target?: string): Promise<void> => {
     try {
       // Fix: Only pass allowed scope types to updateGlobalCacheVersion
@@ -732,16 +707,14 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Get the current cache version
-///
-///
+   */
   const getCacheVersion = async (): Promise<string | null> => {
     return await getGlobalCacheVersion();
   };
   
   /**
    * Sync with service worker
-///
-///
+   */
   const syncWithServiceWorker = async (): Promise<boolean> => {
     try {
       const version = await getGlobalCacheVersion();
