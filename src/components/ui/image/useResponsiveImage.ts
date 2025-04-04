@@ -130,48 +130,12 @@ export const useResponsiveImage = (
         // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
-        // If size is specified, try to get that specific size
-        if (size) {
-          imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
-          
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
-          }
-          
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
-            fallbackToDesktop = true;
-          }
-        } else {
-          // Otherwise get the original image
-          imageUrl = await getImageUrlByKey(dynamicKey);
-          
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
-          }
-          
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKey(desktopKey);
-            fallbackToDesktop = true;
-          }
-        }
-        
+    // Assume fetchService returns image object with CDN-based `url`
+const imageMetadata = await getImageByKey(dynamicKey); // Your existing API call
+imageUrl = imageMetadata?.url;
+if (!imageUrl) {
+  throw new Error(`No image URL found for key: ${dynamicKey}`);
+}      
         // Get placeholders if we didn't fetch them earlier
         if (!fetchPlaceholdersFirst) {
           const placeholders = await placeholdersPromise;
