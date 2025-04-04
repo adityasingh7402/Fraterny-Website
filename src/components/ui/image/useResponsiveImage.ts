@@ -132,13 +132,14 @@ export const useResponsiveImage = (
         let extractedContentHash = null;
         
         // Fetch the image metadata and get the URL
-        const imageMetadata = await fetchImageByKey(dynamicKey);
-        const imageUrl = imageMetadata?.url || 
-                         getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${dynamicKey}`);
-        
-        if (!imageUrl) {
-          throw new Error(`No image URL found for key: ${dynamicKey}`);
-        }
+       const imageMetadata = await getImageByKey(dynamicKey); // This returns storage_path
+const cdnBaseUrl = "https://image-handler.yashmalhotra.workers.dev/website-images";
+
+if (!imageMetadata?.storage_path) {
+  throw new Error(`No storage_path found for key: ${dynamicKey}`);
+}
+
+imageUrl = `${cdnBaseUrl}/${imageMetadata.storage_path}`;
         
         // Get placeholders if we didn't fetch them earlier
         if (!fetchPlaceholdersFirst) {
