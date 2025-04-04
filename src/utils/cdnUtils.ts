@@ -15,6 +15,7 @@ let cdnAvailabilityCache: { available: boolean; timestamp: number } | null = nul
  * @param forceCdn Force using CDN even if disabled globally
  * @returns URL to use (either CDN or original)
  */
+const CDN_ORIGIN = 'https://image-handler.yashmalhotra.workers.dev';
 export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string | undefined => {
   if (!url) return url;
   
@@ -50,7 +51,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
           // Extract everything after 'public'
           const bucketAndPath = pathParts.slice(publicIndex + 1).join('/');
           // Construct CDN URL
-          return `https://image-handler.yashmalhotra.workers.dev/website-images/${bucketAndPath}${parsedUrl.search}`;
+          return `${CDN_ORIGIN}/website-images/${bucketAndPath}${parsedUrl.search}`;
         }
       }
     }
