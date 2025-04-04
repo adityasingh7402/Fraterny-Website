@@ -1,7 +1,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { cacheCoordinator, setQueryClient } from '@/services/cache/cacheCoordinator';
+import { cacheCoordinator, setQueryClient, CacheLayerType, CacheOptions } from '@/services/cache/cacheCoordinator';
 import { useNetworkStatus } from './use-network-status';
 
 /**
@@ -29,8 +29,8 @@ export const useCacheCoordinator = () => {
       return {
         priority: 1 as const,
         ttl: 24 * 60 * 60 * 1000, // 24 hours for offline
-        layers: ['memory', 'localStorage', 'serviceWorker'],
-        skipLayers: ['reactQuery'], // Skip React Query to avoid refetches
+        layers: ['memory', 'localStorage', 'serviceWorker'] as CacheLayerType[],
+        skipLayers: ['reactQuery'] as CacheLayerType[], // Skip React Query to avoid refetches
       };
     }
     
@@ -39,7 +39,7 @@ export const useCacheCoordinator = () => {
       return {
         priority: 2 as const,
         ttl: 60 * 60 * 1000, // 1 hour for slow connections
-        layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'],
+        layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'] as CacheLayerType[],
       };
     }
     
@@ -48,7 +48,7 @@ export const useCacheCoordinator = () => {
       return {
         priority: 3 as const,
         ttl: 15 * 60 * 1000, // 15 minutes for medium connections
-        layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'],
+        layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'] as CacheLayerType[],
       };
     }
     
@@ -56,7 +56,7 @@ export const useCacheCoordinator = () => {
     return {
       priority: 3 as const,
       ttl: 5 * 60 * 1000, // 5 minutes for fast connections
-      layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'],
+      layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'] as CacheLayerType[],
     };
   }, [
     network.online, 

@@ -1,4 +1,3 @@
-
 /**
  * Cache Coordinator Service
  * 
@@ -15,6 +14,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { imageCache, urlCache } from '../images/cache/instances';
 import { localStorageCacheService } from '../images/cache/localStorageCacheService';
 import { getGlobalCacheVersion, updateGlobalCacheVersion } from '../images/services/cacheVersionService';
+import { WebsiteImage } from '../images/types';
 
 // Singleton instance of the cache coordinator
 let queryClientInstance: QueryClient | null = null;
@@ -240,7 +240,11 @@ export const createCacheCoordinator = (): CacheCoordinator => {
           }
           
           if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            localStorageCacheService.setImage(key, cachedData, opts.priority);
+            // Fix: Cast the cached data to WebsiteImage if it's not null
+            const imageData = cachedData as WebsiteImage | null;
+            if (imageData) {
+              localStorageCacheService.setImage(key, imageData, opts.priority);
+            }
           }
           
           logCacheOperation('get', key, { source: 'reactQuery', hit: true }, opts);
@@ -614,7 +618,20 @@ export const createCacheCoordinator = (): CacheCoordinator => {
    */
   const updateCacheVersion = async (scope: CacheInvalidationScope, target?: string): Promise<void> => {
     try {
-      await updateGlobalCacheVersion({ scope, target });
+      // Fix: Only pass allowed scope types to updateGlobalCacheVersion
+      // Make sure 'key' scope is handled properly
+      let effectiveScope: 'global' | 'category' | 'prefix' = 'global';
+      
+      if (scope === 'category') {
+        effectiveScope = 'category';
+      } else if (scope === 'prefix') {
+        effectiveScope = 'prefix';
+      } else if (scope === 'key') {
+        // Handle 'key' scope by using 'prefix' with the key as target
+        effectiveScope = 'prefix';
+      }
+      
+      await updateGlobalCacheVersion({ scope: effectiveScope, target });
       
       // Notify service worker
       communicateWithServiceWorker('updateCacheVersion', { 
