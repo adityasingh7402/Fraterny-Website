@@ -34,7 +34,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
     const parsedUrl = new URL(url);
     
     // If URL is already a CDN URL, don't modify it
-    if (parsedUrl.hostname === 'lovable-cdn.com') {
+    if (parsedUrl.hostname === 'image-handler.yashmalhotra.workers.dev') {
       return url;
     }
     
@@ -50,8 +50,15 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
         if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
           // Extract everything after 'public'
           const bucketAndPath = pathParts.slice(publicIndex + 1).join('/');
+          
+          // Avoid duplicate website-images in path
+          let cdnPath = bucketAndPath;
+          if (cdnPath.startsWith('website-images/website-images/')) {
+            cdnPath = cdnPath.replace('website-images/website-images/', 'website-images/');
+          }
+          
           // Construct CDN URL
-          return `${CDN_ORIGIN}/website-images/${bucketAndPath}${parsedUrl.search}`;
+          return `${CDN_ORIGIN}/${cdnPath}${parsedUrl.search}`;
         }
       }
     }

@@ -1,4 +1,3 @@
-
 /**
  * Handler for image requests
  */
@@ -28,22 +27,31 @@ export function isImageRequest(pathname) {
  * @returns {string} Origin URL
  */
 export function constructOriginUrl(url) {
+  // Remove duplicate 'website-images' from path if present
+  let path = url.pathname;
+  
+  // Handle the duplicate website-images in the path
+  if (path.startsWith('/website-images/website-images/')) {
+    path = path.replace('/website-images/website-images/', '/website-images/');
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Fixed duplicate path segments: ${url.pathname} -> ${path}`);
+  }
+  
   // If the URL already contains the Supabase domain, extract just the path
-  if (url.pathname.includes('/storage/v1/object/public')) {
+  if (path.includes('/storage/v1/object/public')) {
     // It's already a Supabase URL - keep it as is
-    const fullPath = url.pathname + url.search;  // Include query parameters
+    const fullPath = path + url.search;  // Include query parameters
     if (DEBUG_WORKER) console.log(`[CDN Worker] Supabase URL detected, using path: ${fullPath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${fullPath}`;
   } 
   // Special case for placeholder.svg
-  else if (url.pathname.includes('placeholder.svg')) {
+  else if (path.includes('placeholder.svg')) {
     if (DEBUG_WORKER) console.log(`[CDN Worker] Placeholder SVG detected`);
     return url.href;
   }
   else {
     // Regular images path - construct the Supabase URL
-    const supabasePath = `/storage/v1/object/public${url.pathname}${url.search}`;
-    if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${url.pathname} -> ${supabasePath}`);
+    const supabasePath = `/storage/v1/object/public${path}${url.search}`;
+    if (DEBUG_WORKER) console.log(`[CDN Worker] Constructing Supabase URL for path: ${path} -> ${supabasePath}`);
     return `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
   }
 }

@@ -172,7 +172,17 @@ export const getCdnUrl = (
     
     if (parsedSupabaseUrl) {
       const { bucket, path } = parsedSupabaseUrl;
-      const cdnPath = `/${bucket}${path}`;
+      
+      // Avoid duplicate bucket paths - check if path already starts with bucket name
+      const cdnPath = path.startsWith(`/${bucket}`) ? path : `/${bucket}${path}`;
+      
+      if (DEBUG_CDN) {
+        console.log(`[CDN] Parsed Supabase URL:`, {
+          bucket,
+          path,
+          cdnPath
+        });
+      }
       
       // Check if this path should bypass the CDN
       if (!forceCdn && shouldExcludePath(cdnPath)) {
