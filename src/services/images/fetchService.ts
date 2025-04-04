@@ -17,6 +17,14 @@ import {
   processQueryResponse
 } from "./utils/queryUtils";
 
+export interface WebsiteImage {
+  key: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  // ✅ Add this line
+  url?: string;
+}
 /**
  * Fetch image metadata by key with improved caching
  */
