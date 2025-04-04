@@ -29,7 +29,8 @@ export {
   getCdnAvailability,
   isCdnAvailabilityCacheValid,
   getCdnError,
-  resetCdnAvailabilityCache
+  resetCdnAvailabilityCache,
+  testCdnAvailability
 } from './cdnNetwork';
 
 // Re-export from url service
@@ -38,5 +39,6 @@ export {
   shouldUseCdn,
   isCdnEnabled,
   getCdnBaseUrl,
-  parseSupabaseUrl
+  parseSupabaseUrl,
+  setCdnEnabled
 } from './cdnUrlService';

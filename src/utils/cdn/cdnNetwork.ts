@@ -1,4 +1,3 @@
-
 /**
  * CDN Network Module
  * Handles CDN connectivity testing and availability tracking
@@ -59,6 +58,15 @@ export const testCdnConnection = async (): Promise<boolean> => {
     
     return false;
   }
+};
+
+/**
+ * Test the CDN availability and update the cache
+ * This is a wrapper around testCdnConnection that's more user-friendly
+ * @returns Promise that resolves to true if CDN is available
+ */
+export const testCdnAvailability = async (): Promise<boolean> => {
+  return testCdnConnection();
 };
 
 /**

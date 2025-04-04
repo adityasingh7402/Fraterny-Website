@@ -91,7 +91,7 @@ const CdnTestingPanel = () => {
       
       <CardContent className="pt-4">
         {!isWarningDismissed && (
-          <WarningBanner />
+          <WarningBanner onDismiss={() => setIsWarningDismissed(true)} />
         )}
         
         <CdnStatusHeader isCdnAvailable={isCdnAvailable} />

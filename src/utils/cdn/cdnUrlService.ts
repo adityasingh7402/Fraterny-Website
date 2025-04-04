@@ -1,4 +1,3 @@
-
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -263,4 +262,25 @@ export const getCdnBaseUrl = () => CDN_URL;
 // Reset the CDN enabled cache
 export const resetCdnEnabledCache = () => {
   cdnEnabledCache = null;
+};
+
+/**
+ * Set the CDN enabled state in localStorage
+ * @param enabled - Whether the CDN should be enabled
+ */
+export const setCdnEnabled = (enabled: boolean): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    localStorage.setItem('disable_cdn_production', enabled ? 'false' : 'true');
+  } else {
+    localStorage.setItem(CDN_STORAGE_KEY, enabled ? 'true' : 'false');
+  }
+  
+  // Reset the cache
+  resetCdnEnabledCache();
 };
