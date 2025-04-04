@@ -259,11 +259,9 @@ export const createCacheCoordinator = (): CacheCoordinator => {
           }
           
           if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-            // Use the type guard to ensure cachedData is a valid WebsiteImage
+            // FIX #1: Use the type guard and create a temporary variable with explicit type
             if (isValidWebsiteImage(cachedData)) {
-              // Create a temporary variable with explicit type - this is the key fix
               const validImageData: WebsiteImage = cachedData;
-              // Now use the typed variable
               localStorageCacheService.setImage(key, validImageData, opts.priority || 3);
             } else {
               console.warn(`[CacheCoordinator] Data from React Query cache is not a valid WebsiteImage:`, cachedData);
@@ -370,9 +368,10 @@ export const createCacheCoordinator = (): CacheCoordinator => {
     
     // Set in localStorage
     if (shouldIncludeLayer('localStorage', opts) && localStorageCacheService.isValid()) {
-      // Check if data is a valid WebsiteImage before storing in localStorage
+      // FIX #2: Check if data is a valid WebsiteImage before storing in localStorage
       if (isValidWebsiteImage(data)) {
-        localStorageCacheService.setImage(key, data, opts.priority || 3);
+        const validImageData: WebsiteImage = data;
+        localStorageCacheService.setImage(key, validImageData, opts.priority || 3);
       } else {
         console.warn(`[CacheCoordinator] Attempted to cache invalid WebsiteImage data:`, data);
       }
