@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { getImageByKey } from "@/services/images/fetchService";
 
 /**
  * Custom hook to handle dynamic image loading from storage
