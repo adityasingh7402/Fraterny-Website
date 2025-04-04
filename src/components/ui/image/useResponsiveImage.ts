@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -10,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { getImageByKey } from "@/services/images/fetchService";
+import { fetchImageByKey } from "@/services/images/fetchService";
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -131,9 +130,9 @@ export const useResponsiveImage = (
         // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
-    // Assume fetchService returns image object with CDN-based `url`
-const imageMetadata = await getImageByKey(dynamicKey); // Your existing API call
-imageUrl = imageMetadata?.url;
+        // Assume fetchService returns image object with CDN-based `url`
+const imageMetadata = await fetchImageByKey(dynamicKey); // Using the correct function name
+const imageUrl = imageMetadata?.url || getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${dynamicKey}`);
 if (!imageUrl) {
   throw new Error(`No image URL found for key: ${dynamicKey}`);
 }      

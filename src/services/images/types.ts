@@ -24,6 +24,7 @@ export interface WebsiteImage {
   height?: number;
   sizes?: Record<string, string> | Json; // Handle both Record type and Json from Supabase
   metadata?: ImageMetadata | Json; // Updated to accept both structured type and Json from Supabase
+  url?: string; // Add URL property that can be computed when needed
 }
 
 // Re-export other types here if needed

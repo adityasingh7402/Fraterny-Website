@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getCdnUrl } from "@/utils/cdnUtils";
 import { WebsiteImage } from "./types";
@@ -17,14 +16,6 @@ import {
   processQueryResponse
 } from "./utils/queryUtils";
 
-export interface WebsiteImage {
-  key: string;
-  alt?: string;
-  width?: number;
-  height?: number;
-  // ✅ Add this line
-  url?: string;
-}
 /**
  * Fetch image metadata by key with improved caching
  */
@@ -66,10 +57,20 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     // Cache the result
     cacheImage(normalizedKey, data as WebsiteImage | null);
-    return {
-  ...data,
-  url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`)
-};
+    
+    // Add a computed url property to the returned object
+    if (data) {
+      // The WebsiteImage type doesn't have 'url' property directly, so we create a new object
+      // that combines the WebsiteImage data with a url property
+      return {
+        ...data,
+        // Use CDN URL if available
+        url: getCdnUrl(`https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`) || 
+             `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${data.key}`
+      };
+    }
+    
+    return null;
   } catch (error) {
     return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
   }
