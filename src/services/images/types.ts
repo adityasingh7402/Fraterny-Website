@@ -27,12 +27,13 @@ export interface WebsiteImage {
   url?: string; // Add URL property that can be computed when needed
 }
 
-// Export ImageSizes interface for use in other files
+// Export ImageSizes interface for use in other files with index signature
 export interface ImageSizes {
   small?: string;
   medium?: string;
   large?: string;
   original?: string;
+  [key: string]: string | undefined; // Add index signature to make it compatible with Record<string, string>
 }
 
 // Re-export other types here if needed
