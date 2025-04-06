@@ -38,8 +38,9 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       parsedUrl = new URL(url);
     } catch (error) {
       // If URL parsing fails, it's likely a relative path
-      // Just return the original URL for now
-      return url;
+      return url.startsWith('/') ? 
+        `${CDN_ORIGIN}${url}` : // Handle relative URLs with leading slash
+        url; // Return other formats as-is
     }
     
     // If URL is already a CDN URL, don't modify it

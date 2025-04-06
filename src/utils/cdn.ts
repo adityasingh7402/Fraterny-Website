@@ -7,18 +7,9 @@
 // Re-export from the cdn module
 export * from './cdn/index';
 
-// Create alias exports for the functions being used in PathExclusions.tsx
-export const addCdnPathExclusion = (path: string): void => {
-  const { addPathExclusion } = require('./cdn/cdnExclusions');
-  addPathExclusion(path);
-};
-
-export const removeCdnPathExclusion = (path: string): void => {
-  const { removePathExclusion } = require('./cdn/cdnExclusions');
-  removePathExclusion(path);
-};
-
-export const clearCdnPathExclusions = (): void => {
-  const { resetPathExclusions } = require('./cdn/cdnExclusions');
-  resetPathExclusions();
-};
+// Re-export from cdnExclusions directly to fix the missing export error
+export { 
+  addPathExclusion as addCdnPathExclusion,
+  removePathExclusion as removeCdnPathExclusion,
+  resetPathExclusions as clearCdnPathExclusions
+} from './cdn/cdnExclusions';

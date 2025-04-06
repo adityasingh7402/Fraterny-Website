@@ -1,3 +1,4 @@
+
 /**
  * CDN Network Module
  * Handles CDN connectivity testing and availability tracking
@@ -20,38 +21,55 @@ export const testCdnConnection = async (): Promise<boolean> => {
   try {
     console.log(`[CDN] Testing connection to ${CDN_URL}...`);
     
-    // Use a timeout to prevent hanging if CDN is unreachable
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
-    // Use a simple HEAD request with a timeout to check if the CDN is available
-    const response = await fetch(`${CDN_URL}/health`, {
-      method: 'HEAD',
-      cache: 'no-cache',
-      headers: { 
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Accept': 'application/json'
-      },
-      signal: controller.signal,
-      // Ensure browser doesn't block the request due to CORS
-      mode: 'cors',
-      credentials: 'omit'
+    // Create a new Image and attempt to load from CDN
+    return new Promise((resolve) => {
+      const testImage = new Image();
+      const timestamp = Date.now();
+      
+      // Set a timeout to prevent hanging if CDN is unreachable
+      const timeoutId = setTimeout(() => {
+        console.warn('[CDN] Connection test timeout');
+        
+        // Update cache with error information
+        cdnAvailabilityCache = {
+          available: false,
+          timestamp: Date.now(),
+          error: 'Connection timeout'
+        };
+        
+        resolve(false);
+      }, 5000);
+      
+      testImage.onload = () => {
+        clearTimeout(timeoutId);
+        console.log('[CDN] Connection test successful');
+        
+        // Update cache
+        cdnAvailabilityCache = {
+          available: true,
+          timestamp: Date.now()
+        };
+        
+        resolve(true);
+      };
+      
+      testImage.onerror = () => {
+        clearTimeout(timeoutId);
+        console.warn('[CDN] Connection test failed');
+        
+        // Update cache with error information
+        cdnAvailabilityCache = {
+          available: false,
+          timestamp: Date.now(),
+          error: 'Image failed to load'
+        };
+        
+        resolve(false);
+      };
+      
+      // Add timestamp to avoid caching
+      testImage.src = `${CDN_URL}/test-connection.png?t=${timestamp}`;
     });
-    
-    // Clear the timeout
-    clearTimeout(timeoutId);
-    
-    const available = response.ok;
-    console.log(`[CDN] Test result: ${available ? 'Connected' : 'Disconnected'}`);
-    
-    // Update cache
-    cdnAvailabilityCache = {
-      available,
-      timestamp: Date.now(),
-      error: available ? undefined : `HTTP status: ${response.status}`
-    };
-    
-    return available;
   } catch (error) {
     console.error('[CDN] Connection test failed:', error);
     

@@ -41,14 +41,12 @@ export const ResponsivePicture = ({
 }: ResponsivePictureProps) => {
   // Enhanced logging for better debugging
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
-        mobile: sources.mobile ? '✓' : '✗',
-        tablet: sources.tablet ? '✓' : '✗', 
-        desktop: sources.desktop ? '✓' : '✗'
-      });
-      console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
-    }
+    console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
+      mobile: sources.mobile ? '✓' : '✗',
+      tablet: sources.tablet ? '✓' : '✗', 
+      desktop: sources.desktop ? '✓' : '✗'
+    });
+    console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
   }, [sources, useMobileSrc, alt]);
 
   // Process all URLs through CDN if enabled
@@ -66,10 +64,8 @@ export const ResponsivePicture = ({
     ? processedSources.mobile
     : processedSources.desktop;
   
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
-    console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
-  }
+  console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
+  console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
   
   const imgProps = createImageProps(
     defaultImgSrc, 
@@ -120,6 +116,12 @@ export const ResponsivePicture = ({
         {...imgAttributes} // Use our fixed attributes
         style={style} 
         data-mobile={useMobileSrc ? "true" : "false"}
+        onError={(e) => {
+          console.error(`[ResponsivePicture] Image failed to load: ${(e.target as HTMLImageElement).src}`);
+          if ((e.target as HTMLImageElement).src !== processedFallbackSrc) {
+            (e.target as HTMLImageElement).src = processedFallbackSrc;
+          }
+        }}
       />
     </picture>
   );

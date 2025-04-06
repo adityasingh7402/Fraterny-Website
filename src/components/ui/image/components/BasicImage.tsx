@@ -44,12 +44,9 @@ export const BasicImage = ({
   const processedSrc = useCdn ? getCdnUrl(src) || src : src;
   const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
-  // Log for debugging
-  console.log(`[BasicImage] Rendering image: ${alt} with URL: ${processedSrc}`);
-  
   // Handle error state
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error(`Image failed to load: ${processedSrc}`);
+    console.error(`Image failed to load: ${processedSrc}, falling back to: ${processedFallbackSrc}`);
     // If the image fails to load, replace with fallback
     if (e.currentTarget.src !== processedFallbackSrc) {
       e.currentTarget.src = processedFallbackSrc;

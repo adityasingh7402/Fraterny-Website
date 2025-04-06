@@ -54,14 +54,17 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
   // Load high-quality image when element is visible or about to be visible
   useEffect(() => {
     if (isVisible && !isLoaded && !hasError) {
+      console.log(`[ViewportAwareImage] Loading image: ${src}`);
       const img = new Image();
       img.src = src;
       img.onload = () => {
+        console.log(`[ViewportAwareImage] Successfully loaded: ${src}`);
         setImageSrc(src);
         setIsLoaded(true);
         onLoad?.();
       };
       img.onerror = () => {
+        console.error(`[ViewportAwareImage] Failed to load: ${src}, using fallback: ${fallbackSrc}`);
         setHasError(true);
         setImageSrc(fallbackSrc);
         onError?.();
@@ -109,6 +112,7 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         className={`${className} w-full h-full`}
         {...imgAttributes}
         onError={() => {
+          console.error(`[ViewportAwareImage] Error loading image: ${imageSrc}`);
           if (imageSrc !== fallbackSrc) {
             setImageSrc(fallbackSrc);
             setHasError(true);
