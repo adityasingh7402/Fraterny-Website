@@ -1,19 +1,18 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
-import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
-import { debugStoragePath, monitorNetworkRequest, isValidUrl } from "@/utils/debugUtils";
+import { getContentHashFromMetadata, createVersionedUrl, isValidImageKey } from "./utils";
+import { isValidUrl } from "@/utils/debugUtils";
 import { handleError } from "@/utils/errorHandling";
 
 /**
  * Get a signed URL for an image by its key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  // Improved validation to prevent undefined/null/empty keys
-  if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.error(`Invalid key in getImageUrlByKey: "${key}"`);
+  // Validate key first to prevent undefined from getting into URLs
+  if (!isValidImageKey(key)) {
+    console.error(`Invalid or undefined key in getImageUrlByKey: "${key}"`);
     return '/placeholder.svg';
   }
   
@@ -35,9 +34,6 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Get global cache version for proper versioning
     const cacheVersion = await getGlobalCacheVersion();
     
-    // Monitor this database request
-    const monitor = monitorNetworkRequest('supabase:website_images');
-    
     // Get image record from database to get the key and metadata
     const { data: image, error } = await supabase
       .from('website_images')
@@ -46,25 +42,17 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .maybeSingle();
     
     if (error) {
-      monitor.failure(error);
       console.error(`Database error loading image with key "${normalizedKey}":`, error);
       return '/placeholder.svg';
     }
-    
-    monitor.success();
     
     if (!image) {
       console.warn(`No image found with key "${normalizedKey}" in database`);
       return '/placeholder.svg';
     }
     
-    // IMPORTANT: Use the key directly for storage path
-    const imageKey = image.key;
-    
-    if (!imageKey) {
-      console.error(`Image record exists but has no key for "${normalizedKey}"`);
-      return '/placeholder.svg';
-    }
+    // Use the key directly for storage path - ensure it's not undefined
+    const imageKey = image.key || normalizedKey;
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);

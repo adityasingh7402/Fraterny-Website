@@ -1,6 +1,29 @@
 
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
+import { IMAGE_KEYS } from "@/pages/admin/images/components/upload/constants";
+
+// Create a mapping of valid keys for fast lookup
+const VALID_KEYS = new Set(IMAGE_KEYS.map(item => item.key));
+
+/**
+ * Check if a key is valid - non-empty and in our predefined list
+ */
+export const isValidImageKey = (key: string | null | undefined): boolean => {
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    return false;
+  }
+  
+  const normalizedKey = key.trim();
+  
+  // In production, we consider any non-empty key as potentially valid
+  // In development, we strictly check against our predefined keys
+  if (process.env.NODE_ENV === 'development') {
+    return VALID_KEYS.has(normalizedKey);
+  }
+  
+  return true;
+};
 
 /**
  * Safely extract contentHash from metadata
@@ -59,16 +82,16 @@ export const createVersionedUrl = (
  * Uses key directly to get public URL
  */
 export const createSignedUrl = async (key: string): Promise<string> => {
-  // Improved validation to prevent undefined/null/empty keys
+  // First validate that we have a proper key
   if (!key || typeof key !== 'string' || key.trim() === '') {
     console.error(`Invalid key in createSignedUrl: "${key}"`);
     return '/placeholder.svg';
   }
   
+  const normalizedKey = key.trim();
+  console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
+  
   try {
-    const normalizedKey = key.trim();
-    console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
-    
     // First check if the key exists in the database
     const { data: imageRecord, error: lookupError } = await supabase
       .from('website_images')

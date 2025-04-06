@@ -4,16 +4,25 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
 import { useReactQueryImages } from '@/hooks/useReactQueryImages';
 import { supabase } from '@/integrations/supabase/client';
+import { isValidImageKey } from '@/services/images/services/url/utils';
 
 // Function to check if images exist in the database
 const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>> => {
   if (!keys || keys.length === 0) return {};
   
+  // Filter out invalid keys first
+  const validKeys = keys.filter(key => isValidImageKey(key));
+  
+  if (validKeys.length === 0) {
+    console.warn('No valid image keys provided to checkImagesExist');
+    return {};
+  }
+  
   try {
     const { data, error } = await supabase
       .from('website_images')
       .select('key')
-      .in('key', keys);
+      .in('key', validKeys);
       
     if (error) {
       console.error('Error checking image existence:', error);
@@ -41,7 +50,7 @@ const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>
   }
 };
 
-// Updated to use ONLY dynamic keys
+// Updated to use ONLY predefined, valid image keys
 const experienceImages = [
   {
     dynamicKey: "experience-villa-retreat",
@@ -91,8 +100,22 @@ const ImageGallery = () => {
   
   // Create stable image keys for dependency tracking and log them for debugging
   const imageKeys = useMemo(() => {
-    const keys = experienceImages.map(img => img.dynamicKey);
-    console.log('ImageGallery: Using image keys:', keys);
+    // Filter out any invalid keys
+    const keys = experienceImages
+      .map(img => img.dynamicKey)
+      .filter(key => isValidImageKey(key));
+      
+    console.log('ImageGallery: Using valid image keys:', keys);
+    
+    // Log any invalid keys
+    const invalidKeys = experienceImages
+      .map(img => img.dynamicKey)
+      .filter(key => !isValidImageKey(key));
+      
+    if (invalidKeys.length > 0) {
+      console.error('ImageGallery: Found invalid image keys:', invalidKeys);
+    }
+    
     return keys;
   }, []);
   
@@ -125,7 +148,7 @@ const ImageGallery = () => {
   // Memoize the gallery component to prevent recreation on renders
   const GalleryComponent = useMemo(() => {
     // If no URLs are available yet, return an empty gallery
-    if (!imageUrlsData || Object.keys(imageUrlsData).length === 0) {
+    if (!imageUrlsData || Object.keys(imageUrlsData).length === this imageKeys.length === 0) {
       console.log('ImageGallery: No image URLs available yet, showing placeholders');
       return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
@@ -144,16 +167,19 @@ const ImageGallery = () => {
         priority={true} // Mark as high priority content
       >
         {experienceImages.map((image, index) => {
+          // Validate the key first
+          const isKeyValid = isValidImageKey(image.dynamicKey);
+          
           // Check if this image exists in the database
-          const imageExists = existingKeys[image.dynamicKey];
+          const imageExists = isKeyValid && existingKeys[image.dynamicKey];
           
           // Log the URL we're using for this image
-          const imageUrl = imageUrlsData[image.dynamicKey];
-          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", exists: ${imageExists}, URL: ${imageUrl || 'none'}`);
+          const imageUrl = imageUrlsData?.[image.dynamicKey];
+          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", valid: ${isKeyValid}, exists: ${imageExists}, URL: ${imageUrl || 'none'}`);
           
           return (
             <div key={index} className="aspect-[4/3] w-full">
-              {imageExists ? (
+              {isKeyValid && imageExists ? (
                 <ResponsiveImage 
                   dynamicKey={image.dynamicKey}
                   alt={image.alt}
@@ -168,7 +194,9 @@ const ImageGallery = () => {
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                   <span className="text-gray-500 text-sm px-2 text-center">
-                    Image not available
+                    {!isKeyValid 
+                      ? `Invalid key format: ${image.dynamicKey}` 
+                      : "Image not available"}
                   </span>
                 </div>
               )}

@@ -3,15 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
-import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
+import { getContentHashFromMetadata, createVersionedUrl, isValidImageKey } from "./utils";
 
 /**
  * Get a URL for an image by key in a batched query pattern
  */
 export const getImageUrlBatched = async (key: string): Promise<string> => {
-  // Improved validation to prevent undefined/null/empty keys
-  if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.error(`Invalid key in getImageUrlBatched: "${key}"`);
+  // Validate key first to prevent undefined from getting into URLs
+  if (!isValidImageKey(key)) {
+    console.error(`Invalid or undefined key in getImageUrlBatched: "${key}"`);
     return '/placeholder.svg';
   }
   
@@ -50,13 +50,8 @@ export const getImageUrlBatched = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // IMPORTANT: Use the key directly for storage
-    const imageKey = image.key;
-    
-    if (!imageKey) {
-      console.error(`[getImageUrlBatched] Image found but has no key for "${normalizedKey}"`);
-      return '/placeholder.svg';
-    }
+    // Use the key directly for storage - ensure it's not undefined
+    const imageKey = image.key || normalizedKey;
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
@@ -104,8 +99,8 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     
     // Normalize keys - filter out invalid keys
     const normalizedKeys = keys
-      .map(k => typeof k === 'string' ? k.trim() : '')
-      .filter(k => k !== '');
+      .filter(key => isValidImageKey(key))
+      .map(key => key.trim());
     
     if (normalizedKeys.length === 0) {
       console.warn('[batchGetImageUrls] All keys were invalid or empty');
@@ -163,14 +158,8 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
       }
       
       try {
-        // IMPORTANT: Use the key directly for storage
-        const imageKey = image.key;
-        
-        if (!imageKey) {
-          console.error(`[batchGetImageUrls] Image found but has no key for "${key}"`);
-          result[key] = '/placeholder.svg';
-          continue;
-        }
+        // Use the key directly for storage - ensure it's not undefined
+        const imageKey = image.key || key;
         
         // Get content hash for cache busting
         const contentHash = getContentHashFromMetadata(image.metadata);

@@ -7,9 +7,16 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { DeviceDetectionWrapper } from './ui/DeviceDetectionWrapper';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isValidImageKey } from '@/services/images/services/url/utils';
 
 // First check if the image keys exist in the database
 const checkImageExists = async (key: string): Promise<boolean> => {
+  // First validate the key format before checking existence
+  if (!isValidImageKey(key)) {
+    console.warn(`Invalid image key format: "${key}". Using placeholder instead.`);
+    return false;
+  }
+  
   try {
     const { data } = await supabase
       .from('website_images')
@@ -97,7 +104,7 @@ const VillaLab = () => {
     return () => clearInterval(interval);
   }, [network.effectiveConnectionType, isMobile, isDetecting]);
 
-  // Updated to use ONLY dynamic image keys
+  // Updated to use ONLY valid, predefined image keys
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
@@ -171,6 +178,14 @@ const VillaLab = () => {
       let missingCount = 0;
       
       for (const activity of activities) {
+        // Validate key format before checking existence
+        if (!isValidImageKey(activity.dynamicKey)) {
+          console.error(`Invalid image key format: "${activity.dynamicKey}"`);
+          results[activity.dynamicKey] = false;
+          missingCount++;
+          continue;
+        }
+        
         // Check if it exists
         const exists = await checkImageExists(activity.dynamicKey);
         results[activity.dynamicKey] = exists;
@@ -249,11 +264,13 @@ const VillaLab = () => {
                 "lazy"; // Rest are lazy
               
               // Apply visual appearance based on loading status
-              // This creates a progressive reveal effect
               const isVisible = index < visibleCount;
               
+              // Validate this key before attempting to use it
+              const isKeyValid = isValidImageKey(activity.dynamicKey);
+              
               // Check if this image exists in the database
-              const imageExists = checkedKeys[activity.dynamicKey];
+              const imageExists = isKeyValid && checkedKeys[activity.dynamicKey];
               
               // For featured items (index 0 and 1), we might want to force desktop version
               // even on mobile devices for better quality
@@ -269,7 +286,7 @@ const VillaLab = () => {
                     transitionDelay: `${index * 100}ms`
                   }}
                 >
-                  {imageExists ? (
+                  {isKeyValid && imageExists ? (
                     <ResponsiveImage
                       dynamicKey={activity.dynamicKey}
                       alt={activity.alt}
@@ -284,7 +301,7 @@ const VillaLab = () => {
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                       <span className="text-gray-500 text-sm px-4 text-center">
-                        Image not available
+                        {isKeyValid ? "Image not available" : `Invalid key: ${activity.dynamicKey}`}
                       </span>
                     </div>
                   )}
