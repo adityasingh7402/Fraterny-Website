@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getCdnUrl } from '@/utils/cdnUtils';
 import { toast } from 'sonner';
-import { normalizeStoragePath, constructCdnPath } from '@/utils/pathUtils';
+import { normalizeStoragePath, storagePathToCdnPath } from '@/utils/pathUtils';
 
 interface UrlTesterProps {
   isTestingCdn: boolean;
@@ -14,13 +14,13 @@ interface UrlTesterProps {
 
 const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) => {
   const [testImageUrl, setTestImageUrl] = useState<string>('/website-images/placeholder.svg');
-  const [cdnTransformedUrl, setCdnTransformedUrl] = useState<string | null>(null);
+  const [transformedUrl, setTransformedUrl] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testSuccess, setTestSuccess] = useState<boolean>(false);
   const [isSupabaseUrl, setIsSupabaseUrl] = useState<boolean>(false);
   const [pathInfo, setPathInfo] = useState<{original: string, normalized: string, transformed: string} | null>(null);
 
-  // Update CDN transformed URL when test URL changes
+  // Update transformed URL when test URL changes
   useEffect(() => {
     if (testImageUrl) {
       try {
@@ -37,31 +37,29 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
           const normalizedPath = normalizeStoragePath(testImageUrl);
           
           // Then construct full Supabase URL for testing
-          fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${normalizedPath}`;
+          const urlSafePath = storagePathToCdnPath(normalizedPath);
+          fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${urlSafePath}`;
         }
         
         // Track the original path and normalized path
         const originalPath = testImageUrl;
         const normalizedPath = normalizeStoragePath(testImageUrl);
         
-        // Use getCdnUrl with a single argument (updated from two arguments)
-        const transformed = getCdnUrl(fullUrl);
-        setCdnTransformedUrl(transformed || fullUrl);
+        // Always use the Supabase URL (no CDN transformation)
+        setTransformedUrl(fullUrl);
         
         // Set path info for debugging
-        if (transformed) {
-          setPathInfo({
-            original: originalPath,
-            normalized: normalizedPath,
-            transformed
-          });
-        }
+        setPathInfo({
+          original: originalPath,
+          normalized: normalizedPath,
+          transformed: fullUrl
+        });
         
         setTestError(null); // Clear any previous errors
         setTestSuccess(false); // Reset success state
       } catch (e) {
         console.error('Error transforming URL:', e);
-        setCdnTransformedUrl(null);
+        setTransformedUrl(null);
         setTestError('Error transforming URL. Please check your URL format.');
         setTestSuccess(false);
       }
@@ -77,19 +75,16 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
     setTestSuccess(false); // Reset success state
     
     try {
-      // Fix here: using getCdnUrl with a single argument (updated from two arguments)
-      const transformedUrl = getCdnUrl(testImageUrl);
-      
       if (!transformedUrl) {
         setTestError('URL transformation failed. Check your URL syntax.');
         toast.error('URL transformation failed', {
-          description: 'Could not transform the URL for CDN. Check your URL syntax.',
+          description: 'Could not transform the URL. Check your URL syntax.',
         });
         setIsTestingCdn(false);
         return;
       }
       
-      console.log(`[CDN] Testing specific URL: ${transformedUrl}`);
+      console.log(`[Image Test] Testing specific URL: ${transformedUrl}`);
       
       // Create an AbortController to handle timeout
       const controller = new AbortController();
@@ -111,17 +106,17 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         
         clearTimeout(timeoutId);
         
-        console.log(`[CDN] Test result: ${response.status} ${response.ok}`);
+        console.log(`[Image Test] Test result: ${response.status} ${response.ok}`);
         
         if (response.ok) {
           setTestSuccess(true);
           toast.success('URL test successful', {
-            description: `The image was successfully fetched through your CDN.`,
+            description: `The image was successfully fetched from Supabase.`,
           });
         } else {
           setTestError(`HTTP Error: ${response.status} ${response.statusText}`);
           toast.error('URL test failed', {
-            description: `Could not fetch the image through your CDN. Status: ${response.status}.`,
+            description: `Could not fetch the image from Supabase. Status: ${response.status}.`,
           });
         }
       } catch (fetchError) {
@@ -132,7 +127,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         
         if (fetchError.name === 'AbortError') {
           toast.error('URL test timed out', {
-            description: 'The request took too long to complete. Your CDN might be slow or unreachable.',
+            description: 'The request took too long to complete. Supabase might be slow or unreachable.',
           });
         } else {
           toast.error('URL test error', {
@@ -170,10 +165,10 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
           className="w-full font-mono text-sm"
         />
         
-        {cdnTransformedUrl && (
+        {transformedUrl && (
           <div className={`${testSuccess ? 'bg-green-50' : 'bg-gray-50'} p-2 rounded-md`}>
-            <p className="text-xs text-gray-500">Transformed URL:</p>
-            <p className="text-xs font-mono break-all">{cdnTransformedUrl}</p>
+            <p className="text-xs text-gray-500">Direct Supabase URL:</p>
+            <p className="text-xs font-mono break-all">{transformedUrl}</p>
             
             {pathInfo && (
               <div className="mt-2 text-xs bg-yellow-50 p-2 rounded border border-yellow-100">
@@ -187,14 +182,14 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
             {isSupabaseUrl && (
               <div className="mt-2 text-xs bg-blue-50 p-2 rounded border border-blue-100">
                 <p className="font-medium text-blue-600">Supabase URL detected</p>
-                <p className="text-blue-700">This URL will be properly routed through the CDN.</p>
+                <p className="text-blue-700">This URL will be used directly from Supabase.</p>
               </div>
             )}
             
             {testSuccess && (
               <div className="mt-2">
                 <a 
-                  href={cdnTransformedUrl} 
+                  href={transformedUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-xs flex items-center text-blue-600 hover:underline"

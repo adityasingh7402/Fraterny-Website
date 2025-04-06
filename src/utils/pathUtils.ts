@@ -1,4 +1,3 @@
-
 /**
  * Path normalization utilities for consistent image path handling
  */
@@ -59,14 +58,14 @@ export const constructStoragePath = (storagePath: string): string => {
 };
 
 /**
- * Converts Supabase internal storage path to CDN URL path
+ * Converts Supabase internal storage path to URL-safe path
  * Handles the transformation from 'Website Images' to 'website-images' for URLs
  */
 export const storagePathToCdnPath = (storagePath: string): string => {
   // First normalize to ensure consistent format with the correct bucket name
   const normalizedPath = normalizeStoragePath(storagePath);
   
-  // Replace the storage bucket name with the CDN-compatible format (lowercase, hyphenated)
+  // Replace the storage bucket name with the URL-compatible format (lowercase, hyphenated)
   // This is needed because Supabase URLs use the hyphenated version
   return normalizedPath.replace(
     `${STORAGE_BUCKET_NAME}/`, 
@@ -75,23 +74,11 @@ export const storagePathToCdnPath = (storagePath: string): string => {
 };
 
 /**
- * Constructs a CDN URL for public access to Supabase storage
+ * Constructs a direct Supabase URL for public access to storage
  */
-export const constructCdnUrl = (storagePath: string, cdnBaseUrl?: string): string => {
+export const constructCdnUrl = (storagePath: string, baseUrl?: string): string => {
   const cdnPath = storagePathToCdnPath(storagePath);
-  const baseUrl = cdnBaseUrl || 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
+  const baseUrl_ = baseUrl || 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
   
-  return `${baseUrl}${cdnPath}`;
-};
-
-/**
- * Constructs a properly formatted CDN path
- * Ensures path has the format: website-images/path
- */
-export const constructCdnPath = (storagePath: string): string => {
-  // First normalize to ensure consistent format
-  const normalizedPath = normalizeStoragePath(storagePath);
-  
-  // Convert the normalized path to CDN format
-  return storagePathToCdnPath(normalizedPath);
+  return `${baseUrl_}${cdnPath}`;
 };

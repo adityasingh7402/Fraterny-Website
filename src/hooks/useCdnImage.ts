@@ -7,7 +7,7 @@ import { isValidUrl } from '@/utils/debugUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 import { supabase } from '@/integrations/supabase/client';
 import { STORAGE_BUCKET_NAME } from '@/services/images/constants';
-import { constructCdnUrl, constructStoragePath } from '@/utils/pathUtils';
+import { constructStoragePath } from '@/utils/pathUtils';
 
 /**
  * Hook provides direct image URLs from Supabase with local caching

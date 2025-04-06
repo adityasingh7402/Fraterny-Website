@@ -1,9 +1,8 @@
 
 /**
- * Unified CDN utilities for image loading
- * Now converted to passthrough functions for backward compatibility
+ * Unified CDN utilities for image loading - deprecated
+ * All images now load directly from Supabase
  */
-import { normalizeStoragePath } from "./pathUtils";
 
 // Always return false to disable CDN
 const useCdn = false;
