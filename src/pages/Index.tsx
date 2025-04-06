@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react';
+
+import React, { lazy, Suspense, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -17,7 +18,20 @@ const NavalQuote = lazy(() => import('../components/NavalQuote'));
 const VillaLab = lazy(() => import('../components/VillaLab'));
 const OurValues = lazy(() => import('../components/OurValues'));
 const HowItWorks = lazy(() => import('../components/HowItWorks'));
-const CdnInitializer = lazy(() => import('@/components/admin/images/cdn/CdnInitializer'));
+
+// Move CdnInitializer to a separate import to prevent React errors
+// Only import in non-SSR environments
+let CdnInitializer = null;
+if (typeof window !== 'undefined') {
+  // Dynamically import only on client-side
+  CdnInitializer = lazy(() => import('@/components/admin/images/cdn/CdnInitializer')
+    .catch(err => {
+      console.error('Failed to load CdnInitializer:', err);
+      // Return a fallback component that doesn't use React hooks
+      return { default: () => null };
+    })
+  );
+}
 
 // Simple loading fallback with better UX
 const LoadingFallback = () => (
@@ -142,10 +156,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Add CDN Initializer using Suspense to ensure proper loading */}
-      <Suspense fallback={null}>
-        <CdnInitializer />
-      </Suspense>
+      {/* Add CDN Initializer using Suspense, only if it's available */}
+      {CdnInitializer && (
+        <Suspense fallback={null}>
+          <ErrorBoundary>
+            <CdnInitializer />
+          </ErrorBoundary>
+        </Suspense>
+      )}
       
       <Navigation />
       <Hero />
@@ -183,5 +201,29 @@ const Index = () => {
     </div>
   );
 };
+
+// Simple error boundary component to catch errors
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error in component:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null; // Render nothing if there's an error
+    }
+
+    return this.props.children;
+  }
+}
 
 export default Index;
