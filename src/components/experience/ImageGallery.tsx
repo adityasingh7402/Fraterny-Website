@@ -148,7 +148,7 @@ const ImageGallery = () => {
   // Memoize the gallery component to prevent recreation on renders
   const GalleryComponent = useMemo(() => {
     // If no URLs are available yet, return an empty gallery
-    if (!imageUrlsData || Object.keys(imageUrlsData).length === this imageKeys.length === 0) {
+    if (!imageUrlsData || Object.keys(imageUrlsData).length === 0 || imageKeys.length === 0) {
       console.log('ImageGallery: No image URLs available yet, showing placeholders');
       return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
@@ -205,7 +205,7 @@ const ImageGallery = () => {
         })}
       </ViewportAwareGallery>
     );
-  }, [imageUrlsData, existingKeys]);
+  }, [imageUrlsData, existingKeys, imageKeys]);
   
   return (
     <section className="w-full overflow-hidden">
