@@ -1,4 +1,3 @@
-
 /**
  * React hook for accessing images
  */
@@ -66,7 +65,7 @@ const getImageUrlByKeyAndSize = async (key: string, size: ImageSize): Promise<st
   
   // Check if the sized variant exists first
   try {
-    const { data: existsData, error: existsError } = await supabase.storage
+    const { data: existsData } = await supabase.storage
       .from(STORAGE_BUCKET_NAME)
       .getPublicUrl(sizedKey);
       
