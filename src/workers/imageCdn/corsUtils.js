@@ -11,6 +11,6 @@ export function getCorsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Cache-Control, cache-control, Content-Language, Accept, Accept-Language, Authorization, X-Requested-With',
   };
 }

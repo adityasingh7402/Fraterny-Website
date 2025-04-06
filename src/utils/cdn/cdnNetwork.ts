@@ -1,3 +1,4 @@
+
 /**
  * CDN Network Module
  * Handles CDN connectivity testing and availability tracking
@@ -28,8 +29,14 @@ export const testCdnConnection = async (): Promise<boolean> => {
     const response = await fetch(`${CDN_URL}/health`, {
       method: 'HEAD',
       cache: 'no-cache',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
-      signal: controller.signal
+      headers: { 
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Accept': 'application/json'
+      },
+      signal: controller.signal,
+      // Ensure browser doesn't block the request due to CORS
+      mode: 'cors',
+      credentials: 'omit'
     });
     
     // Clear the timeout

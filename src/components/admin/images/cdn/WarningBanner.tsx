@@ -4,9 +4,10 @@ import { AlertCircle, X } from 'lucide-react';
 
 interface WarningBannerProps {
   onDismiss: () => void;
+  corsWarning?: boolean;
 }
 
-const WarningBanner: React.FC<WarningBannerProps> = ({ onDismiss }) => {
+const WarningBanner: React.FC<WarningBannerProps> = ({ onDismiss, corsWarning }) => {
   return (
     <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-4 mb-4 relative">
       <div className="flex">
@@ -15,10 +16,12 @@ const WarningBanner: React.FC<WarningBannerProps> = ({ onDismiss }) => {
         </div>
         <div className="ml-3">
           <p className="text-sm font-medium">
-            CDN Configuration Warning
+            {corsWarning ? 'CDN CORS Warning' : 'CDN Configuration Warning'}
           </p>
           <p className="text-sm mt-1">
-            These settings are for advanced users only. Incorrect configuration can break image loading.
+            {corsWarning 
+              ? 'CORS issues detected. The CDN may be experiencing cross-origin request problems. You can continue using the site with direct image loading.'
+              : 'These settings are for advanced users only. Incorrect configuration can break image loading.'}
           </p>
         </div>
       </div>
