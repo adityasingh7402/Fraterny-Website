@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage, ImageMetadata } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
-import { invalidateImageCache } from "./fetchService";
+import { invalidateImageCache } from "./fetchService"; 
 import { getImageDimensions } from "./utils/dimensions";
 import { createOptimizedVersions } from "./utils/optimizationService";
 import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
@@ -38,7 +38,11 @@ export const uploadImage = async (
     
     if (file.type.startsWith('image/')) {
       try {
-        dimensions = await getImageDimensions(file);
+        const dims = await getImageDimensions(file);
+        dimensions = { 
+          width: dims.width, 
+          height: dims.height 
+        };
         console.log(`Image dimensions: ${dimensions.width}x${dimensions.height}`);
       } catch (err) {
         console.error('Could not get image dimensions:', err);
@@ -108,7 +112,7 @@ export const uploadImage = async (
     const sizesObject: Record<string, string> = {};
     Object.entries(optimizedSizes).forEach(([key, value]) => {
       if (value !== undefined) {
-        sizesObject[key] = value;
+        sizesObject[key] = value as string;
       }
     });
     
@@ -138,10 +142,23 @@ export const uploadImage = async (
     }
     
     // Invalidate cache for this key to ensure fresh data
-    invalidateImageCache(key);
+    try {
+      invalidateImageCache(key);
+    } catch (e) {
+      console.warn('Failed to invalidate cache:', e);
+    }
     
     console.log(`Successfully uploaded and created record for image with key: ${key}`);
-    return data as WebsiteImage;
+    
+    // Create the final result object with proper typing
+    const result: WebsiteImage = {
+      ...data,
+      sizes: data.sizes as Record<string, string> | null,
+      metadata: data.metadata as Record<string, any> | null,
+      url: null // We'll set this later if needed
+    };
+    
+    return result;
   } catch (error) {
     console.error('Error in upload process:', error);
     return handleApiError(error, 'Error in image upload process', { silent: true }) as null;

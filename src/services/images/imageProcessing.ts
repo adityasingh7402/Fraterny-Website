@@ -6,6 +6,8 @@
 
 // Export functions from individual modules
 export { getImageDimensions } from './utils/dimensions';
-export { createOptimizedVersions } from './utils/optimizationService';
 export { resizeImage } from './utils/optimizationUtils';
-
+export { 
+  createOptimizedVersions, 
+  generateImageVariant 
+} from './utils/optimizationService';

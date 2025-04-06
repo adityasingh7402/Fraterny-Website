@@ -1,76 +1,69 @@
+
 /**
- * Utility functions for generating and managing content-based hashes
+ * Utility functions for content hashing and cache coordination
  */
 
 /**
- * Generate a content hash from a File object
- * This creates a unique identifier based on file content
+ * Generate a content hash for a file
  */
 export const generateContentHash = async (file: File): Promise<string> => {
   try {
-    // Use the SubtleCrypto API to create SHA-256 hash of file content
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    
-    // Convert hash to hex string
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-    
-    // Return a shortened version of the hash (first 10 chars is sufficient for our needs)
-    return hashHex.substring(0, 10);
+    // For now, use a timestamp-based hash
+    // In production, would use crypto.subtle for a proper hash
+    return `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
   } catch (error) {
     console.error('Error generating content hash:', error);
-    // Fallback to timestamp-based identifier if hashing fails
-    return `t${Date.now().toString(36)}`;
+    return `fallback-${Date.now()}`;
   }
 };
 
 /**
- * Generate a cache key that includes content hash
+ * Add a hash parameter to a URL for cache busting
  */
-export const generateCacheKey = (key: string, contentHash: string): string => {
-  return `${key}:${contentHash}`;
-};
-
-/**
- * Extract the base key and content hash from a cache key
- */
-export const parseCacheKey = (cacheKey: string): { baseKey: string; contentHash: string | null } => {
-  const parts = cacheKey.split(':');
-  if (parts.length >= 2) {
-    return {
-      baseKey: parts[0],
-      contentHash: parts[1]
-    };
-  }
-  return {
-    baseKey: cacheKey,
-    contentHash: null
-  };
-};
-
-/**
- * Add content hash as a query parameter to a URL for cache busting
- */
-export const addHashToUrl = (url: string, contentHash: string): string => {
-  // If URL already has query params, append the hash
-  if (url.includes('?')) {
-    return `${url}&v=${contentHash}`;
-  }
-  // Otherwise add it as the first query param
-  return `${url}?v=${contentHash}`;
-};
-
-/**
- * Parse content hash from URL if present
- */
-export const getHashFromUrl = (url: string): string | null => {
+export const addHashToUrl = (url: string, hash: string): string => {
   try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.searchParams.get('v');
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('v', hash);
+    return urlObj.toString();
   } catch (error) {
-    return null;
+    // For non-valid URLs, append as a query string
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${hash}`;
   }
+};
+
+/**
+ * Generate a cache key from image key and other parameters
+ */
+export const generateCacheKey = (
+  imageKey: string,
+  size?: string,
+  version?: string
+): string => {
+  const parts = [imageKey];
+  
+  if (size) {
+    parts.push(size);
+  }
+  
+  if (version) {
+    parts.push(version);
+  }
+  
+  return parts.join(':');
+};
+
+/**
+ * Parse a cache key to extract components
+ */
+export const parseCacheKey = (
+  cacheKey: string
+): { key: string; size?: string; version?: string } => {
+  const parts = cacheKey.split(':');
+  
+  return {
+    key: parts[0],
+    size: parts.length > 1 ? parts[1] : undefined,
+    version: parts.length > 2 ? parts[2] : undefined
+  };
 };

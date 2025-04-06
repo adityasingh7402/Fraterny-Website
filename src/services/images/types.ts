@@ -19,6 +19,16 @@ export interface WebsiteImage {
   updated_at?: string | null;
 }
 
+export interface ImageMetadata {
+  placeholders?: {
+    tiny?: string | null;
+    color?: string | null;
+  };
+  contentHash?: string;
+  lastModified?: string;
+  [key: string]: any;
+}
+
 export interface CacheOptions {
   ttl?: number;
   priority?: 1 | 2 | 3 | 4; // 1 is highest, 4 is lowest
@@ -45,3 +55,6 @@ export interface ServiceWorkerCacheEntry {
   expires: number;
   key?: string;
 }
+
+// Define a Json type for compatibility with Supabase
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];

@@ -1,4 +1,3 @@
-
 /**
  * Centralized Image Service
  * Handles image URL generation, caching, and optimization
@@ -389,11 +388,13 @@ export const getImageMetadata = async (key: string): Promise<WebsiteImage | null
       return null;
     }
     
-    // Add URL to the image object
-    const imageWithUrl = {
+    // Add URL to the image object and fix type issues
+    const imageWithUrl: WebsiteImage = {
       ...image,
+      sizes: image.sizes as Record<string, string> | null,
+      metadata: image.metadata as Record<string, any> | null,
       url: await getImageUrl(normalizedKey)
-    } as WebsiteImage;
+    };
     
     // Cache the image metadata
     imageCache.set(cacheKey, imageWithUrl, {
@@ -443,10 +444,12 @@ export const fetchAllImages = async (
       return { images: [], total: 0 };
     }
     
-    // Add URLs to the images
+    // Add URLs to the images and fix type issues
     const imagesWithUrls = await Promise.all(
       (data || []).map(async (image) => ({
         ...image,
+        sizes: image.sizes as Record<string, string> | null,
+        metadata: image.metadata as Record<string, any> | null,
         url: await getImageUrl(image.key)
       }))
     );
@@ -493,10 +496,12 @@ export const fetchImagesByCategory = async (
       return { images: [], total: 0 };
     }
     
-    // Add URLs to the images
+    // Add URLs to the images and fix type issues
     const imagesWithUrls = await Promise.all(
       (data || []).map(async (image) => ({
         ...image,
+        sizes: image.sizes as Record<string, string> | null,
+        metadata: image.metadata as Record<string, any> | null,
         url: await getImageUrl(image.key)
       }))
     );
@@ -641,9 +646,11 @@ export const uploadImage = async (
       .from(STORAGE_BUCKET_NAME)
       .getPublicUrl(storagePath);
       
-    // Format the result
+    // Format the result with proper type casting
     const result: WebsiteImage = {
       ...dbData,
+      sizes: dbData.sizes as Record<string, string> | null,
+      metadata: dbData.metadata as Record<string, any> | null,
       url: urlData?.publicUrl || null
     };
     
@@ -683,10 +690,15 @@ export const updateImage = async (
       clearImageCache(data.key);
     }
     
-    // Get the URL
+    // Get the URL and fix type issues
     const url = data.key ? await getImageUrl(data.key) : null;
     
-    return { ...data, url } as WebsiteImage;
+    return { 
+      ...data,
+      sizes: data.sizes as Record<string, string> | null,
+      metadata: data.metadata as Record<string, any> | null,
+      url 
+    } as WebsiteImage;
   } catch (error) {
     console.error(`Unexpected error in updateImage for id "${id}":`, error);
     return null;
