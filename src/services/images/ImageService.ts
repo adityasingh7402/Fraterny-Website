@@ -93,6 +93,11 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
 };
 
 /**
+ * Alias for getImageUrl to maintain compatibility with various components
+ */
+export const getImageUrlByKey = getImageUrl;
+
+/**
  * Get a specific size variant of an image
  */
 export const getImageUrlBySize = async (
@@ -159,6 +164,11 @@ export const getImageUrlBySize = async (
 };
 
 /**
+ * Alias for getImageUrlBySize to maintain compatibility with various components
+ */
+export const getImageUrlByKeyAndSize = getImageUrlBySize;
+
+/**
  * Get multiple image URLs in one batch
  */
 export const getMultipleImageUrls = async (
@@ -191,6 +201,153 @@ export const getMultipleImageUrls = async (
     acc[key] = url;
     return acc;
   }, {} as Record<string, string>);
+};
+
+/**
+ * Alias for getMultipleImageUrls to maintain compatibility
+ */
+export const batchGetImageUrls = getMultipleImageUrls;
+
+/**
+ * Another alias for getMultipleImageUrls for specific components
+ */
+export const getImageUrlBatched = async (key: string): Promise<string> => {
+  const result = await getMultipleImageUrls([key]);
+  return result[key] || '/placeholder.svg';
+};
+
+/**
+ * Get image placeholder data for progressive loading
+ */
+export const getImagePlaceholdersByKey = async (key: string): Promise<{
+  tinyPlaceholder: string | null;
+  colorPlaceholder: string | null;
+}> => {
+  if (!isValidImageKey(key)) {
+    return { tinyPlaceholder: null, colorPlaceholder: null };
+  }
+  
+  const normalizedKey = key.trim();
+  const cacheKey = `placeholder:${normalizedKey}`;
+  
+  // Check cache first
+  const cachedPlaceholder = urlCache.get(cacheKey);
+  if (cachedPlaceholder) {
+    try {
+      return JSON.parse(cachedPlaceholder);
+    } catch (e) {
+      console.warn(`Invalid placeholder cache for "${normalizedKey}"`);
+    }
+  }
+  
+  try {
+    // Get image record from database
+    const { data: imageRecord, error } = await supabase
+      .from('website_images')
+      .select('placeholders')
+      .eq('key', normalizedKey)
+      .maybeSingle();
+      
+    if (error || !imageRecord) {
+      console.warn(`No placeholders for "${normalizedKey}":`, error || 'No record found');
+      return { tinyPlaceholder: null, colorPlaceholder: null };
+    }
+    
+    const placeholders = imageRecord.placeholders || {};
+    const result = {
+      tinyPlaceholder: placeholders.tiny || null,
+      colorPlaceholder: placeholders.color || null
+    };
+    
+    // Cache the placeholders
+    urlCache.set(cacheKey, JSON.stringify(result), {
+      ttl: CACHE_DURATIONS.LONG,
+      priority: CACHE_PRIORITIES.NORMAL
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(`Error getting placeholders for "${normalizedKey}":`, error);
+    return { tinyPlaceholder: null, colorPlaceholder: null };
+  }
+};
+
+/**
+ * Get global cache version for coordinating cache invalidation
+ */
+export const getGlobalCacheVersion = async (): Promise<string | null> => {
+  try {
+    const cacheKey = 'global:cache:version';
+    
+    // Check cache first
+    const cachedVersion = urlCache.get(cacheKey);
+    if (cachedVersion) {
+      return cachedVersion;
+    }
+    
+    // Get from database
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'image_cache_version')
+      .maybeSingle();
+      
+    if (error || !data) {
+      console.warn('Failed to get global cache version:', error || 'No data');
+      return null;
+    }
+    
+    const version = data.value as string;
+    
+    // Cache it
+    urlCache.set(cacheKey, version, {
+      ttl: CACHE_DURATIONS.SHORT,
+      priority: CACHE_PRIORITIES.CRITICAL
+    });
+    
+    return version;
+  } catch (error) {
+    console.error('Error getting global cache version:', error);
+    return null;
+  }
+};
+
+/**
+ * Update global cache version to trigger cache invalidation
+ */
+export const updateGlobalCacheVersion = async (options?: {
+  scope?: 'global' | 'prefix' | 'key';
+  target?: string;
+}): Promise<boolean> => {
+  try {
+    const newVersion = Date.now().toString();
+    
+    // Update database
+    const { error } = await supabase
+      .from('system_settings')
+      .upsert({
+        key: 'image_cache_version',
+        value: newVersion,
+        scope: options?.scope || 'global',
+        target: options?.target || null
+      });
+      
+    if (error) {
+      console.error('Failed to update global cache version:', error);
+      return false;
+    }
+    
+    // Clear local cache
+    urlCache.set('global:cache:version', newVersion, {
+      ttl: CACHE_DURATIONS.SHORT,
+      priority: CACHE_PRIORITIES.CRITICAL
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating global cache version:', error);
+    return false;
+  }
 };
 
 /**
@@ -248,16 +405,130 @@ export const getImageMetadata = async (key: string): Promise<WebsiteImage | null
 };
 
 /**
+ * Fetch image by key - for React Query compatibility
+ */
+export const fetchImageByKey = getImageMetadata;
+
+/**
+ * Fetch all images with pagination and search
+ */
+export const fetchAllImages = async (
+  page: number = 1,
+  pageSize: number = 20,
+  searchTerm?: string
+): Promise<{ images: WebsiteImage[]; total: number }> => {
+  try {
+    let query = supabase
+      .from('website_images')
+      .select('*', { count: 'exact' });
+      
+    // Add search if provided
+    if (searchTerm) {
+      query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+    }
+    
+    // Add pagination
+    const from = (page - 1) * pageSize;
+    query = query.range(from, from + pageSize - 1);
+    
+    // Execute query
+    const { data, error, count } = await query;
+    
+    if (error) {
+      console.error('Error fetching images:', error);
+      return { images: [], total: 0 };
+    }
+    
+    // Add URLs to the images
+    const imagesWithUrls = await Promise.all(
+      (data || []).map(async (image) => ({
+        ...image,
+        url: await getImageUrl(image.key)
+      }))
+    );
+    
+    return {
+      images: imagesWithUrls as WebsiteImage[],
+      total: count || 0
+    };
+  } catch (error) {
+    console.error('Unexpected error fetching images:', error);
+    return { images: [], total: 0 };
+  }
+};
+
+/**
+ * Fetch images by category with pagination and search
+ */
+export const fetchImagesByCategory = async (
+  category: string,
+  page: number = 1,
+  pageSize: number = 20,
+  searchTerm?: string
+): Promise<{ images: WebsiteImage[]; total: number }> => {
+  try {
+    let query = supabase
+      .from('website_images')
+      .select('*', { count: 'exact' })
+      .eq('category', category);
+      
+    // Add search if provided
+    if (searchTerm) {
+      query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+    }
+    
+    // Add pagination
+    const from = (page - 1) * pageSize;
+    query = query.range(from, from + pageSize - 1);
+    
+    // Execute query
+    const { data, error, count } = await query;
+    
+    if (error) {
+      console.error(`Error fetching images for category "${category}":`, error);
+      return { images: [], total: 0 };
+    }
+    
+    // Add URLs to the images
+    const imagesWithUrls = await Promise.all(
+      (data || []).map(async (image) => ({
+        ...image,
+        url: await getImageUrl(image.key)
+      }))
+    );
+    
+    return {
+      images: imagesWithUrls as WebsiteImage[],
+      total: count || 0
+    };
+  } catch (error) {
+    console.error(`Unexpected error fetching images for category "${category}":`, error);
+    return { images: [], total: 0 };
+  }
+};
+
+/**
+ * Clear URL cache for a specific key
+ */
+export const clearImageUrlCacheForKey = (key: string): void => {
+  if (!isValidImageKey(key)) {
+    return;
+  }
+  
+  const normalizedKey = key.trim();
+  urlCache.delete(`url:${normalizedKey}`);
+  urlCache.delete(`url:${normalizedKey}:small`);
+  urlCache.delete(`url:${normalizedKey}:medium`);
+  urlCache.delete(`url:${normalizedKey}:large`);
+  urlCache.delete(`placeholder:${normalizedKey}`);
+};
+
+/**
  * Clear URL cache to force fresh URL generation
  */
 export const clearImageUrlCache = (key?: string): void => {
   if (key) {
-    // Clear specific key and its size variants
-    const normalizedKey = key.trim();
-    urlCache.delete(`url:${normalizedKey}`);
-    urlCache.delete(`url:${normalizedKey}:small`);
-    urlCache.delete(`url:${normalizedKey}:medium`);
-    urlCache.delete(`url:${normalizedKey}:large`);
+    clearImageUrlCacheForKey(key);
   } else {
     // Clear all URL cache
     urlCache.clear();
@@ -273,7 +544,7 @@ export const clearImageCache = (key?: string): void => {
     const normalizedKey = key.trim();
     imageCache.delete(`image:${normalizedKey}`);
     // Also clear URL cache
-    clearImageUrlCache(normalizedKey);
+    clearImageUrlCacheForKey(normalizedKey);
   } else {
     // Clear all image cache
     imageCache.clear();
@@ -378,6 +649,42 @@ export const uploadImage = async (
     return result;
   } catch (error) {
     console.error(`Unexpected error in uploadImage for key "${normalizedKey}":`, error);
+    return null;
+  }
+};
+
+/**
+ * Update an existing image record
+ */
+export const updateImage = async (
+  id: string,
+  updates: Partial<WebsiteImage>
+): Promise<WebsiteImage | null> => {
+  try {
+    // Update database record
+    const { data, error } = await supabase
+      .from('website_images')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error(`Error updating image with id "${id}":`, error);
+      return null;
+    }
+    
+    // Clear cache for this image
+    if (data.key) {
+      clearImageCache(data.key);
+    }
+    
+    // Get the URL
+    const url = data.key ? await getImageUrl(data.key) : null;
+    
+    return { ...data, url } as WebsiteImage;
+  } catch (error) {
+    console.error(`Unexpected error in updateImage for id "${id}":`, error);
     return null;
   }
 };

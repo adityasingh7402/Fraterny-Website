@@ -4,6 +4,8 @@
  * Maintains backward compatibility with existing code
  */
 
-// Simply re-export the new implementation for backward compatibility
-export { useImageUrl, useMultipleImageUrls } from './useImage';
+import { useImageUrl, useMultipleImageUrls } from './useImage';
+
+// Re-export the imports for backward compatibility
+export { useImageUrl, useMultipleImageUrls };
 export default { useImageUrl, useMultipleImageUrls };
