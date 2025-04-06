@@ -1,3 +1,4 @@
+
 /**
  * React Query cache layer implementation
  */
@@ -93,7 +94,17 @@ export const setImageUrlInReactQuery = (key: string, url: string, size?: string)
   try {
     const queryClient = getQueryClient();
     const queryKey = ['imageUrl', key, size];
-    queryClient?.setQueryData(queryKey, { url, key, size });
+    // Fix: Use a properly structured object instead of empty object
+    queryClient?.setQueryData(queryKey, { 
+      url, 
+      key,
+      id: `url-${key}`, 
+      description: `URL for ${key}${size ? ` (${size})` : ''}`,
+      storage_path: '',
+      alt_text: '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
     return true;
   } catch (error) {
     console.error(`[ReactQueryCache] Error setting URL data:`, error);
