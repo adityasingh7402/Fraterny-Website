@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
-import CdnTestingPanel from '@/components/admin/images/cdn/CdnTestingPanel';
-import { cacheCoordinator } from '@/services/cache/cacheCoordinator';
-import { dispatchCacheEvent } from '@/hooks/useCacheEvents';
+import ConsistencyChecker from '@/components/admin/images/ConsistencyChecker';
+import { clearImageCache, clearImageUrlCache } from '@/services/images';
 
 const CacheVersionControl = () => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -14,18 +13,9 @@ const CacheVersionControl = () => {
   const handleClearCache = async () => {
     setIsUpdating(true);
     try {
-      // Use the cache coordinator to clear all caches
-      await cacheCoordinator.invalidateAll({
-        cascade: true,
-        notifyComponents: true
-      });
-      
-      // Dispatch a cache event for any listeners
-      dispatchCacheEvent({
-        type: 'clear',
-        scope: 'global',
-        timestamp: Date.now()
-      });
+      // Use our simplified cache clearing functions
+      clearImageCache();
+      clearImageUrlCache();
       
       toast.success('Image cache cleared successfully');
     } catch (error) {
@@ -38,7 +28,7 @@ const CacheVersionControl = () => {
   
   return (
     <div className="grid gap-6">
-      <CdnTestingPanel />
+      <ConsistencyChecker />
       
       <Card>
         <CardHeader>

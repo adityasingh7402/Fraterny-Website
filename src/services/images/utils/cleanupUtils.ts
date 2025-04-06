@@ -1,9 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "../types";
-
-// The actual bucket name in Supabase
-const STORAGE_BUCKET_NAME = 'Website Images';
+import { STORAGE_BUCKET_NAME } from "../constants";
 
 /**
  * Remove an existing image from both storage and database

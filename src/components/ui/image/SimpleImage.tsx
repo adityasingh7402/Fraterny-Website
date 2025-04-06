@@ -1,97 +1,75 @@
 
-import React, { useState, useEffect } from 'react';
-import { useImageUrl } from '@/hooks/useDirectImage';
+/**
+ * Simple responsive image component that uses our unified image system
+ */
+import React from 'react';
+import { useImageUrl } from '@/hooks/useImage';
 
-interface SimpleImageProps {
-  dynamicKey?: string;
+type SimpleImageProps = {
   src?: string;
+  dynamicKey?: string;
   alt: string;
-  className?: string;
   width?: number;
   height?: number;
+  className?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  fallbackSrc?: string;
-  onLoad?: () => void;
-  onError?: () => void;
-}
+  size?: 'small' | 'medium' | 'large';
+  loading?: 'eager' | 'lazy';
+  onClick?: () => void;
+};
 
-/**
- * A simplified image component with direct Supabase integration
- * Uses a single source of truth for validation and URL retrieval
- */
 export const SimpleImage: React.FC<SimpleImageProps> = ({
-  dynamicKey,
   src,
+  dynamicKey,
   alt,
-  className = '',
   width,
   height,
+  className = '',
   objectFit = 'cover',
-  fallbackSrc = '/placeholder.svg',
-  onLoad,
-  onError
+  size,
+  loading = 'lazy',
+  onClick
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  // If dynamicKey is provided, use our image system to fetch the URL
+  const { url, isLoading, error } = useImageUrl(dynamicKey, size);
   
-  // Use our custom hook if we have a dynamicKey
-  const { url, isLoading, error } = useImageUrl(dynamicKey);
+  // Use the url from our system, or fall back to the provided src, or ultimately to placeholder
+  const imageSrc = dynamicKey ? (url || '/placeholder.svg') : (src || '/placeholder.svg');
   
-  // Better logging for debugging
-  useEffect(() => {
-    if (dynamicKey) {
-      console.log(`[SimpleImage] Rendering with dynamicKey: "${dynamicKey}"`);
-      console.log(`[SimpleImage] URL from hook: "${url}", isLoading: ${isLoading}, error: ${error}`);
-    } else if (src) {
-      console.log(`[SimpleImage] Rendering with direct src: "${src}"`);
-    } else {
-      console.log(`[SimpleImage] Rendering with fallback: "${fallbackSrc}"`);
-    }
-  }, [dynamicKey, url, isLoading, error, src, fallbackSrc]);
-  
-  // Determine the source to use
-  const imageSrc = dynamicKey 
-    ? (url || fallbackSrc) 
-    : (src || fallbackSrc);
-  
-  const handleLoad = () => {
-    console.log(`[SimpleImage] Image loaded successfully: ${imageSrc}`);
-    setIsLoaded(true);
-    onLoad?.();
+  // Set up object-fit and sizing styles
+  const style: React.CSSProperties = {
+    objectFit,
+    width: width ? `${width}px` : '100%',
+    height: height ? `${height}px` : 'auto'
   };
   
-  const handleError = () => {
-    console.error(`[SimpleImage] Image failed to load: ${imageSrc}`);
-    setLoadError(true);
-    onError?.();
-  };
+  // Handle loading states
+  if (dynamicKey && isLoading) {
+    return (
+      <div 
+        className={`bg-gray-100 animate-pulse ${className}`} 
+        style={{ width: style.width, height: style.height }}
+        role="img"
+        aria-label={`Loading ${alt}`}
+      />
+    );
+  }
+  
+  // Handle error states
+  if (dynamicKey && error) {
+    console.warn(`Failed to load image with key: ${dynamicKey}`);
+  }
   
   return (
-    <div className={`relative ${className}`} style={{ width, height }}>
-      {/* Loading state */}
-      {((dynamicKey && isLoading) || (!isLoaded && !loadError)) && (
-        <div className="absolute inset-0 bg-gray-100 animate-pulse" />
-      )}
-      
-      {/* Image */}
-      <img
-        src={imageSrc}
-        alt={alt}
-        className={`w-full h-full transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-        style={{ objectFit }}
-        width={width}
-        height={height}
-        onLoad={handleLoad}
-        onError={handleError}
-      />
-      
-      {/* Error state with more details */}
-      {(loadError || (dynamicKey && error)) && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-400 p-2 text-sm">
-          <span>Image not available</span>
-          <span className="text-xs mt-1">{dynamicKey || src}</span>
-        </div>
-      )}
-    </div>
+    <img
+      src={imageSrc}
+      alt={alt}
+      className={className}
+      style={style}
+      width={width}
+      height={height}
+      loading={loading}
+      onClick={onClick}
+    />
   );
 };

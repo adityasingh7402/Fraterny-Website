@@ -1,166 +1,44 @@
-// Default placeholder images for development
-export const defaultImagesMap: Record<string, string> = {
-  'hero-background': '/images/hero/luxury-villa-desktop.webp',
-  'hero-background-mobile': '/images/hero/luxury-villa-mobile.webp',
-  'experience-hero': '/images/hero/experience-hero-desktop.webp',
-  'experience-hero-mobile': '/images/hero/experience-hero-mobile.webp',
-  'villalab-social': '/images/villalab/social-desktop.webp',
-  'villalab-social-mobile': '/images/villalab/social-mobile.webp',
-  'villalab-mentorship': '/images/villalab/mentorship-desktop.webp',
-  'villalab-mentorship-mobile': '/images/villalab/mentorship-mobile.webp',
-  'villalab-brainstorm': '/images/villalab/brainstorm-desktop.webp',
-  'villalab-brainstorm-mobile': '/images/villalab/brainstorm-mobile.webp',
-  'villalab-group': '/images/villalab/group-desktop.webp',
-  'villalab-group-mobile': '/images/villalab/group-mobile.webp',
-  'villalab-networking': '/images/villalab/networking-desktop.webp',
-  'villalab-networking-mobile': '/images/villalab/networking-mobile.webp',
-  'villalab-candid': '/images/villalab/candid-desktop.webp',
-  'villalab-candid-mobile': '/images/villalab/candid-mobile.webp',
-  'villalab-gourmet': '/images/villalab/gourmet-desktop.webp',
-  'villalab-gourmet-mobile': '/images/villalab/gourmet-mobile.webp',
-  'villalab-workshop': '/images/villalab/workshop-desktop.webp',
-  'villalab-workshop-mobile': '/images/villalab/workshop-mobile.webp',
-  'villalab-evening': '/images/villalab/evening-desktop.webp',
-  'villalab-evening-mobile': '/images/villalab/evening-mobile.webp',
-  'experience-villa-retreat': '/images/experience/villa-retreat-desktop.webp',
-  'experience-villa-retreat-mobile': '/images/experience/villa-retreat-mobile.webp',
-  'experience-workshop': '/images/experience/workshop-desktop.webp',
-  'experience-workshop-mobile': '/images/experience/workshop-mobile.webp',
-  'experience-networking': '/images/experience/networking-desktop.webp',
-  'experience-networking-mobile': '/images/experience/networking-mobile.webp',
-  'experience-collaboration': '/images/experience/collaboration-desktop.webp',
-  'experience-collaboration-mobile': '/images/experience/collaboration-mobile.webp',
-  'experience-evening-session': '/images/experience/evening-session-desktop.webp',
-  'experience-evening-session-mobile': '/images/experience/evening-session-mobile.webp',
-  'experience-gourmet-dining': '/images/experience/gourmet-dining-desktop.webp',
-  'experience-gourmet-dining-mobile': '/images/experience/gourmet-dining-mobile.webp',
-  // Adding tribe section image placeholders
-  'tribe-visionary': '/images/tribe/visionary-desktop.webp',
-  'tribe-visionary-mobile': '/images/tribe/visionary-mobile.webp',
-  'tribe-hustler': '/images/tribe/hustler-desktop.webp',
-  'tribe-hustler-mobile': '/images/tribe/hustler-mobile.webp',
-  'tribe-workaholic': '/images/tribe/workaholic-desktop.webp',
-  'tribe-workaholic-mobile': '/images/tribe/workaholic-mobile.webp',
-  'tribe-experienced': '/images/tribe/experienced-desktop.webp',
-  'tribe-experienced-mobile': '/images/tribe/experienced-mobile.webp',
-  'tribe-optimist': '/images/tribe/optimist-desktop.webp',
-  'tribe-optimist-mobile': '/images/tribe/optimist-mobile.webp',
-  'tribe-guardian': '/images/tribe/guardian-desktop.webp',
-  'tribe-guardian-mobile': '/images/tribe/guardian-mobile.webp',
-  // Adding depth section image placeholders
-  'depth-house-code': '/images/depth/house-code-desktop.webp',
-  'depth-house-code-mobile': '/images/depth/house-code-mobile.webp',
-  'depth-startup': '/images/depth/startup-desktop.webp',
-  'depth-startup-mobile': '/images/depth/startup-mobile.webp',
-  'depth-learning': '/images/depth/learning-desktop.webp',
-  'depth-learning-mobile': '/images/depth/learning-mobile.webp',
-  'depth-frameworks': '/images/depth/frameworks-desktop.webp',
-  'depth-frameworks-mobile': '/images/depth/frameworks-mobile.webp',
-  'depth-group-think': '/images/depth/group-think-desktop.webp',
-  'depth-group-think-mobile': '/images/depth/group-think-mobile.webp',
-  'depth-memories': '/images/depth/memories-desktop.webp',
-  'depth-memories-mobile': '/images/depth/memories-mobile.webp',
-  'depth-food': '/images/depth/food-desktop.webp',
-  'depth-food-mobile': '/images/depth/food-mobile.webp',
-  'depth-community': '/images/depth/community-desktop.webp',
-  'depth-community-mobile': '/images/depth/community-mobile.webp',
-  'depth-soft-skills': '/images/depth/soft-skills-desktop.webp',
-  'depth-soft-skills-mobile': '/images/depth/soft-skills-mobile.webp',
-  // Hero images for other pages
-  'pricing-hero': '/images/hero/pricing-hero-desktop.webp',
-  'pricing-hero-mobile': '/images/hero/pricing-hero-mobile.webp',
-  'faq-hero': '/images/hero/faq-hero-desktop.webp',
-  'faq-hero-mobile': '/images/hero/faq-hero-mobile.webp',
-  'process-hero': '/images/hero/process-hero-desktop.webp',
-  'process-hero-mobile': '/images/hero/process-hero-mobile.webp',
-  'blog-hero': '/images/hero/blog-hero-desktop.webp',
-  'blog-hero-mobile': '/images/hero/blog-hero-mobile.webp',
+
+/**
+ * Global constants for image service
+ */
+
+// The official name of the Supabase Storage bucket, with correct capitalization and spacing
+export const STORAGE_BUCKET_NAME = 'Website Images';
+
+// Cache durations
+export const CACHE_DURATIONS = {
+  SHORT: 2 * 60 * 1000,   // 2 minutes
+  MEDIUM: 5 * 60 * 1000,  // 5 minutes
+  LONG: 30 * 60 * 1000,   // 30 minutes
+  EXTENDED: 60 * 60 * 1000 // 1 hour
 };
 
-// Image categories for the UI
+// Cache priorities for eviction policies
+export const CACHE_PRIORITIES = {
+  CRITICAL: 1,  // Most important assets (logo, hero)
+  HIGH: 2,      // Important assets
+  NORMAL: 3,    // Regular content
+  LOW: 4        // Least important, evicted first
+};
+
+// Default cache settings
+export const DEFAULT_CACHE_CONFIG = {
+  ttl: CACHE_DURATIONS.MEDIUM,
+  priority: CACHE_PRIORITIES.NORMAL,
+  staleWhileRevalidate: true
+};
+
+// Image categories (for reference and filtering)
 export const IMAGE_CATEGORIES = [
-  'Hero',
-  'Designed for depth',
-  'VillaLab',
-  'Your tribe awaits',
-  'Experience'
+  'hero',
+  'logos',
+  'backgrounds',
+  'content',
+  'experience',
+  'team',
+  'testimonials'
 ];
 
-// Map of image keys to their usage locations on the website
-export const IMAGE_USAGE_MAP: Record<string, string> = {
-  'hero-background': 'Main Hero Section - Homepage',
-  'hero-background-mobile': 'Main Hero Section - Homepage (Mobile)',
-  'experience-hero': 'Experience Page - Hero Section',
-  'experience-hero-mobile': 'Experience Page - Hero Section (Mobile)',
-  'villalab-social': 'Villa Lab Section - Social Events',
-  'villalab-social-mobile': 'Villa Lab Section - Social Events (Mobile)',
-  'villalab-mentorship': 'Villa Lab Section - Mentorship',
-  'villalab-mentorship-mobile': 'Villa Lab Section - Mentorship (Mobile)',
-  'villalab-brainstorm': 'Villa Lab Section - Brainstorming',
-  'villalab-brainstorm-mobile': 'Villa Lab Section - Brainstorming (Mobile)',
-  'villalab-group': 'Villa Lab Section - Group Activities',
-  'villalab-group-mobile': 'Villa Lab Section - Group Activities (Mobile)',
-  'villalab-networking': 'Villa Lab Section - Networking',
-  'villalab-networking-mobile': 'Villa Lab Section - Networking (Mobile)',
-  'villalab-candid': 'Villa Lab Section - Candid Interactions',
-  'villalab-candid-mobile': 'Villa Lab Section - Candid Interactions (Mobile)',
-  'villalab-gourmet': 'Villa Lab Section - Gourmet Meals',
-  'villalab-gourmet-mobile': 'Villa Lab Section - Gourmet Meals (Mobile)',
-  'villalab-workshop': 'Villa Lab Section - Workshops',
-  'villalab-workshop-mobile': 'Villa Lab Section - Workshops (Mobile)',
-  'villalab-evening': 'Villa Lab Section - Evening Sessions',
-  'villalab-evening-mobile': 'Villa Lab Section - Evening Sessions (Mobile)',
-  'experience-villa-retreat': 'Experience Page - Villa Retreat',
-  'experience-villa-retreat-mobile': 'Experience Page - Villa Retreat (Mobile)',
-  'experience-workshop': 'Experience Page - Workshop',
-  'experience-workshop-mobile': 'Experience Page - Workshop (Mobile)',
-  'experience-networking': 'Experience Page - Networking',
-  'experience-networking-mobile': 'Experience Page - Networking (Mobile)',
-  'experience-collaboration': 'Experience Page - Collaboration',
-  'experience-collaboration-mobile': 'Experience Page - Collaboration (Mobile)',
-  'experience-evening-session': 'Experience Page - Evening Session',
-  'experience-evening-session-mobile': 'Experience Page - Evening Session (Mobile)',
-  'experience-gourmet-dining': 'Experience Page - Gourmet Dining',
-  'experience-gourmet-dining-mobile': 'Experience Page - Gourmet Dining (Mobile)',
-  // Adding tribe section image placeholders
-  'tribe-visionary': 'Experience Page - Tribe Section - Visionary',
-  'tribe-visionary-mobile': 'Experience Page - Tribe Section - Visionary (Mobile)',
-  'tribe-hustler': 'Experience Page - Tribe Section - Hustler',
-  'tribe-hustler-mobile': 'Experience Page - Tribe Section - Hustler (Mobile)',
-  'tribe-workaholic': 'Experience Page - Tribe Section - Workaholic',
-  'tribe-workaholic-mobile': 'Experience Page - Tribe Section - Workaholic (Mobile)',
-  'tribe-experienced': 'Experience Page - Tribe Section - Experienced',
-  'tribe-experienced-mobile': 'Experience Page - Tribe Section - Experienced (Mobile)',
-  'tribe-optimist': 'Experience Page - Tribe Section - Optimist',
-  'tribe-optimist-mobile': 'Experience Page - Tribe Section - Optimist (Mobile)',
-  'tribe-guardian': 'Experience Page - Tribe Section - Guardian',
-  'tribe-guardian-mobile': 'Experience Page - Tribe Section - Guardian (Mobile)',
-  // Adding depth section image placeholders
-  'depth-house-code': 'Experience Page - Depth Section - House Code',
-  'depth-house-code-mobile': 'Experience Page - Depth Section - House Code (Mobile)',
-  'depth-startup': 'Experience Page - Depth Section - Startup Simulations',
-  'depth-startup-mobile': 'Experience Page - Depth Section - Startup Simulations (Mobile)',
-  'depth-learning': 'Experience Page - Depth Section - Learning Experience',
-  'depth-learning-mobile': 'Experience Page - Depth Section - Learning Experience (Mobile)',
-  'depth-frameworks': 'Experience Page - Depth Section - Frameworks & Templates',
-  'depth-frameworks-mobile': 'Experience Page - Depth Section - Frameworks & Templates (Mobile)',
-  'depth-group-think': 'Experience Page - Depth Section - Group Think',
-  'depth-group-think-mobile': 'Experience Page - Depth Section - Group Think (Mobile)',
-  'depth-memories': 'Experience Page - Depth Section - Lifelong Memories',
-  'depth-memories-mobile': 'Experience Page - Depth Section - Lifelong Memories (Mobile)',
-  'depth-food': 'Experience Page - Depth Section - Food & Coffee',
-  'depth-food-mobile': 'Experience Page - Depth Section - Food & Coffee (Mobile)',
-  'depth-community': 'Experience Page - Depth Section - Community',
-  'depth-community-mobile': 'Experience Page - Depth Section - Community (Mobile)',
-  'depth-soft-skills': 'Experience Page - Depth Section - Soft Skills',
-  'depth-soft-skills-mobile': 'Experience Page - Depth Section - Soft Skills (Mobile)',
-  // Hero images for other pages
-  'pricing-hero': 'Pricing Page - Hero Section',
-  'pricing-hero-mobile': 'Pricing Page - Hero Section (Mobile)',
-  'faq-hero': 'FAQ Page - Hero Section',
-  'faq-hero-mobile': 'FAQ Page - Hero Section (Mobile)',
-  'process-hero': 'Process Page - Hero Section',
-  'process-hero-mobile': 'Process Page - Hero Section (Mobile)',
-  'blog-hero': 'Blog Page - Hero Section',
-  'blog-hero-mobile': 'Blog Page - Hero Section (Mobile)',
-};
+// Re-export existing image constants as needed
+export { IMAGE_USAGE_MAP, defaultImagesMap } from './oldConstants';

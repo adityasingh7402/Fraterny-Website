@@ -1,8 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-// The actual bucket name in Supabase
-const STORAGE_BUCKET_NAME = 'Website Images';
+import { STORAGE_BUCKET_NAME } from "../constants";
 
 /**
  * Create optimized versions of an uploaded image

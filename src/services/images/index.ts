@@ -1,42 +1,31 @@
 
-// Export direct image service functions
-export { 
-  getImageUrl, 
+/**
+ * Unified exports for the image service
+ */
+
+// Export main image service functions
+export {
+  getImageUrl,
+  getImageUrlBySize,
   getMultipleImageUrls,
-  clearImageUrlCache
-} from './directImageService';
-
-// Export validation functions
-export { 
+  getImageMetadata,
+  clearImageUrlCache,
+  clearImageCache,
+  uploadImage,
+  deleteImage,
   isValidImageKey,
-  isValidImageUrl
-} from './validation';
+  // Export cache instances for advanced usage
+  imageCache,
+  urlCache
+} from './ImageService';
 
-// Re-export type definitions
+// Export types
 export * from './types';
 
 // Export constants
-export { 
-  IMAGE_CATEGORIES,
-  IMAGE_USAGE_MAP,
-  defaultImagesMap
-} from './constants';
+export * from './constants';
 
-// Re-export legacy functions for backward compatibility
-export * from './uploadService';
-export * from './updateService';
-export * from './deleteService';
-export * from './services/url';
-export * from './services/placeholderService';
-export * from './services/cacheService';
-export * from './services/cacheVersionService';
-export { 
-  fetchImageByKey,
-  fetchAllImages,
-  fetchImagesByCategory,
-  clearImageCache,
-  invalidateImageCache
-} from './fetchService';
-
-// Export legacy cache instances for backward compatibility
-export { imageCache, urlCache } from './cache';
+// Export utility functions for advanced usage
+export * from './utils/databaseUtils';
+export * from './utils/cleanupUtils';
+export * from './utils/optimizationService';

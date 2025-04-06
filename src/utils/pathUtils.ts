@@ -1,15 +1,12 @@
-
 /**
  * Path normalization utilities for consistent image path handling
  */
+import { STORAGE_BUCKET_NAME } from "@/services/images/constants";
 
 /**
  * Normalizes storage paths to ensure consistent formatting
- * - Removes duplicate "website-images/" prefixes
+ * - Removes duplicate bucket prefixes
  * - Ensures paths are properly formatted for use in URLs
- * 
- * @param path Storage path to normalize
- * @returns Normalized path without duplicate bucket prefixes
  */
 export const normalizeStoragePath = (path: string): string => {
   if (!path) return '';
@@ -18,9 +15,8 @@ export const normalizeStoragePath = (path: string): string => {
   let normalizedPath = path.trim();
   normalizedPath = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
   
-  // Remove duplicate bucket prefixes
-  const bucketName = 'website-images';
-  const bucketPrefix = `${bucketName}/`;
+  // Remove duplicate bucket prefixes - use the proper storage bucket name with correct spacing
+  const bucketPrefix = `${STORAGE_BUCKET_NAME}/`;
   
   // If path contains multiple bucket prefixes, normalize it
   if (normalizedPath.includes(bucketPrefix)) {
@@ -47,26 +43,18 @@ export const normalizeStoragePath = (path: string): string => {
 
 /**
  * Constructs a properly formatted storage path for Supabase
- * Ensures the bucket name is included exactly once
- * 
- * @param storagePath The raw storage path
- * @param bucketName The bucket name (defaults to 'website-images')
- * @returns A properly formatted storage path
  */
-export const constructStoragePath = (
-  storagePath: string, 
-  bucketName: string = 'website-images'
-): string => {
+export const constructStoragePath = (storagePath: string): string => {
   // Normalize the path first to remove any duplicate bucket names
   const normalizedPath = normalizeStoragePath(storagePath);
   
   // If the path already starts with the bucket name, return it
-  if (normalizedPath.startsWith(`${bucketName}/`)) {
+  if (normalizedPath.startsWith(`${STORAGE_BUCKET_NAME}/`)) {
     return normalizedPath;
   }
   
   // Otherwise, add the bucket name prefix
-  return `${bucketName}/${normalizedPath}`;
+  return `${STORAGE_BUCKET_NAME}/${normalizedPath}`;
 };
 
 /**

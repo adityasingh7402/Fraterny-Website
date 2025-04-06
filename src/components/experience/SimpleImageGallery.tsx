@@ -1,9 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
-import { useMultipleImageUrls } from '@/hooks/useDirectImage';
+import React from 'react';
+import { useMultipleImageUrls } from '@/hooks/useImage';
 import { SimpleImage } from '@/components/ui/image/SimpleImage';
-import { isValidImageKey } from '@/services/images/validation';
-import ImageDiagnostics from '@/components/diagnostics/ImageDiagnostics';
 
 // Strictly predefined image keys for the experience gallery
 const experienceImages = [
@@ -46,22 +44,13 @@ const experienceImages = [
 ];
 
 /**
- * Simplified ImageGallery that uses our direct image hooks
+ * Simplified ImageGallery component that uses our image hooks
  */
 const SimpleImageGallery = () => {
   const imageKeys = experienceImages.map(img => img.key);
-  const [showDiagnostics, setShowDiagnostics] = useState(true);
   
-  // Use our simplified hook to get all image URLs at once
-  const { urls, isLoading, error } = useMultipleImageUrls(imageKeys);
-  
-  // Log diagnostic information
-  useEffect(() => {
-    console.log("[SimpleImageGallery] Image keys:", imageKeys);
-    console.log("[SimpleImageGallery] Loaded URLs:", urls);
-    console.log("[SimpleImageGallery] Loading state:", isLoading);
-    console.log("[SimpleImageGallery] Error state:", error);
-  }, [imageKeys, urls, isLoading, error]);
+  // Use our hook to get all image URLs at once
+  const { urls, isLoading } = useMultipleImageUrls(imageKeys);
   
   if (isLoading) {
     return (
@@ -78,27 +67,6 @@ const SimpleImageGallery = () => {
   
   return (
     <section className="w-full overflow-hidden">
-      {/* Enhanced diagnostic panel with more information */}
-      {showDiagnostics && (
-        <div className="mb-8">
-          <div className="bg-blue-50 p-4 mb-4 rounded border border-blue-200">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold">Image System Diagnostics</h3>
-              <button 
-                onClick={() => setShowDiagnostics(false)} 
-                className="text-sm text-blue-600 underline"
-              >
-                Hide
-              </button>
-            </div>
-            <p className="text-sm mt-1">
-              This panel helps diagnose image loading issues and will be removed in production.
-            </p>
-          </div>
-          <ImageDiagnostics />
-        </div>
-      )}
-      
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
