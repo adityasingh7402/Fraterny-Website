@@ -101,6 +101,14 @@ export const uploadImage = async (
       lastModified: new Date().toISOString()
     };
     
+    // Convert ImageSizes to a plain object to satisfy Supabase's JSON type
+    const sizesObject: Record<string, string> = {};
+    Object.entries(optimizedSizes).forEach(([key, value]) => {
+      if (value !== undefined) {
+        sizesObject[key] = value;
+      }
+    });
+    
     const { data, error: insertError } = await supabase
       .from('website_images')
       .insert({
@@ -111,7 +119,7 @@ export const uploadImage = async (
         category,
         width: dimensions.width,
         height: dimensions.height,
-        sizes: optimizedSizes,
+        sizes: sizesObject, // Use the converted plain object
         metadata // Add metadata including content hash
       })
       .select()
@@ -121,7 +129,7 @@ export const uploadImage = async (
       console.error('Insert error:', insertError);
       
       // Clean up the uploaded file if we couldn't create the record
-      await cleanupUploadedFiles(storagePath, optimizedSizes);
+      await cleanupUploadedFiles(storagePath, sizesObject);
       
       return handleApiError(insertError, 'Error creating image record', { silent: true }) as null;
     }
