@@ -15,6 +15,13 @@ export {
 // Re-export type definitions
 export * from './types';
 
+// Export constants
+export { 
+  IMAGE_CATEGORIES,
+  IMAGE_USAGE_MAP,
+  defaultImagesMap
+} from './constants';
+
 // Re-export legacy functions for backward compatibility
 export * from './uploadService';
 export * from './updateService';
