@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   getImageUrlByKey, 
   getImageUrlByKeyAndSize,
-  getImageUrlBatchedOptimized
+  getImageUrlBatched,
+  batchGetImageUrls
 } from '@/services/images';
 import { useNetworkAwareCacheConfig } from './useNetworkAwareCacheConfig';
 
@@ -30,12 +31,12 @@ export const useImageUrlQueries = () => {
         try {
           console.log(`[useImageUrl] Fetching URL for key: "${key}", size: ${size || 'original'}`);
           
-          // Use optimized batched version for better performance
+          // Use batched version for better performance
           let url;
           if (size) {
             url = await getImageUrlByKeyAndSize(key, size);
           } else {
-            url = await getImageUrlBatchedOptimized(key);
+            url = await getImageUrlBatched(key);
           }
             
           console.log(`[useImageUrl] Successfully fetched URL for key "${key}": ${url}`);
