@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Crop as CropIcon, Trash2 } from 'lucide-react';
+import { Crop as CropIcon, Trash2, SmartphoneIcon } from 'lucide-react';
 import { ImageCropHandler } from '../../upload/crop-handler';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { IMAGE_USAGE_MAP } from '@/services/images';
@@ -15,6 +15,7 @@ interface ImagePreviewProps {
 const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePreviewProps) => {
   const [isCropping, setIsCropping] = useState(false);
   const isMobile = useIsMobile();
+  const isMobileKey = imageKey.includes('-mobile');
   
   // Determine if image is used as cover or contain based on usage key
   const getObjectFit = (): 'cover' | 'contain' => {
@@ -65,8 +66,9 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
     <div className="space-y-3 md:space-y-4">
       <div className="relative border border-gray-200 rounded-lg overflow-hidden">
         {imageKey && (
-          <div className="bg-navy bg-opacity-10 rounded-t-lg px-2 py-1 text-xs text-center">
-            {objectFit === 'cover' ? 'Image will fill the entire container' : 'Image will be fully visible'}
+          <div className={`${isMobileKey ? 'bg-blue-500' : 'bg-navy'} ${isMobileKey ? 'bg-opacity-20' : 'bg-opacity-10'} rounded-t-lg px-2 py-1 text-xs text-center flex items-center justify-center gap-1`}>
+            {isMobileKey && <SmartphoneIcon className="w-3 h-3" />}
+            {isMobileKey ? 'Mobile-specific image' : objectFit === 'cover' ? 'Image will fill the entire container' : 'Image will be fully visible'}
             {usageInfo && ` • ${usageInfo}`}
           </div>
         )}
@@ -75,6 +77,11 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
           alt="Preview" 
           className={`w-full ${isMobile ? 'h-48' : 'h-64'} object-${objectFit} bg-gray-50`}
         />
+        {isMobileKey && (
+          <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg">
+            Mobile
+          </div>
+        )}
       </div>
       
       <div className="flex items-center justify-between">
@@ -91,7 +98,7 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
           <button
             type="button"
             onClick={handleStartCrop}
-            className={`${isMobile ? 'p-1.5' : 'p-2'} bg-navy text-white rounded hover:bg-opacity-90`}
+            className={`${isMobile ? 'p-1.5' : 'p-2'} ${isMobileKey ? 'bg-blue-600' : 'bg-navy'} text-white rounded hover:bg-opacity-90`}
             title="Crop Image"
           >
             <CropIcon className="w-4 h-4" />

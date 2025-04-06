@@ -55,7 +55,7 @@ const ResponsiveImage = ({
         ? (useLowQualityOnPoorConnection ? 'auto' : 'high') 
         : 'auto'));
 
-  // Use the hook to load dynamic images from storage
+  // Use the hook to load dynamic images from storage - using proper device-specific key
   const { 
     isLoading, 
     error, 

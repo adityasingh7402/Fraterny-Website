@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -122,15 +121,11 @@ export const useResponsiveImage = (
           getImagePlaceholdersByKey(dynamicKey) : 
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
-        // Handle mobile variant keys
-        const isMobileKey = dynamicKey.includes('-mobile');
-        let imageUrl: string;
-        let fallbackToDesktop = false;
-        
         // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
         // If size is specified, try to get that specific size
+        let imageUrl: string;
         if (size) {
           imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
           
@@ -142,13 +137,9 @@ export const useResponsiveImage = (
             // Ignore URL parsing errors
           }
           
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
-            fallbackToDesktop = true;
+          // If we got a placeholder, report an error
+          if (imageUrl === '/placeholder.svg') {
+            throw new Error(`Image not found for key: ${dynamicKey}`);
           }
         } else {
           // Otherwise get the original image
@@ -162,13 +153,9 @@ export const useResponsiveImage = (
             // Ignore URL parsing errors
           }
           
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKey(desktopKey);
-            fallbackToDesktop = true;
+          // If we got a placeholder, report an error
+          if (imageUrl === '/placeholder.svg') {
+            throw new Error(`Image not found for key: ${dynamicKey}`);
           }
         }
         
@@ -177,14 +164,6 @@ export const useResponsiveImage = (
           const placeholders = await placeholdersPromise;
           tinyPlaceholder = placeholders.tinyPlaceholder;
           colorPlaceholder = placeholders.colorPlaceholder;
-        }
-        
-        // If we switched to desktop key but don't have placeholders, try getting them from desktop key
-        if (fallbackToDesktop && (!tinyPlaceholder && !colorPlaceholder)) {
-          const desktopKey = dynamicKey.replace('-mobile', '');
-          const desktopPlaceholders = await getImagePlaceholdersByKey(desktopKey);
-          tinyPlaceholder = desktopPlaceholders.tinyPlaceholder;
-          colorPlaceholder = desktopPlaceholders.colorPlaceholder;
         }
         
         // Get image dimensions for aspect ratio
@@ -228,7 +207,7 @@ export const useResponsiveImage = (
         console.error(`Failed to load image with key ${dynamicKey}:`, error);
         setState(prev => ({ ...prev, error: true, isLoading: false }));
         
-        // Don't show toast for development placeholder images or expected fallbacks
+        // Don't show toast for development placeholder images
         if (!dynamicKey.includes('villalab-') && !dynamicKey.includes('hero-') && !dynamicKey.includes('experience-')) {
           toast.error(`Failed to load image: ${dynamicKey}`, {
             description: "Please check if this image exists in your storage.",

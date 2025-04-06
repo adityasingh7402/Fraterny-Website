@@ -47,8 +47,13 @@ const Hero = () => {
     )`
   };
 
-  // Determine image key based on device type
+  // Always use the device-specific image key
   const imageKey = isMobile ? "hero-background-mobile" : "hero-background";
+  
+  // Log the image key being used for debugging
+  useEffect(() => {
+    console.log(`[Hero] Using image key: ${imageKey} based on device detection: ${isMobile ? 'mobile' : 'desktop'}`);
+  }, [imageKey, isMobile]);
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
@@ -104,4 +109,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
