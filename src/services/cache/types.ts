@@ -2,7 +2,7 @@
 /**
  * Cache layer types
  */
-export type CacheLayerType = 'memory' | 'localStorage' | 'reactQuery' | 'serviceWorker';
+export type CacheLayerType = 'memory' | 'localStorage' | 'reactQuery' | 'serviceWorker' | 'all';
 
 /**
  * Cache operation types
@@ -37,6 +37,12 @@ export interface CacheOptions {
   
   // Debug mode
   verbose?: boolean;
+  
+  // Force operation even if condition would prevent it
+  force?: boolean;
+  
+  // Additional metadata
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -45,6 +51,9 @@ export interface CacheOptions {
 export interface InvalidationOptions extends CacheOptions {
   // Whether to cascade invalidation to other layers
   cascade?: boolean;
+  
+  // Whether to notify components about invalidation
+  notifyComponents?: boolean;
 }
 
 /**

@@ -9,7 +9,7 @@ import { CacheOptions, InvalidationOptions } from './types';
  * Default cache options
  */
 export const defaultCacheOptions: CacheOptions = {
-  layers: ['all'],
+  layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'],
   priority: 3,
   ttl: 15 * 60 * 1000, // 15 minutes default
   skipLayers: [],
@@ -21,7 +21,7 @@ export const defaultCacheOptions: CacheOptions = {
  * Default invalidation options
  */
 export const defaultInvalidationOptions: InvalidationOptions = {
-  layers: ['all'],
+  layers: ['memory', 'localStorage', 'reactQuery', 'serviceWorker'],
   cascade: true,
   notifyComponents: true,
   skipLayers: []
