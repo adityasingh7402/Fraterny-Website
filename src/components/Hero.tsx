@@ -46,7 +46,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
+    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden fade-in">
       {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage

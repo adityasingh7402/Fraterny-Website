@@ -1,5 +1,6 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+/* Google Fonts already loaded in index.html */
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap'); */
 
 @tailwind base;
 @tailwind components;
@@ -38,6 +39,9 @@
     --radius: 0.5rem;
   }
 }
+
+/* Critical CSS has been moved to inline styles in index.html */
+/* Non-critical CSS remains here */
 
 @layer base {
   * {
@@ -117,4 +121,3 @@
 .nav-glass {
   @apply bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg border-b border-gray-200;
 }
-
