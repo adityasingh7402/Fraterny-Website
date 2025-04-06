@@ -73,8 +73,16 @@ export const useReactQueryResponsiveImage = (
         if (urlData && urlData.url) {
           // Check if we have any content hash from the metadata
           let contentHash = null;
-          if (imageData && imageData.metadata && typeof imageData.metadata === 'object') {
-            contentHash = imageData.metadata.contentHash || null;
+          
+          // Safely extract contentHash from metadata if it exists and is an object (not an array)
+          if (imageData && imageData.metadata) {
+            // Check if metadata is an object (not null and not an array)
+            if (typeof imageData.metadata === 'object' && 
+                imageData.metadata !== null && 
+                !Array.isArray(imageData.metadata)) {
+              // Now TypeScript knows this is a record/object type
+              contentHash = (imageData.metadata as Record<string, any>).contentHash || null;
+            }
           }
           
           // If we don't have placeholders yet, fetch them
