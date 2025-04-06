@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
@@ -11,7 +10,7 @@ import { localStorageCacheService } from '@/services/images/cache/localStorageCa
 import { registerServiceWorker } from '@/utils/serviceWorkerRegistration';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
-import { cacheCoordinator } from '@/services/cache/cacheCoordinator';
+import { syncWithServiceWorker } from '@/services/cache';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -76,18 +75,18 @@ const Index = () => {
       console.warn('Failed to initialize localStorage cache:', error);
     }
     
-    // Initialize cache coordinator with service worker
+    // Initialize service worker and cache sync
     try {
       // Sync with service worker
-      cacheCoordinator.syncWithServiceWorker().then(success => {
+      syncWithServiceWorker().then(success => {
         if (success) {
           console.log('Successfully synced cache coordinator with service worker');
         } else {
-          console.warn('Failed to sync cache coordinator with service worker');
+          console.warn('Service worker not available for sync - continuing without caching');
         }
       });
     } catch (error) {
-      console.warn('Failed to initialize cache coordinator:', error);
+      console.warn('Failed to sync with service worker:', error);
     }
     
     // Register service worker for improved caching

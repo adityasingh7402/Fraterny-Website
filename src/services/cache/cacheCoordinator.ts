@@ -1,4 +1,3 @@
-
 /**
  * Cache Coordinator Service
  * 
@@ -397,18 +396,34 @@ export const createCacheCoordinator = (): CacheCoordinator => {
   
   /**
    * Sync with service worker
+   * @returns Promise<boolean> - whether sync was successful
    */
   const syncWithServiceWorker = async (): Promise<boolean> => {
     try {
-      const version = await getGlobalCacheVersion();
-      
-      if (version) {
-        return await serviceWorkerLayer.updateCacheVersionInServiceWorker(version);
+      // Check if the service worker is active
+      if (typeof navigator === 'undefined' || 
+          !('serviceWorker' in navigator) || 
+          !navigator.serviceWorker.controller) {
+        console.log('Service worker not active or not supported, skipping sync');
+        return false;
       }
       
-      return false;
+      // Get the cache version
+      const cacheVersion = await getGlobalCacheVersion();
+      if (!cacheVersion) {
+        console.warn('No cache version available for sync');
+        return false;
+      }
+      
+      // Send message to service worker to update cache version
+      navigator.serviceWorker.controller.postMessage({
+        action: 'updateCacheVersion',
+        version: cacheVersion
+      });
+      
+      return true;
     } catch (error) {
-      console.error(`[CacheCoordinator] Error syncing with service worker:`, error);
+      console.error('Error syncing with service worker:', error);
       return false;
     }
   };

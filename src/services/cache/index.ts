@@ -7,7 +7,8 @@
 export { 
   cacheCoordinator,
   setQueryClient,
-  getQueryClient
+  getQueryClient,
+  syncWithServiceWorker
 } from './cacheCoordinator';
 
 // Export types
