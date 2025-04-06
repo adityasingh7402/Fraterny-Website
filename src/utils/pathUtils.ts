@@ -1,3 +1,4 @@
+
 /**
  * Path normalization utilities for consistent image path handling
  */
@@ -82,3 +83,9 @@ export const constructCdnUrl = (storagePath: string, baseUrl?: string): string =
   
   return `${baseUrl_}${cdnPath}`;
 };
+
+/**
+ * Alias for storagePathToCdnPath to maintain compatibility with existing code
+ * This is needed to handle references to constructCdnPath in cdnUrlService.ts
+ */
+export const constructCdnPath = storagePathToCdnPath;
