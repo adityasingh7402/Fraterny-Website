@@ -18,6 +18,9 @@ export {
   batchGetImageUrls
 } from './services/url';
 
+// Export URL utility functions
+export { isValidImageKey } from './services/url/utils';
+
 // Export placeholder functions
 export { 
   getImagePlaceholdersByKey 
