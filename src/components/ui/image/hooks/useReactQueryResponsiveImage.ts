@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useReactQueryImages } from '@/hooks/useReactQueryImages';
+import { useReactQueryImages } from '@/hooks/react-query-images';
 import { getImagePlaceholdersByKey } from '@/services/images';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { ImageLoadingState } from '../types';

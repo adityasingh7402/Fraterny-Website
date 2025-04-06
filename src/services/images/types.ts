@@ -1,39 +1,47 @@
 
-import { Json } from '@/integrations/supabase/types';
-
-export interface ImageMetadata {
-  placeholders?: {
-    tiny?: string;
-    color?: string;
-  };
-  contentHash?: string;
-  lastModified?: string;
-  [key: string]: any;
-}
+/**
+ * Type definitions for the image service
+ */
 
 export interface WebsiteImage {
   id: string;
   key: string;
   description: string;
-  storage_path: string;
   alt_text: string;
-  category?: string;
-  created_at: string;
-  updated_at: string;
+  storage_path: string;
+  category?: string | null;
+  width?: number | null;
+  height?: number | null;
+  sizes?: Record<string, string> | null;
+  metadata?: Record<string, any> | null;
+  url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface CacheOptions {
+  ttl?: number;
+  priority?: 1 | 2 | 3 | 4; // 1 is highest, 4 is lowest
+  staleWhileRevalidate?: boolean;
+}
+
+export interface ImageSize {
+  width: number;
+  height: number;
+}
+
+export type ImageSizeVariant = 'small' | 'medium' | 'large' | 'original';
+
+export interface OptimizationOptions {
+  quality?: number;
+  format?: 'webp' | 'jpeg' | 'png' | 'avif';
   width?: number;
   height?: number;
-  sizes?: Record<string, string> | Json; // Handle both Record type and Json from Supabase
-  metadata?: ImageMetadata | Json; // Updated to accept both structured type and Json from Supabase
-  url?: string; // Add URL property that can be computed when needed
 }
 
-// Export ImageSizes interface for use in other files with index signature
-export interface ImageSizes {
-  small?: string;
-  medium?: string;
-  large?: string;
-  original?: string;
-  [key: string]: string | undefined; // Add index signature to make it compatible with Record<string, string>
+export interface ServiceWorkerCacheEntry {
+  url: string;
+  timestamp: number;
+  expires: number;
+  key?: string;
 }
-
-// Re-export other types here if needed

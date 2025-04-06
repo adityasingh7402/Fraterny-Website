@@ -1,35 +1,81 @@
 
 import { useQueryClient } from '@tanstack/react-query';
-import { fetchImageByKey } from '@/services/images';
-import { useNetworkAwareCacheConfig } from './useNetworkAwareCacheConfig';
+import { getImageMetadata } from '@/services/images';
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useCallback } from 'react';
 
 /**
- * Hook for prefetching images
+ * Hook to prefetch images into the React Query cache
  */
 export const usePrefetchImages = () => {
   const queryClient = useQueryClient();
-  const { getCacheConfig } = useNetworkAwareCacheConfig();
+  const network = useNetworkStatus();
 
   /**
-   * Prefetch an image by key - useful before navigation
+   * Prefetch a single image by key
    */
-  const prefetchImage = async (key: string, isPriority: boolean = false) => {
-    const { staleTime } = getCacheConfig(isPriority);
+  const prefetchImage = useCallback(async (
+    key: string,
+    options: { priority?: 'high' | 'low'; staleTime?: number } = {}
+  ): Promise<boolean> => {
+    if (!key) return false;
+
+    // On save-data mode, only prefetch high priority images
+    if (network.saveDataEnabled && options.priority !== 'high') {
+      return false;
+    }
+
+    // On 2G connections, only prefetch high priority images
+    if (['slow-2g', '2g'].includes(network.effectiveConnectionType) && options.priority !== 'high') {
+      return false;
+    }
+
+    try {
+      // Prefetch into React Query cache
+      await queryClient.prefetchQuery({
+        queryKey: ['image', key],
+        queryFn: () => getImageMetadata(key),
+        staleTime: options.staleTime || 5 * 60 * 1000 // Default 5 minutes
+      });
+      return true;
+    } catch (error) {
+      console.error(`Failed to prefetch image "${key}":`, error);
+      return false;
+    }
+  }, [queryClient, network.saveDataEnabled, network.effectiveConnectionType]);
+
+  /**
+   * Prefetch multiple images by keys
+   */
+  const prefetchImages = useCallback(async (
+    keys: string[] | undefined,
+    options: { priority?: 'high' | 'low'; staleTime?: number } = {}
+  ): Promise<number> => {
+    if (!keys || keys.length === 0) return 0;
+
+    // On poor connections with data saver, be selective
+    if (network.saveDataEnabled && options.priority !== 'high') {
+      return 0;
+    }
+
+    // Filter out invalid or empty keys
+    const validKeys = keys.filter(key => key && key.trim() !== '');
     
-    await queryClient.prefetchQuery({
-      queryKey: ['image', key],
-      queryFn: () => fetchImageByKey(key),
-      staleTime,
-    });
-  };
+    if (validKeys.length === 0) return 0;
 
-  /**
-   * Prefetch a batch of images by keys - useful for gallery views
-   */
-  const prefetchImages = async (keys: string[]) => {
-    const promises = keys.map(key => prefetchImage(key, false));
-    await Promise.all(promises);
-  };
+    try {
+      // Prefetch each image (limit concurrency)
+      const results = await Promise.all(
+        validKeys.map(key => prefetchImage(key, options))
+      );
+
+      // Return count of successfully prefetched images
+      return results.filter(Boolean).length;
+    } catch (error) {
+      console.error('Failed to prefetch multiple images:', error);
+      return 0;
+    }
+  }, [prefetchImage, network.saveDataEnabled]);
 
   return {
     prefetchImage,

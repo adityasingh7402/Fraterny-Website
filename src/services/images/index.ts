@@ -14,6 +14,19 @@ export {
   uploadImage,
   deleteImage,
   isValidImageKey,
+  // Export aliased functions needed by various components
+  getImageUrlByKey,
+  getImageUrlByKeyAndSize,
+  getImageUrlBatched,
+  batchGetImageUrls,
+  fetchImageByKey,
+  fetchAllImages,
+  fetchImagesByCategory,
+  getImagePlaceholdersByKey,
+  clearImageUrlCacheForKey,
+  getGlobalCacheVersion,
+  updateGlobalCacheVersion,
+  updateImage,
   // Export cache instances for advanced usage
   imageCache,
   urlCache

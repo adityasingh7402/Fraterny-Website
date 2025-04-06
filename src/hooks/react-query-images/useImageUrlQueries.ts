@@ -1,12 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { 
-  getImageUrlByKey, 
-  getImageUrlByKeyAndSize,
-  getImageUrlBatched,
-  batchGetImageUrls
+  getImageUrl,
+  getImageUrlBySize,
+  getMultipleImageUrls,
+  isValidImageKey
 } from '@/services/images';
-import { isValidImageKey } from '@/services/images/services/url/utils';
 import { useNetworkAwareCacheConfig } from './useNetworkAwareCacheConfig';
 import { IMAGE_KEYS } from '@/pages/admin/images/components/upload/constants';
 
@@ -74,12 +73,12 @@ export const useImageUrlQueries = () => {
         try {
           console.log(`[useImageUrl] Fetching URL for key: "${normalizedKey}", size: ${size || 'original'}`);
           
-          // Use batched version for better performance
+          // Use the correct function based on whether a size is provided
           let url;
           if (size) {
-            url = await getImageUrlByKeyAndSize(normalizedKey, size);
+            url = await getImageUrlBySize(normalizedKey, size);
           } else {
-            url = await getImageUrlBatched(normalizedKey);
+            url = await getImageUrl(normalizedKey);
           }
             
           console.log(`[useImageUrl] Successfully fetched URL for key "${normalizedKey}": ${url}`);
@@ -133,7 +132,7 @@ export const useImageUrlQueries = () => {
         // Use the batch function directly if no size is specified
         if (!size) {
           try {
-            return await batchGetImageUrls(validKeys);
+            return await getMultipleImageUrls(validKeys);
           } catch (error) {
             console.error('[useMultipleImageUrls] Batch error:', error);
             // Return placeholders on error
@@ -154,7 +153,7 @@ export const useImageUrlQueries = () => {
           
           // For each key in the batch, get the URL with size
           const batchPromises = batch.map(key => 
-            getImageUrlByKeyAndSize(key, size).catch(() => '/placeholder.svg')
+            getImageUrlBySize(key, size).catch(() => '/placeholder.svg')
           );
           
           try {

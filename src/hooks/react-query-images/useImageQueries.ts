@@ -1,10 +1,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { 
-  fetchImageByKey, 
+  getImageMetadata,
   fetchAllImages,
   fetchImagesByCategory,
-  WebsiteImage
+  WebsiteImage 
 } from '@/services/images';
 import { useNetworkAwareCacheConfig } from './useNetworkAwareCacheConfig';
 
@@ -22,7 +22,7 @@ export const useImageQueries = () => {
     
     return useQuery({
       queryKey: ['image', key],
-      queryFn: () => (key ? fetchImageByKey(key) : Promise.reject('No image key provided')),
+      queryFn: () => (key ? getImageMetadata(key) : Promise.reject('No image key provided')),
       staleTime,
       gcTime,
       enabled: !!key,
@@ -43,9 +43,9 @@ export const useImageQueries = () => {
       queryFn: async () => {
         if (!keys || keys.length === 0) return [];
         
-        // Use Promise.all with fetchImageByKey for batch efficiency
+        // Use Promise.all with getImageMetadata for batch efficiency
         const images = await Promise.all(
-          keys.map(key => fetchImageByKey(key))
+          keys.map(key => getImageMetadata(key))
         );
         
         return images.filter(img => img !== null) as WebsiteImage[];

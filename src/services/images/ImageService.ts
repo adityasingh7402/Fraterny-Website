@@ -244,7 +244,7 @@ export const getImagePlaceholdersByKey = async (key: string): Promise<{
     // Get image record from database
     const { data: imageRecord, error } = await supabase
       .from('website_images')
-      .select('placeholders')
+      .select('metadata')
       .eq('key', normalizedKey)
       .maybeSingle();
       
@@ -253,7 +253,11 @@ export const getImagePlaceholdersByKey = async (key: string): Promise<{
       return { tinyPlaceholder: null, colorPlaceholder: null };
     }
     
-    const placeholders = imageRecord.placeholders || {};
+    // Extract placeholders from metadata
+    const metadata = imageRecord.metadata || {};
+    const placeholders = typeof metadata === 'object' && metadata !== null ? 
+      (metadata as any).placeholders || {} : {};
+    
     const result = {
       tinyPlaceholder: placeholders.tiny || null,
       colorPlaceholder: placeholders.color || null
@@ -287,7 +291,7 @@ export const getGlobalCacheVersion = async (): Promise<string | null> => {
     
     // Get from database
     const { data, error } = await supabase
-      .from('system_settings')
+      .from('website_settings')
       .select('value')
       .eq('key', 'image_cache_version')
       .maybeSingle();
@@ -324,7 +328,7 @@ export const updateGlobalCacheVersion = async (options?: {
     
     // Update database
     const { error } = await supabase
-      .from('system_settings')
+      .from('website_settings')
       .upsert({
         key: 'image_cache_version',
         value: newVersion,
