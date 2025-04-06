@@ -1,3 +1,4 @@
+
 /**
  * Path normalization utilities for consistent image path handling
  */
@@ -81,4 +82,16 @@ export const constructCdnUrl = (storagePath: string, cdnBaseUrl?: string): strin
   const baseUrl = cdnBaseUrl || 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
   
   return `${baseUrl}${cdnPath}`;
+};
+
+/**
+ * Constructs a properly formatted CDN path
+ * Ensures path has the format: website-images/path
+ */
+export const constructCdnPath = (storagePath: string): string => {
+  // First normalize to ensure consistent format
+  const normalizedPath = normalizeStoragePath(storagePath);
+  
+  // Convert the normalized path to CDN format
+  return storagePathToCdnPath(normalizedPath);
 };
