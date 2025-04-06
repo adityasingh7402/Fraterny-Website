@@ -33,7 +33,15 @@ export default defineConfig(({ mode }) => ({
           'vendor-ui': ['@tanstack/react-query', '@radix-ui/react-toast', '@radix-ui/react-dialog'],
           // Group charting libraries
           'vendor-charts': ['recharts'],
-        }
+        },
+        // Extract CSS into separate files for better caching
+        assetFileNames: (assetInfo) => {
+          let extType = assetInfo.name.split('.').at(1);
+          if (/css/i.test(extType)) {
+            return 'assets/css/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
       }
     },
     // Optimize dependencies
@@ -45,9 +53,26 @@ export default defineConfig(({ mode }) => ({
     sourcemap: mode === 'development',
     // Clean the output directory before building
     emptyOutDir: true,
+    // Minify CSS for production
+    cssMinify: true,
+    // Extract CSS into a separate file
+    cssCodeSplit: true,
   },
   // Optimize dependencies in dev mode
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+  },
+  // CSS optimization options
+  css: {
+    // Enable CSS modules
+    modules: {
+      scopeBehaviour: 'local',
+    },
+    // Optimize CSS processing
+    postcss: {
+      plugins: [],
+    },
+    // Minify CSS in production
+    devSourcemap: true,
   },
 }));
