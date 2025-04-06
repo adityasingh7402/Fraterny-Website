@@ -44,8 +44,8 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         const originalPath = testImageUrl;
         const normalizedPath = normalizeStoragePath(testImageUrl);
         
-        // Force CDN for testing
-        const transformed = getCdnUrl(fullUrl, true);
+        // Use getCdnUrl with a single argument (updated from two arguments)
+        const transformed = getCdnUrl(fullUrl);
         setCdnTransformedUrl(transformed || fullUrl);
         
         // Set path info for debugging
@@ -77,7 +77,8 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
     setTestSuccess(false); // Reset success state
     
     try {
-      const transformedUrl = getCdnUrl(testImageUrl, true);
+      // Fix here: using getCdnUrl with a single argument (updated from two arguments)
+      const transformedUrl = getCdnUrl(testImageUrl);
       
       if (!transformedUrl) {
         setTestError('URL transformation failed. Check your URL syntax.');
