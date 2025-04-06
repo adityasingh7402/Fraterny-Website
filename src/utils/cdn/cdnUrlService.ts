@@ -1,33 +1,19 @@
 
 /**
- * CDN URL Service Module - DEPRECATED
- * This file is kept for backward compatibility but all functionality
- * now redirects to direct Supabase URLs
+ * Image URL Service - Replaces legacy CDN service
+ * 
+ * This file provides direct Supabase URL functionality with caching.
  */
 
-import { normalizeStoragePath, storagePathToCdnPath } from '@/utils/pathUtils';
+import { constructSupabaseUrl, storagePathToUrlPath } from '@/utils/pathUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
-// All CDN functionality is deprecated in favor of direct Supabase integration
+// Supabase public storage URL
 const SUPABASE_URL = 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
 
 /**
- * Check if CDN should be used - now always returns false as CDN is deprecated
- */
-export const shouldUseCdn = async (): Promise<boolean> => {
-  return false;
-};
-
-/**
- * Synchronous version - now always returns false as CDN is deprecated
- */
-export const isCdnEnabled = (): boolean => {
-  return false;
-};
-
-/**
  * Parse a Supabase URL to extract bucket and path information
- * Still functional but maintained only for backward compatibility
+ * Maintained for backward compatibility
  */
 export const parseSupabaseUrl = (url: string): { bucket: string; path: string } | null => {
   // Match Supabase storage URLs
@@ -46,9 +32,9 @@ export const parseSupabaseUrl = (url: string): { bucket: string; path: string } 
 
 /**
  * Converts any image path to a direct Supabase URL
- * This function maintains backward compatibility but now always returns direct Supabase URLs
+ * With local storage caching for performance
  */
-export const getCdnUrl = (
+export const getSupabaseUrl = (
   imagePath: string | null | undefined
 ): string | null => {
   if (!imagePath) return null;
@@ -64,7 +50,7 @@ export const getCdnUrl = (
   }
   
   // Generate a cache key for this URL transformation
-  const cacheKey = `cdn-url:${imagePath}`;
+  const cacheKey = `image-url:${imagePath}`;
   
   // Try to get from localStorage cache first
   try {
@@ -91,7 +77,7 @@ export const getCdnUrl = (
   if (normalizedPath.startsWith('/images/') || normalizedPath.startsWith('/website-images/')) {
     // Format for Supabase URL
     const pathWithoutLeadingSlash = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
-    const supabasePath = storagePathToCdnPath(pathWithoutLeadingSlash);
+    const supabasePath = storagePathToUrlPath(pathWithoutLeadingSlash);
     const transformedUrl = `${SUPABASE_URL}${supabasePath}`;
     
     // Cache the URL for future use
@@ -112,5 +98,8 @@ export const getCdnUrl = (
 
 // For compatibility with existing code
 export const getCdnBaseUrl = () => SUPABASE_URL;
+export const getCdnUrl = getSupabaseUrl;
+export const isCdnEnabled = () => false;
+export const shouldUseCdn = async () => false;
 export const resetCdnEnabledCache = () => {};
 export const setCdnEnabled = () => {};

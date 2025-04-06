@@ -1,48 +1,49 @@
 
 /**
- * CDN utilities index file
- * Re-exports all CDN-related functions
+ * Re-exports for backward compatibility
+ * This file is maintained for compatibility with existing code but should be 
+ * considered deprecated. Use direct Supabase methods instead.
  */
 export * from './cdnConfig';
-export * from './cdnExclusions';
-export * from './cdnNetwork';
 export * from './cdnUrlService';
 
 /**
- * Test the CDN connection by attempting to load a test image
- * Returns true if the CDN is available, false otherwise
+ * Test Supabase connectivity by making a network request
+ * Returns true if Supabase is available, false otherwise
  */
-export const testCdnConnection = (): Promise<boolean> => {
+export const testSupabaseConnection = (): Promise<boolean> => {
   return new Promise((resolve) => {
     try {
       const testImage = new Image();
       const timestamp = Date.now();
       
-      // Import CDN_URL non-asynchronously to avoid await in Promise executor
-      // which is not allowed in some JavaScript environments
-      const CDN_URL = 'https://assets.villalab.io'; // Use the same URL from cdnConfig
-      testImage.src = `${CDN_URL}/test-connection.png?t=${timestamp}`;
+      // Use Supabase URL
+      const SUPABASE_URL = 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/test-connection.png';
+      testImage.src = `${SUPABASE_URL}?t=${timestamp}`;
       
       // Set a timeout in case the image takes too long to load
       const timeoutId = setTimeout(() => {
-        console.warn('[CDN] Connection test timeout');
+        console.warn('[Storage] Connection test timeout');
         resolve(false);
       }, 5000);
       
       testImage.onload = () => {
         clearTimeout(timeoutId);
-        console.log('[CDN] Connection test successful');
+        console.log('[Storage] Connection test successful');
         resolve(true);
       };
       
       testImage.onerror = () => {
         clearTimeout(timeoutId);
-        console.warn('[CDN] Connection test failed');
+        console.warn('[Storage] Connection test failed');
         resolve(false);
       };
     } catch (error) {
-      console.error('[CDN] Error testing connection:', error);
+      console.error('[Storage] Error testing connection:', error);
       resolve(false);
     }
   });
 };
+
+// Alias for backward compatibility
+export const testCdnConnection = testSupabaseConnection;

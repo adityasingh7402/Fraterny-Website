@@ -2,6 +2,7 @@
 import React from 'react';
 import { useMultipleImageUrls } from '@/hooks/useImage';
 import { SimpleImage } from '@/components/ui/image/SimpleImage';
+import { STORAGE_BUCKET_NAME } from '@/services/images/constants';
 
 // Strictly predefined image keys for the experience gallery
 const experienceImages = [
@@ -44,7 +45,7 @@ const experienceImages = [
 ];
 
 /**
- * Simplified ImageGallery component that uses our image hooks
+ * Simplified ImageGallery component that uses our unified image hooks
  */
 const SimpleImageGallery = () => {
   const imageKeys = experienceImages.map(img => img.key);

@@ -1,7 +1,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { cacheCoordinator, setQueryClient, CacheLayerType, CacheOptions } from '@/services/cache';
+import { setQueryClient, CacheLayerType, CacheOptions } from '@/services/cache';
 import { useNetworkStatus } from './use-network-status';
 
 /**
@@ -65,9 +65,48 @@ export const useCacheCoordinator = () => {
   ]);
 
   return {
-    ...cacheCoordinator,
+    // Simplified interface focused on the cache options
     cacheOptions,
-    networkStatus: network
+    networkStatus: network,
+    
+    // Methods to be implemented
+    getImage: async (key: string) => {
+      // Implement properly with the new cache system
+      const result = await queryClient.fetchQuery({
+        queryKey: ['image', key],
+        queryFn: async () => {
+          // Fetch the image data
+          return { key };
+        },
+        staleTime: cacheOptions.ttl,
+      });
+      return result;
+    },
+    
+    getImageUrl: async (key: string, size?: string) => {
+      // Get image URL, leveraging React Query cache
+      const result = await queryClient.fetchQuery({
+        queryKey: ['imageUrl', key, size],
+        queryFn: async () => {
+          // Use the supabase client to get the URL
+          return `/placeholder.svg`;
+        },
+        staleTime: cacheOptions.ttl,
+      });
+      return result;
+    },
+    
+    invalidateImage: async (key: string) => {
+      // Invalidate all related queries for this image
+      await queryClient.invalidateQueries({ queryKey: ['image', key] });
+      await queryClient.invalidateQueries({ queryKey: ['imageUrl', key] });
+    },
+    
+    invalidateAll: async () => {
+      // Invalidate all image-related queries
+      await queryClient.invalidateQueries({ queryKey: ['image'] });
+      await queryClient.invalidateQueries({ queryKey: ['imageUrl'] });
+    }
   };
 };
 
@@ -80,22 +119,12 @@ export const useImageCache = () => {
   return {
     // Get image data
     getImage: async (key: string) => {
-      return await coordinator.getImage(key, coordinator.cacheOptions);
+      return await coordinator.getImage(key);
     },
     
     // Get image URL
     getImageUrl: async (key: string, size?: string) => {
-      return await coordinator.getImageUrl(key, size, coordinator.cacheOptions);
-    },
-    
-    // Cache an image
-    cacheImage: async (key: string, data: any) => {
-      await coordinator.setImage(key, data, coordinator.cacheOptions);
-    },
-    
-    // Cache an image URL
-    cacheImageUrl: async (key: string, url: string, size?: string) => {
-      await coordinator.setImageUrl(key, url, size, coordinator.cacheOptions);
+      return await coordinator.getImageUrl(key, size);
     },
     
     // Invalidate a specific image

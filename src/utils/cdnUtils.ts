@@ -1,37 +1,46 @@
 
 /**
- * Unified CDN utilities for image loading - deprecated
- * All images now load directly from Supabase
+ * Direct Supabase image utilities
+ * 
+ * This module replaces the old CDN utilities. It provides simple functions
+ * for working with images stored in Supabase.
  */
 
-// Always return false to disable CDN
-const useCdn = false;
+import { constructSupabaseUrl, storagePathToUrlPath } from './pathUtils';
 
 /**
- * Convert a regular URL to use the CDN if enabled
- * Now always returns the original URL as CDN is disabled
+ * Convert any URL to use Supabase storage if it's a relative path
+ * This simplifies the transition from the old CDN architecture
  */
-export const getCdnUrl = (url: string | undefined): string | undefined => {
-  return url; // Simply pass through the URL
+export const getImageUrl = (url: string | undefined): string | undefined => {
+  if (!url) return undefined;
+  
+  // Don't process data URLs or absolute URLs
+  if (url.startsWith('data:') || url.startsWith('http')) {
+    return url;
+  }
+  
+  // Handle relative paths - ensure path starts with / for consistent processing
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+  
+  // For image paths, convert to Supabase URL
+  if (normalizedPath.startsWith('/images/') || 
+      normalizedPath.startsWith('/website-images/')) {
+    // Format for Supabase URL - remove leading slash for storage path
+    const pathWithoutLeadingSlash = normalizedPath.startsWith('/') ? 
+      normalizedPath.substring(1) : normalizedPath;
+    
+    return constructSupabaseUrl(pathWithoutLeadingSlash);
+  }
+  
+  // For other asset types (CSS, JS, etc.), just use the local path
+  return normalizedPath;
 };
 
 /**
- * Check if CDN is enabled - always returns false
+ * Legacy compatibility functions - these do nothing now but maintain API compatibility
  */
-export const isCdnEnabled = (): boolean => {
-  return false;
-};
-
-/**
- * Set CDN enabled state - now a no-op function
- */
-export const setCdnEnabled = (enabled: boolean): void => {
-  console.log('[Image System] CDN functionality has been removed. Ignoring setCdnEnabled call.');
-};
-
-/**
- * Transform a Supabase storage URL - now simply returns null
- */
-export const parseSupabaseUrl = (url: string): string | null => {
-  return null;
-};
+export const isCdnEnabled = (): boolean => false;
+export const setCdnEnabled = (_enabled: boolean): void => {};
+export const parseSupabaseUrl = (url: string): string | null => null;
+export const getCdnUrl = getImageUrl;

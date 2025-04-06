@@ -13,7 +13,7 @@ import { constructStoragePath } from '@/utils/pathUtils';
  * Hook provides direct image URLs from Supabase with local caching
  * Uses image key directly instead of storage path
  */
-export const useCdnImage = (
+export const useSupabaseImage = (
   imagePath: string | null | undefined
 ) => {
   const [url, setUrl] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export const useCdnImage = (
       const normalizedKey = imagePath.trim();
       const cacheKey = `directimage:${normalizedKey}`;
       
-      console.log(`useCdnImage: Processing key: "${normalizedKey}"`);
+      console.log(`useSupabaseImage: Processing key: "${normalizedKey}"`);
       
       // Check localStorage cache first
       let cachedData = null;
@@ -50,7 +50,7 @@ export const useCdnImage = (
         if (localStorageCacheService.isValid()) {
           cachedData = localStorageCacheService.getUrl(cacheKey);
           if (cachedData) {
-            console.log(`useCdnImage: Found cached URL for key "${normalizedKey}": ${cachedData}`);
+            console.log(`useSupabaseImage: Found cached URL for key "${normalizedKey}": ${cachedData}`);
           }
         }
       } catch (err) {
@@ -68,7 +68,7 @@ export const useCdnImage = (
       
       try {
         // Use key directly to get public URL from the correct bucket
-        console.log(`useCdnImage: Getting public URL for key: "${normalizedKey}"`);
+        console.log(`useSupabaseImage: Getting public URL for key: "${normalizedKey}"`);
         
         // Properly construct the storage path with the correct bucket name
         const storagePath = constructStoragePath(normalizedKey);
@@ -79,12 +79,12 @@ export const useCdnImage = (
           .getPublicUrl(normalizedKey);
           
         if (!data || !data.publicUrl) {
-          console.error(`useCdnImage: No public URL returned for key "${normalizedKey}"`);
+          console.error(`useSupabaseImage: No public URL returned for key "${normalizedKey}"`);
           throw new Error(`No public URL returned for key "${normalizedKey}"`);
         }
         
         const processedUrl = data.publicUrl;
-        console.log(`useCdnImage: Got public URL for key "${normalizedKey}": ${processedUrl}`);
+        console.log(`useSupabaseImage: Got public URL for key "${normalizedKey}": ${processedUrl}`);
         
         // Cache the result for future use
         try {
@@ -101,7 +101,7 @@ export const useCdnImage = (
           setIsCached(false);
         }
       } catch (error) {
-        console.error(`useCdnImage error for key "${normalizedKey}":`, error);
+        console.error(`useSupabaseImage error for key "${normalizedKey}":`, error);
         
         if (error instanceof Error) {
           setError(error);
@@ -130,8 +130,10 @@ export const useCdnImage = (
     isLoading, 
     error, 
     isCached,
-    isFallback: false, // Always false now as we don't use CDN fallback
+    isFallback: url === '/placeholder.svg',
   };
 };
 
-export default useCdnImage;
+// For compatibility with existing code
+export const useCdnImage = useSupabaseImage;
+export default useSupabaseImage;

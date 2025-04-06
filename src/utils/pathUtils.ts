@@ -1,4 +1,3 @@
-
 /**
  * Path normalization utilities for consistent image path handling
  */
@@ -59,10 +58,10 @@ export const constructStoragePath = (storagePath: string): string => {
 };
 
 /**
- * Converts Supabase internal storage path to URL-safe path
+ * Converts internal storage path to URL-safe path for Supabase URLs
  * Handles the transformation from 'Website Images' to 'website-images' for URLs
  */
-export const storagePathToCdnPath = (storagePath: string): string => {
+export const storagePathToUrlPath = (storagePath: string): string => {
   // First normalize to ensure consistent format with the correct bucket name
   const normalizedPath = normalizeStoragePath(storagePath);
   
@@ -77,15 +76,13 @@ export const storagePathToCdnPath = (storagePath: string): string => {
 /**
  * Constructs a direct Supabase URL for public access to storage
  */
-export const constructCdnUrl = (storagePath: string, baseUrl?: string): string => {
-  const cdnPath = storagePathToCdnPath(storagePath);
+export const constructSupabaseUrl = (storagePath: string, baseUrl?: string): string => {
+  const urlPath = storagePathToUrlPath(storagePath);
   const baseUrl_ = baseUrl || 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
   
-  return `${baseUrl_}${cdnPath}`;
+  return `${baseUrl_}${urlPath}`;
 };
 
-/**
- * Alias for storagePathToCdnPath to maintain compatibility with existing code
- * This is needed to handle references to constructCdnPath in cdnUrlService.ts
- */
-export const constructCdnPath = storagePathToCdnPath;
+// Legacy alias for backward compatibility - will be deprecated
+export const constructCdnPath = storagePathToUrlPath;
+export const constructCdnUrl = constructSupabaseUrl;

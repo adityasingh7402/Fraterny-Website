@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { ImageIcon, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getCdnUrl } from '@/utils/cdnUtils';
 import { toast } from 'sonner';
-import { normalizeStoragePath, storagePathToCdnPath } from '@/utils/pathUtils';
+import { normalizeStoragePath, storagePathToUrlPath } from '@/utils/pathUtils';
+import { STORAGE_BUCKET_NAME } from '@/services/images/constants';
 
 interface UrlTesterProps {
   isTestingCdn: boolean;
@@ -37,7 +37,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
           const normalizedPath = normalizeStoragePath(testImageUrl);
           
           // Then construct full Supabase URL for testing
-          const urlSafePath = storagePathToCdnPath(normalizedPath);
+          const urlSafePath = storagePathToUrlPath(normalizedPath);
           fullUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${urlSafePath}`;
         }
         
@@ -84,7 +84,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
         return;
       }
       
-      console.log(`[Image Test] Testing specific URL: ${transformedUrl}`);
+      console.log(`[Image Test] Testing URL: ${transformedUrl}`);
       
       // Create an AbortController to handle timeout
       const controller = new AbortController();
@@ -137,7 +137,7 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error testing specific URL:', error);
+      console.error('Error testing URL:', error);
       setTestError(errorMessage);
       toast.error('URL test error', {
         description: 'An error occurred while testing the URL.',
@@ -156,12 +156,12 @@ const UrlTester: React.FC<UrlTesterProps> = ({ isTestingCdn, setIsTestingCdn }) 
       
       <div className="space-y-2">
         <div className="text-xs text-gray-500 mb-1">
-          Enter a storage path (e.g., /website-images/your-image.png) or Supabase URL
+          Enter a storage path (e.g., "{STORAGE_BUCKET_NAME}/your-image.png") or Supabase URL
         </div>
         <Input 
           value={testImageUrl}
           onChange={(e) => setTestImageUrl(e.target.value)}
-          placeholder="/website-images/your-image-path.jpg"
+          placeholder={`${STORAGE_BUCKET_NAME}/your-image-path.jpg`}
           className="w-full font-mono text-sm"
         />
         

@@ -1,13 +1,16 @@
 
 /**
- * This file now only re-exports minimal functionality needed for backward compatibility
- * The CDN architecture has been completely removed in favor of direct Supabase integration
+ * Re-exports from cdnUtils.ts for backward compatibility
+ * This file is maintained for compatibility with existing code but should be 
+ * considered deprecated. Use direct Supabase methods instead.
  */
 
-// Export empty placeholder functions to avoid breaking existing imports
-export const getCdnUrl = (url: string): string => url;
-export const isCdnEnabled = (): boolean => false;
-export const setCdnEnabled = (_enabled: boolean): void => {};
+import { getImageUrl, isCdnEnabled, setCdnEnabled } from './cdnUtils';
+
+export { getImageUrl, isCdnEnabled, setCdnEnabled };
+
+// Legacy functions
+export const getCdnUrl = getImageUrl;
 export const testCdnConnection = async (): Promise<boolean> => {
   console.log('[Image System] CDN functionality has been removed. Using Supabase directly.');
   return false;

@@ -2,16 +2,20 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import UrlTester from './UrlTester';
 
 /**
- * CDN Testing Panel - Now displays a deprecation message
+ * Supabase Storage Testing Panel
+ * This component replaces the old CDN testing panel
  */
-const CdnTestingPanel = () => {
+const StorageTestingPanel = () => {
+  const [isTestingUrl, setIsTestingUrl] = React.useState(false);
+  
   return (
     <Card className="border border-gray-200">
       <CardHeader className="border-b border-gray-100 bg-gray-50 rounded-t-lg">
         <CardTitle className="text-navy text-lg flex items-center">
-          <span>Image Management</span>
+          <span>Supabase Storage Management</span>
         </CardTitle>
       </CardHeader>
       
@@ -23,18 +27,20 @@ const CdnTestingPanel = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium">
-                CDN functionality has been removed
+                Image Management Information
               </p>
               <p className="text-sm mt-1">
-                The site now uses Supabase Storage directly for all images, with appropriate caching and optimization.
-                Images are automatically converted to WebP format for better performance where supported.
+                The site uses Supabase Storage directly for all images, with appropriate caching and optimization.
+                Images are automatically served from Supabase's global CDN for optimal performance.
               </p>
             </div>
           </div>
         </div>
+        
+        <UrlTester isTestingCdn={isTestingUrl} setIsTestingCdn={setIsTestingUrl} />
       </CardContent>
     </Card>
   );
 };
 
-export default CdnTestingPanel;
+export default StorageTestingPanel;

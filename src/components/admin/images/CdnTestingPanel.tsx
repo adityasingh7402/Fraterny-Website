@@ -1,3 +1,3 @@
 
-import CdnTestingPanel from './cdn/CdnTestingPanel';
-export default CdnTestingPanel;
+import StorageTestingPanel from './cdn/CdnTestingPanel';
+export default StorageTestingPanel;

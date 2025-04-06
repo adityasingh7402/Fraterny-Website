@@ -1,16 +1,31 @@
 
 /**
- * Legacy hook for image loading - uses the new system underneath
- * Maintains backward compatibility with existing code
+ * Legacy hook for direct image access - now just re-exports
+ * from the main useImage hook for consistency and consolidation.
  */
 
-import { useImageUrl, useMultipleImageUrls } from './useImage';
+import { 
+  useImageUrl, 
+  useMultipleImageUrls, 
+  useImagePreloader,
+  getImageUrlByKey,
+  getImageUrlByKeyAndSize,
+  getMultipleImageUrls
+} from './useImage';
 
-// Re-export the imports with the correct names for backward compatibility
-export { useImageUrl, useMultipleImageUrls };
+// Re-export the hooks
+export { 
+  useImageUrl, 
+  useMultipleImageUrls, 
+  useImagePreloader,
+  getImageUrlByKey,
+  getImageUrlByKeyAndSize,
+  getMultipleImageUrls
+};
 
-// Create a default export object
+// Create a default export object for backward compatibility
 export default { 
   useImageUrl, 
-  useMultipleImageUrls 
+  useMultipleImageUrls,
+  useImagePreloader
 };
