@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
+  const isMobile = useIsMobile();
   
   // Use our React Query powered hook
   const { settings, isLoading } = useReactQueryWebsiteSettings();
@@ -45,12 +47,15 @@ const Hero = () => {
     )`
   };
 
+  // Determine image key based on device type
+  const imageKey = isMobile ? "hero-background-mobile" : "hero-background";
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image - using dynamic keys to properly fetch from admin upload */}
+      {/* Background Image - using device-specific keys */}
       <div className="absolute inset-0">
         <ResponsiveImage
-          dynamicKey="hero-background"
+          dynamicKey={imageKey}
           alt="Stunning luxury villa with breathtaking views"
           className="w-full h-full object-cover"
           loading="eager"
@@ -99,3 +104,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
