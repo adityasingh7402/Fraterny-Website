@@ -68,17 +68,12 @@ export const createSignedUrl = async (key: string): Promise<string> => {
     console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
     
     // Get public URL from website-images bucket
-    const { data, error } = await supabase.storage
+    const { data } = await supabase.storage
       .from('website-images')
       .getPublicUrl(normalizedKey);
     
-    if (error) {
-      console.error(`Error getting public URL for key "${normalizedKey}":`, error);
-      return '/placeholder.svg';
-    }
-      
     if (!data || !data.publicUrl) {
-      console.error(`Failed to get public URL for key: "${normalizedKey}"`);
+      console.error(`Failed to get public URL for key "${normalizedKey}"`);
       return '/placeholder.svg';
     }
     
