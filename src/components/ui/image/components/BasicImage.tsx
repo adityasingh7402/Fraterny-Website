@@ -70,8 +70,7 @@ export const BasicImage = ({
     sizes,
     width, 
     height, 
-    processedFallbackSrc, 
-    fetchPriority
+    processedFallbackSrc
   );
   
   // Apply object-fit directly to the style object for the img element
@@ -80,10 +79,16 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Use the correct React prop name 'fetchPriority' (camelCase)
-  // React will automatically translate this to the lowercase HTML attribute 'fetchpriority'
+  // Fix for the fetchPriority warning - use the lowercase DOM attribute
+  // Don't include fetchpriority in the React component props directly
+  const imgAttributes: Record<string, any> = {};
+  if (fetchPriority) {
+    imgAttributes.fetchpriority = fetchPriority.toLowerCase();
+  }
+  
   return <img 
     {...imgProps} 
+    {...imgAttributes}
     style={style} 
     onClick={onClick}
     loading={loading}

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { createImageProps } from '../utils';
 import { ResponsiveImageSource } from '../types';
-import { getCdnUrl } from '@/utils/cdnUtils';
+import { getCdnUrl } from '@/utils/cdn/cdnUrlService';
 
 interface ResponsivePictureProps {
   sources: ResponsiveImageSource;
@@ -88,11 +88,10 @@ export const ResponsivePicture = ({
     objectFit 
   };
   
-  // Fix: Convert React's fetchPriority prop to lowercase DOM attribute
-  // This prevents the React warning about unrecognized props
-  const imgAttributes: any = {};
+  // Fix for fetchPriority - use lowercase DOM attribute
+  const imgAttributes: Record<string, any> = {};
   if (fetchPriority) {
-    imgAttributes.fetchpriority = fetchPriority; // lowercase for DOM
+    imgAttributes.fetchpriority = fetchPriority.toLowerCase();
   }
   
   return (

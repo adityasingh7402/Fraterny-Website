@@ -25,15 +25,8 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
     return url;
   }
   
-  // If CDN is disabled and not forced, ensure we return a proper Supabase URL
+  // If CDN is disabled and not forced, return the original URL
   if (!useCdn && !forceCdn) {
-    // Critical fix: Make sure we're always returning a full Supabase URL, not a relative path
-    if (!url.startsWith('http')) {
-      // For relative paths, construct a full Supabase URL
-      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
-      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
-      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
-    }
     return url;
   }
   
@@ -45,11 +38,8 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       parsedUrl = new URL(url);
     } catch (error) {
       // If URL parsing fails, it's likely a relative path
-      // Convert it to an absolute Supabase URL
-      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
-      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
-      const supabaseUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
-      parsedUrl = new URL(supabaseUrl);
+      // Just return the original URL for now
+      return url;
     }
     
     // If URL is already a CDN URL, don't modify it
@@ -57,7 +47,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       return url;
     }
     
-    // For Supabase URLs, we need to rewrite them to use the CDN
+    // For Supabase URLs, rewrite them to use the CDN
     if (parsedUrl.hostname.includes('supabase')) {
       // Extract the bucket and path
       const pathParts = parsedUrl.pathname.split('/');
@@ -67,95 +57,79 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
         // Get index of 'public' in the path
         const publicIndex = pathParts.indexOf('public');
         if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
-          // Extract everything after 'public', this should directly be the storage_path
-          // Join parts after 'public' to get the storage path
+          // Extract everything after 'public'
           const storagePath = pathParts.slice(publicIndex + 1).join('/');
           
-          // Use our path normalization utility to handle potential duplicates
-          // and create a properly formatted CDN path
-          const cdnPath = constructCdnPath(storagePath);
+          // Create a properly formatted CDN path
+          const cdnPath = storagePath;
           
-          // Construct CDN URL using the normalized path
+          // Construct CDN URL
           return `${CDN_ORIGIN}/${cdnPath}${parsedUrl.search}`;
         }
       }
     }
     
-    // If not a Supabase URL or we couldn't parse it properly, ensure it's a full URL
-    if (!url.startsWith('http')) {
-      // For relative paths, construct a full Supabase URL
-      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
-      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
-      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
-    }
-    
+    // For relative paths and other URLs, return as is
     return url;
   } catch (error) {
-    // If URL parsing fails, fallback to a direct Supabase URL
-    console.warn(`Invalid URL format for CDN processing: ${url}`);
-    
-    // For relative paths, construct a full Supabase URL
-    if (!url.startsWith('http')) {
-      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
-      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
-      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
-    }
-    
+    console.warn(`Error processing URL for CDN: ${url}`, error);
     return url;
   }
 };
 
 /**
- * Check if CDN is enabled based on environment settings
+ * Check if CDN is enabled based on environment and localStorage setting
  */
 export const isCdnEnabled = (): boolean => {
+  if (typeof window === 'undefined') {
+    return useCdn;
+  }
+  
+  try {
+    const savedSetting = localStorage.getItem('cdn_enabled');
+    if (savedSetting !== null) {
+      return savedSetting === 'true';
+    }
+  } catch (error) {
+    console.warn('Failed to read CDN setting from localStorage', error);
+  }
+  
   return useCdn;
 };
 
 /**
- * Check if CDN is available by making a test request
- * @returns Promise resolving to true if CDN is available
+ * Set CDN enabled state in localStorage
  */
-export const getCdnAvailability = async (): Promise<boolean> => {
-  // Use cache if available and not expired (5 minutes)
-  if (cdnAvailabilityCache && (Date.now() - cdnAvailabilityCache.timestamp < 5 * 60 * 1000)) {
-    return cdnAvailabilityCache.available;
+export const setCdnEnabled = (enabled: boolean): void => {
+  if (typeof window === 'undefined') {
+    return;
   }
   
   try {
-    // Make a test request to the CDN health endpoint
-    const response = await fetch('https://image-handler.yashmalhotra.workers.dev/health', {
-      method: 'HEAD',
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    
-    const available = response.ok;
-    
-    // Cache the result
-    cdnAvailabilityCache = {
-      available,
-      timestamp: Date.now()
-    };
-    
-    return available;
+    localStorage.setItem('cdn_enabled', enabled.toString());
   } catch (error) {
-    // If there's an error, assume CDN is not available
-    console.warn('CDN availability check failed:', error);
-    
-    // Cache the negative result
-    cdnAvailabilityCache = {
-      available: false,
-      timestamp: Date.now()
-    };
-    
-    return false;
+    console.error('Failed to save CDN setting to localStorage', error);
   }
 };
 
 /**
- * Reset CDN availability cache
+ * Transform a Supabase storage URL into the correct format for our CDN
  */
-export const resetCdnAvailabilityCache = (): void => {
-  cdnAvailabilityCache = null;
+export const parseSupabaseUrl = (url: string): string | null => {
+  try {
+    const parsedUrl = new URL(url);
+    
+    if (parsedUrl.hostname.includes('supabase')) {
+      const pathParts = parsedUrl.pathname.split('/');
+      const publicIndex = pathParts.indexOf('public');
+      
+      if (publicIndex !== -1 && publicIndex < pathParts.length - 1) {
+        return pathParts.slice(publicIndex + 1).join('/');
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    return null;
+  }
 };

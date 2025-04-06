@@ -12,7 +12,7 @@ export * from './cdnUrlService';
  * Test the CDN connection by attempting to load a test image
  * Returns true if the CDN is available, false otherwise
  */
-export const testCdnConnection = async (): Promise<boolean> => {
+export const testCdnConnection = (): Promise<boolean> => {
   return new Promise((resolve) => {
     try {
       const testImage = new Image();

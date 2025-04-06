@@ -80,6 +80,12 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
   if (width) style.width = width;
   if (height) style.height = height;
 
+  // Fix for fetchPriority - use the lowercase DOM attribute name
+  const imgAttributes: Record<string, any> = {};
+  if (fetchPriority) {
+    imgAttributes.fetchpriority = (isVisible ? fetchPriority : 'low').toLowerCase();
+  }
+
   return (
     <div
       ref={ref}
@@ -99,9 +105,9 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         height={height}
         sizes={sizes}
         style={style}
-        fetchPriority={isVisible ? fetchPriority : 'low'}
         loading="lazy" // Native lazy loading as backup
         className={`${className} w-full h-full`}
+        {...imgAttributes}
         onError={() => {
           if (imageSrc !== fallbackSrc) {
             setImageSrc(fallbackSrc);

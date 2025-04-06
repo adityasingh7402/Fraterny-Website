@@ -1,5 +1,5 @@
 
-import React, { lazy, Suspense, useEffect, useMemo } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -18,20 +18,6 @@ const NavalQuote = lazy(() => import('../components/NavalQuote'));
 const VillaLab = lazy(() => import('../components/VillaLab'));
 const OurValues = lazy(() => import('../components/OurValues'));
 const HowItWorks = lazy(() => import('../components/HowItWorks'));
-
-// Move CdnInitializer to a separate import to prevent React errors
-// Only import in non-SSR environments
-let CdnInitializer = null;
-if (typeof window !== 'undefined') {
-  // Dynamically import only on client-side
-  CdnInitializer = lazy(() => import('@/components/admin/images/cdn/CdnInitializer')
-    .catch(err => {
-      console.error('Failed to load CdnInitializer:', err);
-      // Return a fallback component that doesn't use React hooks
-      return { default: () => null };
-    })
-  );
-}
 
 // Simple loading fallback with better UX
 const LoadingFallback = () => (
@@ -123,7 +109,7 @@ const Index = () => {
   }, []);
 
   // Memoize critical image paths to prevent recreating the array on each render
-  const criticalImagePaths = useMemo(() => {
+  const criticalImagePaths = React.useMemo(() => {
     return CRITICAL_IMAGE_KEYS.map(key => `/images/${key}.webp`);
   }, []);
 
@@ -154,17 +140,39 @@ const Index = () => {
     triggerOnce: true
   });
 
+  // Don't use CdnInitializer here at all to prevent React errors
+  // We'll initialize the CDN settings directly
+  useEffect(() => {
+    // Initialize CDN setting if not already set
+    if (typeof window !== 'undefined') {
+      // Check if the CDN storage key exists in localStorage
+      const CDN_STORAGE_KEY = 'cdn_enabled';
+      
+      if (localStorage.getItem(CDN_STORAGE_KEY) === null) {
+        console.log('[CDN Initializer] Setting CDN to enabled by default');
+        localStorage.setItem(CDN_STORAGE_KEY, 'true');
+      }
+      
+      const isCdnEnabled = localStorage.getItem(CDN_STORAGE_KEY) === 'true';
+      console.log(`[CDN Initializer] CDN is currently ${isCdnEnabled ? 'enabled' : 'disabled'}`);
+      
+      // Test CDN on first load only if enabled
+      if (isCdnEnabled) {
+        import('@/utils/cdn').then(({ testCdnConnection }) => {
+          testCdnConnection()
+            .then(isAvailable => {
+              console.log('[CDN] Connection test result:', isAvailable ? 'Available' : 'Unavailable');
+            })
+            .catch(error => {
+              console.error('[CDN] Error testing connection:', error);
+            });
+        });
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen">
-      {/* Add CDN Initializer using Suspense, only if it's available */}
-      {CdnInitializer && (
-        <Suspense fallback={null}>
-          <ErrorBoundary>
-            <CdnInitializer />
-          </ErrorBoundary>
-        </Suspense>
-      )}
-      
       <Navigation />
       <Hero />
       
@@ -202,23 +210,17 @@ const Index = () => {
   );
 };
 
-// Define proper TypeScript interfaces for ErrorBoundary
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
 // Simple error boundary component to catch errors
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode }, 
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(): { hasError: boolean } {
     return { hasError: true };
   }
 
