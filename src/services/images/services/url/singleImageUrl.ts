@@ -11,7 +11,10 @@ import { handleError } from "@/utils/errorHandling";
  * Get a signed URL for an image by its key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  if (!key) return '/placeholder.svg';
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    console.error(`Invalid key in getImageUrlByKey: "${key}"`);
+    return '/placeholder.svg';
+  }
   
   const normalizedKey = key.trim();
   const cacheKey = `url:${normalizedKey}`;
@@ -19,12 +22,13 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl && isValidUrl(cachedUrl)) {
+    console.log(`Using cached URL for key "${normalizedKey}": ${cachedUrl}`);
     return cachedUrl;
   }
   
   // Track API call
   trackApiCall('getImageUrlByKey');
-  console.log(`Fetching signed URL for image key: "${normalizedKey}"`);
+  console.log(`Fetching URL for image key: "${normalizedKey}"`);
   
   try {
     // Get global cache version for proper versioning
@@ -33,7 +37,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Monitor this database request
     const monitor = monitorNetworkRequest('supabase:website_images');
     
-    // Get image record from database
+    // Get image record from database to get the key and metadata
     const { data: image, error } = await supabase
       .from('website_images')
       .select('key, metadata')
@@ -42,38 +46,41 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     if (error) {
       monitor.failure(error);
-      throw new Error(`Error loading image with key "${normalizedKey}": ${error.message}`);
+      console.error(`Database error loading image with key "${normalizedKey}":`, error);
+      return '/placeholder.svg';
     }
     
     monitor.success();
     
     if (!image) {
-      return handleImageNotFound(normalizedKey);
+      console.warn(`No image found with key "${normalizedKey}" in database`);
+      return '/placeholder.svg';
     }
     
-    // CRITICAL FIX: Use the key directly instead of storage_path
-    // This assumes your Supabase storage is organized with keys as filenames
+    // Use the key from the database record
     const imageKey = image.key;
     
     if (!imageKey) {
-      return handleImageWithoutPath(normalizedKey);
+      console.error(`Image record exists but has no key for "${normalizedKey}"`);
+      return '/placeholder.svg';
     }
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create public URL using the key directly
-    const { data: urlData } = await supabase.storage
+    // Create public URL using the storage API
+    const { data: urlData, error: urlError } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
-      
-    if (!urlData || !urlData.publicUrl) {
-      console.error(`Failed to get public URL for image key: ${imageKey}`);
+    
+    if (urlError || !urlData || !urlData.publicUrl) {
+      console.error(`Failed to get public URL for image key: "${imageKey}"`, urlError);
       return '/placeholder.svg';
     }
     
     // Add versioning to URL for cache busting
     const finalUrl = createVersionedUrl(urlData.publicUrl, contentHash, cacheVersion);
+    console.log(`Generated versioned URL for "${normalizedKey}": ${finalUrl}`);
     
     // Cache the URL
     urlCache.set(cacheKey, finalUrl);

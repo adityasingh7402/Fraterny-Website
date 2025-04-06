@@ -5,7 +5,7 @@ import { localStorageCacheService } from '@/services/images/cache/localStorageCa
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Hook now provides direct image URLs from Supabase with local caching
+ * Hook provides direct image URLs from Supabase with local caching
  * Uses image key directly instead of storage path
  */
 export const useCdnImage = (
@@ -36,11 +36,16 @@ export const useCdnImage = (
       const normalizedKey = imagePath.trim();
       const cacheKey = `directimage:${normalizedKey}`;
       
+      console.log(`useCdnImage: Processing key: "${normalizedKey}"`);
+      
       // Check localStorage cache first
       let cachedData = null;
       try {
         if (localStorageCacheService.isValid()) {
           cachedData = localStorageCacheService.getUrl(cacheKey);
+          if (cachedData) {
+            console.log(`useCdnImage: Found cached URL for key "${normalizedKey}": ${cachedData}`);
+          }
         }
       } catch (err) {
         console.warn('Failed to check localStorage cache:', err);
@@ -56,12 +61,24 @@ export const useCdnImage = (
       }
       
       try {
-        // CRITICAL FIX: Use key directly to get public URL
-        const { data } = await supabase.storage
+        // Use key directly to get public URL
+        console.log(`useCdnImage: Getting public URL for key: "${normalizedKey}"`);
+        
+        const { data, error } = await supabase.storage
           .from('website-images')
           .getPublicUrl(normalizedKey);
           
+        if (error) {
+          throw new Error(`Failed to get public URL: ${error.message}`);
+        }
+        
+        if (!data || !data.publicUrl) {
+          console.error(`useCdnImage: No public URL returned for key "${normalizedKey}"`);
+          throw new Error(`No public URL returned for key "${normalizedKey}"`);
+        }
+        
         const processedUrl = data.publicUrl;
+        console.log(`useCdnImage: Got public URL for key "${normalizedKey}": ${processedUrl}`);
         
         // Cache the result for future use
         try {
@@ -78,6 +95,8 @@ export const useCdnImage = (
           setIsCached(false);
         }
       } catch (error) {
+        console.error(`useCdnImage error for key "${normalizedKey}":`, error);
+        
         if (error instanceof Error) {
           setError(error);
         } else {
@@ -86,7 +105,7 @@ export const useCdnImage = (
         
         // Still set a URL to avoid breaking the UI
         if (isMounted) {
-          setUrl(imagePath);
+          setUrl('/placeholder.svg');
           setIsLoading(false);
           setIsCached(false);
         }

@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,27 +56,37 @@ export const createVersionedUrl = (
 
 /**
  * Create a signed URL for a storage path
- * Now uses key directly instead of storage path
+ * Uses key directly to get public URL
  */
 export const createSignedUrl = async (key: string): Promise<string> => {
-  if (!key) return '/placeholder.svg';
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    console.error(`Invalid key: ${key}`);
+    return '/placeholder.svg';
+  }
   
   try {
-    console.log(`Getting public URL for key: ${key}`);
+    const normalizedKey = key.trim();
+    console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
     
-    // Get public URL (not signed, since we're using public bucket access)
-    const { data } = await supabase.storage
+    // Get public URL from website-images bucket
+    const { data, error } = await supabase.storage
       .from('website-images')
-      .getPublicUrl(key);
+      .getPublicUrl(normalizedKey);
+    
+    if (error) {
+      console.error(`Error getting public URL for key "${normalizedKey}":`, error);
+      return '/placeholder.svg';
+    }
       
     if (!data || !data.publicUrl) {
-      console.error(`Failed to get public URL for key: ${key}`);
+      console.error(`Failed to get public URL for key: "${normalizedKey}"`);
       return '/placeholder.svg';
     }
     
+    console.log(`Generated public URL for key "${normalizedKey}": ${data.publicUrl}`);
     return data.publicUrl;
   } catch (error) {
-    console.error(`Error creating signed URL for key ${key}:`, error);
+    console.error(`Error creating signed URL for key "${key}":`, error);
     return '/placeholder.svg';
   }
 };

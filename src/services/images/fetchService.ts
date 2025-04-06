@@ -21,8 +21,9 @@ import {
  */
 export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null> => {
   try {
-    if (!key) {
-      throw new Error('Image Key is required');
+    if (!key || typeof key !== 'string' || key.trim() === '') {
+      console.error('Image key is empty or invalid:', key);
+      return null;
     }
     
     // Normalize the key by trimming whitespace
@@ -37,16 +38,22 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     if (cached !== undefined) {
       // Add a URL property if it doesn't exist
       if (cached && !cached.url) {
-        // CRITICAL FIX: Use key directly to generate URL
-        const { data } = await supabase.storage
+        // Use key directly to generate URL
+        const { data, error } = await supabase.storage
           .from('website-images')
           .getPublicUrl(cached.key);
           
-        cached.url = data.publicUrl;
+        if (error || !data) {
+          console.error(`Error getting URL for cached image with key "${normalizedKey}":`, error);
+        } else {
+          cached.url = data.publicUrl;
+          console.log(`Retrieved cached image URL for "${normalizedKey}": ${cached.url}`);
+        }
       }
       return cached;
     }
     
+    console.log(`Querying database for image with key "${normalizedKey}"`);
     const { data, error } = await supabase
       .from('website_images')
       .select('*')
@@ -68,19 +75,23 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     // Add a computed url property to the returned object
     let result = data as WebsiteImage;
     
-    // CRITICAL FIX: Use key instead of storage_path
-    // Get the direct URL from Supabase
-    const { data: urlData } = await supabase.storage
+    // Get the direct URL from Supabase using the key
+    const { data: urlData, error: urlError } = await supabase.storage
       .from('website-images')
       .getPublicUrl(data.key);
-      
-    // Set the URL property
-    result.url = urlData.publicUrl;
+    
+    if (urlError || !urlData) {
+      console.error(`Error getting URL for image with key "${normalizedKey}":`, urlError);
+    } else {    
+      // Set the URL property
+      result.url = urlData.publicUrl;
+      console.log(`Generated URL for "${normalizedKey}": ${result.url}`);
+    }
     
     // Get WebP URL if the browser supports it
     const supportsWebP = true; // Modern browsers all support WebP
     
-    if (supportsWebP && 
+    if (supportsWebP && result.url && 
         (result.url.endsWith('.jpg') || 
          result.url.endsWith('.jpeg') || 
          result.url.endsWith('.png'))) {
@@ -113,6 +124,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     return result;
   } catch (error) {
+    console.error(`Unexpected error in fetchImageByKey for key "${key}":`, error);
     return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
   }
 };
