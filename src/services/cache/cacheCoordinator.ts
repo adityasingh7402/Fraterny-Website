@@ -1,3 +1,4 @@
+
 /**
  * Cache Coordinator Service
  * 
@@ -38,6 +39,40 @@ import * as memoryLayer from './layers/memoryLayer';
 import * as localStorageLayer from './layers/localStorageLayer';
 import * as reactQueryLayer from './layers/reactQueryLayer';
 import * as serviceWorkerLayer from './layers/serviceWorkerLayer';
+
+/**
+ * Sync with service worker
+ * @returns Promise<boolean> - whether sync was successful
+ */
+export const syncWithServiceWorker = async (): Promise<boolean> => {
+  try {
+    // Check if the service worker is active
+    if (typeof navigator === 'undefined' || 
+        !('serviceWorker' in navigator) || 
+        !navigator.serviceWorker.controller) {
+      console.log('Service worker not active or not supported, skipping sync');
+      return false;
+    }
+    
+    // Get the cache version
+    const cacheVersion = await getGlobalCacheVersion();
+    if (!cacheVersion) {
+      console.warn('No cache version available for sync');
+      return false;
+    }
+    
+    // Send message to service worker to update cache version
+    navigator.serviceWorker.controller.postMessage({
+      action: 'updateCacheVersion',
+      version: cacheVersion
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error syncing with service worker:', error);
+    return false;
+  }
+};
 
 /**
  * Create the cache coordinator
@@ -392,40 +427,6 @@ export const createCacheCoordinator = (): CacheCoordinator => {
    */
   const getCacheVersion = async (): Promise<string | null> => {
     return await getGlobalCacheVersion();
-  };
-  
-  /**
-   * Sync with service worker
-   * @returns Promise<boolean> - whether sync was successful
-   */
-  const syncWithServiceWorker = async (): Promise<boolean> => {
-    try {
-      // Check if the service worker is active
-      if (typeof navigator === 'undefined' || 
-          !('serviceWorker' in navigator) || 
-          !navigator.serviceWorker.controller) {
-        console.log('Service worker not active or not supported, skipping sync');
-        return false;
-      }
-      
-      // Get the cache version
-      const cacheVersion = await getGlobalCacheVersion();
-      if (!cacheVersion) {
-        console.warn('No cache version available for sync');
-        return false;
-      }
-      
-      // Send message to service worker to update cache version
-      navigator.serviceWorker.controller.postMessage({
-        action: 'updateCacheVersion',
-        version: cacheVersion
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error syncing with service worker:', error);
-      return false;
-    }
   };
   
   return {
