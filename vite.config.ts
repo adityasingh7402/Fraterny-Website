@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -32,8 +33,8 @@ export default defineConfig(({ mode }) => ({
   build: {
     // Ensure CSS is properly extracted in production
     cssCodeSplit: true,
-    // Optimize CSS extraction
-    cssMinify: 'lightningcss',
+    // Remove the cssMinify option that depends on lightningcss
+    // cssMinify: 'lightningcss',
     // Output build stats for analysis
     reportCompressedSize: true,
     // Output source maps for debugging
