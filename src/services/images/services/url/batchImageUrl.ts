@@ -4,13 +4,40 @@ import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
 import { getContentHashFromMetadata, createVersionedUrl, isValidImageKey } from "./utils";
+import { IMAGE_KEYS } from "@/pages/admin/images/components/upload/constants";
+
+// Create a map of valid predefined keys for faster lookup
+const PREDEFINED_KEYS = new Map(IMAGE_KEYS.map(item => [item.key, true]));
+
+/**
+ * Enhanced validation function that checks against predefined keys
+ */
+const validateImageKey = (key: string): boolean => {
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    return false;
+  }
+  
+  const normalizedKey = key.trim();
+  
+  // In production, warn but don't fail
+  if (process.env.NODE_ENV === 'production') {
+    const isPredefined = PREDEFINED_KEYS.has(normalizedKey);
+    if (!isPredefined) {
+      console.warn(`Key "${normalizedKey}" is not in the predefined list`);
+    }
+    return isValidImageKey(normalizedKey);
+  }
+  
+  // In development, strictly check against predefined list
+  return PREDEFINED_KEYS.has(normalizedKey);
+};
 
 /**
  * Get a URL for an image by key in a batched query pattern
  */
 export const getImageUrlBatched = async (key: string): Promise<string> => {
   // Validate key first to prevent undefined from getting into URLs
-  if (!isValidImageKey(key)) {
+  if (!validateImageKey(key)) {
     console.error(`Invalid or undefined key in getImageUrlBatched: "${key}"`);
     return '/placeholder.svg';
   }
@@ -97,10 +124,16 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     // Get global cache version for proper versioning
     const cacheVersion = await getGlobalCacheVersion();
     
-    // Normalize keys - filter out invalid keys
+    // Normalize and validate keys - filter out invalid keys
     const normalizedKeys = keys
-      .filter(key => isValidImageKey(key))
+      .filter(key => validateImageKey(key))
       .map(key => key.trim());
+    
+    // Log any invalid keys that were filtered out
+    const invalidKeys = keys.filter(key => !validateImageKey(key));
+    if (invalidKeys.length > 0) {
+      console.warn('[batchGetImageUrls] Filtered out invalid keys:', invalidKeys);
+    }
     
     if (normalizedKeys.length === 0) {
       console.warn('[batchGetImageUrls] All keys were invalid or empty');

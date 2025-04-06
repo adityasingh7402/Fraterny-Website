@@ -5,16 +5,37 @@ import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGaller
 import { useReactQueryImages } from '@/hooks/useReactQueryImages';
 import { supabase } from '@/integrations/supabase/client';
 import { isValidImageKey } from '@/services/images/services/url/utils';
+import { IMAGE_KEYS } from '@/pages/admin/images/components/upload/constants';
 
-// Function to check if images exist in the database
-const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>> => {
-  if (!keys || keys.length === 0) return {};
+// Enhanced validation function to ensure keys are predefined and valid
+const isImageKeyPredefined = (key: string): boolean => {
+  // First check that key is a valid format
+  if (!isValidImageKey(key)) {
+    console.warn(`Invalid image key format: "${key}"`);
+    return false;
+  }
   
-  // Filter out invalid keys first
-  const validKeys = keys.filter(key => isValidImageKey(key));
+  // Then verify it's in our predefined list
+  const isPredefined = IMAGE_KEYS.some(item => item.key === key);
+  if (!isPredefined) {
+    console.warn(`Image key "${key}" is not in predefined list`);
+  }
+  
+  return isPredefined;
+};
+
+// Function to check if images exist in the database with enhanced validation
+const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>> => {
+  if (!keys || keys.length === 0) {
+    console.warn('No keys provided to checkImagesExist');
+    return {};
+  }
+  
+  // Filter out non-predefined keys first
+  const validKeys = keys.filter(key => isImageKeyPredefined(key));
   
   if (validKeys.length === 0) {
-    console.warn('No valid image keys provided to checkImagesExist');
+    console.warn('No valid predefined image keys to check');
     return {};
   }
   
@@ -50,7 +71,7 @@ const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>
   }
 };
 
-// Updated to use ONLY predefined, valid image keys
+// Strictly predefined image keys for the experience gallery
 const experienceImages = [
   {
     dynamicKey: "experience-villa-retreat",
@@ -98,22 +119,23 @@ const ImageGallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [existingKeys, setExistingKeys] = useState<Record<string, boolean>>({});
   
-  // Create stable image keys for dependency tracking and log them for debugging
+  // Create stable image keys for dependency tracking and validate them
   const imageKeys = useMemo(() => {
-    // Filter out any invalid keys
+    // Validate each key against predefined list
     const keys = experienceImages
       .map(img => img.dynamicKey)
-      .filter(key => isValidImageKey(key));
+      .filter(key => isImageKeyPredefined(key));
       
-    console.log('ImageGallery: Using valid image keys:', keys);
+    // Log final validated keys
+    console.log('ImageGallery: Using predefined image keys:', keys);
     
-    // Log any invalid keys
+    // Log any keys that were filtered out
     const invalidKeys = experienceImages
       .map(img => img.dynamicKey)
-      .filter(key => !isValidImageKey(key));
+      .filter(key => !isImageKeyPredefined(key));
       
     if (invalidKeys.length > 0) {
-      console.error('ImageGallery: Found invalid image keys:', invalidKeys);
+      console.error('ImageGallery: Found non-predefined image keys:', invalidKeys);
     }
     
     return keys;
@@ -122,6 +144,11 @@ const ImageGallery = () => {
   // Check which image keys exist in the database
   useEffect(() => {
     const checkImages = async () => {
+      if (imageKeys.length === 0) {
+        console.warn('No valid keys to check existence for');
+        return;
+      }
+      
       const results = await checkImagesExist(imageKeys);
       setExistingKeys(results);
     };
@@ -167,19 +194,20 @@ const ImageGallery = () => {
         priority={true} // Mark as high priority content
       >
         {experienceImages.map((image, index) => {
-          // Validate the key first
-          const isKeyValid = isValidImageKey(image.dynamicKey);
+          // Validate the key is predefined
+          const isKeyPredefined = isImageKeyPredefined(image.dynamicKey);
           
           // Check if this image exists in the database
-          const imageExists = isKeyValid && existingKeys[image.dynamicKey];
+          const imageExists = isKeyPredefined && existingKeys[image.dynamicKey];
           
-          // Log the URL we're using for this image
-          const imageUrl = imageUrlsData?.[image.dynamicKey];
-          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", valid: ${isKeyValid}, exists: ${imageExists}, URL: ${imageUrl || 'none'}`);
+          // Get the URL for this image (if available)
+          const imageUrl = isKeyPredefined ? imageUrlsData?.[image.dynamicKey] : null;
+          
+          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", predefined: ${isKeyPredefined}, exists: ${imageExists}, URL: ${imageUrl || 'none'}`);
           
           return (
             <div key={index} className="aspect-[4/3] w-full">
-              {isKeyValid && imageExists ? (
+              {isKeyPredefined && imageExists ? (
                 <ResponsiveImage 
                   dynamicKey={image.dynamicKey}
                   alt={image.alt}
@@ -194,8 +222,8 @@ const ImageGallery = () => {
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                   <span className="text-gray-500 text-sm px-2 text-center">
-                    {!isKeyValid 
-                      ? `Invalid key format: ${image.dynamicKey}` 
+                    {!isKeyPredefined 
+                      ? `Key not in predefined list: ${image.dynamicKey}` 
                       : "Image not available"}
                   </span>
                 </div>

@@ -16,13 +16,18 @@ export const isValidImageKey = (key: string | null | undefined): boolean => {
   
   const normalizedKey = key.trim();
   
-  // In production, we consider any non-empty key as potentially valid
-  // In development, we strictly check against our predefined keys
-  if (process.env.NODE_ENV === 'development') {
-    return VALID_KEYS.has(normalizedKey);
+  // In production, we still check against our predefined list
+  // but log warnings instead of rejecting outright
+  if (process.env.NODE_ENV === 'production') {
+    const isPredefined = VALID_KEYS.has(normalizedKey);
+    if (!isPredefined) {
+      console.warn(`Image key not in predefined list: "${normalizedKey}"`);
+    }
+    return true; // Still return true to avoid breaking production
   }
   
-  return true;
+  // In development, strictly validate against predefined keys
+  return VALID_KEYS.has(normalizedKey);
 };
 
 /**
@@ -83,7 +88,7 @@ export const createVersionedUrl = (
  */
 export const createSignedUrl = async (key: string): Promise<string> => {
   // First validate that we have a proper key
-  if (!key || typeof key !== 'string' || key.trim() === '') {
+  if (!isValidImageKey(key)) {
     console.error(`Invalid key in createSignedUrl: "${key}"`);
     return '/placeholder.svg';
   }

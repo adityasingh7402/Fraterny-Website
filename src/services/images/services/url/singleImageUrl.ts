@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
@@ -5,30 +6,72 @@ import { trackApiCall } from "@/utils/apiMonitoring";
 import { getContentHashFromMetadata, createVersionedUrl, isValidImageKey } from "./utils";
 import { isValidUrl } from "@/utils/debugUtils";
 import { handleError } from "@/utils/errorHandling";
+import { IMAGE_KEYS } from "@/pages/admin/images/components/upload/constants";
+
+// Cache of validated keys for performance
+const validKeyCache = new Map<string, boolean>();
+
+/**
+ * Enhanced key validation with caching for performance
+ */
+const validateAndNormalizeKey = (key: string | null | undefined): string | null => {
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    console.error(`Invalid key provided: "${key}"`);
+    return null;
+  }
+  
+  const normalizedKey = key.trim();
+  
+  // Check cache first
+  if (validKeyCache.has(normalizedKey)) {
+    return validKeyCache.get(normalizedKey) ? normalizedKey : null;
+  }
+  
+  // Validate the key is in our predefined list
+  const isValid = isValidImageKey(normalizedKey);
+  validKeyCache.set(normalizedKey, isValid);
+  
+  // If not valid, suggest similar keys for better debugging
+  if (!isValid) {
+    const allKeys = IMAGE_KEYS.map(item => item.key);
+    const similarKeys = allKeys.filter(k => 
+      k.includes(normalizedKey) || normalizedKey.includes(k)
+    ).slice(0, 3);
+    
+    if (similarKeys.length > 0) {
+      console.warn(`Key "${normalizedKey}" is not valid. Did you mean: ${similarKeys.join(', ')}?`);
+    } else {
+      console.error(`Key "${normalizedKey}" is not valid and no similar keys found.`);
+    }
+    
+    return null;
+  }
+  
+  return normalizedKey;
+};
 
 /**
  * Get a signed URL for an image by its key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  // Validate key first to prevent undefined from getting into URLs
-  if (!isValidImageKey(key)) {
-    console.error(`Invalid or undefined key in getImageUrlByKey: "${key}"`);
+  // Enhanced validation to prevent undefined/null/empty keys
+  const validKey = validateAndNormalizeKey(key);
+  if (!validKey) {
     return '/placeholder.svg';
   }
   
-  const normalizedKey = key.trim();
-  const cacheKey = `url:${normalizedKey}`;
+  const cacheKey = `url:${validKey}`;
   
   // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl && isValidUrl(cachedUrl)) {
-    console.log(`Using cached URL for key "${normalizedKey}": ${cachedUrl}`);
+    console.log(`Using cached URL for key "${validKey}": ${cachedUrl}`);
     return cachedUrl;
   }
   
   // Track API call
   trackApiCall('getImageUrlByKey');
-  console.log(`Fetching URL for image key: "${normalizedKey}"`);
+  console.log(`Fetching URL for image key: "${validKey}"`);
   
   try {
     // Get global cache version for proper versioning
@@ -38,21 +81,21 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     const { data: image, error } = await supabase
       .from('website_images')
       .select('key, metadata')
-      .eq('key', normalizedKey)
+      .eq('key', validKey)
       .maybeSingle();
     
     if (error) {
-      console.error(`Database error loading image with key "${normalizedKey}":`, error);
+      console.error(`Database error loading image with key "${validKey}":`, error);
       return '/placeholder.svg';
     }
     
     if (!image) {
-      console.warn(`No image found with key "${normalizedKey}" in database`);
+      console.warn(`No image found with key "${validKey}" in database`);
       return '/placeholder.svg';
     }
     
     // Use the key directly for storage path - ensure it's not undefined
-    const imageKey = image.key || normalizedKey;
+    const imageKey = image.key || validKey;
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
@@ -69,7 +112,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     
     // Add versioning to URL for cache busting
     const finalUrl = createVersionedUrl(urlData.publicUrl, contentHash, cacheVersion);
-    console.log(`Generated versioned URL for "${normalizedKey}": ${finalUrl}`);
+    console.log(`Generated versioned URL for "${validKey}": ${finalUrl}`);
     
     // Cache the URL
     urlCache.set(cacheKey, finalUrl);
@@ -78,8 +121,8 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   } catch (error) {
     handleError(
       error,
-      `Error getting URL for image "${normalizedKey}"`,
-      { silent: true, context: { key: normalizedKey } }
+      `Error getting URL for image "${validKey}"`,
+      { silent: true, context: { key: validKey } }
     );
     return '/placeholder.svg';
   }
@@ -92,14 +135,13 @@ export const getImageUrlByKeyAndSize = async (
   key: string, 
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
-  // Improved validation to prevent undefined/null/empty keys
-  if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.error(`Invalid key in getImageUrlByKeyAndSize: "${key}", size: ${size}`);
+  // Enhanced validation to prevent undefined/null/empty keys
+  const validKey = validateAndNormalizeKey(key);
+  if (!validKey) {
     return '/placeholder.svg';
   }
   
-  const normalizedKey = key.trim();
-  const cacheKey = `url:${normalizedKey}:${size}`;
+  const cacheKey = `url:${validKey}:${size}`;
   
   // Try to get from cache first
   const cachedUrl = urlCache.get(cacheKey);
@@ -118,16 +160,16 @@ export const getImageUrlByKeyAndSize = async (
     const { data: image, error } = await supabase
       .from('website_images')
       .select('key, metadata')
-      .eq('key', normalizedKey)
+      .eq('key', validKey)
       .maybeSingle();
     
     if (error) {
-      console.error(`Database error loading image with key "${normalizedKey}":`, error);
+      console.error(`Database error loading image with key "${validKey}":`, error);
       return '/placeholder.svg';
     }
     
     if (!image) {
-      console.warn(`No image found with key "${normalizedKey}" in database`);
+      console.warn(`No image found with key "${validKey}" in database`);
       return '/placeholder.svg';
     }
     
@@ -135,7 +177,7 @@ export const getImageUrlByKeyAndSize = async (
     const imageKey = image.key;
     
     if (!imageKey) {
-      console.error(`Image found but has no key for "${normalizedKey}"`);
+      console.error(`Image found but has no key for "${validKey}"`);
       return '/placeholder.svg';
     }
     
@@ -182,8 +224,8 @@ export const getImageUrlByKeyAndSize = async (
   } catch (error) {
     handleError(
       error,
-      `Error getting URL for image "${normalizedKey}" with size ${size}`,
-      { silent: true, context: { key: normalizedKey, size } }
+      `Error getting URL for image "${validKey}" with size ${size}`,
+      { silent: true, context: { key: validKey, size } }
     );
     return '/placeholder.svg';
   }
