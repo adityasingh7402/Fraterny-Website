@@ -57,13 +57,11 @@ export default defineConfig(({ mode }) => ({
             return 'vendor';
           }
         },
-        // Ensure critical CSS is prioritized
+        // Fixed TypeScript error by correctly typing the assetFileNames function
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name?.endsWith('.css')) {
-            // Name critical CSS differently for easier identification
-            if (assetInfo.source && assetInfo.source.includes('.heading-1') || 
-                assetInfo.source.includes('.bg-navy') || 
-                assetInfo.source.includes('.hero')) {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            const source = assetInfo.source ? assetInfo.source.toString() : '';
+            if (source.includes('.heading-1') || source.includes('.bg-navy') || source.includes('.hero')) {
               return 'assets/critical-[hash][extname]';
             }
             return 'assets/[name]-[hash][extname]';
