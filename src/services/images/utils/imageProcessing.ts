@@ -6,10 +6,7 @@
 
 // Export functions from individual modules
 export { getImageDimensions } from './dimensions';
-export { 
-  createOptimizedVersions, 
-  generateImageVariant 
-} from './optimizationService';
+export { createOptimizedVersions } from './optimizationService';
 export { resizeImage } from './optimizationUtils';
 export { generateTinyPlaceholder, generateColorPlaceholder } from './placeholderService';
 export { generateContentHash, addHashToUrl, generateCacheKey, parseCacheKey } from './hashUtils';

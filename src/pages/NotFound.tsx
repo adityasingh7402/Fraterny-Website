@@ -12,7 +12,7 @@ const NotFound = () => {
     navigate = useNavigate();
   } catch (e) {
     // If hooks fail, we're outside router context
-    console.error("NotFound component rendered outside Router context - this is expected during initial load");
+    console.error("404 page rendered outside Router context");
   }
 
   useEffect(() => {

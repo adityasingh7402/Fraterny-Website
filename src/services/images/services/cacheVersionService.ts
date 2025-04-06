@@ -1,122 +1,76 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { localStorageCacheService } from '../cache/localStorageCacheService';
-import { updateServiceWorkerCacheVersion } from "@/utils/serviceWorkerRegistration";
-
-// Cache for global version
-let cachedGlobalVersion: string | null = null;
-let cachedVersionTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+import { urlCache } from "../cacheService";
 
 /**
- * Get the global cache version, with localStorage support
+ * Helper function to retrieve the global cache version from website settings
  */
 export const getGlobalCacheVersion = async (): Promise<string | null> => {
   try {
-    // First check if we have a valid cached version
-    if (cachedGlobalVersion && (Date.now() - cachedVersionTimestamp < CACHE_DURATION)) {
-      return cachedGlobalVersion;
+    // Check in-memory cache first
+    const cachedVersion = urlCache.get('global:cache:version');
+    if (cachedVersion) {
+      return cachedVersion;
     }
-    
-    // Then check if we have a version in localStorage
-    if (localStorageCacheService.isValid()) {
-      const storedVersion = localStorageCacheService.getGlobalVersion();
-      if (storedVersion) {
-        cachedGlobalVersion = storedVersion;
-        cachedVersionTimestamp = Date.now();
-        return storedVersion;
-      }
-    }
-    
-    // If not, fetch from the database
+
+    // Fetch from database
     const { data, error } = await supabase
       .from('website_settings')
       .select('value')
-      .eq('key', 'cache_version')
+      .eq('key', 'global_cache_version')
       .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching global cache version:', error);
+
+    if (error || !data) {
+      console.log('No global cache version found in settings, using default');
       return null;
     }
+
+    // Cache for future use (short TTL)
+    urlCache.set('global:cache:version', data.value, 60000); // 1 minute TTL
     
-    const version = data?.value || null;
-    
-    // Cache the version
-    cachedGlobalVersion = version;
-    cachedVersionTimestamp = Date.now();
-    
-    // Also store in localStorage
-    if (version && localStorageCacheService.isValid()) {
-      localStorageCacheService.updateGlobalVersion(version);
-    }
-    
-    return version;
-  } catch (error) {
-    console.error('Unexpected error fetching global cache version:', error);
+    return data.value;
+  } catch (e) {
+    console.error('Error fetching global cache version:', e);
     return null;
   }
 };
 
 /**
- * Update the global cache version
- * This will force all clients to regenerate their caches
+ * Update the global cache version to invalidate all cached content
  */
-export const updateGlobalCacheVersion = async (options: {
-  scope?: 'global' | 'prefix' | 'category';
-  target?: string;
-} = {}): Promise<boolean> => {
+export const updateGlobalCacheVersion = async (): Promise<boolean> => {
   try {
-    const { scope = 'global', target } = options;
-    
-    // Generate a new version string
-    const timestamp = Date.now();
-    const randomPart = Math.floor(Math.random() * 1000);
-    const versionString = `${scope}${target ? `:${target}` : ''}:${timestamp}-${randomPart}`;
+    // Generate a new timestamp-based version
+    const newVersion = `v${Date.now()}`;
     
     // Update in the database
     const { error } = await supabase
       .from('website_settings')
-      .upsert({
-        key: 'cache_version',
-        value: versionString,
-        description: 'Global cache version for coordinating client cache invalidation',
+      .upsert({ 
+        key: 'global_cache_version', 
+        value: newVersion,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'key'
       });
-    
+
     if (error) {
-      console.error('Error updating global cache version:', error);
+      console.error('Failed to update global cache version:', error);
       return false;
     }
     
-    // Update our local cache
-    cachedGlobalVersion = versionString;
-    cachedVersionTimestamp = Date.now();
+    // Clear URL cache to force regeneration with new version
+    clearImageUrlCache();
     
-    // Update localStorage
-    if (localStorageCacheService.isValid()) {
-      localStorageCacheService.updateGlobalVersion(versionString);
-    }
+    // Update in-memory cache
+    urlCache.set('global:cache:version', newVersion, 60000); // 1 minute TTL
     
-    // Also update the service worker cache version if available
-    try {
-      updateServiceWorkerCacheVersion(versionString)
-        .then(success => {
-          if (success) {
-            console.log('Service worker cache version updated successfully');
-          }
-        })
-        .catch(err => {
-          console.warn('Failed to update service worker cache version:', err);
-        });
-    } catch (err) {
-      console.warn('Error while trying to update service worker cache:', err);
-    }
-    
-    console.log(`Global cache version updated: ${versionString}`);
+    console.log(`Global cache version updated to ${newVersion}`);
     return true;
-  } catch (error) {
-    console.error('Unexpected error updating global cache version:', error);
+  } catch (e) {
+    console.error('Error updating global cache version:', e);
     return false;
   }
 };
+
+// Import the clearImageUrlCache function to use inside updateGlobalCacheVersion
+import { clearImageUrlCache } from './cacheService';

@@ -14,14 +14,10 @@ interface BasicImageProps {
   height?: number;
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  useCdn?: boolean; // This is now ignored but kept for backward compatibility
-  onLoad?: () => void;
-  onError?: () => void;
 }
 
 /**
  * Basic image component for simple URL sources
- * With proper error handling and correct React props
  */
 export const BasicImage = ({
   src,
@@ -34,42 +30,13 @@ export const BasicImage = ({
   width,
   height,
   sizes,
-  objectFit = 'cover',
-  useCdn = false, // This is ignored as CDN is removed
-  onLoad,
-  onError
+  objectFit = 'cover'
 }: BasicImageProps) => {
-  const [imgSrc, setImgSrc] = React.useState<string>(src);
-  
-  // Update image source when prop changes
-  React.useEffect(() => {
-    setImgSrc(src);
-  }, [src]);
-  
-  // Handle error state
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error(`Image failed to load: ${imgSrc}, falling back to: ${fallbackSrc}`);
-    // If the image fails to load, replace with fallback
-    if (imgSrc !== fallbackSrc) {
-      setImgSrc(fallbackSrc);
-    }
-    onError?.();
-  };
-  
-  const handleLoad = () => {
-    console.log(`[BasicImage] Successfully loaded: ${imgSrc}`);
-    onLoad?.();
-  };
-  
   const imgProps = createImageProps(
-    imgSrc, 
-    alt, 
-    className, 
-    loading, 
-    sizes,
-    width, 
-    height, 
-    fallbackSrc
+    src, alt, className, loading, sizes,
+    width, height, 
+    fallbackSrc, 
+    fetchPriority
   );
   
   // Apply object-fit directly to the style object for the img element
@@ -78,19 +45,6 @@ export const BasicImage = ({
     objectFit 
   };
   
-  // Fix for the fetchPriority warning - use the lowercase DOM attribute
-  const imgAttributes: Record<string, any> = {};
-  if (fetchPriority) {
-    imgAttributes.fetchpriority = fetchPriority.toLowerCase();
-  }
-  
-  return <img 
-    {...imgProps} 
-    {...imgAttributes}
-    style={style} 
-    onClick={onClick}
-    loading={loading}
-    onLoad={handleLoad}
-    onError={handleError}
-  />;
+  // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
+  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
 };

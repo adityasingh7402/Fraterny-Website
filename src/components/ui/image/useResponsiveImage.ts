@@ -10,8 +10,6 @@ import {
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { fetchImageByKey } from "@/services/images/fetchService";
-import { getCdnUrl } from '@/utils/cdnUtils';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -126,24 +124,52 @@ export const useResponsiveImage = (
         
         // Handle mobile variant keys
         const isMobileKey = dynamicKey.includes('-mobile');
+        let imageUrl: string;
         let fallbackToDesktop = false;
         
         // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
-        // Fetch the image metadata and get the URL
-        const imageMetadata = await fetchImageByKey(dynamicKey);
-        let imageUrl;
-        
-        if (!imageMetadata) {
-          throw new Error(`No image found for key: ${dynamicKey}`);
-        }
-        
-        // Use direct URL from metadata to avoid duplicate path segments
-        imageUrl = imageMetadata.url;
-        
-        if (debugCache && imageUrl) {
-          console.log(`Image URL for ${dynamicKey}: ${imageUrl}`);
+        // If size is specified, try to get that specific size
+        if (size) {
+          imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
+          
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = dynamicKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
+            fallbackToDesktop = true;
+          }
+        } else {
+          // Otherwise get the original image
+          imageUrl = await getImageUrlByKey(dynamicKey);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
+          
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = dynamicKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            imageUrl = await getImageUrlByKey(desktopKey);
+            fallbackToDesktop = true;
+          }
         }
         
         // Get placeholders if we didn't fetch them earlier

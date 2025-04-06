@@ -1,59 +1,72 @@
 
-/**
- * Utility functions for image components
- */
+import { useEffect } from 'react';
+import { ResponsiveImageSource } from './types';
 
 /**
- * Create standardized props for image elements
+ * Utility function to create common props for the img element
  */
 export const createImageProps = (
   src: string,
   alt: string,
-  className?: string,
-  loading: 'lazy' | 'eager' = 'lazy',
-  sizes?: string,
-  width?: number,
-  height?: number,
-  fallbackSrc?: string,
+  className: string | undefined,
+  loading: 'lazy' | 'eager',
+  sizes: string | undefined,
+  width: number | undefined,
+  height: number | undefined,
+  fallbackSrc: string,
   fetchPriority?: 'high' | 'low' | 'auto'
-) => {
-  // Validate src to ensure it's not empty
-  if (!src || src.trim() === '') {
-    console.warn('Empty image src provided, using fallback');
-    src = fallbackSrc || '/placeholder.svg';
-  }
-
-  // Basic props every image should have
-  const props: {
-    src: string;
-    alt: string;
-    className: string;
-    loading: 'lazy' | 'eager';
-    style: React.CSSProperties;
-    width?: number;
-    height?: number;
-    sizes?: string;
-    fetchpriority?: 'high' | 'low' | 'auto';
-  } = {
+): React.ImgHTMLAttributes<HTMLImageElement> => {
+  // Create a props object for the img element
+  const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
     src,
-    alt: alt || 'Image', // Always provide alt text
-    className: className || '',
+    alt,
+    className,
     loading,
-    style: {} as React.CSSProperties
+    decoding: "async",
+    sizes,
+    width,
+    height,
+    onError: (e) => {
+      console.warn(`Failed to load image: ${e.currentTarget.src}`);
+      if (e.currentTarget.src !== fallbackSrc) {
+        e.currentTarget.src = fallbackSrc;
+      }
+    }
   };
-
-  // Add width and height if provided for better performance
-  if (width) props.width = width;
-  if (height) props.height = height;
   
-  // Add sizes attribute for responsive images if provided
-  if (sizes) props.sizes = sizes;
+  return imgProps;
+};
 
-  // Additional props for improved performance
-  if (fetchPriority) {
-    // @ts-ignore - This is a valid attribute but TypeScript doesn't know about it
-    props.fetchpriority = fetchPriority;
-  }
-
-  return props;
+/**
+ * Utility hook to monitor image loading performance
+ */
+export const useImagePerformanceMonitoring = (
+  imageSrc: string | ResponsiveImageSource | undefined, 
+  dynamicSrc: string | null
+) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
+      // Determine the image URL to monitor
+      const imgUrl = typeof imageSrc === 'string' ? 
+        imageSrc : 
+        (
+          imageSrc?.desktop || 
+          dynamicSrc || 
+          ''
+        );
+      
+      // Skip monitoring for empty URLs
+      if (!imgUrl) return;
+      
+      const loadStart = performance.now();
+      
+      return () => {
+        // Only log significant image loads (not placeholders)
+        if (imgUrl && !imgUrl.includes('placeholder')) {
+          const loadTime = performance.now() - loadStart;
+          console.debug(`Image load time (${imgUrl.split('/').pop()}): ${loadTime.toFixed(0)}ms`);
+        }
+      };
+    }
+  }, [imageSrc, dynamicSrc]);
 };

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getImageMetadata, fetchAllImages, fetchImagesByCategory, WebsiteImage } from '@/services/images';
+import { fetchAllImages, fetchImagesByCategory, WebsiteImage } from '@/services/images';
 
 export const useImageManagement = () => {
   const [selectedImage, setSelectedImage] = useState<WebsiteImage | null>(null);

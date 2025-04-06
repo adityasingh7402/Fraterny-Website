@@ -4,8 +4,7 @@ import {
   uploadImage, 
   clearImageCache, 
   clearImageUrlCache, 
-  updateGlobalCacheVersion,
-  clearImageUrlCacheForKey
+  updateGlobalCacheVersion 
 } from '@/services/images';
 import { toast } from 'sonner';
 
@@ -29,7 +28,12 @@ export const useUploadImageMutation = (onSuccess?: () => void) => {
       );
     },
     onSuccess: async (_, variables) => {
-      // Check if we're replacing an existing image
+      // Clear caches to ensure fresh data
+      clearImageCache();
+      clearImageUrlCache();
+      
+      // Update global cache version for system-wide cache invalidation
+      // Only when replacing an existing image (if key already exists)
       try {
         const { data } = await queryClient.fetchQuery({
           queryKey: ['check-existing-image', variables.key],
@@ -39,49 +43,18 @@ export const useUploadImageMutation = (onSuccess?: () => void) => {
           }
         });
         
-        // If we're replacing an existing image, use selective cache invalidation
+        // If we're replacing an existing image, update the global cache version
         if (data && data.exists) {
-          console.log(`Replacing existing image: ${variables.key}`);
-          
-          // Get the image key parts for more targeted invalidation
-          const keyParts = variables.key.split('/');
-          const prefix = keyParts.length > 1 ? keyParts[0] : '';
-          
-          if (prefix) {
-            // If the image has a prefix (like "hero/" or "blog/"), only invalidate that section
-            await updateGlobalCacheVersion({ 
-              scope: 'prefix', 
-              target: prefix 
-            });
-          } else {
-            // Clear only caches related to this specific key
-            clearImageUrlCacheForKey(variables.key);
-          }
-        } else {
-          // For new images, we only need to invalidate the relevant queries
-          // No need to clear caches since no existing cached data exists
-          console.log(`New image uploaded: ${variables.key}`);
-        }
-        
-        // If a category is provided, also invalidate category queries
-        if (variables.category) {
-          queryClient.invalidateQueries({ 
-            queryKey: ['images', 'category', variables.category] 
-          });
+          await updateGlobalCacheVersion();
+          console.log('Updated global cache version because image was replaced');
         }
       } catch (error) {
         console.error('Error checking if image exists:', error);
-        // Fallback to traditional cache clearing if the check fails
-        clearImageCache();
-        clearImageUrlCacheForKey(variables.key);
+        // Continue anyway, the image was uploaded successfully
       }
       
-      // Always invalidate the general images query to show the new image
-      queryClient.invalidateQueries({ 
-        queryKey: ['website-images'],
-        exact: false, 
-        refetchType: 'all' 
-      });
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['website-images'] });
       
       // Show success message
       toast.success(`Image "${variables.key}" uploaded successfully`, {

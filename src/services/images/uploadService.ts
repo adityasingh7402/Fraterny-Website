@@ -1,20 +1,18 @@
 
-/**
- * Service for uploading images to Supabase storage and database
- */
 import { supabase } from "@/integrations/supabase/client";
-import { WebsiteImage, ImageMetadata } from "./types";
+import { WebsiteImage } from "./types";
+import { handleApiError } from "@/utils/errorHandling";
+import { invalidateImageCache } from "./fetchService";
 import { getImageDimensions } from "./utils/dimensions";
-import { sanitizeFilename } from "./utils/fileUtils";
-import { generateContentHash } from "./utils/hashUtils";
-import { STORAGE_BUCKET_NAME } from "./constants";
 import { createOptimizedVersions } from "./utils/optimizationService";
 import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
+import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
-import { constructStoragePath, normalizeStoragePath } from "@/utils/pathUtils";
+import { createImageRecord } from "./utils/databaseUtils";
+import { generateContentHash } from "./utils/hashUtils";
 
 /**
- * Upload an image to storage and database
+ * Upload a new image to storage and create an entry in the website_images table
  */
 export const uploadImage = async (
   file: File,
@@ -24,186 +22,117 @@ export const uploadImage = async (
   category?: string
 ): Promise<WebsiteImage | null> => {
   try {
-    // Validate inputs
-    if (!file || !key || !description) {
-      console.error('Missing required parameters for uploadImage');
-      return null;
+    console.log(`Starting upload for image with key: ${key}`);
+    
+    // Generate a unique filename with proper sanitization
+    const timestamp = Date.now();
+    const sanitizedFilename = sanitizeFilename(file.name);
+    const filename = `${timestamp}-${sanitizedFilename}`;
+    const storagePath = filename;
+    
+    // Get image dimensions if it's an image file
+    let dimensions = { width: null, height: null };
+    
+    if (file.type.startsWith('image/')) {
+      try {
+        dimensions = await getImageDimensions(file);
+        console.log(`Image dimensions: ${dimensions.width}x${dimensions.height}`);
+      } catch (err) {
+        console.error('Could not get image dimensions:', err);
+      }
     }
     
-    // Normalize the key - remove leading/trailing spaces, ensure no leading slash
-    const normalizedKey = key.trim().replace(/^\/+/, '');
-    
-    // Check if image with this key already exists
+    // Check if an image with this key already exists - if so, remove it
     const { data: existingImage } = await supabase
       .from('website_images')
       .select('*')
-      .eq('key', normalizedKey)
+      .eq('key', key)
       .maybeSingle();
       
-    // If it exists, remove the existing image files first
     if (existingImage) {
-      console.log('Replacing existing image:', existingImage);
+      console.log(`Found existing image with key: ${key}, will replace it`);
       await removeExistingImage(existingImage as WebsiteImage);
     }
     
-    // Get file extension and sanitize filename
-    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const sanitizedFilename = sanitizeFilename(file.name);
-    const timestamp = Date.now();
+    // Generate placeholders for better loading experience (especially on mobile)
+    let placeholderData = null;
+    let colorPlaceholder = null;
     
-    // Create a storage path that includes the key for organization
-    const storagePath = normalizeStoragePath(`${normalizedKey}.${fileExt}`);
-    console.log('Storage path:', storagePath);
+    if (file.type.startsWith('image/')) {
+      try {
+        console.log('Generating image placeholders...');
+        placeholderData = await generateTinyPlaceholder(file);
+        colorPlaceholder = await generateColorPlaceholder(file);
+      } catch (err) {
+        console.error('Could not generate placeholders:', err);
+      }
+    }
     
-    // Upload the original file
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET_NAME)
+    // Generate content hash for cache optimization
+    const contentHash = await generateContentHash(file);
+    console.log(`Generated content hash: ${contentHash} for key: ${key}`);
+    
+    // Upload the file to storage with enhanced caching headers
+    console.log(`Uploading file to storage: ${storagePath}`);
+    const { error: uploadError } = await supabase.storage
+      .from('website-images')
       .upload(storagePath, file, {
-        cacheControl: '31536000', // 1 year - we use content hashes for cache busting
+        cacheControl: '31536000', // 1 year cache
         upsert: true
       });
-      
+    
     if (uploadError) {
-      console.error('Error uploading image:', uploadError);
-      return null;
+      console.error('Upload error:', uploadError);
+      return handleApiError(uploadError, 'Error uploading image', false) as null;
     }
     
-    console.log('Upload successful:', uploadData.path);
+    // Create optimized versions if it's an image
+    console.log('Creating optimized versions...');
+    const optimizedSizes = await createOptimizedVersions(file, storagePath);
+    console.log('Optimized sizes:', optimizedSizes);
     
-    // Create optimized versions
-    const sizeVariants = await createOptimizedVersions(file, storagePath);
-    
-    // Get image dimensions
-    let width = null;
-    let height = null;
-    try {
-      const dimensions = await getImageDimensions(file);
-      width = dimensions.width;
-      height = dimensions.height;
-    } catch (err) {
-      console.warn('Failed to get image dimensions:', err);
-    }
-    
-    // Generate content hash for cache busting
-    const contentHash = await generateContentHash(file);
-    
-    // Generate placeholders
-    const tinyPlaceholder = await generateTinyPlaceholder(file);
-    const colorPlaceholder = await generateColorPlaceholder(file);
-    
-    // Prepare metadata
-    const metadata: Record<string, any> = {
-      contentHash,
-      lastModified: new Date().toISOString(),
+    // Create an entry in the website_images table with enhanced metadata including content hash
+    const metadata = {
       placeholders: {
-        tiny: tinyPlaceholder,
+        tiny: placeholderData,
         color: colorPlaceholder
-      }
+      },
+      contentHash: contentHash, // Store content hash in metadata
+      lastModified: new Date().toISOString()
     };
     
-    // Prepare database entry
-    const imageData = {
-      key: normalizedKey,
-      description,
-      alt_text,
-      category,
-      storage_path: storagePath,
-      width,
-      height,
-      sizes: sizeVariants,
-      metadata
-    };
-    
-    // Insert or update database entry
-    let result;
-    if (existingImage) {
-      // Update existing record
-      const { data, error } = await supabase
-        .from('website_images')
-        .update({
-          ...imageData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingImage.id)
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Error updating image record:', error);
-        await cleanupUploadedFiles(storagePath, sizeVariants);
-        return null;
-      }
-      
-      result = data;
-    } else {
-      // Insert new record
-      const { data, error } = await supabase
-        .from('website_images')
-        .insert([imageData])
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Error inserting image record:', error);
-        await cleanupUploadedFiles(storagePath, sizeVariants);
-        return null;
-      }
-      
-      result = data;
-    }
-    
-    // Get the public URL
-    const { data: publicUrlData } = await supabase.storage
-      .from(STORAGE_BUCKET_NAME)
-      .getPublicUrl(storagePath);
-      
-    // Add URL to the result
-    const finalResult: WebsiteImage = {
-      ...(result as WebsiteImage),
-      url: publicUrlData?.publicUrl || null
-    };
-    
-    return finalResult;
-  } catch (error) {
-    console.error('Unexpected error in uploadImage:', error);
-    return null;
-  }
-};
-
-/**
- * Delete an image by key
- */
-export const deleteImage = async (key: string): Promise<boolean> => {
-  try {
-    // Get the image record
-    const { data: image, error: getError } = await supabase
+    const { data, error: insertError } = await supabase
       .from('website_images')
-      .select('*')
-      .eq('key', key.trim())
-      .maybeSingle();
+      .insert({
+        key,
+        description,
+        storage_path: storagePath,
+        alt_text,
+        category,
+        width: dimensions.width,
+        height: dimensions.height,
+        sizes: optimizedSizes,
+        metadata // Add metadata including content hash
+      })
+      .select()
+      .single();
+    
+    if (insertError) {
+      console.error('Insert error:', insertError);
       
-    if (getError || !image) {
-      console.error(`Error getting image "${key}" for deletion:`, getError || 'Not found');
-      return false;
+      // Clean up the uploaded file if we couldn't create the record
+      await cleanupUploadedFiles(storagePath, optimizedSizes);
+      
+      return handleApiError(insertError, 'Error creating image record', false) as null;
     }
     
-    // Remove files from storage
-    await removeExistingImage(image as WebsiteImage);
+    // Invalidate cache for this key to ensure fresh data
+    invalidateImageCache(key);
     
-    // Delete database record
-    const { error: deleteError } = await supabase
-      .from('website_images')
-      .delete()
-      .eq('key', key.trim());
-      
-    if (deleteError) {
-      console.error(`Error deleting image record for "${key}":`, deleteError);
-      return false;
-    }
-    
-    return true;
+    console.log(`Successfully uploaded and created record for image with key: ${key}`);
+    return data as WebsiteImage;
   } catch (error) {
-    console.error(`Unexpected error deleting image "${key}":`, error);
-    return false;
+    console.error('Error in upload process:', error);
+    return handleApiError(error, 'Error in image upload process', false) as null;
   }
 };

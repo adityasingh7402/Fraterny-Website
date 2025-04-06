@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createImageProps } from '../utils';
 import { ResponsiveImageSource } from '../types';
 
@@ -16,12 +16,10 @@ interface ResponsivePictureProps {
   sizes?: string;
   useMobileSrc?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  useCdn?: boolean;
 }
 
 /**
  * Responsive picture component for different device sizes
- * Now with improved mobile detection support and proper DOM properties
  */
 export const ResponsivePicture = ({
   sources,
@@ -35,36 +33,11 @@ export const ResponsivePicture = ({
   height,
   sizes,
   useMobileSrc,
-  objectFit = 'cover',
-  useCdn = false // No longer used but kept for backward compatibility
+  objectFit = 'cover'
 }: ResponsivePictureProps) => {
-  // Enhanced logging for better debugging
-  useEffect(() => {
-    console.log(`[ResponsivePicture] ${alt} - Sources available:`, {
-      mobile: sources.mobile ? '✓' : '✗',
-      tablet: sources.tablet ? '✓' : '✗', 
-      desktop: sources.desktop ? '✓' : '✗'
-    });
-    console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
-  }, [sources, useMobileSrc, alt]);
-  
-  // Determine which source to use for the img element (for browsers that don't support picture)
-  const defaultImgSrc = useMobileSrc && sources.mobile 
-    ? sources.mobile
-    : sources.desktop;
-  
-  console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
-  console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
-  
   const imgProps = createImageProps(
-    defaultImgSrc, 
-    alt, 
-    className, 
-    loading, 
-    sizes,
-    width, 
-    height, 
-    fallbackSrc
+    sources.desktop, alt, className, loading, sizes,
+    width, height, fallbackSrc, fetchPriority
   );
   
   // Apply object-fit directly to the style object for the img element
@@ -73,45 +46,12 @@ export const ResponsivePicture = ({
     objectFit 
   };
   
-  // Fix for fetchPriority - use lowercase DOM attribute
-  const imgAttributes: Record<string, any> = {};
-  if (fetchPriority) {
-    imgAttributes.fetchpriority = fetchPriority.toLowerCase();
-  }
-  
   return (
     <picture onClick={onClick}>
-      {sources.mobile && (
-        <source 
-          media="(max-width: 640px)" 
-          srcSet={sources.mobile} 
-          data-testid="mobile-source"
-        />
-      )}
-      {sources.tablet && (
-        <source 
-          media="(max-width: 1024px)" 
-          srcSet={sources.tablet} 
-          data-testid="tablet-source"
-        />
-      )}
-      <source 
-        media="(min-width: 641px)" 
-        srcSet={sources.desktop} 
-        data-testid="desktop-source"
-      />
-      <img 
-        {...imgProps} 
-        {...imgAttributes} // Use our fixed attributes
-        style={style} 
-        data-mobile={useMobileSrc ? "true" : "false"}
-        onError={(e) => {
-          console.error(`[ResponsivePicture] Image failed to load: ${(e.target as HTMLImageElement).src}`);
-          if ((e.target as HTMLImageElement).src !== fallbackSrc) {
-            (e.target as HTMLImageElement).src = fallbackSrc;
-          }
-        }}
-      />
+      {sources.mobile && <source media="(max-width: 640px)" srcSet={sources.mobile} />}
+      {sources.tablet && <source media="(max-width: 1024px)" srcSet={sources.tablet} />}
+      <source media="(min-width: 641px)" srcSet={sources.desktop} />
+      <img {...imgProps} style={style} />
     </picture>
   );
 };

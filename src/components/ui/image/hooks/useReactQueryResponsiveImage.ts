@@ -1,14 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { useReactQueryImages } from '@/hooks/react-query-images';
+import { useReactQueryImages } from '@/hooks/useReactQueryImages';
 import { getImagePlaceholdersByKey } from '@/services/images';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { ImageLoadingState } from '../types';
-import { getCdnUrl } from '@/utils/cdnUtils';
 
 /**
  * Enhanced hook that combines React Query with existing image loading system
- * Now with optional CDN support
  */
 export const useReactQueryResponsiveImage = (
   dynamicKey?: string,
@@ -75,16 +73,8 @@ export const useReactQueryResponsiveImage = (
         if (urlData && urlData.url) {
           // Check if we have any content hash from the metadata
           let contentHash = null;
-          
-          // Safely extract contentHash from metadata if it exists and is an object (not an array)
-          if (imageData && imageData.metadata) {
-            // Check if metadata is an object (not null and not an array)
-            if (typeof imageData.metadata === 'object' && 
-                imageData.metadata !== null && 
-                !Array.isArray(imageData.metadata)) {
-              // Now TypeScript knows this is a record/object type
-              contentHash = (imageData.metadata as Record<string, any>).contentHash || null;
-            }
+          if (imageData && imageData.metadata && typeof imageData.metadata === 'object') {
+            contentHash = imageData.metadata.contentHash || null;
           }
           
           // If we don't have placeholders yet, fetch them
@@ -98,14 +88,11 @@ export const useReactQueryResponsiveImage = (
             aspectRatio = imageData.width / imageData.height;
           }
           
-          // Process the URL through our CDN if available
-          const processedUrl = getCdnUrl(urlData.url) || urlData.url;
-          
           // Update state with all the information
           setState({
             isLoading: false,
             error: false,
-            dynamicSrc: processedUrl,
+            dynamicSrc: urlData.url,
             aspectRatio,
             tinyPlaceholder: placeholderData.tinyPlaceholder,
             colorPlaceholder: placeholderData.colorPlaceholder,

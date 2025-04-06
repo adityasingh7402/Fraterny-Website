@@ -1,54 +1,30 @@
-
 /**
  * Utility functions for file operations
  */
 
 /**
- * Sanitize a filename to ensure it's safe to use in storage paths
+ * Sanitize a filename to ensure it works with Supabase storage
+ * Remove special characters, spaces, and other problematic characters
  */
 export const sanitizeFilename = (filename: string): string => {
-  if (!filename) return 'unnamed-file';
+  // Remove characters that might cause problems in URLs or file paths
+  let sanitized = filename
+    // Replace spaces, commas and special characters with hyphens
+    .replace(/[,\s·]+/g, '-')
+    // Remove all other special characters and keep only alphanumerics, hyphens, and dots
+    .replace(/[^a-zA-Z0-9\-_.]/g, '')
+    // Remove consecutive hyphens
+    .replace(/-+/g, '-')
+    // Trim hyphens from beginning and end
+    .replace(/^-+|-+$/g, '');
   
-  // Remove any path components
-  let sanitized = filename.split(/[\/\\]/).pop() || filename;
+  // Ensure the filename is not too long (max 100 chars)
+  if (sanitized.length > 100) {
+    const extension = sanitized.lastIndexOf('.') > 0 
+      ? sanitized.substring(sanitized.lastIndexOf('.'))
+      : '';
+    sanitized = sanitized.substring(0, 100 - extension.length) + extension;
+  }
   
-  // Replace spaces and special characters
-  sanitized = sanitized
-    .replace(/[^a-zA-Z0-9._-]/g, '-')
-    .replace(/--+/g, '-')
-    .toLowerCase();
-    
   return sanitized;
-};
-
-/**
- * Get the file extension from a filename or path
- */
-export const getFileExtension = (filename: string): string => {
-  if (!filename) return '';
-  
-  const parts = filename.split('.');
-  if (parts.length <= 1) return '';
-  
-  return parts.pop()?.toLowerCase() || '';
-};
-
-/**
- * Check if a file is an image based on its type
- */
-export const isImageFile = (file: File): boolean => {
-  return file.type.startsWith('image/');
-};
-
-/**
- * Format bytes into a human-readable string
- */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };

@@ -1,44 +1,60 @@
 
-/**
- * Unified exports for the image service
- */
+// Re-export type definitions
+export * from './types';
 
-// Export main image service functions
+// Re-export constants
+export * from './constants';
+
+// Re-export functions from individual service files
+export * from './uploadService';
+export * from './updateService';
+export * from './deleteService';
+
+// Export URL service functions directly
+export { 
+  getImageUrlByKey, 
+  getImageUrlByKeyAndSize 
+} from './services/urlService';
+
+// Export placeholder functions
+export { 
+  getImagePlaceholdersByKey 
+} from './services/placeholderService';
+
+// Export cache management functions
 export {
-  getImageUrl,
-  getImageUrlBySize,
-  getMultipleImageUrls,
-  getImageMetadata,
   clearImageUrlCache,
-  clearImageCache,
-  uploadImage,
-  deleteImage,
-  isValidImageKey,
-  // Export aliased functions needed by various components
-  getImageUrlByKey,
-  getImageUrlByKeyAndSize,
-  getImageUrlBatched,
-  batchGetImageUrls,
+  clearImageUrlCacheForKey
+} from './services/cacheService';
+
+// Export cache version management
+export {
+  getGlobalCacheVersion,
+  updateGlobalCacheVersion 
+} from './services/cacheVersionService';
+
+// Export fetchService functions explicitly to avoid naming conflicts
+export { 
   fetchImageByKey,
   fetchAllImages,
   fetchImagesByCategory,
-  getImagePlaceholdersByKey,
-  clearImageUrlCacheForKey,
-  getGlobalCacheVersion,
-  updateGlobalCacheVersion,
-  updateImage,
-  // Export cache instances for advanced usage
-  imageCache,
-  urlCache
-} from './ImageService';
+  clearImageCache,
+  invalidateImageCache
+} from './fetchService';
 
-// Export types
-export * from './types';
+// Export cache instances for advanced usage
+export { imageCache, urlCache } from './cacheService';
 
-// Export constants
-export * from './constants';
-
-// Export utility functions for advanced usage
-export * from './utils/databaseUtils';
+// Export utility functions for broader use
+export * from './utils/cacheUtils';
+export * from './utils/queryUtils';
+export * from './utils/fileUtils';
 export * from './utils/cleanupUtils';
+export * from './utils/databaseUtils';
+
+// Export image processing utilities
+export * from './utils/dimensions';
 export * from './utils/optimizationService';
+export * from './utils/optimizationUtils';
+export * from './utils/placeholderService';
+export * from './utils/hashUtils';

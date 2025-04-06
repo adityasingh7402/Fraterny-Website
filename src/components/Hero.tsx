@@ -3,12 +3,9 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { DeviceDetectionWrapper } from './ui/DeviceDetectionWrapper';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
-  const { isMobile, isDetecting } = useIsMobile();
   
   // Use our React Query powered hook
   const { settings, isLoading } = useReactQueryWebsiteSettings();
@@ -39,13 +36,6 @@ const Hero = () => {
     }
   }, [settings]);
 
-  // Debug the mobile status
-  useEffect(() => {
-    if (!isDetecting) {
-      console.log('Hero component - isMobile value:', isMobile);
-    }
-  }, [isMobile, isDetecting]);
-
   // Gradient style for the overlay
   const gradientStyle = {
     background: `linear-gradient(to right, 
@@ -56,57 +46,59 @@ const Hero = () => {
   };
 
   return (
-    <DeviceDetectionWrapper loadingHeight="100vh">
-      <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-        {/* Background Image - using ONLY dynamicKey to fetch from database */}
-        <div className="absolute inset-0">
-          <ResponsiveImage
-            dynamicKey="hero-background"
-            alt="Stunning luxury villa with breathtaking views"
-            className="w-full h-full object-cover"
-            loading="eager"
-            fetchPriority="high"
-          />
-        </div>
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0" style={gradientStyle} />
-        
-        <div className="container px-4 sm:px-6 py-24 sm:py-32 mx-auto relative z-10">
-          <div className="animate-fade-down max-w-2xl flex flex-col gap-6 sm:gap-8">
-            <div>
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-playfair font-bold tracking-tight mb-3 sm:mb-4">
-                Where Ambition
-                <br />
-                Finds Its Tribe
-              </h1>
-              
-              <p className="text-base sm:text-lg md:text-xl text-gray-200">
-                Authenticity, Community, Growth, and Shared Aspirations
-              </p>
-            </div>
+    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
+      {/* Background Image - using dynamicKey to fetch from admin upload */}
+      <div className="absolute inset-0">
+        <ResponsiveImage
+          src={{
+            mobile: "/images/hero/luxury-villa-mobile.webp",
+            desktop: "/images/hero/luxury-villa-desktop.webp"
+          }}
+          alt="Stunning luxury villa with breathtaking views"
+          className="w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          dynamicKey="hero-background"
+        />
+      </div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0" style={gradientStyle} />
+      
+      <div className="container px-4 sm:px-6 py-24 sm:py-32 mx-auto relative z-10">
+        <div className="animate-fade-down max-w-2xl flex flex-col gap-6 sm:gap-8">
+          <div>
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-playfair font-bold tracking-tight mb-3 sm:mb-4">
+              Where Ambition
+              <br />
+              Finds Its Tribe
+            </h1>
+            
+            <p className="text-base sm:text-lg md:text-xl text-gray-200">
+              Authenticity, Community, Growth, and Shared Aspirations
+            </p>
+          </div>
 
-            <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
-              <a 
-                href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit"
-              >
-                Claim your spot →
-              </a>
-              
-              <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
-                <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
-                <div className="text-xl font-mono">
-                  {isLoading ? "Loading..." : `${daysLeft} Days`}
-                </div>
+          <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
+            <a 
+              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit"
+            >
+              Claim your spot →
+            </a>
+            
+            <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
+              <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
+              <div className="text-xl font-mono">
+                {isLoading ? "Loading..." : `${daysLeft} Days`}
               </div>
             </div>
           </div>
         </div>
-      </section>
-    </DeviceDetectionWrapper>
+      </div>
+    </section>
   );
 };
 

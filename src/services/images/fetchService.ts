@@ -1,130 +1,92 @@
-/**
- * Service for fetching images and cache invalidation
- */
+
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
-import { Cache } from "./cache/Cache";
-import { CACHE_DURATIONS, CACHE_PRIORITIES } from "./constants";
-
-// Create cache instances if they don't exist in this context
-const imageCache = new Cache<WebsiteImage>("imageCache", CACHE_DURATIONS.MEDIUM);
-const urlCache = new Cache<string>("urlCache", CACHE_DURATIONS.SHORT);
+import { handleApiError } from "@/utils/errorHandling";
+import { urlCache } from "./cacheService";
+import { 
+  getCachedImage, 
+  cacheImage, 
+  clearImageCache, 
+  invalidateImageCache 
+} from "./utils/cacheUtils";
+import {
+  createImagesQuery,
+  applySearchFilter,
+  applyPagination,
+  processQueryResponse
+} from "./utils/queryUtils";
 
 /**
- * Fetch image by key - for React Query compatibility
+ * Fetch image metadata by key with improved caching
  */
 export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null> => {
-  if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.warn('Invalid image key provided for fetch');
-    return null;
-  }
-  
-  const normalizedKey = key.trim();
-  const cacheKey = `image:${normalizedKey}`;
-  
-  // Check cache first
-  const cachedImage = imageCache.get(cacheKey);
-  if (cachedImage) {
-    return cachedImage;
-  }
-  
   try {
-    // Get image from database
-    const { data: image, error } = await supabase
+    if (!key) {
+      throw new Error('Image key is required');
+    }
+    
+    // Normalize the key by trimming whitespace
+    const normalizedKey = key.trim();
+    console.log(`Fetching image with normalized key: "${normalizedKey}"`);
+
+    // Invalidate any URL cache for this key to ensure we get fresh data
+    urlCache.invalidate(`key:${normalizedKey}`);
+
+    // Check cache first
+    const cached = getCachedImage(normalizedKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+    
+    const { data, error } = await supabase
       .from('website_images')
       .select('*')
       .eq('key', normalizedKey)
       .maybeSingle();
-      
+    
     if (error) {
-      console.error(`Database error for image "${normalizedKey}":`, error);
-      return null;
+      console.error(`Error fetching image with key "${normalizedKey}":`, error);
+      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, false) as null;
     }
     
-    if (!image) {
+    if (!data) {
       console.warn(`No image found with key "${normalizedKey}"`);
-      return null;
+    } else {
+      console.log(`Found image with key "${normalizedKey}":`, data.id);
     }
     
-    // Get the public URL
-    const { data: urlData } = await supabase.storage
-      .from('Website Images')
-      .getPublicUrl(image.storage_path);
+    // Cache the result
+    cacheImage(normalizedKey, data as WebsiteImage | null);
     
-    // Add URL to the image object and fix type issues
-    const imageWithUrl: WebsiteImage = {
-      ...image,
-      sizes: image.sizes as Record<string, string> | null,
-      metadata: image.metadata as Record<string, any> | null,
-      url: urlData?.publicUrl || null
-    };
-    
-    // Cache the image metadata
-    imageCache.set(cacheKey, imageWithUrl, {
-      ttl: CACHE_DURATIONS.MEDIUM,
-      priority: CACHE_PRIORITIES.NORMAL
-    });
-    
-    return imageWithUrl;
+    return data;
   } catch (error) {
-    console.error(`Error getting image metadata for "${normalizedKey}":`, error);
-    return null;
+    return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, false) as null;
   }
 };
 
 /**
- * Fetch all images with pagination and search
+ * Fetch all website images with pagination and search
  */
 export const fetchAllImages = async (
-  page: number = 1,
+  page: number = 1, 
   pageSize: number = 20,
   searchTerm?: string
-): Promise<{ images: WebsiteImage[]; total: number }> => {
+): Promise<{
+  images: WebsiteImage[],
+  total: number
+}> => {
   try {
-    let query = supabase
-      .from('website_images')
-      .select('*', { count: 'exact' });
-      
-    // Add search if provided
-    if (searchTerm) {
-      query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-    }
+    let query = createImagesQuery();
+    
+    // Add search functionality if search term is provided
+    query = applySearchFilter(query, searchTerm);
     
     // Add pagination
-    const from = (page - 1) * pageSize;
-    query = query.range(from, from + pageSize - 1);
+    const { data, error, count } = await applyPagination(query, page, pageSize);
     
-    // Execute query
-    const { data, error, count } = await query;
-    
-    if (error) {
-      console.error('Error fetching images:', error);
-      return { images: [], total: 0 };
-    }
-    
-    // Add URLs to the images and fix type issues
-    const imagesWithUrls = await Promise.all(
-      (data || []).map(async (image) => {
-        // Get the public URL
-        const { data: urlData } = await supabase.storage
-          .from('Website Images')
-          .getPublicUrl(image.storage_path);
-          
-        return {
-          ...image,
-          sizes: image.sizes as Record<string, string> | null,
-          metadata: image.metadata as Record<string, any> | null,
-          url: urlData?.publicUrl || null
-        };
-      })
-    );
-    
-    return {
-      images: imagesWithUrls as WebsiteImage[],
-      total: count || 0
-    };
+    return processQueryResponse(data, error, count, 'Error fetching images');
   } catch (error) {
-    console.error('Unexpected error fetching images:', error);
+    handleApiError(error, 'Unexpected error in fetchAllImages', false);
     return { images: [], total: 0 };
   }
 };
@@ -134,121 +96,33 @@ export const fetchAllImages = async (
  */
 export const fetchImagesByCategory = async (
   category: string,
-  page: number = 1,
+  page: number = 1, 
   pageSize: number = 20,
   searchTerm?: string
-): Promise<{ images: WebsiteImage[]; total: number }> => {
+): Promise<{
+  images: WebsiteImage[],
+  total: number
+}> => {
   try {
-    let query = supabase
-      .from('website_images')
-      .select('*', { count: 'exact' })
-      .eq('category', category);
-      
-    // Add search if provided
-    if (searchTerm) {
-      query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-    }
+    let query = createImagesQuery().eq('category', category);
+    
+    // Add search functionality if search term is provided
+    query = applySearchFilter(query, searchTerm);
     
     // Add pagination
-    const from = (page - 1) * pageSize;
-    query = query.range(from, from + pageSize - 1);
+    const { data, error, count } = await applyPagination(query, page, pageSize);
     
-    // Execute query
-    const { data, error, count } = await query;
-    
-    if (error) {
-      console.error(`Error fetching images for category "${category}":`, error);
-      return { images: [], total: 0 };
-    }
-    
-    // Add URLs to the images and fix type issues
-    const imagesWithUrls = await Promise.all(
-      (data || []).map(async (image) => {
-        // Get the public URL
-        const { data: urlData } = await supabase.storage
-          .from('Website Images')
-          .getPublicUrl(image.storage_path);
-          
-        return {
-          ...image,
-          sizes: image.sizes as Record<string, string> | null,
-          metadata: image.metadata as Record<string, any> | null,
-          url: urlData?.publicUrl || null
-        };
-      })
+    return processQueryResponse(
+      data, 
+      error, 
+      count, 
+      `Error fetching images by category "${category}"`
     );
-    
-    return {
-      images: imagesWithUrls as WebsiteImage[],
-      total: count || 0
-    };
   } catch (error) {
-    console.error(`Unexpected error fetching images for category "${category}":`, error);
+    handleApiError(error, `Unexpected error in fetchImagesByCategory for category "${category}"`, false);
     return { images: [], total: 0 };
   }
 };
 
-/**
- * Invalidate image cache for a specific key
- */
-export const invalidateImageCache = (key: string): void => {
-  if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.warn('Invalid key for cache invalidation');
-    return;
-  }
-  
-  try {
-    const normalizedKey = key.trim();
-    
-    // Clear from image cache
-    imageCache.delete(`image:${normalizedKey}`);
-    
-    // Clear from URL cache
-    urlCache.delete(`url:${normalizedKey}`);
-    urlCache.delete(`url:${normalizedKey}:small`);
-    urlCache.delete(`url:${normalizedKey}:medium`);
-    urlCache.delete(`url:${normalizedKey}:large`);
-    urlCache.delete(`placeholder:${normalizedKey}`);
-    
-    console.log(`Cache invalidated for key: ${normalizedKey}`);
-  } catch (error) {
-    console.error(`Error invalidating cache for key "${key}":`, error);
-  }
-};
-
-/**
- * Clear all image caches
- */
-export const clearAllImageCaches = (): void => {
-  try {
-    // Clear both caches
-    imageCache.clear();
-    urlCache.clear();
-    console.log('All image caches cleared');
-  } catch (error) {
-    console.error('Error clearing all image caches:', error);
-  }
-};
-
-/**
- * Get image URL from storage path
- */
-export const getImageUrlFromPath = async (storagePath: string): Promise<string | null> => {
-  if (!storagePath) {
-    return null;
-  }
-  
-  try {
-    const { data } = await supabase.storage
-      .from('Website Images')
-      .getPublicUrl(storagePath);
-      
-    return data?.publicUrl || null;
-  } catch (error) {
-    console.error(`Error getting URL from path "${storagePath}":`, error);
-    return null;
-  }
-};
-
-// Export cache instances for direct access if needed
-export { imageCache, urlCache };
+// Re-export cache management functions from cacheUtils
+export { clearImageCache, invalidateImageCache };
