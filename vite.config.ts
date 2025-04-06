@@ -36,9 +36,11 @@ export default defineConfig(({ mode }) => ({
         },
         // Extract CSS into separate files for better caching
         assetFileNames: (assetInfo) => {
-          let extType = assetInfo.name.split('.').at(1);
-          if (/css/i.test(extType)) {
-            return 'assets/css/[name]-[hash][extname]';
+          if (assetInfo.name) {
+            const extType = assetInfo.name.split('.').at(1) || '';
+            if (/css/i.test(extType)) {
+              return 'assets/css/[name]-[hash][extname]';
+            }
           }
           return 'assets/[name]-[hash][extname]';
         },
