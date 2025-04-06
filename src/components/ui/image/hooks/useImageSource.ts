@@ -1,3 +1,4 @@
+
 import { ResponsiveImageSource } from '../types';
 
 type ImageSourceResult = {
@@ -6,7 +7,7 @@ type ImageSourceResult = {
 
 /**
  * Function to resolve the appropriate image source based on available images
- * Strictly respects device-specific image requirements
+ * Strictly respects device-specific image requirements without fallbacks
  */
 export const useImageSource = (
   src: string | ResponsiveImageSource | undefined,

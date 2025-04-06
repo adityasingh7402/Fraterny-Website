@@ -141,6 +141,11 @@ const VillaLab = () => {
   // Determine if we need to delay loading images based on network conditions
   const shouldDelayNonEssentialImages = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType);
 
+  // Log mobile detection for debugging
+  useEffect(() => {
+    console.log(`[VillaLab] Current device detection: ${isMobile ? 'mobile' : 'desktop'}`);
+  }, [isMobile]);
+
   return (
     <section className="py-16 sm:py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6">

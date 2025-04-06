@@ -1,7 +1,8 @@
 
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+// Define mobile breakpoint as a constant that can be exported and reused
+export const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
   // Initialize with window check to get correct value on first render
@@ -18,31 +19,22 @@ export function useIsMobile() {
     // Set the initial value immediately
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     
-    // Create the media query listener
+    // Create the media query listener for more reliable detection
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
     // Handler for media query changes
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(mql.matches)
     }
     
-    // Add listener for resize/media query changes
+    // Add listener for media query changes
     mql.addEventListener("change", onChange)
-    
-    // Also listen for resize events as a fallback
-    window.addEventListener('resize', onChange)
     
     // Clean up
     return () => {
       mql.removeEventListener("change", onChange)
-      window.removeEventListener('resize', onChange)
     }
   }, [])
-
-  // Debugging log to check mobile detection
-  React.useEffect(() => {
-    console.log(`[useIsMobile] Device detected as: ${isMobile ? 'mobile' : 'desktop'}, width: ${typeof window !== 'undefined' ? window.innerWidth : 'unknown'}px`)
-  }, [isMobile])
 
   return isMobile
 }
