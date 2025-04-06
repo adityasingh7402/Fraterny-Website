@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../../cacheService";
+import { urlCache } from "../../cache";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
 import { getContentHashFromMetadata, createVersionedUrl, isValidImageKey } from "./utils";
@@ -31,7 +31,6 @@ const validateAndNormalizeKey = (key: string | null | undefined): string | null 
   const isValid = isValidImageKey(normalizedKey);
   validKeyCache.set(normalizedKey, isValid);
   
-  // If not valid, suggest similar keys for better debugging
   if (!isValid) {
     const allKeys = IMAGE_KEYS.map(item => item.key);
     const similarKeys = allKeys.filter(k => 
@@ -57,6 +56,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   // Enhanced validation to prevent undefined/null/empty keys
   const validKey = validateAndNormalizeKey(key);
   if (!validKey) {
+    console.error(`[getImageUrlByKey] Invalid key: "${key}", returning placeholder`);
     return '/placeholder.svg';
   }
   
@@ -94,8 +94,12 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // Use the key directly for storage path - ensure it's not undefined
-    const imageKey = image.key || validKey;
+    // IMPORTANT: Verify key exists and is not undefined before proceeding
+    const imageKey = image.key;
+    if (!imageKey) {
+      console.error(`Image found but has no key for "${validKey}" - database inconsistency`);
+      return '/placeholder.svg';
+    }
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
@@ -138,6 +142,7 @@ export const getImageUrlByKeyAndSize = async (
   // Enhanced validation to prevent undefined/null/empty keys
   const validKey = validateAndNormalizeKey(key);
   if (!validKey) {
+    console.error(`[getImageUrlByKeyAndSize] Invalid key: "${key}", returning placeholder`);
     return '/placeholder.svg';
   }
   
@@ -173,11 +178,10 @@ export const getImageUrlByKeyAndSize = async (
       return '/placeholder.svg';
     }
     
-    // IMPORTANT: Use the key directly for storage path
+    // IMPORTANT: Verify key exists and is not undefined before proceeding
     const imageKey = image.key;
-    
     if (!imageKey) {
-      console.error(`Image found but has no key for "${validKey}"`);
+      console.error(`Image found but has no key for "${validKey}" - database inconsistency`);
       return '/placeholder.svg';
     }
     

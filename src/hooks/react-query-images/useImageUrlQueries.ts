@@ -4,9 +4,9 @@ import {
   getImageUrlByKey, 
   getImageUrlByKeyAndSize,
   getImageUrlBatched,
-  batchGetImageUrls,
-  isValidImageKey
+  batchGetImageUrls
 } from '@/services/images';
+import { isValidImageKey } from '@/services/images/services/url/utils';
 import { useNetworkAwareCacheConfig } from './useNetworkAwareCacheConfig';
 import { IMAGE_KEYS } from '@/pages/admin/images/components/upload/constants';
 
@@ -18,16 +18,28 @@ const VALID_KEYS = new Set(IMAGE_KEYS.map(item => item.key));
  */
 const validateQueryKey = (key: string | undefined): boolean => {
   if (!key) {
-    console.warn('Empty key provided to validateQueryKey');
+    console.warn('[validateQueryKey] Empty key provided');
     return false;
   }
   
-  const isValid = isValidImageKey(key);
-  if (!isValid) {
-    console.warn(`Invalid or non-predefined key in validateQueryKey: "${key}"`);
+  // First check basic validation (not empty, proper format)
+  if (!isValidImageKey(key)) {
+    console.warn(`[validateQueryKey] Invalid key format: "${key}"`);
+    return false;
   }
   
-  return isValid;
+  // Then check against predefined keys
+  const isInPredefinedList = VALID_KEYS.has(key.trim());
+  if (!isInPredefinedList) {
+    console.warn(`[validateQueryKey] Key not in predefined list: "${key}"`);
+    
+    // In production, be more lenient to avoid breaking things
+    if (process.env.NODE_ENV === 'production') {
+      return true;
+    }
+  }
+  
+  return isInPredefinedList;
 };
 
 /**

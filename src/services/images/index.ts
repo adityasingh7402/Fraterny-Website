@@ -16,7 +16,7 @@ export {
   getImageUrlByKeyAndSize,
   getImageUrlBatched,
   batchGetImageUrls,
-  isValidImageKey  // Make sure this is included in the direct exports
+  isValidImageKey  // Directly re-export the validation function
 } from './services/url';
 
 // Export placeholder functions

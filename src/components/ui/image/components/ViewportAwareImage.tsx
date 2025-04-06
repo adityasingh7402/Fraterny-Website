@@ -36,7 +36,7 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
   const network = useNetworkStatus();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [imageSrc, setImageSrc] = useState(lowQualitySrc || (isValidSrc(src) ? src : fallbackSrc));
+  const [actualSrc, setActualSrc] = useState<string>(fallbackSrc);
   
   // Define margin based on network conditions
   let rootMargin = '200px';
@@ -65,6 +65,21 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
     }
   }
   
+  // Validate source immediately - this prevents invalid URLs from even attempting to load
+  useEffect(() => {
+    if (!isValidSrc(src)) {
+      console.warn(`[ViewportAwareImage] Invalid source provided: "${src}", using fallback`);
+      setActualSrc(fallbackSrc);
+      setHasError(true);
+      if (onError) onError();
+    } else {
+      if (lowQualitySrc) {
+        // If we have a low quality placeholder, show it immediately
+        setActualSrc(lowQualitySrc);
+      }
+    }
+  }, [src, fallbackSrc, lowQualitySrc, onError]);
+  
   // Use intersection observer with dynamic rootMargin
   const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
     rootMargin,
@@ -78,9 +93,9 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
       if (!isValidSrc(src)) {
         console.error(`[ViewportAwareImage] Skipping invalid src: ${src}`);
         setHasError(true);
-        setImageSrc(fallbackSrc);
+        setActualSrc(fallbackSrc);
         trackImageLoadFailure(src || 'unknown-src', new Error('Invalid source URL'));
-        onError?.();
+        if (onError) onError();
         return;
       }
       
@@ -96,9 +111,9 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         console.log(`[ViewportAwareImage] Successfully loaded: ${src} in ${loadTime.toFixed(2)}ms`);
         trackImageLoadComplete(src, loadTime);
         
-        setImageSrc(src);
+        setActualSrc(src);
         setIsLoaded(true);
-        onLoad?.();
+        if (onLoad) onLoad();
       };
       
       img.onerror = () => {
@@ -106,8 +121,8 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         trackImageLoadFailure(src, new Error('Image load failed'));
         
         setHasError(true);
-        setImageSrc(fallbackSrc);
-        onError?.();
+        setActualSrc(fallbackSrc);
+        if (onError) onError();
       };
     }
   }, [isVisible, src, isLoaded, hasError, fallbackSrc, onLoad, onError]);
@@ -140,26 +155,33 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         height: height ? `${height}px` : 'auto',
       }}
     >
+      {/* Show a very basic placeholder until intersection */}
+      {!isVisible && (
+        <div className="w-full h-full bg-gray-100 animate-pulse"></div>
+      )}
+      
       {/* Image with proper attributes for SEO and accessibility */}
-      <img
-        src={imageSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        sizes={sizes}
-        style={style}
-        loading="lazy" // Native lazy loading as backup
-        className={`${className} w-full h-full`}
-        {...imgAttributes}
-        onError={() => {
-          console.error(`[ViewportAwareImage] Error loading image: ${imageSrc}`);
-          if (imageSrc !== fallbackSrc) {
-            setImageSrc(fallbackSrc);
-            setHasError(true);
-            onError?.();
-          }
-        }}
-      />
+      {isVisible && (
+        <img
+          src={actualSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          sizes={sizes}
+          style={style}
+          loading="lazy" // Native lazy loading as backup
+          className={`${className} w-full h-full`}
+          {...imgAttributes}
+          onError={() => {
+            console.error(`[ViewportAwareImage] Error loading image: ${actualSrc}`);
+            if (actualSrc !== fallbackSrc) {
+              setActualSrc(fallbackSrc);
+              setHasError(true);
+              if (onError) onError();
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
