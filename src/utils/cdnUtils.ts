@@ -16,7 +16,7 @@ let cdnAvailabilityCache: { available: boolean; timestamp: number } | null = nul
  * @param forceCdn Force using CDN even if disabled globally
  * @returns URL to use (either CDN or original)
  */
-const CDN_ORIGIN = 'https://image-handler.yashmalhotra.workers.dev';
+const CDN_ORIGIN = 'https://assets.villalab.io';
 export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string | undefined => {
   if (!url) return url;
   
@@ -43,7 +43,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
     }
     
     // If URL is already a CDN URL, don't modify it
-    if (parsedUrl.hostname === 'image-handler.yashmalhotra.workers.dev') {
+    if (parsedUrl.hostname === new URL(CDN_ORIGIN).hostname) {
       return url;
     }
     
@@ -61,7 +61,7 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
           const storagePath = pathParts.slice(publicIndex + 1).join('/');
           
           // Create a properly formatted CDN path
-          const cdnPath = storagePath;
+          const cdnPath = normalizeStoragePath(storagePath);
           
           // Construct CDN URL
           return `${CDN_ORIGIN}/${cdnPath}${parsedUrl.search}`;
@@ -69,7 +69,14 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       }
     }
     
-    // For relative paths and other URLs, return as is
+    // For relative paths
+    if (url.startsWith('/')) {
+      // Remove leading slash for CDN path
+      const path = url.slice(1);
+      return `${CDN_ORIGIN}/${path}${parsedUrl.search || ''}`;
+    }
+    
+    // For other URLs, return as is
     return url;
   } catch (error) {
     console.warn(`Error processing URL for CDN: ${url}`, error);
