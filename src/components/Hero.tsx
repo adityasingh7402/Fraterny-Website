@@ -46,19 +46,15 @@ const Hero = () => {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden fade-in">
-      {/* Background Image - using dynamicKey to fetch from admin upload */}
+    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
+      {/* Background Image - using dynamic keys to properly fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage
-          src={{
-            mobile: "/images/hero/luxury-villa-mobile.webp",
-            desktop: "/images/hero/luxury-villa-desktop.webp"
-          }}
+          dynamicKey="hero-background"
           alt="Stunning luxury villa with breathtaking views"
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
-          dynamicKey="hero-background"
         />
       </div>
       
