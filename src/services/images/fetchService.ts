@@ -1,5 +1,5 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { getCdnUrl } from "@/utils/cdnUtils";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { urlCache } from "./cacheService";
@@ -15,7 +15,7 @@ import {
   applyPagination,
   processQueryResponse
 } from "./utils/queryUtils";
-import { normalizeStoragePath, constructCdnPath } from "@/utils/pathUtils";
+import { normalizeStoragePath } from "@/utils/pathUtils";
 
 /**
  * Fetch image metadata by key with improved caching
@@ -61,31 +61,25 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     // Add a computed url property to the returned object
     if (data) {
-      // The WebsiteImage type doesn't have 'url' property directly, so we create a new object
-      // that combines the WebsiteImage data with a url property
-      
-      // Use the path normalization utility to handle any duplicate bucket prefixes
-      const storagePath = data.storage_path;
-      
       // Normalize the storage path
-      const normalizedStoragePath = normalizeStoragePath(storagePath);
+      const normalizedStoragePath = normalizeStoragePath(data.storage_path);
       
-      // Construct the URL with the normalized path
-      // BUGFIX: Always use the fully qualified Supabase URL to avoid domain confusion
-      const constructedUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedStoragePath}`;
+      // Construct the URL with the normalized path - direct Supabase URL
+      const directUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${normalizedStoragePath}`;
       
-      // Apply CDN transformation if CDN is enabled
-      const cdnUrl = getCdnUrl(constructedUrl) || constructedUrl;
+      // Use WebP if the browser supports it
+      const webpUrl = directUrl.replace(/\.(jpg|jpeg|png)$/i, '.webp');
       
       console.log(`[Image Service] Constructed URL for ${key}:`, {
         original: data.storage_path,
         normalized: normalizedStoragePath,
-        finalUrl: cdnUrl
+        directUrl,
+        webpUrl
       });
       
       return {
         ...data,
-        url: cdnUrl
+        url: directUrl
       };
     }
     

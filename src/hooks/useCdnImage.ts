@@ -1,28 +1,18 @@
-
 import { useState, useEffect } from 'react';
-import { 
-  getCdnUrl, 
-  isCdnEnabled, 
-  getCdnAvailability,
-  parseSupabaseUrl
-} from '@/utils/cdn';
 import { isValidUrl } from '@/utils/debugUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
 /**
- * Hook to get a CDN URL for an image, with fallback to direct URL
- * Enhanced with localStorage persistence for improved performance
+ * Hook to get a direct Supabase URL for an image, with local caching
+ * This replaces the previous CDN-based hook
  * 
  * @param imagePath - Original image path
- * @param forceCdn - Force using CDN regardless of settings (optional)
- * @returns URL to use (CDN or original) and loading state
+ * @returns URL to use and loading state
  */
 export const useCdnImage = (
-  imagePath: string | null | undefined,
-  forceCdn?: boolean
+  imagePath: string | null | undefined
 ) => {
   const [url, setUrl] = useState<string | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isCached, setIsCached] = useState(false);
@@ -45,7 +35,7 @@ export const useCdnImage = (
       
       // Generate a consistent cache key for this request
       const normalizedKey = imagePath.trim();
-      const cacheKey = `cdnimage:${normalizedKey}:${forceCdn ? 'forced' : 'auto'}`;
+      const cacheKey = `directimage:${normalizedKey}`;
       
       // Check localStorage cache first
       let cachedData = null;
@@ -60,74 +50,36 @@ export const useCdnImage = (
       if (cachedData && isValidUrl(cachedData)) {
         if (isMounted) {
           setUrl(cachedData);
-          setIsFallback(false); // Assume cached URLs are CDN URLs
           setIsLoading(false);
           setIsCached(true);
         }
         return;
       }
       
-      // Skip CDN check if CDN is disabled via settings and not forced
-      const cdnEnabled = forceCdn || isCdnEnabled();
-      
-      if (!cdnEnabled) {
-        if (isMounted) {
-          setUrl(imagePath);
-          setIsFallback(true);
-          setIsLoading(false);
-          setIsCached(false);
-        }
-        return;
-      }
-      
       try {
-        // Check CDN availability
-        let cdnAvailable = false;
-        try {
-          cdnAvailable = await getCdnAvailability();
-        } catch (error) {
-          console.error('Error checking CDN availability:', error);
-        }
-        
-        // Get the appropriate URL
-        const shouldUseCdn = cdnEnabled && cdnAvailable;
+        // Direct use of the original URL - no CDN transformation
         let processedUrl = imagePath;
         
-        if (shouldUseCdn) {
-          try {
-            // Check if it's a Supabase URL that we need to transform
-            const isSupabaseUrl = imagePath.includes('supabase.co/storage/v1/object/public') || 
-                                 imagePath.includes('supabase.in/storage/v1/object/public');
-            
-            if (isSupabaseUrl) {
-              console.log('[CDN] Transforming Supabase URL:', imagePath);
-            }
-            
-            processedUrl = getCdnUrl(imagePath, forceCdn) || imagePath;
-            
-            // Validate the URL
-            if (!isValidUrl(processedUrl)) {
-              throw new Error(`Invalid URL generated: ${processedUrl}`);
-            }
-          } catch (error) {
-            console.error('Error processing CDN URL:', error);
-            processedUrl = imagePath; // Fallback to direct URL on error
-          }
+        // Check if it's a relative URL - if so, keep it as is
+        if (!imagePath.startsWith('http')) {
+          processedUrl = imagePath;
+        } 
+        // For Supabase URLs, use directly
+        else if (imagePath.includes('supabase.co') || imagePath.includes('supabase.in')) {
+          processedUrl = imagePath;
         }
         
         // Cache the result for future use
         try {
           if (localStorageCacheService.isValid()) {
-            // Use priority 3 for CDN URLs
             localStorageCacheService.setUrl(cacheKey, processedUrl, 3);
           }
         } catch (err) {
-          console.warn('Failed to cache CDN URL in localStorage:', err);
+          console.warn('Failed to cache URL in localStorage:', err);
         }
         
         if (isMounted) {
           setUrl(processedUrl);
-          setIsFallback(!shouldUseCdn);
           setIsLoading(false);
           setIsCached(false);
         }
@@ -141,7 +93,6 @@ export const useCdnImage = (
         // Still set a URL to avoid breaking the UI
         if (isMounted) {
           setUrl(imagePath);
-          setIsFallback(true);
           setIsLoading(false);
           setIsCached(false);
         }
@@ -153,9 +104,15 @@ export const useCdnImage = (
     return () => {
       isMounted = false;
     };
-  }, [imagePath, forceCdn]);
+  }, [imagePath]);
   
-  return { url, isFallback, isLoading, error, isCached };
+  return { 
+    url, 
+    isLoading, 
+    error, 
+    isCached,
+    isFallback: false, // Always false now as we don't use CDN fallback
+  };
 };
 
 export default useCdnImage;

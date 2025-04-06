@@ -1,15 +1,24 @@
 
 /**
- * Convenience file to re-export all CDN-related utilities
- * This helps avoid circular dependencies
+ * This file now only re-exports minimal functionality needed for backward compatibility
+ * The CDN architecture has been removed in favor of direct Supabase integration
  */
 
-// Re-export from the cdn module
-export * from './cdn/index';
+// Export empty placeholder functions to avoid breaking existing imports
+export const getCdnUrl = (url: string): string => url;
+export const isCdnEnabled = (): boolean => false;
+export const setCdnEnabled = (_enabled: boolean): void => {};
+export const testCdnConnection = async (): Promise<boolean> => false;
+export const testCdnAvailability = async (): Promise<boolean> => false;
+export const getCdnAvailability = async (): Promise<boolean> => false;
+export const getCdnError = (): string | null => null;
+export const getPathExclusions = (): string[] => [];
+export const addPathExclusion = (_path: string): void => {};
+export const removePathExclusion = (_path: string): void => {};
+export const resetPathExclusions = (): void => {};
+export const addCdnPathExclusion = (_path: string): void => {};
+export const removeCdnPathExclusion = (_path: string): void => {};
+export const clearCdnPathExclusions = (): void => {};
 
-// Re-export from cdnExclusions directly to fix the missing export error
-export { 
-  addPathExclusion as addCdnPathExclusion,
-  removePathExclusion as removeCdnPathExclusion,
-  resetPathExclusions as clearCdnPathExclusions
-} from './cdn/cdnExclusions';
+// Include a console message to notify about CDN removal
+console.log('[Image System] CDN functionality has been removed. Using Supabase directly.');

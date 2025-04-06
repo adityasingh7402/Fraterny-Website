@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { createImageProps } from '../utils';
 import { ResponsiveImageSource } from '../types';
-import { getCdnUrl } from '@/utils/cdn/cdnUrlService';
 
 interface ResponsivePictureProps {
   sources: ResponsiveImageSource;
@@ -37,7 +36,7 @@ export const ResponsivePicture = ({
   sizes,
   useMobileSrc,
   objectFit = 'cover',
-  useCdn = true
+  useCdn = false // No longer used but kept for backward compatibility
 }: ResponsivePictureProps) => {
   // Enhanced logging for better debugging
   useEffect(() => {
@@ -48,21 +47,11 @@ export const ResponsivePicture = ({
     });
     console.log(`[ResponsivePicture] ${alt} - Device detected as: ${useMobileSrc ? 'MOBILE' : 'DESKTOP'}`);
   }, [sources, useMobileSrc, alt]);
-
-  // Process all URLs through CDN if enabled
-  const processedSources = useCdn ? {
-    desktop: getCdnUrl(sources.desktop) || sources.desktop,
-    mobile: sources.mobile ? (getCdnUrl(sources.mobile) || sources.mobile) : undefined,
-    tablet: sources.tablet ? (getCdnUrl(sources.tablet) || sources.tablet) : undefined
-  } : sources;
-  
-  const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
   // Determine which source to use for the img element (for browsers that don't support picture)
-  // CRITICAL FIX: Ensure we use mobile source when on mobile
-  const defaultImgSrc = useMobileSrc && processedSources.mobile 
-    ? processedSources.mobile
-    : processedSources.desktop;
+  const defaultImgSrc = useMobileSrc && sources.mobile 
+    ? sources.mobile
+    : sources.desktop;
   
   console.log(`[ResponsivePicture] ${alt} - Selected image source: ${defaultImgSrc}`);
   console.log(`[ResponsivePicture] ${alt} - Selection based on useMobileSrc: ${useMobileSrc}`);
@@ -75,7 +64,7 @@ export const ResponsivePicture = ({
     sizes,
     width, 
     height, 
-    processedFallbackSrc
+    fallbackSrc
   );
   
   // Apply object-fit directly to the style object for the img element
@@ -92,23 +81,23 @@ export const ResponsivePicture = ({
   
   return (
     <picture onClick={onClick}>
-      {processedSources.mobile && (
+      {sources.mobile && (
         <source 
           media="(max-width: 640px)" 
-          srcSet={processedSources.mobile} 
+          srcSet={sources.mobile} 
           data-testid="mobile-source"
         />
       )}
-      {processedSources.tablet && (
+      {sources.tablet && (
         <source 
           media="(max-width: 1024px)" 
-          srcSet={processedSources.tablet} 
+          srcSet={sources.tablet} 
           data-testid="tablet-source"
         />
       )}
       <source 
         media="(min-width: 641px)" 
-        srcSet={processedSources.desktop} 
+        srcSet={sources.desktop} 
         data-testid="desktop-source"
       />
       <img 
@@ -118,8 +107,8 @@ export const ResponsivePicture = ({
         data-mobile={useMobileSrc ? "true" : "false"}
         onError={(e) => {
           console.error(`[ResponsivePicture] Image failed to load: ${(e.target as HTMLImageElement).src}`);
-          if ((e.target as HTMLImageElement).src !== processedFallbackSrc) {
-            (e.target as HTMLImageElement).src = processedFallbackSrc;
+          if ((e.target as HTMLImageElement).src !== fallbackSrc) {
+            (e.target as HTMLImageElement).src = fallbackSrc;
           }
         }}
       />

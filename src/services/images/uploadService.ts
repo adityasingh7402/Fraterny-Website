@@ -8,11 +8,11 @@ import { createOptimizedVersions } from "./utils/optimizationService";
 import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
 import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
-import { createImageRecord } from "./utils/databaseUtils";
 import { generateContentHash } from "./utils/hashUtils";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
+ * Now with WebP conversion and improved direct Supabase integration
  */
 export const uploadImage = async (
   file: File,
