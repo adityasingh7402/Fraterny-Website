@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { createImageProps } from '../utils';
-import { getCdnUrl } from '@/utils/cdnUtils';
+import { getCdnUrl } from '@/utils/cdn/cdnUrlService';
 
 interface BasicImageProps {
   src: string;
@@ -16,6 +16,8 @@ interface BasicImageProps {
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   useCdn?: boolean;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
 /**
@@ -34,18 +36,30 @@ export const BasicImage = ({
   height,
   sizes,
   objectFit = 'cover',
-  useCdn = true
+  useCdn = true,
+  onLoad,
+  onError
 }: BasicImageProps) => {
   // Process through CDN if enabled
   const processedSrc = useCdn ? getCdnUrl(src) || src : src;
   const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
+  // Log for debugging
+  console.log(`[BasicImage] Rendering image: ${alt} with URL: ${processedSrc}`);
+  
   // Handle error state
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error(`Image failed to load: ${processedSrc}`);
     // If the image fails to load, replace with fallback
     if (e.currentTarget.src !== processedFallbackSrc) {
       e.currentTarget.src = processedFallbackSrc;
     }
+    onError?.();
+  };
+  
+  const handleLoad = () => {
+    console.log(`Image successfully loaded: ${processedSrc}`);
+    onLoad?.();
   };
   
   const imgProps = createImageProps(
@@ -72,7 +86,8 @@ export const BasicImage = ({
     {...imgProps} 
     style={style} 
     onClick={onClick}
-    fetchPriority={fetchPriority}
+    loading={loading}
+    onLoad={handleLoad}
     onError={handleError}
   />;
 };

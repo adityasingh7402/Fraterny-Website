@@ -1,44 +1,47 @@
 
 /**
- * CDN Utilities Module
- * Exports all CDN-related functionality
+ * CDN utilities index file
+ * Re-exports all CDN-related functions
  */
+export * from './cdnConfig';
+export * from './cdnExclusions';
+export * from './cdnNetwork';
+export * from './cdnUrlService';
 
-// Re-export from config
-export { 
-  CDN_URL, 
-  CDN_STORAGE_KEY,
-  CDN_EXCLUSIONS_KEY,
-  DEFAULT_EXCLUSIONS,
-  CACHE_EXPIRATION
-} from './cdnConfig';
-
-// Re-export from exclusions
-export {
-  getPathExclusions,
-  shouldExcludePath,
-  addCdnPathExclusion,
-  removeCdnPathExclusion,
-  clearCdnPathExclusions,
-  getDefaultExclusions
-} from './cdnExclusions';
-
-// Re-export from network
-export {
-  testCdnConnection,
-  getCdnAvailability,
-  isCdnAvailabilityCacheValid,
-  getCdnError,
-  resetCdnAvailabilityCache,
-  testCdnAvailability
-} from './cdnNetwork';
-
-// Re-export from url service
-export {
-  getCdnUrl,
-  shouldUseCdn,
-  isCdnEnabled,
-  getCdnBaseUrl,
-  parseSupabaseUrl,
-  setCdnEnabled
-} from './cdnUrlService';
+/**
+ * Test the CDN connection by attempting to load a test image
+ * Returns true if the CDN is available, false otherwise
+ */
+export const testCdnConnection = async (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    try {
+      const testImage = new Image();
+      const timestamp = Date.now();
+      
+      // Use a known path with timestamp to avoid caching
+      const { CDN_URL } = await import('./cdnConfig');
+      testImage.src = `${CDN_URL}/test-connection.png?t=${timestamp}`;
+      
+      // Set a timeout in case the image takes too long to load
+      const timeoutId = setTimeout(() => {
+        console.warn('[CDN] Connection test timeout');
+        resolve(false);
+      }, 5000);
+      
+      testImage.onload = () => {
+        clearTimeout(timeoutId);
+        console.log('[CDN] Connection test successful');
+        resolve(true);
+      };
+      
+      testImage.onerror = () => {
+        clearTimeout(timeoutId);
+        console.warn('[CDN] Connection test failed');
+        resolve(false);
+      };
+    } catch (error) {
+      console.error('[CDN] Error testing connection:', error);
+      resolve(false);
+    }
+  });
+};

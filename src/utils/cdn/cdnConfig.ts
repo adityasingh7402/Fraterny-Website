@@ -1,23 +1,23 @@
 
 /**
  * CDN Configuration Module
- * Contains all configuration options for the CDN
+ * Contains all CDN-related configuration variables
  */
 
-// Your Cloudflare Worker URL - update this with your actual deployed worker URL
-export const CDN_URL = 'https://image-handler.yashmalhotra.workers.dev';
+// CDN URL - Could be an environment variable in production
+export const CDN_URL = 'https://assets.villalab.io';
 
-// Storage key for CDN toggle in development
-export const CDN_STORAGE_KEY = 'use_cdn_development';
+// CDN Storage Key for localStorage
+export const CDN_STORAGE_KEY = 'cdn_enabled';
 
-// Storage key for path exclusions (paths that should bypass the CDN)
-export const CDN_EXCLUSIONS_KEY = 'cdn_path_exclusions';
+// CDN Version - Used for cache-busting
+export const CDN_VERSION = 'v1';
 
-// Default exclusions that should always bypass CDN
-export const DEFAULT_EXCLUSIONS = [
-  '/favicon.ico',
-  '/og-image.png'
-];
+// Maximum time to wait for CDN availability check (ms)
+export const CDN_AVAILABILITY_TIMEOUT = 5000;
 
-// Cache expiration time in milliseconds (5 minutes)
-export const CACHE_EXPIRATION = 5 * 60 * 1000;
+// CDN availability cache expiry (ms) - 5 minutes
+export const CDN_AVAILABILITY_CACHE_EXPIRY = 5 * 60 * 1000;
+
+// CDN URL check endpoint
+export const CDN_CHECK_ENDPOINT = '/status';
