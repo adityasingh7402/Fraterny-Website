@@ -9,6 +9,7 @@ import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
  * Get a URL for an image by key in a batched query pattern
  */
 export const getImageUrlBatched = async (key: string): Promise<string> => {
+  // Improved validation to prevent undefined/null/empty keys
   if (!key || typeof key !== 'string' || key.trim() === '') {
     console.error(`Invalid key in getImageUrlBatched: "${key}"`);
     return '/placeholder.svg';
@@ -88,7 +89,11 @@ export const getImageUrlBatched = async (key: string): Promise<string> => {
  * Batch implementation for getting multiple image URLs at once
  */
 export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, string>> => {
-  if (!keys || keys.length === 0) return {};
+  // Improved validation to handle empty or invalid arrays
+  if (!keys || !Array.isArray(keys) || keys.length === 0) {
+    console.warn('[batchGetImageUrls] Invalid or empty keys array');
+    return {};
+  }
   
   // Track as a single API call
   trackApiCall('batchGetImageUrls');
@@ -97,8 +102,10 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     // Get global cache version for proper versioning
     const cacheVersion = await getGlobalCacheVersion();
     
-    // Normalize keys
-    const normalizedKeys = keys.map(k => k?.trim() || '').filter(k => k !== '');
+    // Normalize keys - filter out invalid keys
+    const normalizedKeys = keys
+      .map(k => typeof k === 'string' ? k.trim() : '')
+      .filter(k => k !== '');
     
     if (normalizedKeys.length === 0) {
       console.warn('[batchGetImageUrls] All keys were invalid or empty');

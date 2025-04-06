@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,8 +59,9 @@ export const createVersionedUrl = (
  * Uses key directly to get public URL
  */
 export const createSignedUrl = async (key: string): Promise<string> => {
+  // Improved validation to prevent undefined/null/empty keys
   if (!key || typeof key !== 'string' || key.trim() === '') {
-    console.error(`Invalid key: ${key}`);
+    console.error(`Invalid key in createSignedUrl: "${key}"`);
     return '/placeholder.svg';
   }
   
@@ -68,6 +70,7 @@ export const createSignedUrl = async (key: string): Promise<string> => {
     console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
     
     // Get public URL from website-images bucket
+    // NOTE: Supabase storage.getPublicUrl() doesn't return error property, only data
     const { data } = await supabase.storage
       .from('website-images')
       .getPublicUrl(normalizedKey);

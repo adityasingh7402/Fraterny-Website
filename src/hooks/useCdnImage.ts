@@ -23,7 +23,8 @@ export const useCdnImage = (
       // Reset error state on new path
       setError(null);
       
-      if (!imagePath) {
+      // Improved validation for empty/undefined keys
+      if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
         if (isMounted) {
           setUrl(null);
           setIsLoading(false);

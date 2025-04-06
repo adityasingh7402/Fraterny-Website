@@ -11,6 +11,7 @@ import { handleError } from "@/utils/errorHandling";
  * Get a signed URL for an image by its key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
+  // Improved validation to prevent undefined/null/empty keys
   if (!key || typeof key !== 'string' || key.trim() === '') {
     console.error(`Invalid key in getImageUrlByKey: "${key}"`);
     return '/placeholder.svg';
@@ -103,6 +104,7 @@ export const getImageUrlByKeyAndSize = async (
   key: string, 
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
+  // Improved validation to prevent undefined/null/empty keys
   if (!key || typeof key !== 'string' || key.trim() === '') {
     console.error(`Invalid key in getImageUrlByKeyAndSize: "${key}", size: ${size}`);
     return '/placeholder.svg';
