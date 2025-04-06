@@ -1,3 +1,4 @@
+
 /**
  * CDN URL Service Module
  * Handles transforming URLs for CDN usage
@@ -166,6 +167,9 @@ export const getCdnUrl = (
   // If not in cache, proceed with normal URL transformation
   let transformedUrl: string | null = null;
   
+  // Check if CDN is enabled
+  const useCdn = forceCdn || isCdnEnabled();
+  
   // Handle absolute URLs (including Supabase storage URLs)
   if (imagePath.startsWith('http')) {
     // Check if it's a Supabase URL
@@ -201,13 +205,20 @@ export const getCdnUrl = (
           const urlObj = new URL(imagePath);
           const queryString = urlObj.search;
           
-          // Use CDN if enabled
-          // For synchronous contexts, we have to use the sync version
-          const useCdn = forceCdn || isCdnEnabled();
-          transformedUrl = useCdn ? `${CDN_URL}/${cdnPath}${queryString}` : imagePath;
-          
-          if (DEBUG_CDN && useCdn) {
-            console.log(`[CDN] Transformed Supabase URL:\nFrom: ${imagePath}\nTo: ${transformedUrl}`);
+          // Use CDN if enabled and available
+          if (useCdn) {
+            transformedUrl = `${CDN_URL}/${cdnPath}${queryString}`;
+            
+            if (DEBUG_CDN) {
+              console.log(`[CDN] Transformed Supabase URL:\nFrom: ${imagePath}\nTo: ${transformedUrl}`);
+            }
+          } else {
+            // Fall back to direct Supabase URL if CDN is disabled
+            transformedUrl = imagePath;
+            
+            if (DEBUG_CDN) {
+              console.log(`[CDN] Using direct Supabase URL (CDN disabled): ${imagePath}`);
+            }
           }
         }
       } else {
@@ -229,16 +240,31 @@ export const getCdnUrl = (
       if (DEBUG_CDN) console.log(`[CDN] Bypassing CDN for excluded path: ${normalizedPath}`);
       transformedUrl = normalizedPath;
     } else {
-      // Use CDN if enabled (production or manually in development)
-      // For synchronous contexts, we have to use the sync version
-      const useCdn = forceCdn || isCdnEnabled();
-      
-      // Use constructCdnPath to ensure proper format for the CDN
-      const cdnPath = constructCdnPath(normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath);
-      transformedUrl = useCdn ? `${CDN_URL}/${cdnPath}` : normalizedPath;
-      
-      if (DEBUG_CDN && useCdn) {
-        console.log(`[CDN] Transformed local path:\nFrom: ${normalizedPath}\nTo: ${transformedUrl}`);
+      // Handle image paths differently based on pattern
+      if (normalizedPath.startsWith('/images/') || normalizedPath.startsWith('/website-images/')) {
+        // For image paths, use CDN if enabled
+        if (useCdn) {
+          // Use constructCdnPath to ensure proper format for the CDN
+          const cdnPath = constructCdnPath(normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath);
+          transformedUrl = `${CDN_URL}/${cdnPath}`;
+          
+          if (DEBUG_CDN) {
+            console.log(`[CDN] Transformed local path:\nFrom: ${normalizedPath}\nTo: ${transformedUrl}`);
+          }
+        } else {
+          // Critical fix: For local image paths, ensure they point to Supabase when CDN is disabled
+          // This prevents the issue where images try to load from the website domain
+          const pathWithoutLeadingSlash = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
+          const supabasePath = `/storage/v1/object/public/${pathWithoutLeadingSlash}`;
+          transformedUrl = `https://eukenximajiuhrtljnpw.supabase.co${supabasePath}`;
+          
+          if (DEBUG_CDN) {
+            console.log(`[CDN] Using direct Supabase URL (CDN disabled):\nFrom: ${normalizedPath}\nTo: ${transformedUrl}`);
+          }
+        }
+      } else {
+        // For other asset types (CSS, JS, etc.), just use the local path
+        transformedUrl = normalizedPath;
       }
     }
   }

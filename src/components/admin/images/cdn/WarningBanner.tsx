@@ -1,32 +1,34 @@
 
 import React from 'react';
-import { FileWarning, X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { AlertCircle, X } from 'lucide-react';
 
 interface WarningBannerProps {
-  onDismiss?: () => void;
+  onDismiss: () => void;
 }
 
 const WarningBanner: React.FC<WarningBannerProps> = ({ onDismiss }) => {
   return (
-    <div className="border rounded-md p-3 bg-amber-50 border-amber-200 mb-4">
-      <div className="flex items-start">
-        <FileWarning className="h-4 w-4 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
-        <div className="text-sm text-amber-800 flex-grow">
-          <p>If you're seeing 404 errors for placeholder.svg, make sure your CDN worker is configured to handle placeholder images.</p>
-          <p className="mt-1">Consider adding '/placeholder.svg' to your CDN exclusions below if the issue persists.</p>
+    <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-4 mb-4 relative">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <AlertCircle className="h-5 w-5 text-amber-500" />
         </div>
-        {onDismiss && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0" 
-            onClick={onDismiss}
-          >
-            <X className="h-4 w-4 text-amber-600" />
-          </Button>
-        )}
+        <div className="ml-3">
+          <p className="text-sm font-medium">
+            CDN Configuration Warning
+          </p>
+          <p className="text-sm mt-1">
+            These settings are for advanced users only. Incorrect configuration can break image loading.
+          </p>
+        </div>
       </div>
+      <button 
+        onClick={onDismiss}
+        className="absolute top-2 right-2 text-amber-500 hover:text-amber-700"
+        aria-label="Dismiss warning"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 };

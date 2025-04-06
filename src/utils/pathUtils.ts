@@ -43,7 +43,7 @@ export const normalizeStoragePath = (path: string): string => {
   
   // Path already has exactly one bucket prefix
   return normalizedPath;
-}
+};
 
 /**
  * Constructs a properly formatted storage path for Supabase
@@ -67,7 +67,7 @@ export const constructStoragePath = (
   
   // Otherwise, add the bucket name prefix
   return `${bucketName}/${normalizedPath}`;
-}
+};
 
 /**
  * Constructs a properly formatted URL for the CDN
@@ -87,4 +87,4 @@ export const constructCdnPath = (storagePath: string): string => {
   }
   
   return normalizedPath;
-}
+};

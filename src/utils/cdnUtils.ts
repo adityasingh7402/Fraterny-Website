@@ -25,14 +25,32 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
     return url;
   }
   
-  // If CDN is disabled and not forced, return original
+  // If CDN is disabled and not forced, ensure we return a proper Supabase URL
   if (!useCdn && !forceCdn) {
+    // Critical fix: Make sure we're always returning a full Supabase URL, not a relative path
+    if (!url.startsWith('http')) {
+      // For relative paths, construct a full Supabase URL
+      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
+      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
+    }
     return url;
   }
   
   try {
     // Parse the URL to determine if it needs to be modified
-    const parsedUrl = new URL(url);
+    let parsedUrl: URL;
+    
+    try {
+      parsedUrl = new URL(url);
+    } catch (error) {
+      // If URL parsing fails, it's likely a relative path
+      // Convert it to an absolute Supabase URL
+      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
+      const supabaseUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
+      parsedUrl = new URL(supabaseUrl);
+    }
     
     // If URL is already a CDN URL, don't modify it
     if (parsedUrl.hostname === 'image-handler.yashmalhotra.workers.dev') {
@@ -63,11 +81,26 @@ export const getCdnUrl = (url: string | undefined, forceCdn?: boolean): string |
       }
     }
     
-    // If not a Supabase URL or we couldn't parse it properly, return the original URL
+    // If not a Supabase URL or we couldn't parse it properly, ensure it's a full URL
+    if (!url.startsWith('http')) {
+      // For relative paths, construct a full Supabase URL
+      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
+      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
+    }
+    
     return url;
   } catch (error) {
-    // If URL parsing fails, return the original URL
+    // If URL parsing fails, fallback to a direct Supabase URL
     console.warn(`Invalid URL format for CDN processing: ${url}`);
+    
+    // For relative paths, construct a full Supabase URL
+    if (!url.startsWith('http')) {
+      const pathWithoutLeadingSlash = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedPath = normalizeStoragePath(pathWithoutLeadingSlash);
+      return `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/${normalizedPath}`;
+    }
+    
     return url;
   }
 };
