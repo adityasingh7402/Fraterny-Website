@@ -3,8 +3,45 @@ import React, { useEffect, useState, useMemo } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 import { ViewportAwareGallery } from '../ui/image/components/ViewportAwareGallery';
 import { useReactQueryImages } from '@/hooks/useReactQueryImages';
+import { supabase } from '@/integrations/supabase/client';
 
-// Updated to use ONLY dynamic keys - added console logging to help with debugging
+// Function to check if images exist in the database
+const checkImagesExist = async (keys: string[]): Promise<Record<string, boolean>> => {
+  if (!keys || keys.length === 0) return {};
+  
+  try {
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('key')
+      .in('key', keys);
+      
+    if (error) {
+      console.error('Error checking image existence:', error);
+      return {};
+    }
+    
+    // Create a map of which keys exist
+    const existsMap: Record<string, boolean> = {};
+    keys.forEach(key => {
+      existsMap[key] = false; // Default to false
+    });
+    
+    // Set true for keys that were found
+    if (data) {
+      data.forEach(img => {
+        existsMap[img.key] = true;
+      });
+    }
+    
+    console.log('Image existence check results:', existsMap);
+    return existsMap;
+  } catch (error) {
+    console.error('Unexpected error checking images:', error);
+    return {};
+  }
+};
+
+// Updated to use ONLY dynamic keys
 const experienceImages = [
   {
     dynamicKey: "experience-villa-retreat",
@@ -50,6 +87,7 @@ const experienceImages = [
  */
 const ImageGallery = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [existingKeys, setExistingKeys] = useState<Record<string, boolean>>({});
   
   // Create stable image keys for dependency tracking and log them for debugging
   const imageKeys = useMemo(() => {
@@ -57,6 +95,16 @@ const ImageGallery = () => {
     console.log('ImageGallery: Using image keys:', keys);
     return keys;
   }, []);
+  
+  // Check which image keys exist in the database
+  useEffect(() => {
+    const checkImages = async () => {
+      const results = await checkImagesExist(imageKeys);
+      setExistingKeys(results);
+    };
+    
+    checkImages();
+  }, [imageKeys]);
   
   // Use React Query's built-in URL fetching
   const { useMultipleImageUrls } = useReactQueryImages();
@@ -96,29 +144,40 @@ const ImageGallery = () => {
         priority={true} // Mark as high priority content
       >
         {experienceImages.map((image, index) => {
+          // Check if this image exists in the database
+          const imageExists = existingKeys[image.dynamicKey];
+          
           // Log the URL we're using for this image
           const imageUrl = imageUrlsData[image.dynamicKey];
-          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", URL: ${imageUrl || 'none'}`);
+          console.log(`ImageGallery: Rendering image ${index} with key "${image.dynamicKey}", exists: ${imageExists}, URL: ${imageUrl || 'none'}`);
           
           return (
             <div key={index} className="aspect-[4/3] w-full">
-              <ResponsiveImage 
-                dynamicKey={image.dynamicKey}
-                alt={image.alt}
-                className="w-full h-full"
-                loading={index < 2 ? "eager" : "lazy"}
-                priority={index < 2} // First two images have higher priority
-                width={image.width}
-                height={image.height}
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                objectFit="cover"
-              />
+              {imageExists ? (
+                <ResponsiveImage 
+                  dynamicKey={image.dynamicKey}
+                  alt={image.alt}
+                  className="w-full h-full"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  priority={index < 2} // First two images have higher priority
+                  width={image.width}
+                  height={image.height}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                  objectFit="cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <span className="text-gray-500 text-sm px-2 text-center">
+                    Image not available
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}
       </ViewportAwareGallery>
     );
-  }, [imageUrlsData]);
+  }, [imageUrlsData, existingKeys]);
   
   return (
     <section className="w-full overflow-hidden">

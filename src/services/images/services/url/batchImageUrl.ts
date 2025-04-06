@@ -3,11 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
-import { getContentHashFromMetadata, createVersionedUrl, createSignedUrl } from "./utils";
+import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
 
 /**
  * Get a URL for an image by key in a batched query pattern
- * This is optimized for React Query's batching capability
  */
 export const getImageUrlBatched = async (key: string): Promise<string> => {
   if (!key || typeof key !== 'string' || key.trim() === '') {
@@ -50,7 +49,7 @@ export const getImageUrlBatched = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // Get storage key from the database record
+    // IMPORTANT: Use the key directly for storage
     const imageKey = image.key;
     
     if (!imageKey) {
@@ -61,7 +60,7 @@ export const getImageUrlBatched = async (key: string): Promise<string> => {
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create public URL using the key
+    // Create public URL using the key directly
     const { data } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
@@ -99,7 +98,12 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     const cacheVersion = await getGlobalCacheVersion();
     
     // Normalize keys
-    const normalizedKeys = keys.map(k => k.trim());
+    const normalizedKeys = keys.map(k => k?.trim() || '').filter(k => k !== '');
+    
+    if (normalizedKeys.length === 0) {
+      console.warn('[batchGetImageUrls] All keys were invalid or empty');
+      return {};
+    }
     
     // Check cache first for all keys
     const result: Record<string, string> = {};
@@ -121,6 +125,8 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
       return result;
     }
     
+    console.log(`[batchGetImageUrls] Fetching ${keysToFetch.length} uncached keys: ${keysToFetch.join(', ')}`);
+    
     // Fetch all missing keys in a single query
     const { data: images, error } = await supabase
       .from('website_images')
@@ -128,7 +134,7 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
       .in('key', keysToFetch);
     
     if (error) {
-      console.error('Error batch loading images:', error);
+      console.error('[batchGetImageUrls] Error batch loading images:', error);
       // Fill missing keys with placeholders
       for (const key of keysToFetch) {
         result[key] = '/placeholder.svg';
@@ -144,17 +150,17 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
       const image = imageMap.get(key);
       
       if (!image) {
-        console.warn(`No image found for key "${key}" in batch operation`);
+        console.warn(`[batchGetImageUrls] No image found for key "${key}" in batch operation`);
         result[key] = '/placeholder.svg';
         continue;
       }
       
       try {
-        // Get image key
+        // IMPORTANT: Use the key directly for storage
         const imageKey = image.key;
         
         if (!imageKey) {
-          console.error(`Image found but has no key for "${key}"`);
+          console.error(`[batchGetImageUrls] Image found but has no key for "${key}"`);
           result[key] = '/placeholder.svg';
           continue;
         }
@@ -162,13 +168,13 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
         // Get content hash for cache busting
         const contentHash = getContentHashFromMetadata(image.metadata);
         
-        // Get public URL using the image key
+        // Get public URL using the key directly
         const { data } = await supabase.storage
           .from('website-images')
           .getPublicUrl(imageKey);
         
         if (!data || !data.publicUrl) {
-          console.error(`Failed to get public URL for image key "${imageKey}"`);
+          console.error(`[batchGetImageUrls] Failed to get public URL for image key "${imageKey}"`);
           result[key] = '/placeholder.svg';
           continue;
         }
@@ -180,14 +186,14 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
         result[key] = finalUrl;
         urlCache.set(`url:${key}`, finalUrl);
       } catch (innerError) {
-        console.error(`Error processing key "${key}" in batch:`, innerError);
+        console.error(`[batchGetImageUrls] Error processing key "${key}" in batch:`, innerError);
         result[key] = '/placeholder.svg';
       }
     }
     
     return result;
   } catch (error) {
-    console.error('Unexpected error in batchGetImageUrls:', error);
+    console.error('[batchGetImageUrls] Unexpected error in batchGetImageUrls:', error);
     return keys.reduce((acc, key) => {
       acc[key] = '/placeholder.svg';
       return acc;

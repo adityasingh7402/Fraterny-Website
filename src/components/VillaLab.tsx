@@ -5,11 +5,28 @@ import ResponsiveImage from './ui/ResponsiveImage';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DeviceDetectionWrapper } from './ui/DeviceDetectionWrapper';
+import { supabase } from '@/integrations/supabase/client';
+
+// First check if the image keys exist in the database
+const checkImageExists = async (key: string): Promise<boolean> => {
+  try {
+    const { data } = await supabase
+      .from('website_images')
+      .select('id')
+      .eq('key', key)
+      .maybeSingle();
+    return !!data;
+  } catch (error) {
+    console.error(`Error checking if image exists: ${key}`, error);
+    return false;
+  }
+};
 
 const VillaLab = () => {
   const network = useNetworkStatus();
   const { isMobile, isDetecting } = useIsMobile();
   const [visibleCount, setVisibleCount] = useState<number>(0);
+  const [checkedKeys, setCheckedKeys] = useState<Record<string, boolean>>({});
   
   // Determine how many images to initially show based on network conditions & device
   useEffect(() => {
@@ -102,6 +119,22 @@ const VillaLab = () => {
     }
   ], []);
 
+  // Check which image keys exist in the database
+  useEffect(() => {
+    const checkAllImages = async () => {
+      const results: Record<string, boolean> = {};
+      
+      for (const activity of activities) {
+        results[activity.dynamicKey] = await checkImageExists(activity.dynamicKey);
+      }
+      
+      console.log('VillaLab: Image existence check results:', results);
+      setCheckedKeys(results);
+    };
+    
+    checkAllImages();
+  }, [activities]);
+
   // Calculate how many images to display based on viewport and network conditions
   const displayCount = Math.min(activities.length, visibleCount);
 
@@ -138,6 +171,9 @@ const VillaLab = () => {
               // This creates a progressive reveal effect
               const isVisible = index < visibleCount;
               
+              // Check if this image exists in the database
+              const imageExists = checkedKeys[activity.dynamicKey];
+              
               // For featured items (index 0 and 1), we might want to force desktop version
               // even on mobile devices for better quality
               const shouldForceDesktop = index <= 1;
@@ -152,17 +188,25 @@ const VillaLab = () => {
                     transitionDelay: `${index * 100}ms`
                   }}
                 >
-                  <ResponsiveImage
-                    dynamicKey={activity.dynamicKey}
-                    alt={activity.alt}
-                    className="w-full h-full"
-                    loading={loadingStrategy}
-                    width={activity.width}
-                    height={activity.height}
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                    objectFit="cover"
-                    forceMobile={shouldForceDesktop ? false : undefined}
-                  />
+                  {imageExists ? (
+                    <ResponsiveImage
+                      dynamicKey={activity.dynamicKey}
+                      alt={activity.alt}
+                      className="w-full h-full"
+                      loading={loadingStrategy}
+                      width={activity.width}
+                      height={activity.height}
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                      objectFit="cover"
+                      forceMobile={shouldForceDesktop ? false : undefined}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-gray-500 text-sm px-4 text-center">
+                        Image not available
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                     <span className="text-white p-4 font-medium">{activity.title}</span>
                   </div>

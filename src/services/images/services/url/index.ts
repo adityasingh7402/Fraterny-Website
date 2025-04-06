@@ -2,8 +2,18 @@
 // Re-export functions from modular files
 export * from './utils';
 export * from './singleImageUrl';
-export * from './batchImageUrl';
 
-// Don't re-export batchFunctions directly to avoid naming conflicts
-// Instead, export specific functions with different names
-export { getImageUrlBatched as getImageUrlBatchedOptimized } from './batchFunctions';
+// Export specific functions from batchImageUrl to avoid conflicts
+export { 
+  batchGetImageUrls
+} from './batchImageUrl';
+
+// Export renamed batch functions to avoid naming conflicts
+export { 
+  getImageUrlBatched as getImageUrlBatchedOptimized 
+} from './batchFunctions';
+
+// Export the primary batched function with its original name
+export { 
+  getImageUrlBatched 
+} from './batchImageUrl';

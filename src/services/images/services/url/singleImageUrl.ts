@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
-import { getContentHashFromMetadata, createVersionedUrl, createSignedUrl } from "./utils";
+import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
 import { debugStoragePath, monitorNetworkRequest, isValidUrl } from "@/utils/debugUtils";
 import { handleError } from "@/utils/errorHandling";
 
@@ -57,7 +57,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // Use the key from the database record
+    // IMPORTANT: Use the key directly for storage path
     const imageKey = image.key;
     
     if (!imageKey) {
@@ -68,7 +68,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create public URL using the storage API
+    // Create public URL using the key directly
     const { data: urlData } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
@@ -96,17 +96,6 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   }
 };
 
-// Helper functions to centralize error handling patterns
-function handleImageNotFound(key: string): string {
-  console.warn(`No image found with key "${key}"`);
-  return '/placeholder.svg';
-}
-
-function handleImageWithoutPath(key: string): string {
-  console.error(`No key found for image with key "${key}"`);
-  return '/placeholder.svg';
-}
-
 /**
  * Get a signed URL for an image by its key and size variant
  */
@@ -114,7 +103,10 @@ export const getImageUrlByKeyAndSize = async (
   key: string, 
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
-  if (!key) return '/placeholder.svg';
+  if (!key || typeof key !== 'string' || key.trim() === '') {
+    console.error(`Invalid key in getImageUrlByKeyAndSize: "${key}", size: ${size}`);
+    return '/placeholder.svg';
+  }
   
   const normalizedKey = key.trim();
   const cacheKey = `url:${normalizedKey}:${size}`;
@@ -139,30 +131,38 @@ export const getImageUrlByKeyAndSize = async (
       .eq('key', normalizedKey)
       .maybeSingle();
     
-    if (error || !image) {
-      throw new Error(`Error loading image with key "${normalizedKey}": ${error?.message || 'No image found'}`);
+    if (error) {
+      console.error(`Database error loading image with key "${normalizedKey}":`, error);
+      return '/placeholder.svg';
     }
     
-    // CRITICAL FIX: Use the key directly instead of storage_path
+    if (!image) {
+      console.warn(`No image found with key "${normalizedKey}" in database`);
+      return '/placeholder.svg';
+    }
+    
+    // IMPORTANT: Use the key directly for storage path
     const imageKey = image.key;
     
     if (!imageKey) {
-      return handleImageWithoutPath(normalizedKey);
+      console.error(`Image found but has no key for "${normalizedKey}"`);
+      return '/placeholder.svg';
     }
     
-    // For sized variants, we could append size suffix to the key
-    // This assumes your storage follows a pattern like "image-key-small.jpg"
-    const sizedKey = size ? `${imageKey}-${size}` : imageKey;
+    // For sized variants, we append size suffix to the key
+    const sizedKey = `${imageKey}-${size}`;
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create public URL using the key directly
+    // First try to get the sized version
     const { data: urlData } = await supabase.storage
       .from('website-images')
       .getPublicUrl(sizedKey);
       
     if (!urlData || !urlData.publicUrl) {
+      console.log(`Sized version "${sizedKey}" not found, falling back to original`);
+      
       // Fallback to original key if sized version doesn't exist
       const { data: fallbackData } = await supabase.storage
         .from('website-images')
