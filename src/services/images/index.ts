@@ -15,11 +15,9 @@ export {
   getImageUrlByKey, 
   getImageUrlByKeyAndSize,
   getImageUrlBatched,
-  batchGetImageUrls
+  batchGetImageUrls,
+  isValidImageKey  // Make sure this is included in the direct exports
 } from './services/url';
-
-// Export URL utility functions
-export { isValidImageKey } from './services/url/utils';
 
 // Export placeholder functions
 export { 

@@ -1,6 +1,6 @@
 
 // Re-export functions from modular files
-export * from './utils';
+export * from './utils';  // This should be exporting isValidImageKey already
 
 // Export specific functions from singleImageUrl
 export { 
