@@ -15,20 +15,24 @@ const StorageInitializer = () => {
       console.log('[Storage Initializer] Supabase Storage is always enabled');
       
       // Test connection silently on first load
-      import('@/utils/cdn').then(({ testSupabaseConnection }) => {
-        testSupabaseConnection()
-          .then(isAvailable => {
-            if (!isAvailable) {
-              console.warn('[Storage Initializer] Supabase test failed, check connection');
-            } else {
-              console.log('[Storage Initializer] Supabase test successful');
-            }
-          })
-          .catch(error => {
-            // Log error but don't show any user-facing notification
-            console.error('[Storage Initializer] Error testing Supabase:', error);
-          });
-      });
+      const testConnection = async () => {
+        try {
+          // Simple test to check if Supabase is available
+          const response = await fetch('https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/test-connection.png');
+          const isAvailable = response.ok;
+          
+          if (!isAvailable) {
+            console.warn('[Storage Initializer] Supabase test failed, check connection');
+          } else {
+            console.log('[Storage Initializer] Supabase test successful');
+          }
+        } catch (error) {
+          // Log error but don't show any user-facing notification
+          console.error('[Storage Initializer] Error testing Supabase:', error);
+        }
+      };
+      
+      testConnection();
     }
   }, []); 
   
