@@ -27,4 +27,12 @@ export interface WebsiteImage {
   url?: string; // Add URL property that can be computed when needed
 }
 
+// Export ImageSizes interface for use in other files
+export interface ImageSizes {
+  small?: string;
+  medium?: string;
+  large?: string;
+  original?: string;
+}
+
 // Re-export other types here if needed
