@@ -6,6 +6,9 @@ import { isValidImageKey, isValidImageUrl } from "./validation";
 const urlCache: Record<string, { url: string, expires: number }> = {};
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
+// Storage bucket name (fixed to match the actual bucket name in Supabase)
+const STORAGE_BUCKET_NAME = 'Website Images'; // Updated to match the actual bucket name with spaces and capitalization
+
 /**
  * Simplified function to get image URL directly from database
  * This version doesn't require a storage bucket
@@ -34,7 +37,7 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
     // Get the image URL from the website_images table
     const { data: imageData, error: lookupError } = await supabase
       .from('website_images')
-      .select('id, key, description')
+      .select('id, key, storage_path, description')
       .eq('key', normalizedKey)
       .maybeSingle();
       
@@ -50,9 +53,20 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
       return '/placeholder.svg';
     }
     
-    // Since we don't have a storage bucket, generate a placeholder URL pattern
-    // This is a temporary solution until proper image URLs are set up
-    const imageUrl = `/api/images/${normalizedKey}`;
+    // Generate URL from storage bucket using the storage_path if available, or fall back to key
+    const storagePath = imageData.storage_path || imageData.key;
+    
+    // Get the URL from Supabase Storage using the correct bucket name
+    const { data: urlData, error: urlError } = await supabase.storage
+      .from(STORAGE_BUCKET_NAME)
+      .getPublicUrl(storagePath);
+    
+    if (urlError || !urlData) {
+      console.error(`[getImageUrl] Storage error for key "${normalizedKey}":`, urlError);
+      return '/placeholder.svg';
+    }
+    
+    const imageUrl = urlData.publicUrl;
     console.log(`[getImageUrl] Generated URL for "${normalizedKey}": ${imageUrl}`);
     
     // Cache the URL

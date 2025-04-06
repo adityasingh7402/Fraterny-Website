@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
+// The actual bucket name in Supabase
+const STORAGE_BUCKET_NAME = 'Website Images';
+
 /**
  * A diagnostic component to check Supabase storage access and bucket existence
  */
@@ -17,15 +20,15 @@ const StorageDiagnostics: React.FC = () => {
   
   const checkBucketAccess = async () => {
     try {
-      console.log('[StorageDiagnostics] Checking bucket access...');
+      console.log(`[StorageDiagnostics] Checking bucket access for "${STORAGE_BUCKET_NAME}"...`);
       setIsLoading(true);
       
       // Try to get the bucket
       const { data: bucketData, error: bucketError } = await supabase.storage
-        .getBucket('website-images');
+        .getBucket(STORAGE_BUCKET_NAME);
       
       if (bucketError) {
-        console.error('[StorageDiagnostics] Error getting bucket:', bucketError);
+        console.error(`[StorageDiagnostics] Error getting bucket "${STORAGE_BUCKET_NAME}":`, bucketError);
         setBucketError(bucketError.message);
         setIsLoading(false);
         return;
@@ -36,11 +39,11 @@ const StorageDiagnostics: React.FC = () => {
       
       // Now try to list files in the bucket
       const { data: listData, error: listError } = await supabase.storage
-        .from('website-images')
+        .from(STORAGE_BUCKET_NAME)
         .list();
       
       if (listError) {
-        console.error('[StorageDiagnostics] Error listing files:', listError);
+        console.error(`[StorageDiagnostics] Error listing files in "${STORAGE_BUCKET_NAME}":`, listError);
         setBucketError(`Bucket exists but cannot list files: ${listError.message}`);
         setIsLoading(false);
         return;
@@ -69,7 +72,7 @@ const StorageDiagnostics: React.FC = () => {
           <div className="mt-3">
             <p className="text-sm text-gray-600">Possible solutions:</p>
             <ul className="list-disc text-sm text-gray-600 ml-5 mt-1">
-              <li>Verify the 'website-images' bucket exists in Supabase</li>
+              <li>Verify the '{STORAGE_BUCKET_NAME}' bucket exists in Supabase</li>
               <li>Check that your app has correct Supabase credentials</li>
               <li>Ensure bucket permissions are set correctly</li>
             </ul>
