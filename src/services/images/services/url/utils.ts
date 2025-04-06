@@ -1,7 +1,12 @@
 
+/**
+ * Utility functions for URL generation
+ */
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { IMAGE_KEYS } from "@/pages/admin/images/components/upload/constants";
+import { STORAGE_BUCKET_NAME } from "../../constants";
+import { constructStoragePath, constructCdnUrl } from "@/utils/pathUtils";
 
 // Create a mapping of valid keys for fast lookup
 const VALID_KEYS = new Set(IMAGE_KEYS.map(item => item.key));
@@ -115,9 +120,9 @@ export const createSignedUrl = async (key: string): Promise<string> => {
     }
     
     // Only get public URL if we confirmed the key exists in the database
-    // NOTE: Supabase storage.getPublicUrl() doesn't return error property, only data
+    // NOTE: Use the correct storage bucket name
     const { data } = await supabase.storage
-      .from('website-images')
+      .from(STORAGE_BUCKET_NAME)
       .getPublicUrl(normalizedKey);
     
     if (!data || !data.publicUrl) {

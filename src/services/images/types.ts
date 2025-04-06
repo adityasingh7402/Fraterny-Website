@@ -3,6 +3,9 @@
  * Type definitions for the image service
  */
 
+// Define a Json type for compatibility with Supabase
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
 export interface WebsiteImage {
   id: string;
   key: string;
@@ -55,6 +58,3 @@ export interface ServiceWorkerCacheEntry {
   expires: number;
   key?: string;
 }
-
-// Define a Json type for compatibility with Supabase
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];

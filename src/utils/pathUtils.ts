@@ -58,21 +58,27 @@ export const constructStoragePath = (storagePath: string): string => {
 };
 
 /**
- * Constructs a properly formatted URL for the CDN
- * Ensures path always has the format: website-images/image-path.ext
- * 
- * @param storagePath The raw storage path
- * @returns A properly formatted CDN path
+ * Converts Supabase internal storage path to CDN URL path
+ * Handles the transformation from 'Website Images' to 'website-images' for URLs
  */
-export const constructCdnPath = (storagePath: string): string => {
-  // Normalize first to ensure consistency and remove any duplicate prefixes
+export const storagePathToCdnPath = (storagePath: string): string => {
+  // First normalize to ensure consistent format with the correct bucket name
   const normalizedPath = normalizeStoragePath(storagePath);
   
-  // Ensure the normalized path includes the bucket name exactly once
-  const bucketName = 'website-images';
-  if (!normalizedPath.startsWith(`${bucketName}/`)) {
-    return `${bucketName}/${normalizedPath.replace(`${bucketName}/`, '')}`;
-  }
+  // Replace the storage bucket name with the CDN-compatible format (lowercase, hyphenated)
+  // This is needed because Supabase URLs use the hyphenated version
+  return normalizedPath.replace(
+    `${STORAGE_BUCKET_NAME}/`, 
+    'website-images/'
+  );
+};
+
+/**
+ * Constructs a CDN URL for public access to Supabase storage
+ */
+export const constructCdnUrl = (storagePath: string, cdnBaseUrl?: string): string => {
+  const cdnPath = storagePathToCdnPath(storagePath);
+  const baseUrl = cdnBaseUrl || 'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/';
   
-  return normalizedPath;
+  return `${baseUrl}${cdnPath}`;
 };

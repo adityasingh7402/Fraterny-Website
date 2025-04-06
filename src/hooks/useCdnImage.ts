@@ -1,8 +1,13 @@
 
+/**
+ * Hook provides direct image URLs from Supabase with local caching
+ */
 import { useState, useEffect } from 'react';
 import { isValidUrl } from '@/utils/debugUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 import { supabase } from '@/integrations/supabase/client';
+import { STORAGE_BUCKET_NAME } from '@/services/images/constants';
+import { constructCdnUrl, constructStoragePath } from '@/utils/pathUtils';
 
 /**
  * Hook provides direct image URLs from Supabase with local caching
@@ -62,11 +67,15 @@ export const useCdnImage = (
       }
       
       try {
-        // Use key directly to get public URL
+        // Use key directly to get public URL from the correct bucket
         console.log(`useCdnImage: Getting public URL for key: "${normalizedKey}"`);
         
+        // Properly construct the storage path with the correct bucket name
+        const storagePath = constructStoragePath(normalizedKey);
+        
+        // Get public URL using supabase client
         const { data } = await supabase.storage
-          .from('website-images')
+          .from(STORAGE_BUCKET_NAME)
           .getPublicUrl(normalizedKey);
           
         if (!data || !data.publicUrl) {

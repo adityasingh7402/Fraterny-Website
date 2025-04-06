@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET_NAME } from "../constants";
 import { OptimizationOptions } from "../types";
 import { resizeImage } from "./optimizationUtils";
+import { constructStoragePath } from "@/utils/pathUtils";
 
 /**
  * Create optimized versions of an image for different screen sizes
@@ -105,12 +106,12 @@ export const generateImageVariant = async (
     
     // Check if we already have this size
     const sizes = image.sizes as Record<string, string> || {};
-    if (sizes[size]) {
+    if (sizes && typeof sizes === 'object' && sizes[size]) {
       return sizes[size];
     }
     
     // Set dimensions based on size
-    let width, height;
+    let width;
     switch (size) {
       case 'small':
         width = options.width || 320;
@@ -146,8 +147,8 @@ export const generateImageVariant = async (
     const result = await response.json();
     
     // Update the database with the new size variant
-    if (result.path) {
-      const updatedSizes = { ...sizes };
+    if (result && result.path) {
+      const updatedSizes = { ...(sizes && typeof sizes === 'object' ? sizes : {}) };
       updatedSizes[size] = result.path;
       
       const { error: updateError } = await supabase
