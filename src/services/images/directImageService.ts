@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { isValidImageKey, isValidImageUrl } from "./validation";
 
@@ -11,9 +10,11 @@ const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
  * Single responsibility: Convert an image key to a URL
  */
 export const getImageUrl = async (key: string | undefined): Promise<string> => {
+  console.log(`[getImageUrl] Called with key: "${key}"`);
+  
   // Validate input early to prevent invalid requests
   if (!key || !isValidImageKey(key)) {
-    console.warn(`Invalid image key provided: "${key}", returning placeholder`);
+    console.warn(`[getImageUrl] Invalid image key provided: "${key}", returning placeholder`);
     return '/placeholder.svg';
   }
   
@@ -22,32 +23,57 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
   // Check cache first
   const cachedItem = urlCache[normalizedKey];
   if (cachedItem && cachedItem.expires > Date.now()) {
+    console.log(`[getImageUrl] Using cached URL for key "${normalizedKey}": ${cachedItem.url}`);
     return cachedItem.url;
   }
   
   try {
+    console.log(`[getImageUrl] Looking up database record for key: "${normalizedKey}"`);
+    
     // First verify the image exists in our database
     const { data: imageExists, error: lookupError } = await supabase
       .from('website_images')
-      .select('id')
+      .select('id, key, storage_path')
       .eq('key', normalizedKey)
       .maybeSingle();
       
-    if (lookupError || !imageExists) {
-      console.error(`Image key "${normalizedKey}" not found in database:`, 
-        lookupError || 'No record found');
+    console.log(`[getImageUrl] Database lookup result:`, imageExists || 'No record found');
+    
+    if (lookupError) {
+      console.error(`[getImageUrl] Database error for key "${normalizedKey}":`, lookupError);
       return '/placeholder.svg';
     }
+    
+    if (!imageExists) {
+      console.warn(`[getImageUrl] No image found with key "${normalizedKey}" in database`);
+      return '/placeholder.svg';
+    }
+    
+    // IMPORTANT: Verify key exists and is not undefined before proceeding
+    const imageKey = imageExists.storage_path || imageExists.key;
+    if (!imageKey) {
+      console.error(`[getImageUrl] Image found but has no storage_path or key for "${normalizedKey}"`);
+      return '/placeholder.svg';
+    }
+    
+    console.log(`[getImageUrl] Getting public URL for storage path: "${imageKey}"`);
     
     // Get URL directly from storage
-    const { data: urlData } = await supabase.storage
+    const { data: urlData, error: storageError } = await supabase.storage
       .from('website-images')
-      .getPublicUrl(normalizedKey);
+      .getPublicUrl(imageKey);
     
-    if (!urlData || !urlData.publicUrl || !isValidImageUrl(urlData.publicUrl)) {
-      console.error(`Failed to get valid URL for key "${normalizedKey}"`);
+    if (storageError) {
+      console.error(`[getImageUrl] Storage error for key "${normalizedKey}":`, storageError);
       return '/placeholder.svg';
     }
+    
+    if (!urlData || !urlData.publicUrl || !isValidImageUrl(urlData.publicUrl)) {
+      console.error(`[getImageUrl] Failed to get valid URL for key "${normalizedKey}"`);
+      return '/placeholder.svg';
+    }
+    
+    console.log(`[getImageUrl] Successfully got public URL for "${normalizedKey}": ${urlData.publicUrl}`);
     
     // Cache the URL
     urlCache[normalizedKey] = {
@@ -57,7 +83,7 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
     
     return urlData.publicUrl;
   } catch (error) {
-    console.error(`Error getting URL for image "${normalizedKey}":`, error);
+    console.error(`[getImageUrl] Error getting URL for image "${normalizedKey}":`, error);
     return '/placeholder.svg';
   }
 };

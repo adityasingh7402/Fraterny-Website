@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useImageUrl } from '@/hooks/useDirectImage';
 
 interface SimpleImageProps {
@@ -37,17 +37,31 @@ export const SimpleImage: React.FC<SimpleImageProps> = ({
   // Use our custom hook if we have a dynamicKey
   const { url, isLoading, error } = useImageUrl(dynamicKey);
   
+  // Better logging for debugging
+  useEffect(() => {
+    if (dynamicKey) {
+      console.log(`[SimpleImage] Rendering with dynamicKey: "${dynamicKey}"`);
+      console.log(`[SimpleImage] URL from hook: "${url}", isLoading: ${isLoading}, error: ${error}`);
+    } else if (src) {
+      console.log(`[SimpleImage] Rendering with direct src: "${src}"`);
+    } else {
+      console.log(`[SimpleImage] Rendering with fallback: "${fallbackSrc}"`);
+    }
+  }, [dynamicKey, url, isLoading, error, src, fallbackSrc]);
+  
   // Determine the source to use
   const imageSrc = dynamicKey 
     ? (url || fallbackSrc) 
     : (src || fallbackSrc);
   
   const handleLoad = () => {
+    console.log(`[SimpleImage] Image loaded successfully: ${imageSrc}`);
     setIsLoaded(true);
     onLoad?.();
   };
   
   const handleError = () => {
+    console.error(`[SimpleImage] Image failed to load: ${imageSrc}`);
     setLoadError(true);
     onError?.();
   };
@@ -71,10 +85,11 @@ export const SimpleImage: React.FC<SimpleImageProps> = ({
         onError={handleError}
       />
       
-      {/* Error state - show fallback if image fails to load */}
+      {/* Error state with more details */}
       {(loadError || (dynamicKey && error)) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-400">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-400 p-2 text-sm">
           <span>Image not available</span>
+          <span className="text-xs mt-1">{dynamicKey || src}</span>
         </div>
       )}
     </div>
