@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
-import { useNetworkStatus } from '@/hooks/use-network-status';
-import { trackImageLoadStart, trackImageLoadComplete, trackImageLoadFailure } from '@/utils/imagePerformanceMonitor';
+import { isValidImageUrl } from '@/services/images/validation';
 
 interface ViewportAwareImageProps {
   src: string;
@@ -33,93 +32,47 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
   onError,
   fetchPriority = 'auto',
 }) => {
-  const network = useNetworkStatus();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [actualSrc, setActualSrc] = useState<string>(fallbackSrc);
   
-  // Define margin based on network conditions
-  let rootMargin = '200px';
-  if (network.saveDataEnabled || (network.rtt !== null && network.rtt > 500)) {
-    rootMargin = '100px'; // Load closer to viewport on slow connections
-  } else if (network.rtt !== null && network.rtt < 50) {
-    rootMargin = '400px'; // Load further ahead on fast connections
-  }
-  
-  // Function to validate src is not undefined or malformed
-  function isValidSrc(url: string | undefined): boolean {
-    if (!url) return false;
-    
-    // Check for undefined keyword in URL (common error)
-    if (url.includes('/undefined') || url === 'undefined') {
-      console.error(`[ViewportAwareImage] Invalid URL contains 'undefined': ${url}`);
-      return false;
-    }
-    
-    // Simple check for URL structure
-    try {
-      return url.startsWith('http') || url.startsWith('/');
-    } catch (e) {
-      console.error(`[ViewportAwareImage] URL validation error: ${e}`);
-      return false;
-    }
-  }
-  
-  // Validate source immediately - this prevents invalid URLs from even attempting to load
+  // Validate source URL immediately - prevent invalid URLs from attempting to load
   useEffect(() => {
-    if (!isValidSrc(src)) {
-      console.warn(`[ViewportAwareImage] Invalid source provided: "${src}", using fallback`);
+    if (!isValidImageUrl(src)) {
+      console.error(`Invalid source URL: "${src}", using fallback`);
       setActualSrc(fallbackSrc);
       setHasError(true);
       if (onError) onError();
     } else {
-      if (lowQualitySrc) {
-        // If we have a low quality placeholder, show it immediately
+      // If we have a low quality placeholder, show it immediately
+      if (lowQualitySrc && isValidImageUrl(lowQualitySrc)) {
         setActualSrc(lowQualitySrc);
       }
     }
   }, [src, fallbackSrc, lowQualitySrc, onError]);
   
-  // Use intersection observer with dynamic rootMargin
+  // Use intersection observer 
   const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
-    rootMargin,
+    rootMargin: '200px',
     triggerOnce: true,
   });
 
-  // Load high-quality image when element is visible or about to be visible
+  // Load high-quality image when element is visible
   useEffect(() => {
-    if (isVisible && !isLoaded && !hasError) {
-      // Validate src before attempting to load
-      if (!isValidSrc(src)) {
-        console.error(`[ViewportAwareImage] Skipping invalid src: ${src}`);
-        setHasError(true);
-        setActualSrc(fallbackSrc);
-        trackImageLoadFailure(src || 'unknown-src', new Error('Invalid source URL'));
-        if (onError) onError();
-        return;
-      }
+    if (isVisible && !isLoaded && !hasError && isValidImageUrl(src)) {
+      console.log(`Loading image: ${src}`);
       
-      console.log(`[ViewportAwareImage] Loading image: ${src}`);
-      trackImageLoadStart(src);
-      
-      const startTime = performance.now();
       const img = new Image();
       img.src = src;
       
       img.onload = () => {
-        const loadTime = performance.now() - startTime;
-        console.log(`[ViewportAwareImage] Successfully loaded: ${src} in ${loadTime.toFixed(2)}ms`);
-        trackImageLoadComplete(src, loadTime);
-        
         setActualSrc(src);
         setIsLoaded(true);
         if (onLoad) onLoad();
       };
       
       img.onerror = () => {
-        console.error(`[ViewportAwareImage] Failed to load: ${src}, using fallback: ${fallbackSrc}`);
-        trackImageLoadFailure(src, new Error('Image load failed'));
-        
+        console.error(`Failed to load: ${src}, using fallback: ${fallbackSrc}`);
         setHasError(true);
         setActualSrc(fallbackSrc);
         if (onError) onError();
@@ -127,7 +80,7 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
     }
   }, [isVisible, src, isLoaded, hasError, fallbackSrc, onLoad, onError]);
 
-  // Apply appropriate styles for fade-in effect and maintaining aspect ratio
+  // Apply styles for transition
   const style: React.CSSProperties = {
     objectFit,
     transition: 'opacity 0.3s ease-in-out',
@@ -160,7 +113,7 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
         <div className="w-full h-full bg-gray-100 animate-pulse"></div>
       )}
       
-      {/* Image with proper attributes for SEO and accessibility */}
+      {/* Image with proper attributes */}
       {isVisible && (
         <img
           src={actualSrc}
@@ -169,11 +122,11 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
           height={height}
           sizes={sizes}
           style={style}
-          loading="lazy" // Native lazy loading as backup
+          loading="lazy"
           className={`${className} w-full h-full`}
           {...imgAttributes}
           onError={() => {
-            console.error(`[ViewportAwareImage] Error loading image: ${actualSrc}`);
+            console.error(`Error loading image: ${actualSrc}`);
             if (actualSrc !== fallbackSrc) {
               setActualSrc(fallbackSrc);
               setHasError(true);

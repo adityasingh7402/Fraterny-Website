@@ -1,42 +1,28 @@
 
+// Export direct image service functions
+export { 
+  getImageUrl, 
+  getMultipleImageUrls,
+  clearImageUrlCache
+} from './directImageService';
+
+// Export validation functions
+export { 
+  isValidImageKey,
+  isValidImageUrl
+} from './validation';
+
 // Re-export type definitions
 export * from './types';
 
-// Re-export constants
-export * from './constants';
-
-// Re-export functions from individual service files
+// Re-export legacy functions for backward compatibility
 export * from './uploadService';
 export * from './updateService';
 export * from './deleteService';
-
-// Export URL service functions directly
-export { 
-  getImageUrlByKey, 
-  getImageUrlByKeyAndSize,
-  getImageUrlBatched,
-  batchGetImageUrls,
-  isValidImageKey  // Directly re-export the validation function
-} from './services/url';
-
-// Export placeholder functions
-export { 
-  getImagePlaceholdersByKey 
-} from './services/placeholderService';
-
-// Export cache management functions
-export {
-  clearImageUrlCache,
-  clearImageUrlCacheForKey
-} from './services/cacheService';
-
-// Export cache version management
-export {
-  getGlobalCacheVersion,
-  updateGlobalCacheVersion 
-} from './services/cacheVersionService';
-
-// Export fetchService functions explicitly to avoid naming conflicts
+export * from './services/url';
+export * from './services/placeholderService';
+export * from './services/cacheService';
+export * from './services/cacheVersionService';
 export { 
   fetchImageByKey,
   fetchAllImages,
@@ -45,19 +31,5 @@ export {
   invalidateImageCache
 } from './fetchService';
 
-// Export cache instances for advanced usage
+// Export legacy cache instances for backward compatibility
 export { imageCache, urlCache } from './cache';
-
-// Export utility functions for broader use
-export * from './utils/cacheUtils';
-export * from './utils/queryUtils';
-export * from './utils/fileUtils';
-export * from './utils/cleanupUtils';
-export * from './utils/databaseUtils';
-
-// Export image processing utilities
-export * from './utils/dimensions';
-export * from './utils/optimizationService';
-export * from './utils/optimizationUtils';
-export * from './utils/placeholderService';
-export * from './utils/hashUtils';
