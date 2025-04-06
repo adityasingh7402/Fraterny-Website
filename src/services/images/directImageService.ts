@@ -57,12 +57,13 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
     const storagePath = imageData.storage_path || imageData.key;
     
     // Get the URL from Supabase Storage using the correct bucket name
-    const { data: urlData, error: urlError } = await supabase.storage
+    // Note: The getPublicUrl method doesn't return an error property in its response
+    const { data: urlData } = await supabase.storage
       .from(STORAGE_BUCKET_NAME)
       .getPublicUrl(storagePath);
     
-    if (urlError || !urlData) {
-      console.error(`[getImageUrl] Storage error for key "${normalizedKey}":`, urlError);
+    if (!urlData || !urlData.publicUrl) {
+      console.error(`[getImageUrl] Failed to generate URL for key "${normalizedKey}"`);
       return '/placeholder.svg';
     }
     
