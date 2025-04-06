@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
   getImageUrlByKeyAndSize, 
-  getImagePlaceholdersByKey,
   clearImageUrlCacheForKey,
   getGlobalCacheVersion
 } from '@/services/images';
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useImageCache } from './hooks/useImageCache';
+import { getImageAspectRatio } from './hooks/useImageAspectRatio';
+import { usePlaceholderStrategy } from './hooks/usePlaceholderStrategy';
+import { useNetworkLoadingStrategy } from './hooks/useNetworkLoadingStrategy';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -32,6 +35,9 @@ export const useResponsiveImage = (
   });
   
   const network = useNetworkStatus();
+  const { getCachedImageData, saveImageToCache, shouldClearCacheInDevelopment } = useImageCache();
+  const { shouldFetchPlaceholdersFirst, fetchPlaceholders } = usePlaceholderStrategy();
+  const { getLoadingDelay } = useNetworkLoadingStrategy();
   
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
@@ -40,7 +46,7 @@ export const useResponsiveImage = (
     setState(prev => ({ ...prev, isLoading: true, error: false }));
     
     // Clear cache for this key to ensure we get fresh data in development
-    if (process.env.NODE_ENV === 'development') {
+    if (shouldClearCacheInDevelopment()) {
       clearImageUrlCacheForKey(dynamicKey);
     }
     
@@ -49,57 +55,15 @@ export const useResponsiveImage = (
         // Get the global cache version for proper cache coordination
         const globalVersion = await getGlobalCacheVersion();
         
-        // Load from performance cache if available and network is not offline
+        // Create a cache key that includes size and version
         const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}:${globalVersion || ''}`;
-        const cachedData = navigator.onLine ? sessionStorage.getItem(cacheKey) : null;
-        let cachedImageInfo: any = null;
         
-        // Check if we have a valid cached version that's not too old
-        // Use a shorter cache expiry on slow connections
-        const cacheExpiryTime = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType) 
-          ? 15 * 60 * 1000  // 15 minutes for slower connections
-          : 5 * 60 * 1000;  // 5 minutes for faster connections
-          
-        if (cachedData) {
-          try {
-            const parsed = JSON.parse(cachedData);
-            const cacheAge = Date.now() - parsed.timestamp;
-            
-            // Use cache if it's less than the expiry time
-            if (cacheAge < cacheExpiryTime) {
-              cachedImageInfo = parsed;
-              if (debugCache) console.log(`Using cached image data for ${dynamicKey}`);
-            }
-          } catch (e) {
-            console.error('Error parsing cached image data:', e);
-          }
-        }
+        // Check if we have a valid cached version
+        const cachedImageInfo = getCachedImageData(cacheKey);
         
-        // Give priority to placeholders on slow connections
-        const fetchPlaceholdersFirst = ['slow-2g', '2g'].includes(network.effectiveConnectionType);
-        
-        // If we're on a slow connection, start by loading placeholders
-        let tinyPlaceholder = null;
-        let colorPlaceholder = null;
-        
-        if (fetchPlaceholdersFirst) {
-          const placeholders = await getImagePlaceholdersByKey(dynamicKey);
-          tinyPlaceholder = placeholders.tinyPlaceholder;
-          colorPlaceholder = placeholders.colorPlaceholder;
-          
-          // Show placeholder immediately while full image loads
-          if (tinyPlaceholder) {
-            setState(prev => ({
-              ...prev,
-              tinyPlaceholder,
-              colorPlaceholder,
-              // Don't set isLoading to false yet, we're still loading the full image
-            }));
-          }
-        }
-        
-        // If we have valid cached data, use it
         if (cachedImageInfo) {
+          if (debugCache) console.log(`Using cached image data for ${dynamicKey}`);
+          
           setState(prev => ({ 
             ...prev, 
             dynamicSrc: cachedImageInfo.url, 
@@ -116,44 +80,51 @@ export const useResponsiveImage = (
         
         if (debugCache) console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
         
+        // Determine if we should prioritize placeholders on slow connections
+        const fetchPlaceholdersFirst = shouldFetchPlaceholdersFirst();
+        
+        // Get placeholders for better user experience on slow connections
+        let tinyPlaceholder = null;
+        let colorPlaceholder = null;
+        
+        if (fetchPlaceholdersFirst) {
+          const placeholders = await fetchPlaceholders(dynamicKey, true);
+          tinyPlaceholder = placeholders.tinyPlaceholder;
+          colorPlaceholder = placeholders.colorPlaceholder;
+          
+          // Show placeholder immediately while full image loads
+          if (tinyPlaceholder) {
+            setState(prev => ({
+              ...prev,
+              tinyPlaceholder,
+              colorPlaceholder,
+              // Don't set isLoading to false yet, we're still loading the full image
+            }));
+          }
+        }
+        
         // Fetch placeholders in parallel with the main image for faster loading
         const placeholdersPromise = !fetchPlaceholdersFirst ? 
-          getImagePlaceholdersByKey(dynamicKey) : 
+          fetchPlaceholders(dynamicKey) : 
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
-        // Extract any content hash and cache metadata from the URL
+        // Load the image URL based on whether size is specified
+        let imageUrl: string;
         let extractedContentHash = null;
         
         // If size is specified, try to get that specific size
-        let imageUrl: string;
         if (size) {
           imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+          extractedContentHash = extractContentHashFromUrl(imageUrl);
           
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
-          }
-          
-          // If we got a placeholder, report an error
           if (imageUrl === '/placeholder.svg') {
             throw new Error(`Image not found for key: ${dynamicKey}`);
           }
         } else {
           // Otherwise get the original image
           imageUrl = await getImageUrlByKey(dynamicKey);
+          extractedContentHash = extractContentHashFromUrl(imageUrl);
           
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
-          }
-          
-          // If we got a placeholder, report an error
           if (imageUrl === '/placeholder.svg') {
             throw new Error(`Image not found for key: ${dynamicKey}`);
           }
@@ -169,8 +140,7 @@ export const useResponsiveImage = (
         // Get image dimensions for aspect ratio
         const aspectRatio = await getImageAspectRatio(imageUrl);
         
-        // Cache this response in sessionStorage for faster subsequent loads
-        // Include the global version in the cached data for cache coordination
+        // Prepare image info for caching
         const imageInfo = {
           url: imageUrl,
           aspectRatio,
@@ -183,15 +153,10 @@ export const useResponsiveImage = (
           networkType: network.effectiveConnectionType
         };
         
-        try {
-          // Only cache if we're online
-          if (navigator.onLine) {
-            sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
-          }
-        } catch (e) {
-          console.warn('Failed to cache image data in sessionStorage:', e);
-        }
+        // Save to cache for future use
+        saveImageToCache(cacheKey, imageInfo);
         
+        // Update component state with the loaded image
         setState(prev => ({ 
           ...prev, 
           dynamicSrc: imageUrl, 
@@ -217,11 +182,8 @@ export const useResponsiveImage = (
       }
     };
     
-    // For slow connections or offline mode, use a small delay to avoid 
-    // excessive requests during poor connectivity
-    const delay = !navigator.onLine || ['slow-2g', '2g'].includes(network.effectiveConnectionType) 
-      ? 300 : 0;
-      
+    // Add appropriate delay based on network conditions
+    const delay = getLoadingDelay();
     const timeoutId = setTimeout(() => {
       fetchImage();
     }, delay);
@@ -235,22 +197,14 @@ export const useResponsiveImage = (
 };
 
 /**
- * Helper function to get image aspect ratio from a URL
+ * Extract content hash from image URL
  */
-const getImageAspectRatio = (url: string): Promise<number | undefined> => {
-  return new Promise((resolve) => {
-    // For placeholder images, return a default aspect ratio
-    if (url === '/placeholder.svg') {
-      resolve(16/9);
-      return;
-    }
-    
-    const img = new Image();
-    img.onload = () => {
-      const aspectRatio = img.width / img.height;
-      resolve(aspectRatio);
-    };
-    img.onerror = () => resolve(undefined);
-    img.src = url;
-  });
+const extractContentHashFromUrl = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.searchParams.get('v') || null;
+  } catch (err) {
+    // Ignore URL parsing errors
+    return null;
+  }
 };
