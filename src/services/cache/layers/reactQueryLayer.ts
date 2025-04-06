@@ -1,4 +1,3 @@
-
 /**
  * React Query cache layer implementation
  */
@@ -12,19 +11,19 @@ import { isValidWebsiteImage } from '../types';
  */
 export const getImageFromReactQuery = (key: string): WebsiteImage | null => {
   if (!isReactQueryAvailable()) return null;
-  
+
   try {
     const queryClient = getQueryClient();
     const queryKey = ['image', key];
     const cachedData = queryClient?.getQueryData(queryKey);
-    
+
     if (cachedData !== undefined && isValidWebsiteImage(cachedData)) {
-      return cachedData;
+      return cachedData as WebsiteImage; // ✅ TS-safe casting
     }
   } catch (error) {
     console.error(`[ReactQueryCache] Error getting image data:`, error);
   }
-  
+
   return null;
 };
 
@@ -33,12 +32,12 @@ export const getImageFromReactQuery = (key: string): WebsiteImage | null => {
  */
 export const setImageInReactQuery = (key: string, data: WebsiteImage): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   if (!isValidWebsiteImage(data)) {
     console.warn(`[ReactQueryCache] Attempted to cache invalid WebsiteImage data:`, data);
     return false;
   }
-  
+
   try {
     const queryClient = getQueryClient();
     const queryKey = ['image', key];
@@ -55,27 +54,28 @@ export const setImageInReactQuery = (key: string, data: WebsiteImage): boolean =
  */
 export const getImageUrlFromReactQuery = (key: string, size?: string): string | null => {
   if (!isReactQueryAvailable()) return null;
-  
+
   try {
     const queryClient = getQueryClient();
     const queryKey = ['imageUrl', key, size];
     const cachedData = queryClient?.getQueryData(queryKey);
-    
+
     if (cachedData !== undefined) {
-      // Check if it's a WebsiteImage object with a url property
       if (isValidWebsiteImage(cachedData) && typeof (cachedData as any).url === 'string') {
         return (cachedData as any).url;
-      }
-      // Check if it's a simple URL object structure
-      else if (typeof cachedData === 'object' && cachedData !== null && 
-              'url' in cachedData && typeof (cachedData as any).url === 'string') {
+      } else if (
+        typeof cachedData === 'object' &&
+        cachedData !== null &&
+        'url' in cachedData &&
+        typeof (cachedData as any).url === 'string'
+      ) {
         return (cachedData as any).url;
       }
     }
   } catch (error) {
     console.error(`[ReactQueryCache] Error getting URL data:`, error);
   }
-  
+
   return null;
 };
 
@@ -84,12 +84,12 @@ export const getImageUrlFromReactQuery = (key: string, size?: string): string | 
  */
 export const setImageUrlInReactQuery = (key: string, url: string, size?: string): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   if (typeof url !== 'string' || url.trim() === '') {
     console.warn(`[ReactQueryCache] Attempted to cache invalid URL:`, url);
     return false;
   }
-  
+
   try {
     const queryClient = getQueryClient();
     const queryKey = ['imageUrl', key, size];
@@ -106,16 +106,13 @@ export const setImageUrlInReactQuery = (key: string, url: string, size?: string)
  */
 export const invalidateImageInReactQuery = (key: string): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   try {
     const queryClient = getQueryClient();
-    
-    // Invalidate image data
+
     queryClient?.invalidateQueries({ queryKey: ['image', key] });
-    
-    // Invalidate image URLs
     queryClient?.invalidateQueries({ queryKey: ['imageUrl', key] });
-    
+
     return true;
   } catch (error) {
     console.error(`[ReactQueryCache] Error invalidating image:`, error);
@@ -128,16 +125,15 @@ export const invalidateImageInReactQuery = (key: string): boolean => {
  */
 export const invalidateCategoryInReactQuery = (category: string): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   try {
     const queryClient = getQueryClient();
-    
-    // Invalidate category queries
-    queryClient?.invalidateQueries({ 
+
+    queryClient?.invalidateQueries({
       queryKey: ['images', 'category', category],
-      refetchType: 'all'
+      refetchType: 'all',
     });
-    
+
     return true;
   } catch (error) {
     console.error(`[ReactQueryCache] Error invalidating category:`, error);
@@ -150,27 +146,25 @@ export const invalidateCategoryInReactQuery = (category: string): boolean => {
  */
 export const invalidateByPrefixInReactQuery = (prefix: string): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   try {
     const queryClient = getQueryClient();
-    
-    // This is imprecise but the best we can do with React Query's API
-    queryClient?.invalidateQueries({ 
+
+    queryClient?.invalidateQueries({
       predicate: (query) => {
         const queryKey = query.queryKey;
         if (Array.isArray(queryKey) && queryKey.length >= 2) {
-          // Check if the second element of the query key (usually the image key) starts with the prefix
           return (
-            (queryKey[0] === 'image' || queryKey[0] === 'imageUrl') && 
-            typeof queryKey[1] === 'string' && 
+            (queryKey[0] === 'image' || queryKey[0] === 'imageUrl') &&
+            typeof queryKey[1] === 'string' &&
             queryKey[1].startsWith(prefix)
           );
         }
         return false;
       },
-      refetchType: 'none'
+      refetchType: 'none',
     });
-    
+
     return true;
   } catch (error) {
     console.error(`[ReactQueryCache] Error invalidating by prefix:`, error);
@@ -183,26 +177,14 @@ export const invalidateByPrefixInReactQuery = (prefix: string): boolean => {
  */
 export const clearReactQueryCache = (): boolean => {
   if (!isReactQueryAvailable()) return false;
-  
+
   try {
     const queryClient = getQueryClient();
-    
-    // Invalidate all image-related queries
-    queryClient?.invalidateQueries({ 
-      queryKey: ['image'],
-      exact: false
-    });
-    
-    queryClient?.invalidateQueries({ 
-      queryKey: ['imageUrl'],
-      exact: false
-    });
-    
-    queryClient?.invalidateQueries({ 
-      queryKey: ['images'],
-      exact: false
-    });
-    
+
+    queryClient?.invalidateQueries({ queryKey: ['image'], exact: false });
+    queryClient?.invalidateQueries({ queryKey: ['imageUrl'], exact: false });
+    queryClient?.invalidateQueries({ queryKey: ['images'], exact: false });
+
     return true;
   } catch (error) {
     console.error(`[ReactQueryCache] Error clearing cache:`, error);
