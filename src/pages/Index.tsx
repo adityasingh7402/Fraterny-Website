@@ -140,37 +140,6 @@ const Index = () => {
     triggerOnce: true
   });
 
-  // Don't use CdnInitializer here at all to prevent React errors
-  // We'll initialize the CDN settings directly
-  useEffect(() => {
-    // Initialize CDN setting if not already set
-    if (typeof window !== 'undefined') {
-      // Check if the CDN storage key exists in localStorage
-      const CDN_STORAGE_KEY = 'cdn_enabled';
-      
-      if (localStorage.getItem(CDN_STORAGE_KEY) === null) {
-        console.log('[CDN Initializer] Setting CDN to enabled by default');
-        localStorage.setItem(CDN_STORAGE_KEY, 'true');
-      }
-      
-      const isCdnEnabled = localStorage.getItem(CDN_STORAGE_KEY) === 'true';
-      console.log(`[CDN Initializer] CDN is currently ${isCdnEnabled ? 'enabled' : 'disabled'}`);
-      
-      // Test CDN on first load only if enabled
-      if (isCdnEnabled) {
-        import('@/utils/cdn').then(({ testCdnConnection }) => {
-          testCdnConnection()
-            .then(isAvailable => {
-              console.log('[CDN] Connection test result:', isAvailable ? 'Available' : 'Unavailable');
-            })
-            .catch(error => {
-              console.error('[CDN] Error testing connection:', error);
-            });
-        });
-      }
-    }
-  }, []);
-
   return (
     <div className="min-h-screen">
       <Navigation />

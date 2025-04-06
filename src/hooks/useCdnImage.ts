@@ -1,13 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { isValidUrl } from '@/utils/debugUtils';
 import { localStorageCacheService } from '@/services/images/cache/localStorageCacheService';
 
 /**
- * Hook to get a direct Supabase URL for an image, with local caching
- * This replaces the previous CDN-based hook
- * 
- * @param imagePath - Original image path
- * @returns URL to use and loading state
+ * Hook now provides direct image URLs from Supabase with local caching
+ * CDN functionality has been completely removed
  */
 export const useCdnImage = (
   imagePath: string | null | undefined
@@ -57,17 +55,8 @@ export const useCdnImage = (
       }
       
       try {
-        // Direct use of the original URL - no CDN transformation
-        let processedUrl = imagePath;
-        
-        // Check if it's a relative URL - if so, keep it as is
-        if (!imagePath.startsWith('http')) {
-          processedUrl = imagePath;
-        } 
-        // For Supabase URLs, use directly
-        else if (imagePath.includes('supabase.co') || imagePath.includes('supabase.in')) {
-          processedUrl = imagePath;
-        }
+        // Use image path directly - no CDN transformation
+        const processedUrl = imagePath;
         
         // Cache the result for future use
         try {

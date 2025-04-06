@@ -14,7 +14,7 @@ interface BasicImageProps {
   height?: number;
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  useCdn?: boolean;
+  useCdn?: boolean; // This is now ignored but kept for backward compatibility
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -35,27 +35,34 @@ export const BasicImage = ({
   height,
   sizes,
   objectFit = 'cover',
-  useCdn = false, // This is now ignored but kept for backward compatibility
+  useCdn = false, // This is ignored as CDN is removed
   onLoad,
   onError
 }: BasicImageProps) => {
+  const [imgSrc, setImgSrc] = React.useState<string>(src);
+  
+  // Update image source when prop changes
+  React.useEffect(() => {
+    setImgSrc(src);
+  }, [src]);
+  
   // Handle error state
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error(`Image failed to load: ${src}, falling back to: ${fallbackSrc}`);
+    console.error(`Image failed to load: ${imgSrc}, falling back to: ${fallbackSrc}`);
     // If the image fails to load, replace with fallback
-    if (e.currentTarget.src !== fallbackSrc) {
-      e.currentTarget.src = fallbackSrc;
+    if (imgSrc !== fallbackSrc) {
+      setImgSrc(fallbackSrc);
     }
     onError?.();
   };
   
   const handleLoad = () => {
-    console.log(`Image successfully loaded: ${src}`);
+    console.log(`[BasicImage] Successfully loaded: ${imgSrc}`);
     onLoad?.();
   };
   
   const imgProps = createImageProps(
-    src, 
+    imgSrc, 
     alt, 
     className, 
     loading, 

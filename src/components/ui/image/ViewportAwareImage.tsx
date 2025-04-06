@@ -38,6 +38,11 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
 
+  // Log the src for debugging purposes
+  useEffect(() => {
+    console.log(`[ViewportAwareImage] Loading image: ${src}`);
+  }, [src]);
+
   // Set up intersection observer to detect when image is about to enter viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -67,16 +72,24 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
 
   const handleLoad = () => {
     setIsLoaded(true);
+    console.log(`[ViewportAwareImage] Successfully loaded: ${src}`);
     onLoad?.();
   };
 
   const handleError = () => {
-    console.error(`Failed to load image: ${src}`);
+    console.error(`[ViewportAwareImage] Failed to load image: ${src}`);
     onError?.();
   };
 
   return (
-    <div ref={imageRef} className={`relative ${className || ''}`} style={{ width, height }}>
+    <div 
+      ref={imageRef} 
+      className={`relative ${className || ''}`} 
+      style={{ 
+        width: width !== undefined ? width : '100%', 
+        height: height !== undefined ? height : '100%' 
+      }}
+    >
       {/* Show low-quality placeholder image */}
       {lowQualitySrc && !isLoaded && (
         <img 
@@ -85,6 +98,11 @@ export const ViewportAwareImage: React.FC<ViewportAwareImageProps> = ({
           className="absolute inset-0 w-full h-full"
           style={{ objectFit }}
         />
+      )}
+      
+      {/* Show a very basic placeholder until intersection */}
+      {!isIntersecting && !lowQualitySrc && (
+        <div className="w-full h-full bg-gray-100 animate-pulse"></div>
       )}
       
       {/* Only load the actual image when about to be in viewport */}

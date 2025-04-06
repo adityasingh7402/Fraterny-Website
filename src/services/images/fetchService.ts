@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
@@ -36,6 +35,15 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     // Check cache first
     const cached = getCachedImage(normalizedKey);
     if (cached !== undefined) {
+      // Add a URL property if it doesn't exist
+      if (cached && !cached.url) {
+        const normalizedStoragePath = normalizeStoragePath(cached.storage_path);
+        const { data } = await supabase.storage
+          .from('website-images')
+          .getPublicUrl(normalizedStoragePath);
+          
+        cached.url = data.publicUrl;
+      }
       return cached;
     }
     
@@ -47,43 +55,52 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     if (error) {
       console.error(`Error fetching image with key "${normalizedKey}":`, error);
-      return handleApiError(error, `Error fetching image with storage_path "${normalizedKey}"`, { silent: true }) as null;
+      return handleApiError(error, `Error fetching image with key "${normalizedKey}"`, { silent: true }) as null;
     }
     
     if (!data) {
       console.warn(`No image found with key "${normalizedKey}"`);
+      return null;
     } else {
       console.log(`Found image with key "${normalizedKey}":`, data.id);
     }
     
-    // Cache the result
-    cacheImage(normalizedKey, data as WebsiteImage | null);
-    
     // Add a computed url property to the returned object
-    if (data) {
-      // Normalize the storage path
-      const normalizedStoragePath = normalizeStoragePath(data.storage_path);
+    let result = data as WebsiteImage;
+    
+    // Normalize the storage path
+    const normalizedStoragePath = normalizeStoragePath(data.storage_path);
+    
+    // Get the direct URL from Supabase
+    const { data: urlData } = await supabase.storage
+      .from('website-images')
+      .getPublicUrl(normalizedStoragePath);
       
-      // Construct the URL with the normalized path - direct Supabase URL
-      const directUrl = `https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images/${normalizedStoragePath}`;
-      
-      // Use WebP if the browser supports it
-      const webpUrl = directUrl.replace(/\.(jpg|jpeg|png)$/i, '.webp');
-      
-      console.log(`[Image Service] Constructed URL for ${key}:`, {
-        original: data.storage_path,
-        normalized: normalizedStoragePath,
-        directUrl,
-        webpUrl
-      });
-      
-      return {
-        ...data,
-        url: directUrl
-      };
+    // Set the URL property
+    result.url = urlData.publicUrl;
+    
+    // Get WebP URL if the browser supports it
+    const supportsWebP = true; // Modern browsers all support WebP
+    
+    if (supportsWebP && 
+        (result.url.endsWith('.jpg') || 
+         result.url.endsWith('.jpeg') || 
+         result.url.endsWith('.png'))) {
+      // For WebP support, try to get the WebP version if it exists
+      const webpPath = normalizedStoragePath.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+      const { data: webpCheck } = await supabase.storage
+        .from('website-images')
+        .createSignedUrl(webpPath, 60);
+        
+      if (webpCheck && webpCheck.signedUrl) {
+        result.url = webpCheck.signedUrl;
+      }
     }
     
-    return null;
+    // Cache the result
+    cacheImage(normalizedKey, result);
+    
+    return result;
   } catch (error) {
     return handleApiError(error, `Unexpected error in fetchImageByKey for key "${key}"`, { silent: true }) as null;
   }
