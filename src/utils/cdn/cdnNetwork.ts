@@ -1,4 +1,3 @@
-
 /**
  * CDN Network Module
  * Handles CDN connectivity testing and availability tracking
@@ -78,7 +77,6 @@ export const testCdnAvailability = async (): Promise<boolean> => {
 
 /**
  * Get CDN availability from cache or check network if cache is invalid
- * Cache result to avoid repeated network requests
  * @returns Promise that resolves to cached or fresh CDN availability
  */
 export const getCdnAvailability = async (): Promise<boolean> => {

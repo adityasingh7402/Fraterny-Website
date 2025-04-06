@@ -24,7 +24,17 @@ export const createImageProps = (
   }
 
   // Basic props every image should have
-  const props = {
+  const props: {
+    src: string;
+    alt: string;
+    className: string;
+    loading: 'lazy' | 'eager';
+    style: React.CSSProperties;
+    width?: number;
+    height?: number;
+    sizes?: string;
+    fetchpriority?: 'high' | 'low' | 'auto';
+  } = {
     src,
     alt: alt || 'Image', // Always provide alt text
     className: className || '',

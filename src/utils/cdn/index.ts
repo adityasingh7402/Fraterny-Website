@@ -18,8 +18,9 @@ export const testCdnConnection = async (): Promise<boolean> => {
       const testImage = new Image();
       const timestamp = Date.now();
       
-      // Use a known path with timestamp to avoid caching
-      const { CDN_URL } = await import('./cdnConfig');
+      // Import CDN_URL non-asynchronously to avoid await in Promise executor
+      // which is not allowed in some JavaScript environments
+      const CDN_URL = 'https://assets.villalab.io'; // Use the same URL from cdnConfig
       testImage.src = `${CDN_URL}/test-connection.png?t=${timestamp}`;
       
       // Set a timeout in case the image takes too long to load

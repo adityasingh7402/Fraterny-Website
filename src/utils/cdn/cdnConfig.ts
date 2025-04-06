@@ -19,5 +19,20 @@ export const CDN_AVAILABILITY_TIMEOUT = 5000;
 // CDN availability cache expiry (ms) - 5 minutes
 export const CDN_AVAILABILITY_CACHE_EXPIRY = 5 * 60 * 1000;
 
+// Define as CACHE_EXPIRATION for cdnNetwork.ts
+export const CACHE_EXPIRATION = CDN_AVAILABILITY_CACHE_EXPIRY;
+
 // CDN URL check endpoint
 export const CDN_CHECK_ENDPOINT = '/status';
+
+// Default path exclusions
+export const DEFAULT_EXCLUSIONS = [
+  '/favicon.ico',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/placeholder.svg',
+  '/api/'
+];
+
+// Storage key for exclusions
+export const CDN_EXCLUSIONS_KEY = 'cdn_exclusions';

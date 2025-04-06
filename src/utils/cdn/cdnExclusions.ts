@@ -1,14 +1,13 @@
 
 /**
- * CDN Path Exclusions Module
- * Handles the management of paths that should bypass the CDN
+ * CDN Exclusions Module
+ * Handles paths that should be excluded from CDN processing
  */
 
 import { CDN_EXCLUSIONS_KEY, DEFAULT_EXCLUSIONS } from './cdnConfig';
 
 /**
- * Get path exclusions - paths that should bypass the CDN
- * This is useful for images that might not work well with the CDN
+ * Get the list of paths that should be excluded from CDN
  */
 export const getPathExclusions = (): string[] => {
   if (typeof window === 'undefined') {
@@ -16,15 +15,52 @@ export const getPathExclusions = (): string[] => {
   }
   
   try {
-    const exclusions = localStorage.getItem(CDN_EXCLUSIONS_KEY);
-    if (!exclusions) return DEFAULT_EXCLUSIONS;
-    
-    const parsed = JSON.parse(exclusions);
-    // Ensure default exclusions are always included
-    return Array.from(new Set([...parsed, ...DEFAULT_EXCLUSIONS]));
+    const savedExclusions = localStorage.getItem(CDN_EXCLUSIONS_KEY);
+    if (savedExclusions) {
+      return JSON.parse(savedExclusions);
+    }
   } catch (error) {
-    console.error('Error parsing CDN path exclusions:', error);
-    return DEFAULT_EXCLUSIONS;
+    console.error('Failed to parse CDN exclusions from localStorage:', error);
+  }
+  
+  return DEFAULT_EXCLUSIONS;
+};
+
+/**
+ * Save the list of paths that should be excluded from CDN
+ */
+export const savePathExclusions = (exclusions: string[]): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
+  try {
+    localStorage.setItem(CDN_EXCLUSIONS_KEY, JSON.stringify(exclusions));
+  } catch (error) {
+    console.error('Failed to save CDN exclusions to localStorage:', error);
+  }
+};
+
+/**
+ * Add a path to the exclusion list
+ */
+export const addPathExclusion = (path: string): void => {
+  const exclusions = getPathExclusions();
+  if (!exclusions.includes(path)) {
+    exclusions.push(path);
+    savePathExclusions(exclusions);
+  }
+};
+
+/**
+ * Remove a path from the exclusion list
+ */
+export const removePathExclusion = (path: string): void => {
+  const exclusions = getPathExclusions();
+  const index = exclusions.indexOf(path);
+  if (index !== -1) {
+    exclusions.splice(index, 1);
+    savePathExclusions(exclusions);
   }
 };
 
@@ -32,60 +68,29 @@ export const getPathExclusions = (): string[] => {
  * Check if a path should be excluded from CDN
  */
 export const shouldExcludePath = (path: string): boolean => {
-  if (!path) return false;
+  // Normalize the path for comparison
+  const normalizedPath = path.toLowerCase();
   
+  // Get the exclusion list
   const exclusions = getPathExclusions();
-  return exclusions.some(exclusion => 
-    path.includes(exclusion) || 
-    (exclusion.endsWith('*') && path.startsWith(exclusion.slice(0, -1)))
-  );
-};
-
-/**
- * Add a path to the exclusion list
- */
-export const addCdnPathExclusion = (path: string): void => {
-  if (typeof window === 'undefined') return;
   
-  try {
-    const exclusions = getPathExclusions();
-    
-    // Don't add duplicates
-    if (!exclusions.includes(path)) {
-      exclusions.push(path);
-      localStorage.setItem(CDN_EXCLUSIONS_KEY, JSON.stringify(exclusions));
-      console.log(`[CDN] Added path exclusion: ${path}`);
+  // Check if any exclusion pattern matches the path
+  return exclusions.some(exclusion => {
+    // Simple wildcard support - '*' matches any string
+    if (exclusion.includes('*')) {
+      const pattern = exclusion.replace(/\*/g, '.*');
+      const regex = new RegExp(`^${pattern}$`, 'i');
+      return regex.test(normalizedPath);
     }
-  } catch (error) {
-    console.error('[CDN] Error updating path exclusions:', error);
-  }
+    
+    // Check if the path starts with the exclusion
+    return normalizedPath.startsWith(exclusion.toLowerCase());
+  });
 };
 
 /**
- * Remove a path from the exclusion list
+ * Reset exclusions to defaults
  */
-export const removeCdnPathExclusion = (path: string): void => {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const exclusions = getPathExclusions();
-    const newExclusions = exclusions.filter(item => item !== path);
-    localStorage.setItem(CDN_EXCLUSIONS_KEY, JSON.stringify(newExclusions));
-    console.log(`[CDN] Removed path exclusion: ${path}`);
-  } catch (error) {
-    console.error('[CDN] Error updating path exclusions:', error);
-  }
+export const resetPathExclusions = (): void => {
+  savePathExclusions(DEFAULT_EXCLUSIONS);
 };
-
-/**
- * Clear all path exclusions
- */
-export const clearCdnPathExclusions = (): void => {
-  if (typeof window === 'undefined') return;
-  
-  localStorage.removeItem(CDN_EXCLUSIONS_KEY);
-  console.log('[CDN] Cleared all path exclusions');
-};
-
-// Export default exclusions
-export const getDefaultExclusions = () => DEFAULT_EXCLUSIONS;
