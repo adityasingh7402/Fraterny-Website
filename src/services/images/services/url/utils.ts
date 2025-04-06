@@ -11,6 +11,7 @@ const VALID_KEYS = new Set(IMAGE_KEYS.map(item => item.key));
  */
 export const isValidImageKey = (key: string | null | undefined): boolean => {
   if (!key || typeof key !== 'string' || key.trim() === '') {
+    console.warn(`Invalid image key (empty or null): "${key}"`);
     return false;
   }
   
@@ -27,7 +28,11 @@ export const isValidImageKey = (key: string | null | undefined): boolean => {
   }
   
   // In development, strictly validate against predefined keys
-  return VALID_KEYS.has(normalizedKey);
+  const isValid = VALID_KEYS.has(normalizedKey);
+  if (!isValid) {
+    console.warn(`Image key not in predefined list: "${normalizedKey}"`);
+  }
+  return isValid;
 };
 
 /**

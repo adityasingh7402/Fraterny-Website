@@ -17,8 +17,17 @@ const VALID_KEYS = new Set(IMAGE_KEYS.map(item => item.key));
  * Enhanced validation function that checks against predefined keys
  */
 const validateQueryKey = (key: string | undefined): boolean => {
-  if (!key) return false;
-  return isValidImageKey(key) && VALID_KEYS.has(key.trim());
+  if (!key) {
+    console.warn('Empty key provided to validateQueryKey');
+    return false;
+  }
+  
+  const isValid = isValidImageKey(key);
+  if (!isValid) {
+    console.warn(`Invalid or non-predefined key in validateQueryKey: "${key}"`);
+  }
+  
+  return isValid;
 };
 
 /**
