@@ -6,6 +6,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DeviceDetectionWrapper } from './ui/DeviceDetectionWrapper';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // First check if the image keys exist in the database
 const checkImageExists = async (key: string): Promise<boolean> => {
@@ -15,9 +16,52 @@ const checkImageExists = async (key: string): Promise<boolean> => {
       .select('id')
       .eq('key', key)
       .maybeSingle();
-    return !!data;
+    
+    const exists = !!data;
+    if (!exists) {
+      console.warn(`Image with key "${key}" not found in database. Please upload this image.`);
+    }
+    return exists;
   } catch (error) {
     console.error(`Error checking if image exists: ${key}`, error);
+    return false;
+  }
+};
+
+// Function to upload missing demo images if needed (only in development)
+const uploadDemoImage = async (key: string): Promise<boolean> => {
+  if (process.env.NODE_ENV !== 'development') return false;
+  
+  try {
+    // Check if we already tried to upload this image
+    const attempted = localStorage.getItem(`attempted_upload_${key}`);
+    if (attempted) return false;
+    
+    // Create a placeholder image entry
+    const { data, error } = await supabase
+      .from('website_images')
+      .insert({
+        key,
+        storage_path: key,
+        description: `Demo image for ${key}`,
+        alt_text: key,
+        category: 'Gallery'
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error(`Error creating demo image entry for ${key}:`, error);
+      return false;
+    }
+    
+    // Mark as attempted
+    localStorage.setItem(`attempted_upload_${key}`, 'true');
+    
+    console.log(`Created demo image entry for ${key}`);
+    return true;
+  } catch (error) {
+    console.error(`Error creating demo image:`, error);
     return false;
   }
 };
@@ -27,6 +71,7 @@ const VillaLab = () => {
   const { isMobile, isDetecting } = useIsMobile();
   const [visibleCount, setVisibleCount] = useState<number>(0);
   const [checkedKeys, setCheckedKeys] = useState<Record<string, boolean>>({});
+  const [showImageWarning, setShowImageWarning] = useState(false);
   
   // Determine how many images to initially show based on network conditions & device
   useEffect(() => {
@@ -123,13 +168,38 @@ const VillaLab = () => {
   useEffect(() => {
     const checkAllImages = async () => {
       const results: Record<string, boolean> = {};
+      let missingCount = 0;
       
       for (const activity of activities) {
-        results[activity.dynamicKey] = await checkImageExists(activity.dynamicKey);
+        // Check if it exists
+        const exists = await checkImageExists(activity.dynamicKey);
+        results[activity.dynamicKey] = exists;
+        
+        if (!exists) {
+          missingCount++;
+          
+          // In development, try to create a placeholder entry
+          if (process.env.NODE_ENV === 'development') {
+            await uploadDemoImage(activity.dynamicKey);
+          }
+        }
       }
       
       console.log('VillaLab: Image existence check results:', results);
       setCheckedKeys(results);
+      
+      // Show warning if missing images
+      if (missingCount > 0) {
+        setShowImageWarning(true);
+        
+        // Only show toast in development environment
+        if (process.env.NODE_ENV === 'development') {
+          toast.warning(`${missingCount} gallery images are missing`, {
+            description: "Please upload these images in the admin panel",
+            duration: 5000,
+          });
+        }
+      }
     };
     
     checkAllImages();
@@ -155,6 +225,17 @@ const VillaLab = () => {
               Work hard. Bond harder.
             </p>
           </div>
+
+          {showImageWarning && process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm">
+              <strong>Development Notice:</strong> Some gallery images are missing from the database. 
+              Please upload images with the following keys in the admin panel: 
+              {Object.entries(checkedKeys)
+                .filter(([_, exists]) => !exists)
+                .map(([key]) => key)
+                .join(', ')}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-hidden">
             {activities.slice(0, displayCount).map((activity, index) => {

@@ -69,7 +69,19 @@ export const createSignedUrl = async (key: string): Promise<string> => {
     const normalizedKey = key.trim();
     console.log(`Getting public URL for normalized key: "${normalizedKey}"`);
     
-    // Get public URL from website-images bucket
+    // First check if the key exists in the database
+    const { data: imageRecord, error: lookupError } = await supabase
+      .from('website_images')
+      .select('id')
+      .eq('key', normalizedKey)
+      .maybeSingle();
+      
+    if (lookupError || !imageRecord) {
+      console.error(`Key "${normalizedKey}" not found in database:`, lookupError || 'No record found');
+      return '/placeholder.svg';
+    }
+    
+    // Only get public URL if we confirmed the key exists in the database
     // NOTE: Supabase storage.getPublicUrl() doesn't return error property, only data
     const { data } = await supabase.storage
       .from('website-images')
