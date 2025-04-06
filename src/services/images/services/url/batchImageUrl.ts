@@ -1,8 +1,9 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../../cacheService";
 import { getGlobalCacheVersion } from "../cacheVersionService";
 import { trackApiCall } from "@/utils/apiMonitoring";
-import { getContentHashFromMetadata, createVersionedUrl } from "./utils";
+import { getContentHashFromMetadata, createVersionedUrl, createSignedUrl } from "./utils";
 
 /**
  * Get a URL for an image by key in a batched query pattern
@@ -61,12 +62,12 @@ export const getImageUrlBatched = async (key: string): Promise<string> => {
     const contentHash = getContentHashFromMetadata(image.metadata);
     
     // Create public URL using the key
-    const { data, error: urlError } = await supabase.storage
+    const { data } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
     
-    if (urlError || !data || !data.publicUrl) {
-      console.error(`[getImageUrlBatched] Failed to get public URL for key "${imageKey}":`, urlError);
+    if (!data || !data.publicUrl) {
+      console.error(`[getImageUrlBatched] Failed to get public URL for key "${imageKey}"`);
       return '/placeholder.svg';
     }
     
@@ -123,7 +124,7 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     // Fetch all missing keys in a single query
     const { data: images, error } = await supabase
       .from('website_images')
-      .select('key, storage_path, metadata')
+      .select('key, metadata')
       .in('key', keysToFetch);
     
     if (error) {
@@ -138,40 +139,48 @@ export const batchGetImageUrls = async (keys: string[]): Promise<Record<string, 
     // Create a map for easy lookup
     const imageMap = new Map(images?.map(img => [img.key, img]) || []);
     
-    // For each key, either get the image or use a placeholder
-    const storagePaths: Array<{key: string, storagePath: string, contentHash?: string | null}> = [];
-    
+    // Process each key to get URLs
     for (const key of keysToFetch) {
       const image = imageMap.get(key);
-      if (!image || !image.storage_path) {
+      
+      if (!image) {
+        console.warn(`No image found for key "${key}" in batch operation`);
         result[key] = '/placeholder.svg';
-      } else {
-        storagePaths.push({
-          key, 
-          storagePath: image.storage_path,
-          contentHash: getContentHashFromMetadata(image.metadata)
-        });
+        continue;
       }
-    }
-    
-    // Process each storage path to get signed URLs
-    for (const { key, storagePath, contentHash } of storagePaths) {
+      
       try {
-        const signedUrl = await createSignedUrl(storagePath);
+        // Get image key
+        const imageKey = image.key;
         
-        if (!signedUrl || signedUrl === '/placeholder.svg') {
+        if (!imageKey) {
+          console.error(`Image found but has no key for "${key}"`);
+          result[key] = '/placeholder.svg';
+          continue;
+        }
+        
+        // Get content hash for cache busting
+        const contentHash = getContentHashFromMetadata(image.metadata);
+        
+        // Get public URL using the image key
+        const { data } = await supabase.storage
+          .from('website-images')
+          .getPublicUrl(imageKey);
+        
+        if (!data || !data.publicUrl) {
+          console.error(`Failed to get public URL for image key "${imageKey}"`);
           result[key] = '/placeholder.svg';
           continue;
         }
         
         // Add versioning to URL for cache busting
-        const finalUrl = createVersionedUrl(signedUrl, contentHash, cacheVersion);
+        const finalUrl = createVersionedUrl(data.publicUrl, contentHash, cacheVersion);
         
-        // Update result and cache
+        // Set result and cache
         result[key] = finalUrl;
         urlCache.set(`url:${key}`, finalUrl);
-      } catch (error) {
-        console.error(`Error creating signed URL for "${key}":`, error);
+      } catch (innerError) {
+        console.error(`Error processing key "${key}" in batch:`, innerError);
         result[key] = '/placeholder.svg';
       }
     }

@@ -69,12 +69,12 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     const contentHash = getContentHashFromMetadata(image.metadata);
     
     // Create public URL using the storage API
-    const { data: urlData, error: urlError } = await supabase.storage
+    const { data: urlData } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
     
-    if (urlError || !urlData || !urlData.publicUrl) {
-      console.error(`Failed to get public URL for image key: "${imageKey}"`, urlError);
+    if (!urlData || !urlData.publicUrl) {
+      console.error(`Failed to get public URL for image key: "${imageKey}"`);
       return '/placeholder.svg';
     }
     

@@ -64,14 +64,10 @@ export const useCdnImage = (
         // Use key directly to get public URL
         console.log(`useCdnImage: Getting public URL for key: "${normalizedKey}"`);
         
-        const { data, error } = await supabase.storage
+        const { data } = await supabase.storage
           .from('website-images')
           .getPublicUrl(normalizedKey);
           
-        if (error) {
-          throw new Error(`Failed to get public URL: ${error.message}`);
-        }
-        
         if (!data || !data.publicUrl) {
           console.error(`useCdnImage: No public URL returned for key "${normalizedKey}"`);
           throw new Error(`No public URL returned for key "${normalizedKey}"`);

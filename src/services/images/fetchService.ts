@@ -39,12 +39,12 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
       // Add a URL property if it doesn't exist
       if (cached && !cached.url) {
         // Use key directly to generate URL
-        const { data, error } = await supabase.storage
+        const { data } = await supabase.storage
           .from('website-images')
           .getPublicUrl(cached.key);
           
-        if (error || !data) {
-          console.error(`Error getting URL for cached image with key "${normalizedKey}":`, error);
+        if (!data) {
+          console.error(`Error getting URL for cached image with key "${normalizedKey}"`);
         } else {
           cached.url = data.publicUrl;
           console.log(`Retrieved cached image URL for "${normalizedKey}": ${cached.url}`);
@@ -76,12 +76,12 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     let result = data as WebsiteImage;
     
     // Get the direct URL from Supabase using the key
-    const { data: urlData, error: urlError } = await supabase.storage
+    const { data: urlData } = await supabase.storage
       .from('website-images')
       .getPublicUrl(data.key);
     
-    if (urlError || !urlData) {
-      console.error(`Error getting URL for image with key "${normalizedKey}":`, urlError);
+    if (!urlData) {
+      console.error(`Error getting URL for image with key "${normalizedKey}"`);
     } else {    
       // Set the URL property
       result.url = urlData.publicUrl;

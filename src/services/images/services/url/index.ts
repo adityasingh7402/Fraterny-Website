@@ -3,4 +3,7 @@
 export * from './utils';
 export * from './singleImageUrl';
 export * from './batchImageUrl';
-export * from './batchFunctions';
+
+// Don't re-export batchFunctions directly to avoid naming conflicts
+// Instead, export specific functions with different names
+export { getImageUrlBatched as getImageUrlBatchedOptimized } from './batchFunctions';
