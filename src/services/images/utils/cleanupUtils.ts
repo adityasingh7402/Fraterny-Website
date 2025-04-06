@@ -2,52 +2,66 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "../types";
 
+// The actual bucket name in Supabase
+const STORAGE_BUCKET_NAME = 'Website Images';
+
 /**
- * Remove an existing image and its optimized versions
+ * Remove an existing image from both storage and database
  */
-export const removeExistingImage = async (existingImage: WebsiteImage): Promise<void> => {
+export const removeExistingImage = async (image: WebsiteImage): Promise<void> => {
   try {
-    // Remove the existing file from storage
-    if (existingImage.storage_path) {
-      await supabase.storage.from('website-images').remove([existingImage.storage_path]);
-      
-      // Also remove any optimized versions
-      if (existingImage.sizes && typeof existingImage.sizes === 'object') {
-        const sizes = existingImage.sizes as Record<string, string>;
-        await Promise.all(
-          Object.values(sizes).map(path => 
-            supabase.storage.from('website-images').remove([path])
-          )
-        );
+    if (image.storage_path) {
+      // Remove the original file
+      await supabase.storage
+        .from(STORAGE_BUCKET_NAME)
+        .remove([image.storage_path]);
+        
+      // Remove any optimized versions if they exist
+      if (image.sizes && typeof image.sizes === 'object') {
+        const optimizedPaths = Object.values(image.sizes).filter(Boolean);
+        if (optimizedPaths.length > 0) {
+          await supabase.storage
+            .from(STORAGE_BUCKET_NAME)
+            .remove(optimizedPaths as string[]);
+        }
       }
     }
     
-    // Delete the existing record
-    await supabase.from('website_images').delete().eq('id', existingImage.id);
+    // Remove the database record
+    await supabase
+      .from('website_images')
+      .delete()
+      .eq('id', image.id);
+      
   } catch (error) {
-    console.error('Error removing existing image:', error);
-    // Continue with the upload process even if cleanup fails
+    console.error(`Error removing existing image with ID ${image.id}:`, error);
+    // Continue with process even if cleanup fails
   }
 };
 
 /**
- * Clean up uploaded files if record creation fails
+ * Clean up uploaded files if database insertion fails
  */
 export const cleanupUploadedFiles = async (
-  storagePath: string,
+  originalPath: string,
   optimizedSizes: Record<string, string>
 ): Promise<void> => {
   try {
-    // Clean up the uploaded file if we couldn't create the record
-    await supabase.storage.from('website-images').remove([storagePath]);
+    const filesToRemove = [originalPath];
     
-    // Also clean up any optimized versions
-    await Promise.all(
-      Object.values(optimizedSizes).map(path => 
-        supabase.storage.from('website-images').remove([path])
-      )
-    );
+    // Add optimized versions to the removal list
+    Object.values(optimizedSizes).forEach(path => {
+      if (path) filesToRemove.push(path);
+    });
+    
+    // Remove all files in one batch operation
+    await supabase.storage
+      .from(STORAGE_BUCKET_NAME)
+      .remove(filesToRemove);
+      
+    console.log(`Cleaned up ${filesToRemove.length} files after failed upload`);
   } catch (error) {
     console.error('Error cleaning up uploaded files:', error);
+    // Silently fail as this is just cleanup
   }
 };

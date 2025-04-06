@@ -1,6 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// The actual bucket name in Supabase
+export const STORAGE_BUCKET_NAME = 'Website Images';
+
 /**
  * Create a new image record in the database
  */
@@ -27,4 +30,37 @@ export const createImageRecord = async (
     })
     .select()
     .single();
+};
+
+/**
+ * Get the public URL for an image stored in the bucket
+ */
+export const getPublicImageUrl = async (storagePath: string): Promise<string | null> => {
+  try {
+    const { data } = await supabase.storage
+      .from(STORAGE_BUCKET_NAME)
+      .getPublicUrl(storagePath);
+      
+    return data?.publicUrl || null;
+  } catch (error) {
+    console.error(`Error getting public URL for path ${storagePath}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Check if a file exists in the storage bucket
+ */
+export const checkFileExists = async (storagePath: string): Promise<boolean> => {
+  try {
+    // We can use download with head:true to check if a file exists without downloading it
+    const { data } = await supabase.storage
+      .from(STORAGE_BUCKET_NAME)
+      .download(storagePath, { transform: { width: 1, height: 1 } });
+      
+    return !!data;
+  } catch (error) {
+    console.error(`Error checking if file exists at path ${storagePath}:`, error);
+    return false;
+  }
 };

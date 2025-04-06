@@ -10,6 +10,9 @@ import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { generateContentHash } from "./utils/hashUtils";
 
+// The actual bucket name in Supabase
+const STORAGE_BUCKET_NAME = 'Website Images';
+
 /**
  * Upload a new image to storage and create an entry in the website_images table
  * Now with WebP conversion and improved direct Supabase integration
@@ -75,7 +78,7 @@ export const uploadImage = async (
     // Upload the file to storage with enhanced caching headers
     console.log(`Uploading file to storage: ${storagePath}`);
     const { error: uploadError } = await supabase.storage
-      .from('website-images')
+      .from(STORAGE_BUCKET_NAME)
       .upload(storagePath, file, {
         cacheControl: '31536000', // 1 year cache
         upsert: true

@@ -7,7 +7,7 @@ const urlCache: Record<string, { url: string, expires: number }> = {};
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 // Storage bucket name (fixed to match the actual bucket name in Supabase)
-const STORAGE_BUCKET_NAME = 'Website Images'; // Updated to match the actual bucket name with spaces and capitalization
+const STORAGE_BUCKET_NAME = 'Website Images'; // Correct name with space and capitalization
 
 /**
  * Simplified function to get image URL directly from database
