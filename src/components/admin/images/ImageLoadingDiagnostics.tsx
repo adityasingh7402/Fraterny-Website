@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { logImagePerformanceReport, resetImagePerformanceCounters } from '@/utils/imagePerformanceMonitor';
 import { useToast } from '@/hooks/use-toast';
-import { Thermometer, RefreshCw, Clock, CheckCircle, XCircle, Database, Image } from 'lucide-react';
+import { Thermometer, RefreshCw, Clock, CheckCircle, XCircle, Database, Image as ImageIcon } from 'lucide-react';
 
 const ImageLoadingDiagnostics = () => {
   const { toast } = useToast();
@@ -62,7 +62,8 @@ const ImageLoadingDiagnostics = () => {
   
   const testImageLoading = (key: string, callback: (success: boolean, time?: number) => void) => {
     const startTime = performance.now();
-    const img = new Image();
+    // Fixed: Using the correct way to create an HTMLImageElement
+    const img = new window.Image();
     
     img.onload = () => {
       const loadTime = performance.now() - startTime;
@@ -108,7 +109,7 @@ const ImageLoadingDiagnostics = () => {
           results.map((result, index) => (
             <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
               <div className="flex items-center gap-2">
-                <Image className="h-4 w-4 text-navy" />
+                <ImageIcon className="h-4 w-4 text-navy" />
                 <span>{result.name}</span>
               </div>
               <div className="flex items-center gap-4">
