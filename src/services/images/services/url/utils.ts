@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,41 +54,28 @@ export const createVersionedUrl = (
 };
 
 /**
- * Create a signed URL for an image from Supabase storage
+ * Create a signed URL for a storage path
+ * Now uses key directly instead of storage path
  */
-export const createSignedUrl = async (
-  storagePath: string,
-  expirySeconds: number = 60 * 60
-): Promise<string> => {
-  if (!storagePath) return '/placeholder.svg';
+export const createSignedUrl = async (key: string): Promise<string> => {
+  if (!key) return '/placeholder.svg';
   
   try {
-    console.log(`Generating signed URL for: ${storagePath}`);
+    console.log(`Getting public URL for key: ${key}`);
     
-    // Get signed URL from Supabase storage - Fixed bucket name to match upload service
-    const { data, error } = await supabase.storage
+    // Get public URL (not signed, since we're using public bucket access)
+    const { data } = await supabase.storage
       .from('website-images')
-      .createSignedUrl(storagePath, expirySeconds);
-    
-    // Debug the response
-    console.log(`Signed URL response for ${storagePath}:`, { data, error });
-    
-    // Check if we have valid data and signedUrl
-    if (error) {
-      console.error(`Error creating signed URL for "${storagePath}":`, error);
+      .getPublicUrl(key);
+      
+    if (!data || !data.publicUrl) {
+      console.error(`Failed to get public URL for key: ${key}`);
       return '/placeholder.svg';
     }
     
-    if (!data || !data.signedUrl) {
-      console.error(`No signed URL returned for "${storagePath}"`);
-      return '/placeholder.svg';
-    }
-    
-    console.log(`Successfully generated signed URL for "${storagePath}": ${data.signedUrl.substring(0, 50)}...`);
-    
-    return data.signedUrl;
-  } catch (err) {
-    console.error(`Failed to create signed URL for "${storagePath}":`, err);
+    return data.publicUrl;
+  } catch (error) {
+    console.error(`Error creating signed URL for key ${key}:`, error);
     return '/placeholder.svg';
   }
 };

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
@@ -14,7 +15,6 @@ import {
   applyPagination,
   processQueryResponse
 } from "./utils/queryUtils";
-import { normalizeStoragePath } from "@/utils/pathUtils";
 
 /**
  * Fetch image metadata by key with improved caching
@@ -37,10 +37,10 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     if (cached !== undefined) {
       // Add a URL property if it doesn't exist
       if (cached && !cached.url) {
-        const normalizedStoragePath = normalizeStoragePath(cached.storage_path);
+        // CRITICAL FIX: Use key directly to generate URL
         const { data } = await supabase.storage
           .from('website-images')
-          .getPublicUrl(normalizedStoragePath);
+          .getPublicUrl(cached.key);
           
         cached.url = data.publicUrl;
       }
@@ -68,13 +68,11 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     // Add a computed url property to the returned object
     let result = data as WebsiteImage;
     
-    // Normalize the storage path
-    const normalizedStoragePath = normalizeStoragePath(data.storage_path);
-    
+    // CRITICAL FIX: Use key instead of storage_path
     // Get the direct URL from Supabase
     const { data: urlData } = await supabase.storage
       .from('website-images')
-      .getPublicUrl(normalizedStoragePath);
+      .getPublicUrl(data.key);
       
     // Set the URL property
     result.url = urlData.publicUrl;
@@ -87,13 +85,26 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
          result.url.endsWith('.jpeg') || 
          result.url.endsWith('.png'))) {
       // For WebP support, try to get the WebP version if it exists
-      const webpPath = normalizedStoragePath.replace(/\.(jpg|jpeg|png)$/i, '.webp');
-      const { data: webpCheck } = await supabase.storage
+      const webpKey = data.key.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+      const { data: webpData } = await supabase.storage
         .from('website-images')
-        .createSignedUrl(webpPath, 60);
+        .getPublicUrl(webpKey);
         
-      if (webpCheck && webpCheck.signedUrl) {
-        result.url = webpCheck.signedUrl;
+      // Only use WebP if it exists (check URL is not empty)
+      if (webpData && webpData.publicUrl) {
+        // Verify WebP file exists before using it
+        try {
+          const checkResponse = await fetch(webpData.publicUrl, { 
+            method: 'HEAD',
+            cache: 'no-cache' 
+          });
+          if (checkResponse.ok) {
+            result.url = webpData.publicUrl;
+          }
+        } catch (error) {
+          console.warn(`WebP version check failed for ${webpKey}:`, error);
+          // Continue with original URL
+        }
       }
     }
     

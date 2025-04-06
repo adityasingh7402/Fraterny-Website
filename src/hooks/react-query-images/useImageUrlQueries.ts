@@ -25,6 +25,7 @@ export const useImageUrlQueries = () => {
         if (!key) return null;
         
         try {
+          console.log(`[useImageUrl] Fetching URL for key: ${key}, size: ${size || 'original'}`);
           // Use batched version for better performance
           const url = size 
             ? await getImageUrlByKeyAndSize(key, size)

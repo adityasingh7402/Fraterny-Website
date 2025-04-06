@@ -36,7 +36,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Get image record from database
     const { data: image, error } = await supabase
       .from('website_images')
-      .select('storage_path, metadata')
+      .select('key, metadata')
       .eq('key', normalizedKey)
       .maybeSingle();
     
@@ -51,30 +51,29 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return handleImageNotFound(normalizedKey);
     }
     
-    // Get storage path
-    const { storage_path: storagePath } = image;
+    // CRITICAL FIX: Use the key directly instead of storage_path
+    // This assumes your Supabase storage is organized with keys as filenames
+    const imageKey = image.key;
     
-    if (!storagePath) {
+    if (!imageKey) {
       return handleImageWithoutPath(normalizedKey);
-    }
-    
-    // Validate storage path
-    if (!debugStoragePath(storagePath)) {
-      return '/placeholder.svg';
     }
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create signed URL
-    const signedUrl = await createSignedUrl(storagePath);
-    
-    if (!signedUrl || signedUrl === '/placeholder.svg') {
+    // Create public URL using the key directly
+    const { data: urlData } = await supabase.storage
+      .from('website-images')
+      .getPublicUrl(imageKey);
+      
+    if (!urlData || !urlData.publicUrl) {
+      console.error(`Failed to get public URL for image key: ${imageKey}`);
       return '/placeholder.svg';
     }
     
     // Add versioning to URL for cache busting
-    const finalUrl = createVersionedUrl(signedUrl, contentHash, cacheVersion);
+    const finalUrl = createVersionedUrl(urlData.publicUrl, contentHash, cacheVersion);
     
     // Cache the URL
     urlCache.set(cacheKey, finalUrl);
@@ -97,7 +96,7 @@ function handleImageNotFound(key: string): string {
 }
 
 function handleImageWithoutPath(key: string): string {
-  console.error(`No storage path found for image with key "${key}"`);
+  console.error(`No key found for image with key "${key}"`);
   return '/placeholder.svg';
 }
 
@@ -129,7 +128,7 @@ export const getImageUrlByKeyAndSize = async (
     // Get image record from database
     const { data: image, error } = await supabase
       .from('website_images')
-      .select('storage_path, metadata')
+      .select('key, metadata')
       .eq('key', normalizedKey)
       .maybeSingle();
     
@@ -137,25 +136,47 @@ export const getImageUrlByKeyAndSize = async (
       throw new Error(`Error loading image with key "${normalizedKey}": ${error?.message || 'No image found'}`);
     }
     
-    // Get storage path
-    const { storage_path: storagePath } = image;
+    // CRITICAL FIX: Use the key directly instead of storage_path
+    const imageKey = image.key;
     
-    if (!storagePath) {
+    if (!imageKey) {
       return handleImageWithoutPath(normalizedKey);
     }
+    
+    // For sized variants, we could append size suffix to the key
+    // This assumes your storage follows a pattern like "image-key-small.jpg"
+    const sizedKey = size ? `${imageKey}-${size}` : imageKey;
     
     // Get content hash for cache busting
     const contentHash = getContentHashFromMetadata(image.metadata);
     
-    // Create signed URL
-    const signedUrl = await createSignedUrl(storagePath);
-    
-    if (!signedUrl || signedUrl === '/placeholder.svg') {
-      return '/placeholder.svg';
+    // Create public URL using the key directly
+    const { data: urlData } = await supabase.storage
+      .from('website-images')
+      .getPublicUrl(sizedKey);
+      
+    if (!urlData || !urlData.publicUrl) {
+      // Fallback to original key if sized version doesn't exist
+      const { data: fallbackData } = await supabase.storage
+        .from('website-images')
+        .getPublicUrl(imageKey);
+        
+      if (!fallbackData || !fallbackData.publicUrl) {
+        console.error(`Failed to get public URL for image key: ${imageKey}`);
+        return '/placeholder.svg';
+      }
+      
+      // Add versioning to URL for cache busting
+      const finalUrl = createVersionedUrl(fallbackData.publicUrl, contentHash, cacheVersion);
+      
+      // Cache the URL
+      urlCache.set(cacheKey, finalUrl);
+      
+      return finalUrl;
     }
     
     // Add versioning to URL for cache busting
-    const finalUrl = createVersionedUrl(signedUrl, contentHash, cacheVersion);
+    const finalUrl = createVersionedUrl(urlData.publicUrl, contentHash, cacheVersion);
     
     // Cache the URL
     urlCache.set(cacheKey, finalUrl);
