@@ -78,7 +78,7 @@ const SimpleImageGallery = () => {
   
   return (
     <section className="w-full overflow-hidden">
-      {/* Temporary diagnostic panel - remove after debugging */}
+      {/* Enhanced diagnostic panel with more information */}
       {showDiagnostics && (
         <div className="mb-8">
           <div className="bg-blue-50 p-4 mb-4 rounded border border-blue-200">

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { isValidImageKey, isValidImageUrl } from "./validation";
 
@@ -59,15 +60,11 @@ export const getImageUrl = async (key: string | undefined): Promise<string> => {
     console.log(`[getImageUrl] Getting public URL for storage path: "${imageKey}"`);
     
     // Get URL directly from storage
-    const { data: urlData, error: storageError } = await supabase.storage
+    const { data: urlData } = await supabase.storage
       .from('website-images')
       .getPublicUrl(imageKey);
     
-    if (storageError) {
-      console.error(`[getImageUrl] Storage error for key "${normalizedKey}":`, storageError);
-      return '/placeholder.svg';
-    }
-    
+    // Fixed: TypeScript error - checking urlData properly
     if (!urlData || !urlData.publicUrl || !isValidImageUrl(urlData.publicUrl)) {
       console.error(`[getImageUrl] Failed to get valid URL for key "${normalizedKey}"`);
       return '/placeholder.svg';
