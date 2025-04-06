@@ -6,14 +6,13 @@ import StorageDiagnostics from './StorageDiagnostics';
 
 /**
  * Component to diagnose image loading issues
- * This can be temporarily added to a page to identify problems
  */
 const ImageDiagnostics: React.FC = () => {
-  const [availableImages, setAvailableImages] = useState<Array<{key: string, id: string, storage_path: string}>>([]);
+  const [availableImages, setAvailableImages] = useState<Array<{key: string, id: string, description: string}>>([]);
   const [supabaseStatus, setSupabaseStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
-  const [storageStatus, setStorageStatus] = useState<'unknown' | 'accessible' | 'error'>('unknown');
+  const [databaseStatus, setDatabaseStatus] = useState<'unknown' | 'available' | 'error'>('unknown');
   const [loading, setLoading] = useState(true);
-  const [showBucketInfo, setShowBucketInfo] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   
   useEffect(() => {
     checkSupabaseConnection();
@@ -28,21 +27,23 @@ const ImageDiagnostics: React.FC = () => {
       if (error) throw error;
       setSupabaseStatus('connected');
       
-      // Check storage access
+      // Check website_images table access
       try {
-        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('website-images');
-        if (bucketError) {
-          console.error('Storage bucket error:', bucketError);
-          setStorageStatus('error');
+        const { count, error: countError } = await supabase
+          .from('website_images')
+          .select('*', { count: 'exact', head: true });
+          
+        if (countError) {
+          console.error('Database table error:', countError);
+          setDatabaseStatus('error');
         } else {
-          setStorageStatus('accessible');
-          console.log('Storage bucket info:', bucketData);
+          setDatabaseStatus('available');
+          console.log('Image table info - total records:', count);
         }
-      } catch (storageError) {
-        console.error('Storage access error:', storageError);
-        setStorageStatus('error');
+      } catch (dbError) {
+        console.error('Database access error:', dbError);
+        setDatabaseStatus('error');
       }
-      
     } catch (e) {
       console.error('Supabase connection error:', e);
       setSupabaseStatus('error');
@@ -54,123 +55,105 @@ const ImageDiagnostics: React.FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('website_images')
-        .select('id, key, storage_path, description')
+        .select('id, key, description')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
         
-      if (error) throw error;
-      
-      console.log('Available images:', data);
-      setAvailableImages(data || []);
-    } catch (e) {
-      console.error('Error loading images:', e);
+      if (error) {
+        console.error('Error loading images:', error);
+      } else {
+        setAvailableImages(data || []);
+        console.log('Available images in database:', data);
+      }
+    } catch (error) {
+      console.error('Error in loadAvailableImages:', error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Image System Diagnostics</h2>
-      
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="border p-3 rounded">
-          <div className="font-medium">Supabase Connection</div>
-          <div className={`mt-1 ${
-            supabaseStatus === 'connected' ? 'text-green-600' : 
-            supabaseStatus === 'error' ? 'text-red-600' : 'text-gray-500'
+    <div className="space-y-6">
+      <div className="p-4 bg-white rounded-lg shadow">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Image System Diagnostics</h2>
+          <button 
+            className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            {showDetails ? 'Hide Details' : 'Show Details'}
+          </button>
+        </div>
+
+        {/* Connection Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className={`p-3 border rounded ${
+            supabaseStatus === 'connected' ? 'border-green-200 bg-green-50' : 
+            supabaseStatus === 'error' ? 'border-red-200 bg-red-50' : 
+            'border-gray-200 bg-gray-50'
           }`}>
-            {supabaseStatus === 'connected' ? '✓ Connected' : 
-             supabaseStatus === 'error' ? '✗ Connection Error' : 'Checking...'}
+            <p className="font-medium">Supabase Connection</p>
+            <p className="text-sm mt-1">
+              {supabaseStatus === 'connected' ? '✓ Connected to Supabase' : 
+              supabaseStatus === 'error' ? '✗ Connection error' : 
+              'Checking connection...'}
+            </p>
+          </div>
+          
+          <div className={`p-3 border rounded ${
+            databaseStatus === 'available' ? 'border-green-200 bg-green-50' : 
+            databaseStatus === 'error' ? 'border-red-200 bg-red-50' : 
+            'border-gray-200 bg-gray-50'
+          }`}>
+            <p className="font-medium">Database Image Table</p>
+            <p className="text-sm mt-1">
+              {databaseStatus === 'available' ? '✓ Image table accessible' : 
+              databaseStatus === 'error' ? '✗ Table access error' : 
+              'Checking table access...'}
+            </p>
           </div>
         </div>
-        
-        <div className="border p-3 rounded">
-          <div className="font-medium">Storage Bucket</div>
-          <div className={`mt-1 ${
-            storageStatus === 'accessible' ? 'text-green-600' : 
-            storageStatus === 'error' ? 'text-red-600' : 'text-gray-500'
-          }`}>
-            {storageStatus === 'accessible' ? '✓ Accessible' : 
-             storageStatus === 'error' ? '✗ Storage Error' : 'Checking...'}
-          </div>
-          {storageStatus === 'accessible' && (
-            <button 
-              onClick={() => setShowBucketInfo(!showBucketInfo)}
-              className="text-sm text-navy underline mt-2"
-            >
-              {showBucketInfo ? 'Hide details' : 'Show details'}
-            </button>
+
+        {/* Available Images */}
+        <div>
+          <h3 className="font-medium mb-2">Available Images in Database ({availableImages.length})</h3>
+          
+          {loading ? (
+            <div className="animate-pulse h-20 bg-gray-100 rounded"></div>
+          ) : availableImages.length === 0 ? (
+            <div className="p-3 border border-amber-200 bg-amber-50 rounded">
+              <p className="text-amber-700">No images found in the database.</p>
+              <p className="text-sm text-gray-600 mt-1">
+                You need to add image records to the website_images table before they can be displayed.
+              </p>
+            </div>
+          ) : (
+            <div className="max-h-60 overflow-y-auto border rounded">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 text-gray-600">
+                  <tr>
+                    <th className="px-3 py-2">Image Key</th>
+                    <th className="px-3 py-2">Description</th>
+                    <th className="px-3 py-2">ID</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {availableImages.map((image, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 font-medium">{image.key}</td>
+                      <td className="px-3 py-2">{image.description}</td>
+                      <td className="px-3 py-2 text-xs text-gray-500">{image.id}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
       
-      {showBucketInfo && <StorageDiagnostics />}
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Database Records</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          These are image records in the database. If you don't see your image here, 
-          it needs to be added to the website_images table.
-        </p>
-        
-        {loading ? (
-          <div className="animate-pulse h-40 bg-gray-100 rounded"></div>
-        ) : availableImages.length === 0 ? (
-          <div className="p-4 border border-amber-200 bg-amber-50 rounded">
-            No images found in the database. You need to upload some images.
-          </div>
-        ) : (
-          <div className="overflow-x-auto border rounded">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left">Key</th>
-                  <th className="px-3 py-2 text-left">Storage Path</th>
-                  <th className="px-3 py-2 text-left">ID</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {availableImages.map(image => (
-                  <tr key={image.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 font-medium">{image.key}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{image.storage_path || '—'}</td>
-                    <td className="px-3 py-2 text-gray-500">{image.id.slice(0, 8)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      
-      <h3 className="font-medium mb-2">Image Preview</h3>
-      <p className="text-sm text-gray-600 mb-4">
-        Test loading images to see if they display correctly:
-      </p>
-      
-      {loading ? (
-        <div className="animate-pulse h-40 bg-gray-100 rounded"></div>
-      ) : availableImages.length === 0 ? (
-        <div className="p-4 border border-amber-200 bg-amber-50 rounded">
-          No images to preview. Please upload some images first.
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {availableImages.map(image => (
-            <div key={image.id} className="border rounded p-2">
-              <div className="aspect-square mb-2">
-                <SimpleImage 
-                  dynamicKey={image.key} 
-                  alt={image.key}
-                  className="w-full h-full"
-                />
-              </div>
-              <div className="text-xs truncate">{image.key}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Additional storage diagnostics if we want to check if any buckets exist */}
+      {showDetails && <StorageDiagnostics />}
     </div>
   );
 };
