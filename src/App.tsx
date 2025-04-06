@@ -1,6 +1,7 @@
 
 import { Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
+import './App.css';
 
 // Import providers
 import ReactQueryProvider from './components/providers/ReactQueryProvider';
