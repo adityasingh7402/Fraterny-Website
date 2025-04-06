@@ -66,7 +66,7 @@ const Hero = () => {
       <div className="absolute inset-0" style={gradientStyle} />
       
       <div className="container px-4 sm:px-6 py-24 sm:py-32 mx-auto relative z-10">
-        <div className="animate-fade-down max-w-2xl flex flex-col gap-6 sm:gap-8">
+        <div className="max-w-2xl flex flex-col gap-6 sm:gap-8">
           <div>
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-playfair font-bold tracking-tight mb-3 sm:mb-4">
               Where Ambition
@@ -79,7 +79,7 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
+          <div className="flex flex-col gap-6 sm:gap-8">
             <a 
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
               target="_blank" 
