@@ -219,6 +219,7 @@ const ResponsiveImage = ({
         width, 
         height,
         aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+        overflow: 'hidden',
         ...imageStyle 
       }}
     >
