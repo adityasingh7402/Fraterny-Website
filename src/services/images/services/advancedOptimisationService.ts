@@ -183,6 +183,7 @@ export class AdvancedImageOptimizer {
     key: string,
     options: OptimizationOptions = {}
   ): Promise<string> {
+    const startTime = performance.now();
     const cacheKey = `optimized:${key}:${JSON.stringify(options)}`;
     const cachedUrl = urlCache.get(cacheKey);
     
@@ -221,9 +222,10 @@ export class AdvancedImageOptimizer {
       urlCache.set(cacheKey, optimizedUrl);
       
       return optimizedUrl;
-    } catch (error) {
-      console.error('Error getting optimized URL:', error);
-      return '/placeholder.svg';
+     } finally {
+      const duration = performance.now() - startTime;
+      console.log(`Image optimization took ${duration}ms`);
+      // Add monitoring logic here
     }
   }
 } 
