@@ -9,9 +9,10 @@ interface ImagePreviewProps {
   previewUrl: string;
   onCroppedFile: (file: File) => void;
   imageKey: string;
+  aspectRatio?: string;
 }
 
-const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePreviewProps) => {
+const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey, aspectRatio }: ImagePreviewProps) => {
   const [isCropping, setIsCropping] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useIsMobile();
@@ -74,7 +75,12 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
           <img 
             src={previewUrl} 
             alt="Preview" 
-            className={`w-full h-full object-${objectFit}`}
+            className={`w-full h-full`}
+            style={{
+              objectFit,
+              aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+              objectPosition: 'center'
+            }}
           />
           
           {/* Info overlay that shows when hovering on the info icon */}
