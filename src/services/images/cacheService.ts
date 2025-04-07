@@ -4,6 +4,7 @@
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { urlCache } from './utils/urlCache';
+import { CACHE_VERSIONS, CACHE_CONFIG } from './constants';
 
 interface ImageCacheEntry {
   data: Blob;
@@ -24,93 +25,128 @@ class EnhancedImageCache {
   private readonly DB_NAME = 'image-cache';
   private readonly DB_VERSION = 1;
   private readonly STORE_NAME = 'images';
-  private readonly MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
-  private readonly CACHE_VERSION = '1.0';
+  private readonly MAX_CACHE_SIZE = CACHE_CONFIG.MAX_CACHE_SIZE;
+  private readonly CACHE_VERSION = CACHE_VERSIONS.IMAGE;
 
   async initialize(): Promise<void> {
     if (this.db) return;
 
-    this.db = await openDB<ImageCacheDB>(this.DB_NAME, this.DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('images')) {
-          db.createObjectStore('images');
+    try {
+      this.db = await openDB<ImageCacheDB>(this.DB_NAME, this.DB_VERSION, {
+        upgrade(db) {
+          if (!db.objectStoreNames.contains('images')) {
+            db.createObjectStore('images');
+          }
         }
-      }
-    });
+      });
+    } catch (error) {
+      console.error('Failed to initialize image cache:', error);
+      // Clear any potentially corrupted cache
+      await this.clear();
+    }
   }
 
-  async set(key: string, data: Blob, ttl: number = 5 * 60 * 1000): Promise<void> {
+  async set(key: string, data: Blob, ttl: number = CACHE_CONFIG.IMAGE_TTL): Promise<void> {
     await this.initialize();
     if (!this.db) throw new Error('Database not initialized');
 
-    const entry: ImageCacheEntry = {
-      data,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + ttl,
-      version: this.CACHE_VERSION
-    };
+    try {
+      const entry: ImageCacheEntry = {
+        data,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + ttl,
+        version: this.CACHE_VERSION
+      };
 
-    await this.db.put(this.STORE_NAME, entry, key);
-    await this.cleanup();
+      await this.db.put(this.STORE_NAME, entry, key);
+      await this.cleanup();
+    } catch (error) {
+      console.error(`Failed to cache image for key ${key}:`, error);
+      // Invalidate the cache entry on error
+      await this.invalidate(key);
+    }
   }
 
   async get(key: string): Promise<Blob | null> {
     await this.initialize();
     if (!this.db) throw new Error('Database not initialized');
 
-    const entry = await this.db.get(this.STORE_NAME, key);
-    if (!entry) return null;
+    try {
+      const entry = await this.db.get(this.STORE_NAME, key);
+      if (!entry) return null;
 
-    if (Date.now() > entry.expiresAt) {
-      await this.invalidate(key);
+      // Check version mismatch
+      if (entry.version !== this.CACHE_VERSION) {
+        await this.invalidate(key);
+        return null;
+      }
+
+      if (Date.now() > entry.expiresAt) {
+        await this.invalidate(key);
+        return null;
+      }
+
+      return entry.data;
+    } catch (error) {
+      console.error(`Failed to retrieve cached image for key ${key}:`, error);
       return null;
     }
-
-    return entry.data;
   }
 
   async invalidate(key: string): Promise<void> {
     await this.initialize();
     if (!this.db) throw new Error('Database not initialized');
 
-    await this.db.delete(this.STORE_NAME, key);
-    urlCache.delete(key);
+    try {
+      await this.db.delete(this.STORE_NAME, key);
+      urlCache.delete(key);
+    } catch (error) {
+      console.error(`Failed to invalidate cache for key ${key}:`, error);
+    }
   }
 
   async clear(): Promise<void> {
     await this.initialize();
     if (!this.db) throw new Error('Database not initialized');
 
-    await this.db.clear(this.STORE_NAME);
-    urlCache.clear();
+    try {
+      await this.db.clear(this.STORE_NAME);
+      urlCache.clear();
+    } catch (error) {
+      console.error('Failed to clear image cache:', error);
+    }
   }
 
   private async cleanup(): Promise<void> {
     if (!this.db) return;
 
-    const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
-    const store = tx.objectStore(this.STORE_NAME);
-    let totalSize = 0;
-    const entries: { key: string; size: number }[] = [];
+    try {
+      const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
+      const store = tx.objectStore(this.STORE_NAME);
+      let totalSize = 0;
+      const entries: { key: string; size: number }[] = [];
 
-    await store.openCursor().then(async (cursor) => {
-      while (cursor) {
-        const size = cursor.value.data.size;
-        totalSize += size;
-        entries.push({ key: cursor.key as string, size });
-        cursor = await cursor.continue();
-      }
-    });
+      await store.openCursor().then(async (cursor) => {
+        while (cursor) {
+          const size = cursor.value.data.size;
+          totalSize += size;
+          entries.push({ key: cursor.key as string, size });
+          cursor = await cursor.continue();
+        }
+      });
 
-    if (totalSize > this.MAX_CACHE_SIZE) {
-      entries.sort((a, b) => a.size - b.size);
-      let sizeToRemove = totalSize - this.MAX_CACHE_SIZE;
-      
-      for (const entry of entries) {
-        if (sizeToRemove <= 0) break;
-        await this.invalidate(entry.key);
-        sizeToRemove -= entry.size;
+      if (totalSize > this.MAX_CACHE_SIZE) {
+        entries.sort((a, b) => a.size - b.size);
+        let sizeToRemove = totalSize - this.MAX_CACHE_SIZE;
+        
+        for (const entry of entries) {
+          if (sizeToRemove <= 0) break;
+          await this.invalidate(entry.key);
+          sizeToRemove -= entry.size;
+        }
       }
+    } catch (error) {
+      console.error('Failed to clean up image cache:', error);
     }
   }
 }
