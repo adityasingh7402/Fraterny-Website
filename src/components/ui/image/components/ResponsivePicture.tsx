@@ -1,57 +1,101 @@
 
 import React from 'react';
-import { createImageProps } from '../utils';
-import { ResponsiveImageSource } from '../types';
 
 interface ResponsivePictureProps {
-  sources: ResponsiveImageSource;
+  sources: {
+    mobile: string;
+    tablet?: string;
+    desktop: string;
+  };
   alt: string;
   className?: string;
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  fallbackSrc?: string;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   sizes?: string;
+  fallbackSrc?: string;
   useMobileSrc?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  preserveCropDimensions?: boolean;
 }
 
 /**
- * Responsive picture component for different device sizes
+ * Component that uses the HTML picture element for responsive images
+ * Enhanced to maintain consistent aspect ratios and preserve crop dimensions
  */
 export const ResponsivePicture = ({
   sources,
   alt,
-  className,
+  className = '',
   loading = 'lazy',
   fetchPriority,
   onClick,
-  fallbackSrc = '/placeholder.svg',
   width,
   height,
   sizes,
-  useMobileSrc,
-  objectFit = 'cover'
+  fallbackSrc = '/placeholder.svg',
+  useMobileSrc = false,
+  objectFit = 'cover',
+  preserveCropDimensions = false
 }: ResponsivePictureProps) => {
-  const imgProps = createImageProps(
-    sources.desktop, alt, className, loading, sizes,
-    width, height, fallbackSrc, fetchPriority
-  );
+  const { mobile, tablet, desktop } = sources;
   
-  // Apply object-fit directly to the style object for the img element
-  const style = { 
-    ...imgProps.style, 
-    objectFit 
+  // Use mobile source directly if specified
+  const imgSrc = useMobileSrc ? mobile : desktop || mobile;
+  
+  // Style for the image, including object-fit property
+  const imgStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit
   };
   
+  // If preserving crop dimensions, ensure consistent positioning
+  if (preserveCropDimensions) {
+    imgStyle.objectPosition = 'center';
+  }
+  
   return (
-    <picture onClick={onClick}>
-      {sources.mobile && <source media="(max-width: 640px)" srcSet={sources.mobile} />}
-      {sources.tablet && <source media="(max-width: 1024px)" srcSet={sources.tablet} />}
-      <source media="(min-width: 641px)" srcSet={sources.desktop} />
-      <img {...imgProps} style={style} />
+    <picture>
+      {/* Mobile source */}
+      <source 
+        srcSet={mobile} 
+        media="(max-width: 640px)" 
+      />
+      
+      {/* Tablet source (if provided) */}
+      {tablet && (
+        <source 
+          srcSet={tablet} 
+          media="(min-width: 641px) and (max-width: 1024px)" 
+        />
+      )}
+      
+      {/* Desktop source */}
+      <source 
+        srcSet={desktop} 
+        media="(min-width: 1025px)" 
+      />
+      
+      {/* Fallback image element */}
+      <img
+        src={imgSrc || fallbackSrc}
+        alt={alt}
+        className={className}
+        loading={loading}
+        fetchpriority={fetchPriority}
+        onClick={onClick}
+        width={width}
+        height={height}
+        sizes={sizes}
+        style={imgStyle}
+        onError={(e) => {
+          // Fallback to the default image if the source fails to load
+          (e.target as HTMLImageElement).src = fallbackSrc;
+        }}
+      />
     </picture>
   );
 };

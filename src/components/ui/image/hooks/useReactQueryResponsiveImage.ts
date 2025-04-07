@@ -7,6 +7,7 @@ import { ImageLoadingState } from '../types';
 
 /**
  * Enhanced hook that combines React Query with existing image loading system
+ * With improved dimension handling and aspect ratio preservation
  */
 export const useReactQueryResponsiveImage = (
   dynamicKey?: string,
@@ -22,7 +23,9 @@ export const useReactQueryResponsiveImage = (
     colorPlaceholder: null,
     contentHash: null,
     isCached: false,
-    lastUpdated: null
+    lastUpdated: null,
+    originalWidth: undefined,
+    originalHeight: undefined
   });
   
   const network = useNetworkStatus();
@@ -90,10 +93,19 @@ export const useReactQueryResponsiveImage = (
             placeholderData = await getImagePlaceholdersByKey(dynamicKey);
           }
           
-          // Calculate aspect ratio
+          // Get original width and height from image data
+          let originalWidth = undefined;
+          let originalHeight = undefined;
+          
+          if (imageData) {
+            originalWidth = imageData.width || undefined;
+            originalHeight = imageData.height || undefined;
+          }
+          
+          // Calculate aspect ratio - favor the database values over calculated ones
           let aspectRatio: number | undefined = undefined;
-          if (imageData && imageData.width && imageData.height) {
-            aspectRatio = imageData.width / imageData.height;
+          if (originalWidth && originalHeight && originalHeight > 0) {
+            aspectRatio = originalWidth / originalHeight;
           }
           
           // Update state with all the information
@@ -106,7 +118,9 @@ export const useReactQueryResponsiveImage = (
             colorPlaceholder: placeholderData.colorPlaceholder,
             contentHash,
             isCached: true, // We're using React Query, so it's always from cache first
-            lastUpdated: imageData?.updated_at || null
+            lastUpdated: imageData?.updated_at || null,
+            originalWidth,
+            originalHeight
           });
         }
       } catch (error) {

@@ -14,6 +14,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 /**
  * Custom hook to handle dynamic image loading from storage
  * Enhanced with versioning, cache coordination, and mobile optimization
+ * Now preserves original image dimensions for consistent display
  */
 export const useResponsiveImage = (
   dynamicKey?: string,
@@ -29,7 +30,9 @@ export const useResponsiveImage = (
     colorPlaceholder: null,
     contentHash: null,
     isCached: false,
-    lastUpdated: null
+    lastUpdated: null,
+    originalWidth: undefined,
+    originalHeight: undefined
   });
   
   const network = useNetworkStatus();
@@ -110,7 +113,9 @@ export const useResponsiveImage = (
             colorPlaceholder: cachedImageInfo.colorPlaceholder || prev.colorPlaceholder,
             contentHash: cachedImageInfo.contentHash,
             isCached: true,
-            lastUpdated: cachedImageInfo.lastUpdated
+            lastUpdated: cachedImageInfo.lastUpdated,
+            originalWidth: cachedImageInfo.originalWidth,
+            originalHeight: cachedImageInfo.originalHeight
           }));
           return;
         }
@@ -187,14 +192,16 @@ export const useResponsiveImage = (
           colorPlaceholder = desktopPlaceholders.colorPlaceholder;
         }
         
-        // Get image dimensions for aspect ratio
-        const aspectRatio = await getImageAspectRatio(imageUrl);
+        // Get image dimensions for aspect ratio and original dimensions
+        const { aspectRatio, width, height } = await getImageAspectRatio(imageUrl);
         
         // Cache this response in sessionStorage for faster subsequent loads
         // Include the global version in the cached data for cache coordination
         const imageInfo = {
           url: imageUrl,
           aspectRatio,
+          originalWidth: width,
+          originalHeight: height,
           tinyPlaceholder,
           colorPlaceholder,
           contentHash: extractedContentHash,
@@ -218,6 +225,8 @@ export const useResponsiveImage = (
           dynamicSrc: imageUrl, 
           isLoading: false,
           aspectRatio,
+          originalWidth: width,
+          originalHeight: height,
           tinyPlaceholder,
           colorPlaceholder,
           contentHash: extractedContentHash,
@@ -256,22 +265,39 @@ export const useResponsiveImage = (
 };
 
 /**
- * Helper function to get image aspect ratio from a URL
+ * Helper function to get image aspect ratio and dimensions from a URL
+ * Enhanced to return original width and height
  */
-const getImageAspectRatio = (url: string): Promise<number | undefined> => {
+const getImageAspectRatio = (url: string): Promise<{
+  aspectRatio: number | undefined, 
+  width: number | undefined, 
+  height: number | undefined
+}> => {
   return new Promise((resolve) => {
     // For placeholder images, return a default aspect ratio
     if (url === '/placeholder.svg') {
-      resolve(16/9);
+      resolve({
+        aspectRatio: 16/9,
+        width: undefined,
+        height: undefined
+      });
       return;
     }
     
     const img = new Image();
     img.onload = () => {
       const aspectRatio = img.width / img.height;
-      resolve(aspectRatio);
+      resolve({
+        aspectRatio,
+        width: img.width,
+        height: img.height
+      });
     };
-    img.onerror = () => resolve(undefined);
+    img.onerror = () => resolve({
+      aspectRatio: undefined,
+      width: undefined,
+      height: undefined
+    });
     img.src = url;
   });
 };
