@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Crop as CropIcon, Info, Trash2 } from 'lucide-react';
 import { ImageCropHandler } from '../../upload/crop-handler';
@@ -22,9 +21,7 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePrevie
     if (
       imageKey.includes('hero') || 
       imageKey.includes('background') || 
-      imageKey.includes('banner') ||
-      imageKey.includes('villalab') ||
-      imageKey.includes('experience')
+      imageKey.includes('banner')
     ) {
       return 'cover';
     }
