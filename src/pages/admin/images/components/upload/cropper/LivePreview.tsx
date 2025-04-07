@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Smartphone, Monitor } from 'lucide-react';
 
@@ -23,7 +22,8 @@ const LivePreview = ({
   const containerStyle: React.CSSProperties = {
     aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
     maxWidth: viewMode === 'desktop' ? '100%' : '375px',
-    width: viewMode === 'desktop' ? '100%' : '375px'
+    width: viewMode === 'desktop' ? '100%' : '375px',
+    overflow: 'hidden'
   };
 
   return (
@@ -69,7 +69,8 @@ const LivePreview = ({
               style={{ 
                 width: '100%', 
                 height: '100%',
-                objectFit 
+                objectFit,
+                objectPosition: 'center'
               }}
             />
           ) : (
