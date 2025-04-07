@@ -4,13 +4,14 @@
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { urlCache } from './utils/urlCache';
-import { CACHE_VERSIONS, CACHE_CONFIG } from './constants';
+import { CACHE_VERSIONS, CACHE_CONFIG, CacheMetadata, migrateCache } from './constants';
 
 interface ImageCacheEntry {
   data: Blob;
   timestamp: number;
   expiresAt: number;
   version: string;
+  metadata: CacheMetadata;
 }
 
 interface ImageCacheDB extends DBSchema {
@@ -18,15 +19,23 @@ interface ImageCacheDB extends DBSchema {
     key: string;
     value: ImageCacheEntry;
   };
+  metadata: {
+    key: string;
+    value: {
+      lastVersionCheck: number;
+      lastMigration: number;
+    };
+  };
 }
 
 class EnhancedImageCache {
   private db: IDBPDatabase<ImageCacheDB> | null = null;
   private readonly DB_NAME = 'image-cache';
-  private readonly DB_VERSION = 1;
+  private readonly DB_VERSION = 2; // Incremented for metadata support
   private readonly STORE_NAME = 'images';
+  private readonly METADATA_STORE = 'metadata';
   private readonly MAX_CACHE_SIZE = CACHE_CONFIG.MAX_CACHE_SIZE;
-  private readonly CACHE_VERSION = CACHE_VERSIONS.IMAGE;
+  private readonly CACHE_VERSION = CACHE_VERSIONS.IMAGE.current;
 
   async initialize(): Promise<void> {
     if (this.db) return;
@@ -37,12 +46,66 @@ class EnhancedImageCache {
           if (!db.objectStoreNames.contains('images')) {
             db.createObjectStore('images');
           }
+          if (!db.objectStoreNames.contains('metadata')) {
+            db.createObjectStore('metadata');
+          }
         }
       });
+
+      // Check for version updates and migrate if needed
+      await this.checkAndMigrate();
     } catch (error) {
       console.error('Failed to initialize image cache:', error);
       // Clear any potentially corrupted cache
       await this.clear();
+    }
+  }
+
+  private async checkAndMigrate(): Promise<void> {
+    if (!this.db) return;
+
+    try {
+      const metadata = await this.db.get(this.METADATA_STORE, 'version');
+      const now = Date.now();
+
+      // Check if we need to perform version check
+      if (!metadata || (now - metadata.lastVersionCheck) > CACHE_CONFIG.VERSION_CHECK_INTERVAL) {
+        await this.migrateCacheEntries();
+        await this.db.put(this.METADATA_STORE, {
+          lastVersionCheck: now,
+          lastMigration: now
+        }, 'version');
+      }
+    } catch (error) {
+      console.error('Failed to check and migrate cache:', error);
+    }
+  }
+
+  private async migrateCacheEntries(): Promise<void> {
+    if (!this.db) return;
+
+    try {
+      const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
+      const store = tx.objectStore(this.STORE_NAME);
+      let cursor = await store.openCursor();
+      let batchCount = 0;
+
+      while (cursor) {
+        const entry = cursor.value;
+        if (entry.version !== this.CACHE_VERSION) {
+          const migratedData = await migrateCache(entry.version, this.CACHE_VERSION, entry);
+          await cursor.update(migratedData);
+          batchCount++;
+
+          if (batchCount >= CACHE_CONFIG.MIGRATION_BATCH_SIZE) {
+            await tx.done;
+            batchCount = 0;
+          }
+        }
+        cursor = await cursor.continue();
+      }
+    } catch (error) {
+      console.error('Failed to migrate cache entries:', error);
     }
   }
 
@@ -51,18 +114,27 @@ class EnhancedImageCache {
     if (!this.db) throw new Error('Database not initialized');
 
     try {
+      const metadata: CacheMetadata = {
+        version: this.CACHE_VERSION,
+        createdAt: Date.now(),
+        lastAccessed: Date.now(),
+        size: data.size,
+        type: 'image',
+        tags: [key.split('-')[0]] // Extract category from key
+      };
+
       const entry: ImageCacheEntry = {
         data,
         timestamp: Date.now(),
         expiresAt: Date.now() + ttl,
-        version: this.CACHE_VERSION
+        version: this.CACHE_VERSION,
+        metadata
       };
 
       await this.db.put(this.STORE_NAME, entry, key);
       await this.cleanup();
     } catch (error) {
       console.error(`Failed to cache image for key ${key}:`, error);
-      // Invalidate the cache entry on error
       await this.invalidate(key);
     }
   }
@@ -75,10 +147,14 @@ class EnhancedImageCache {
       const entry = await this.db.get(this.STORE_NAME, key);
       if (!entry) return null;
 
-      // Check version mismatch
+      // Update last accessed time
+      entry.metadata.lastAccessed = Date.now();
+      await this.db.put(this.STORE_NAME, entry, key);
+
       if (entry.version !== this.CACHE_VERSION) {
-        await this.invalidate(key);
-        return null;
+        const migratedData = await migrateCache(entry.version, this.CACHE_VERSION, entry);
+        await this.db.put(this.STORE_NAME, migratedData, key);
+        return migratedData.data;
       }
 
       if (Date.now() > entry.expiresAt) {
