@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createImageProps } from '../utils';
 
@@ -33,9 +32,9 @@ export const BasicImage = ({
   width,
   height,
   sizes,
-  objectFit = 'cover',
+  objectFit = 'contain',
   aspectRatio,
-  preserveCropDimensions = false
+  preserveCropDimensions = true
 }: BasicImageProps) => {
   const imgProps = createImageProps(
     src, alt, className, loading, sizes,
@@ -44,16 +43,18 @@ export const BasicImage = ({
     fetchPriority
   );
   
-  // Apply object-fit directly to the style object for the img element
+  // Apply object-fit and ensure proper scaling
   const style = { 
     ...imgProps.style,
     objectFit,
+     width: '100%',
+    height: '100%',
   };
   
-  // If we want to preserve the crop dimensions and have an aspect ratio,
-  // add object-position center to ensure the image is centered
+  // If preserving crop dimensions, ensure the image maintains its aspect ratio
   if (preserveCropDimensions && aspectRatio) {
     style.objectPosition = 'center';
+    style.aspectRatio = `${aspectRatio}`;
   }
   
   // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
