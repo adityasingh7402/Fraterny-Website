@@ -37,7 +37,7 @@ export const ResponsivePicture = ({
   sizes,
   fallbackSrc = '/placeholder.svg',
   useMobileSrc = false,
-  objectFit = 'cover',
+  objectFit = 'contain',
   preserveCropDimensions = false
 }: ResponsivePictureProps) => {
   const { mobile, tablet, desktop } = sources;
