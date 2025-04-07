@@ -23,7 +23,10 @@ const LivePreview = ({
     aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
     maxWidth: viewMode === 'desktop' ? '100%' : '375px',
     width: viewMode === 'desktop' ? '100%' : '375px',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 
   return (
