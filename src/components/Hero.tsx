@@ -3,11 +3,9 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
-  const isMobile = useIsMobile();
   
   // Use our React Query powered hook
   const { settings, isLoading } = useReactQueryWebsiteSettings();
@@ -47,24 +45,20 @@ const Hero = () => {
     )`
   };
 
-  // Always use the device-specific image key
-  const imageKey = isMobile ? "hero-background-mobile" : "hero-background";
-  
-  // Log the image key being used for debugging
-  useEffect(() => {
-    console.log(`[Hero] Using image key: ${imageKey} based on device detection: ${isMobile ? 'mobile' : 'desktop'}`);
-  }, [imageKey, isMobile]);
-
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image - using device-specific keys */}
+      {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage
-          dynamicKey={imageKey}
+          src={{
+            mobile: "/images/hero/luxury-villa-mobile.webp",
+            desktop: "/images/hero/luxury-villa-desktop.webp"
+          }}
           alt="Stunning luxury villa with breathtaking views"
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
+          dynamicKey="hero-background"
         />
       </div>
       
@@ -72,7 +66,7 @@ const Hero = () => {
       <div className="absolute inset-0" style={gradientStyle} />
       
       <div className="container px-4 sm:px-6 py-24 sm:py-32 mx-auto relative z-10">
-        <div className="max-w-2xl flex flex-col gap-6 sm:gap-8">
+        <div className="animate-fade-down max-w-2xl flex flex-col gap-6 sm:gap-8">
           <div>
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-playfair font-bold tracking-tight mb-3 sm:mb-4">
               Where Ambition
@@ -85,7 +79,7 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="flex flex-col gap-6 sm:gap-8">
+          <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
             <a 
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
               target="_blank" 

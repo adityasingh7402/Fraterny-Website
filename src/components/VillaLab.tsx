@@ -32,11 +32,11 @@ const VillaLab = () => {
     return () => clearInterval(interval);
   }, [network.effectiveConnectionType, isMobile]);
 
-  // Updated to use strict device-specific image keys
+  // Updated to use dynamic image keys and include width/height for CLS optimization
   const activities = useMemo(() => [
     { 
       title: "Workshops", 
-      dynamicKey: isMobile ? "villalab-workshop-mobile" : "villalab-workshop",
+      dynamicKey: "villalab-workshop",
       fallbackSrc: {
         mobile: "/images/villalab/workshop-mobile.webp",
         desktop: "/images/villalab/workshop-desktop.webp"
@@ -47,7 +47,7 @@ const VillaLab = () => {
     },
     { 
       title: "Gourmet Meals", 
-      dynamicKey: isMobile ? "villalab-gourmet-mobile" : "villalab-gourmet",
+      dynamicKey: "villalab-gourmet",
       fallbackSrc: {
         mobile: "/images/villalab/gourmet-mobile.webp",
         desktop: "/images/villalab/gourmet-desktop.webp"
@@ -58,7 +58,7 @@ const VillaLab = () => {
     },
     { 
       title: "Group Activities", 
-      dynamicKey: isMobile ? "villalab-group-mobile" : "villalab-group",
+      dynamicKey: "villalab-group",
       fallbackSrc: {
         mobile: "/images/villalab/group-mobile.webp",
         desktop: "/images/villalab/group-desktop.webp"
@@ -69,7 +69,7 @@ const VillaLab = () => {
     },
     { 
       title: "Candid Interactions", 
-      dynamicKey: isMobile ? "villalab-candid-mobile" : "villalab-candid",
+      dynamicKey: "villalab-candid",
       fallbackSrc: {
         mobile: "/images/villalab/candid-mobile.webp",
         desktop: "/images/villalab/candid-desktop.webp"
@@ -80,7 +80,7 @@ const VillaLab = () => {
     },
     { 
       title: "Networking", 
-      dynamicKey: isMobile ? "villalab-networking-mobile" : "villalab-networking",
+      dynamicKey: "villalab-networking",
       fallbackSrc: {
         mobile: "/images/villalab/networking-mobile.webp",
         desktop: "/images/villalab/networking-desktop.webp"
@@ -91,7 +91,7 @@ const VillaLab = () => {
     },
     { 
       title: "Evening Sessions", 
-      dynamicKey: isMobile ? "villalab-evening-mobile" : "villalab-evening",
+      dynamicKey: "villalab-evening",
       fallbackSrc: {
         mobile: "/images/villalab/evening-mobile.webp",
         desktop: "/images/villalab/evening-desktop.webp"
@@ -102,7 +102,7 @@ const VillaLab = () => {
     },
     { 
       title: "Brainstorming", 
-      dynamicKey: isMobile ? "villalab-brainstorm-mobile" : "villalab-brainstorm",
+      dynamicKey: "villalab-brainstorm",
       fallbackSrc: {
         mobile: "/images/villalab/brainstorm-mobile.webp",
         desktop: "/images/villalab/brainstorm-desktop.webp"
@@ -113,7 +113,7 @@ const VillaLab = () => {
     },
     { 
       title: "Mentorship", 
-      dynamicKey: isMobile ? "villalab-mentorship-mobile" : "villalab-mentorship",
+      dynamicKey: "villalab-mentorship",
       fallbackSrc: {
         mobile: "/images/villalab/mentorship-mobile.webp",
         desktop: "/images/villalab/mentorship-desktop.webp"
@@ -124,7 +124,7 @@ const VillaLab = () => {
     },
     { 
       title: "Social Events", 
-      dynamicKey: isMobile ? "villalab-social-mobile" : "villalab-social",
+      dynamicKey: "villalab-social",
       fallbackSrc: {
         mobile: "/images/villalab/social-mobile.webp", 
         desktop: "/images/villalab/social-desktop.webp"
@@ -133,18 +133,13 @@ const VillaLab = () => {
       width: 600,
       height: 600
     }
-  ], [isMobile]);
+  ], []);
 
   // Calculate how many images to display based on viewport and network conditions
   const displayCount = Math.min(activities.length, visibleCount);
 
   // Determine if we need to delay loading images based on network conditions
   const shouldDelayNonEssentialImages = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType);
-
-  // Log mobile detection for debugging
-  useEffect(() => {
-    console.log(`[VillaLab] Current device detection: ${isMobile ? 'mobile' : 'desktop'}`);
-  }, [isMobile]);
 
   return (
     <section className="py-16 sm:py-20 bg-white">

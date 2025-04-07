@@ -20,9 +20,6 @@ const ImageDetailsForm = ({
   handleKeyChange,
   handleKeySelection
 }: ImageDetailsFormProps) => {
-  // Determine if this is a mobile-specific image
-  const isMobileKey = key.includes('-mobile');
-
   return (
     <div className="space-y-4">
       <KeySelector 
@@ -61,7 +58,7 @@ const ImageDetailsForm = ({
             <FormControl>
               <Input 
                 {...field} 
-                placeholder={isMobileKey ? "e.g., Mobile version of hero background" : "e.g., Main hero background image"}
+                placeholder="e.g., Main hero background image"
               />
             </FormControl>
             <FormMessage />
@@ -78,7 +75,7 @@ const ImageDetailsForm = ({
             <FormControl>
               <Input 
                 {...field}
-                placeholder={isMobileKey ? "e.g., Mobile optimized luxury villa view" : "e.g., Luxury villa with ocean view"} 
+                placeholder="e.g., Luxury villa with ocean view" 
               />
             </FormControl>
             <FormMessage />
@@ -90,24 +87,10 @@ const ImageDetailsForm = ({
       />
       
       {isPredefinedKey && (
-        <div className={`p-3 ${isMobileKey ? 'bg-blue-50 border-blue-100' : 'bg-green-50 border-green-100'} border rounded-md`}>
-          <p className={`text-sm ${isMobileKey ? 'text-blue-800' : 'text-green-800'} flex items-start`}>
+        <div className="p-3 bg-green-50 border border-green-100 rounded-md">
+          <p className="text-sm text-green-800 flex items-start">
             <InfoIcon className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-            {isMobileKey ? (
-              <>This is a <strong>mobile-specific</strong> image that will be used exclusively on mobile devices.</>
-            ) : (
-              <>This key will replace a specific placeholder on the website.</>
-            )}
-          </p>
-        </div>
-      )}
-      
-      {/* Add warning for missing mobile versions */}
-      {isPredefinedKey && !isMobileKey && !key.includes('-mobile') && (
-        <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-md mt-2">
-          <p className="text-sm text-yellow-800 flex items-start">
-            <InfoIcon className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-            Remember to also upload a mobile version with the key <strong>{key}-mobile</strong> for optimal mobile display.
+            This key will replace a specific placeholder on the website.
           </p>
         </div>
       )}

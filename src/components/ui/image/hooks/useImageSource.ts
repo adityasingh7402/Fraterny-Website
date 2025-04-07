@@ -7,7 +7,7 @@ type ImageSourceResult = {
 
 /**
  * Function to resolve the appropriate image source based on available images
- * Strictly respects device-specific image requirements without fallbacks
+ * Now accepts isMobile as a parameter instead of using a hook internally
  */
 export const useImageSource = (
   src: string | ResponsiveImageSource | undefined,
@@ -21,31 +21,37 @@ export const useImageSource = (
   
   // Handle string src with dynamic sources
   if (typeof src === 'string' || src === undefined) {
-    if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
-      // Use mobile image if on mobile device and mobile image exists
-      resolvedSrc = mobileDynamicSrc;
-    } else if (!isMobile && hasDynamicDesktop && desktopDynamicSrc) {
-      // Use desktop image if on desktop device and desktop image exists
-      resolvedSrc = desktopDynamicSrc;
+    if (hasDynamicDesktop) {
+      // For blogs, we use the same image for both mobile and desktop
+      // So we prioritize desktop image even on mobile devices if mobile image doesn't exist
+      if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
+        // Use mobile image if on mobile device and mobile image exists
+        resolvedSrc = mobileDynamicSrc;
+      } else if (desktopDynamicSrc) {
+        // Otherwise use desktop image for both device types
+        resolvedSrc = desktopDynamicSrc;
+      }
     }
-    // No fallbacks - if mobile image doesn't exist for mobile device, keep original src
   } 
   // Handle responsive object src
   else if (typeof src === 'object') {
-    if (isMobile && hasDynamicMobile && mobileDynamicSrc) {
-      // Replace just the mobile source while preserving the rest
-      resolvedSrc = {
-        ...src,
-        mobile: mobileDynamicSrc
-      };
-    } else if (!isMobile && hasDynamicDesktop && desktopDynamicSrc) {
-      // Replace just the desktop source while preserving the rest
-      resolvedSrc = {
-        ...src,
-        desktop: desktopDynamicSrc
-      };
+    if (hasDynamicDesktop) {
+      // If we have both desktop and mobile images
+      if (hasDynamicMobile && mobileDynamicSrc) {
+        // Create a new responsive object with both dynamic sources
+        resolvedSrc = {
+          mobile: mobileDynamicSrc,
+          desktop: desktopDynamicSrc!
+        };
+      } 
+      // If we only have the desktop image, use it for both mobile and desktop
+      else if (desktopDynamicSrc) {
+        resolvedSrc = {
+          mobile: desktopDynamicSrc,
+          desktop: desktopDynamicSrc
+        };
+      }
     }
-    // No fallbacks - if mobile image doesn't exist for mobile device, keep original src
   }
   
   return { resolvedSrc };
