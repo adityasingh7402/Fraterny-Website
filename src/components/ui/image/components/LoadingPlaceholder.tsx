@@ -1,11 +1,10 @@
-
 import React from 'react';
 
 interface LoadingPlaceholderProps {
   alt: string;
   className?: string;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   aspectRatio?: number;
   placeholderSrc?: string; // Tiny image placeholder
   colorPlaceholder?: string; // Color-based placeholder as ultra-lightweight fallback
@@ -24,12 +23,13 @@ export const LoadingPlaceholder = ({
   placeholderSrc,
   colorPlaceholder
 }: LoadingPlaceholderProps) => {
-  // Calculate style
   const containerStyle: React.CSSProperties = {
-    aspectRatio: width && height ? `${width}/${height}` : aspectRatio ? `${aspectRatio}` : '16/9',
-    width: width,
-    height: height,
-    backgroundColor: '#f3f4f6' // Default background
+    width: width ? (typeof width === 'string' ? width : `${width}px`) : '100%',
+    height: height ? (typeof height === 'string' ? height : `${height}px`) : 'auto',
+    aspectRatio: width && height ? undefined : `${aspectRatio}`,
+    backgroundColor: '#f3f4f6',
+    position: 'relative',
+    overflow: 'hidden'
   };
 
   // If we have a placeholder image, display it with blur effect
@@ -43,7 +43,7 @@ export const LoadingPlaceholder = ({
         <img 
           src={placeholderSrc}
           alt={`Loading preview for ${alt}`}
-          className="w-full h-full object-cover blur-sm scale-110"
+          className="absolute inset-0 w-full h-full object-contain"
           loading="eager"
           fetchPriority="high" // Ensure placeholder loads ASAP
         />
@@ -60,7 +60,9 @@ export const LoadingPlaceholder = ({
         style={{
           ...containerStyle,
           backgroundImage: `url(${colorPlaceholder})`,
-          backgroundSize: "cover"
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat"
         }}
         aria-label={`Loading ${alt}`}
       >
