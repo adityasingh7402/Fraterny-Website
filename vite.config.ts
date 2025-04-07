@@ -55,7 +55,8 @@ export default defineConfig(({ mode }) => ({
                 id.includes('@tanstack/react-query') || // React Query uses React contexts
                 id.includes('@supabase') ||  // May use React internals
                 id.includes('zod') ||        // Often used with React forms
-                id.includes('date-fns')) {   // Date libraries used with React
+                id.includes('date-fns') ||   // Date libraries used with React
+                id.includes('next-themes')) {  // Added next-themes to React ecosystem bundle
               return 'vendor-react-ecosystem';
             }
             
