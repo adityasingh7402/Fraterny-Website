@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -10,6 +9,12 @@ import {
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+
+// Mobile device detection utility
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth <= 768;
+};
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -127,54 +132,59 @@ export const useResponsiveImage = (
           getImagePlaceholdersByKey(dynamicKey) : 
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
-        // Handle mobile variant keys
-        const isMobileKey = dynamicKey.includes('-mobile');
+        // Determine if we should use mobile key
+        const isMobile = isMobileDevice();
+        const mobileKey = `${dynamicKey}-mobile`;
+        const shouldTryMobile = isMobile && !dynamicKey.includes('-mobile');
+        
+        // Try mobile key first if we're on mobile
         let imageUrl: string;
         let fallbackToDesktop = false;
-        
-        // Extract any content hash and cache metadata from the URL
         let extractedContentHash = null;
         
-        // If size is specified, try to get that specific size
         if (size) {
-          imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
-          
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
-          }
-          
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
-            fallbackToDesktop = true;
+          if (shouldTryMobile) {
+            // Try mobile key first
+            imageUrl = await getImageUrlByKeyAndSize(mobileKey, size);
+            if (imageUrl === '/placeholder.svg') {
+              // Fall back to desktop key
+              imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+              fallbackToDesktop = true;
+            }
+          } else {
+            // Use provided key (could be mobile or desktop)
+            imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+            if (imageUrl === '/placeholder.svg' && dynamicKey.includes('-mobile')) {
+              // If mobile key fails, try desktop version
+              const desktopKey = dynamicKey.replace('-mobile', '');
+              imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
+              fallbackToDesktop = true;
+            }
           }
         } else {
-          // Otherwise get the original image
-          imageUrl = await getImageUrlByKey(dynamicKey);
-          
-          // Extract content hash from URL
-          try {
-            const urlObj = new URL(imageUrl);
-            extractedContentHash = urlObj.searchParams.get('v') || null;
-          } catch (err) {
-            // Ignore URL parsing errors
+          // Similar logic for non-sized images
+          if (shouldTryMobile) {
+            imageUrl = await getImageUrlByKey(mobileKey);
+            if (imageUrl === '/placeholder.svg') {
+              imageUrl = await getImageUrlByKey(dynamicKey);
+              fallbackToDesktop = true;
+            }
+          } else {
+            imageUrl = await getImageUrlByKey(dynamicKey);
+            if (imageUrl === '/placeholder.svg' && dynamicKey.includes('-mobile')) {
+              const desktopKey = dynamicKey.replace('-mobile', '');
+              imageUrl = await getImageUrlByKey(desktopKey);
+              fallbackToDesktop = true;
+            }
           }
-          
-          if (imageUrl === '/placeholder.svg' && isMobileKey) {
-            // If this is a mobile key and we got a placeholder,
-            // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
-            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
-            imageUrl = await getImageUrlByKey(desktopKey);
-            fallbackToDesktop = true;
-          }
+        }
+        
+        // Extract content hash from URL
+        try {
+          const urlObj = new URL(imageUrl);
+          extractedContentHash = urlObj.searchParams.get('v') || null;
+        } catch (err) {
+          // Ignore URL parsing errors
         }
         
         // Get placeholders if we didn't fetch them earlier
@@ -247,20 +257,9 @@ export const useResponsiveImage = (
       }
     };
     
-    // For slow connections or offline mode, use a small delay to avoid 
-    // excessive requests during poor connectivity
-    const delay = !navigator.onLine || ['slow-2g', '2g'].includes(network.effectiveConnectionType) 
-      ? 300 : 0;
-      
-    const timeoutId = setTimeout(() => {
-      fetchImage();
-    }, delay);
-    
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [dynamicKey, size, debugCache, network.online, network.effectiveConnectionType]);
-  
+    fetchImage();
+  }, [dynamicKey, size, debugCache]);
+
   return state;
 };
 
