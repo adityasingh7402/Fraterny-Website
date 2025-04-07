@@ -1,15 +1,14 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { invalidateImageCache } from "./fetchService";
 import { getImageDimensions } from "./utils/dimensions";
-import { createOptimizedVersions } from "./utils/optimizationService";
 import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
 import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
 import { generateContentHash } from "./utils/hashUtils";
+import { AdvancedImageOptimizer } from "./services/advancedOptimizationService";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
@@ -54,7 +53,7 @@ export const uploadImage = async (
       await removeExistingImage(existingImage as WebsiteImage);
     }
     
-    // Generate placeholders for better loading experience (especially on mobile)
+    // Generate placeholders for better loading experience
     let placeholderData = null;
     let colorPlaceholder = null;
     
@@ -72,67 +71,61 @@ export const uploadImage = async (
     const contentHash = await generateContentHash(file);
     console.log(`Generated content hash: ${contentHash} for key: ${key}`);
     
-    // Upload the file to storage with enhanced caching headers
-    console.log(`Uploading file to storage: ${storagePath}`);
-    const { error: uploadError } = await supabase.storage
-      .from('website-images')
-      .upload(storagePath, file, {
-        cacheControl: '31536000', // 1 year cache
-        upsert: true
-      });
+    // Optimize the image with multiple formats
+    console.log('Optimizing image with multiple formats...');
+    const optimizedVersions = await AdvancedImageOptimizer.optimizeImage(file, {
+      maxWidth: 1920,
+      quality: 80,
+      formats: ['avif', 'webp', 'jpeg'],
+      preserveAspectRatio: true
+    });
     
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return handleApiError(uploadError, 'Error uploading image', false) as null;
-    }
+    // Create optimized sizes mapping
+    const optimizedSizes: Record<string, string> = {};
+    optimizedVersions.forEach(version => {
+      optimizedSizes[version.format] = version.path;
+    });
     
-    // Create optimized versions if it's an image
-    console.log('Creating optimized versions...');
-    const optimizedSizes = await createOptimizedVersions(file, storagePath);
-    console.log('Optimized sizes:', optimizedSizes);
-    
-    // Create an entry in the website_images table with enhanced metadata including content hash
+    // Create metadata with enhanced information
     const metadata = {
       placeholders: {
         tiny: placeholderData,
         color: colorPlaceholder
       },
-      contentHash: contentHash, // Store content hash in metadata
-      lastModified: new Date().toISOString()
+      contentHash,
+      lastModified: new Date().toISOString(),
+      optimizedVersions: optimizedVersions.map(v => ({
+        format: v.format,
+        width: v.width,
+        height: v.height,
+        quality: v.quality
+      }))
     };
     
-    const { data, error: insertError } = await supabase
-      .from('website_images')
-      .insert({
-        key,
-        description,
-        storage_path: storagePath,
-        alt_text,
-        category,
-        width: dimensions.width,
-        height: dimensions.height,
-        sizes: optimizedSizes,
-        metadata // Add metadata including content hash
-      })
-      .select()
-      .single();
+    // Create an entry in the website_images table using the new interface
+    const { data, error: insertError } = await createImageRecord({
+      key,
+      description,
+      storagePath,
+      altText: alt_text,
+      category,
+      dimensions,
+      optimizedSizes,
+      metadata
+    });
     
     if (insertError) {
       console.error('Insert error:', insertError);
-      
-      // Clean up the uploaded file if we couldn't create the record
       await cleanupUploadedFiles(storagePath, optimizedSizes);
-      
       return handleApiError(insertError, 'Error creating image record', false) as null;
     }
     
-    // Invalidate cache for this key to ensure fresh data
     invalidateImageCache(key);
-    
     console.log(`Successfully uploaded and created record for image with key: ${key}`);
     return data as WebsiteImage;
   } catch (error) {
-    console.error('Error in upload process:', error);
-    return handleApiError(error, 'Error in image upload process', false) as null;
+    console.error('Unexpected error in uploadImage:', error);
+    return handleApiError(error, 'Unexpected error during image upload', false) as null;
   }
 };
+
