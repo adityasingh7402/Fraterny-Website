@@ -200,7 +200,7 @@ export class AdvancedImageOptimizer {
       }
 
       // Add format parameter to URL
-      const optimizedUrl = `${urlData.publicUrl}?format=${bestFormat}`;
+      const optimizedUrl = `${urlData.publicUrl}?format=${bestFormat}&width=${options.maxWidth}&quality=${options.quality}`;
       
       // Cache the URL
       urlCache.set(cacheKey, optimizedUrl);
