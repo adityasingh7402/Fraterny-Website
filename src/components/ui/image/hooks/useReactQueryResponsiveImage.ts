@@ -73,8 +73,16 @@ export const useReactQueryResponsiveImage = (
         if (urlData && urlData.url) {
           // Check if we have any content hash from the metadata
           let contentHash = null;
-          if (imageData && imageData.metadata && typeof imageData.metadata === 'object') {
-            contentHash = imageData.metadata.contentHash || null;
+          
+          // Safely access contentHash from metadata by checking type first
+          if (imageData && imageData.metadata) {
+            // Make sure metadata is an object and not an array or primitive
+            if (typeof imageData.metadata === 'object' && 
+                imageData.metadata !== null && 
+                !Array.isArray(imageData.metadata)) {
+              // Now TypeScript knows this is an object, we can safely use bracket notation
+              contentHash = imageData.metadata['contentHash'] || null;
+            }
           }
           
           // If we don't have placeholders yet, fetch them
