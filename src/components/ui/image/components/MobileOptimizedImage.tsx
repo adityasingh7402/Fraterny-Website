@@ -31,9 +31,9 @@ export function MobileOptimizedImage({
   className,
   loading = 'lazy',
   sizes,
-  objectFit = 'cover',
+  objectFit = 'contain',
   aspectRatio,
-  preserveCropDimensions = false
+  preserveCropDimensions = true
 }: MobileOptimizedImageProps) {
   const network = useNetworkStatus();
   
@@ -60,8 +60,8 @@ export function MobileOptimizedImage({
     <BasicImage
       src={finalSrc}
       alt={alt}
-      width={width as any}  // Use type assertion to bypass TypeScript check
-      height={height as any} // Use type assertion to bypass TypeScript check
+       width={width}
+      height={height}
       className={className}
       loading={finalLoading}
       fetchPriority={fetchPriority}
@@ -69,6 +69,10 @@ export function MobileOptimizedImage({
       objectFit={objectFit}
       aspectRatio={aspectRatio}
       preserveCropDimensions={preserveCropDimensions}
+      style={{
+        maxWidth: '100%',
+        maxHeight: '100%'
+      }}
     />
   );
 }
