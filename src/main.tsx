@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { registerServiceWorker } from './utils/serviceWorker';
 import './index.css';
 import App from './App';
 import Index from './pages/Index';
@@ -58,6 +59,9 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+// Register service worker
+registerServiceWorker().catch(console.error);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
