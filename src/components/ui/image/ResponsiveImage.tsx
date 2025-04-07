@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
 import { useReactQueryResponsiveImage } from './hooks/useReactQueryResponsiveImage';
@@ -30,7 +29,7 @@ const ResponsiveImage = ({
   width,
   height,
   sizes,
-  objectFit = 'cover',
+  objectFit = 'contain',
   debugCache = false,
   preserveCropDimensions = true // Default to preserving crop dimensions
 }: ResponsiveImageProps) => {
