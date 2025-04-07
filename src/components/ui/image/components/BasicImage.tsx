@@ -43,20 +43,34 @@ export const BasicImage = ({
     fetchPriority
   );
   
-  // Apply object-fit and ensure proper scaling
-  const style = { 
+  // Calculate dimensions based on props and container
+  const style: React.CSSProperties = { 
     ...imgProps.style,
     objectFit,
-     width: '100%',
-    height: '100%',
+    // Only set width/height if explicitly provided
+    ...(width ? { width: typeof width === 'string' ? width : `${width}px` } : {}),
+    ...(height ? { height: typeof height === 'string' ? height : `${height}px` } : {}),
+    // Ensure proper scaling
+    maxWidth: '100%',
+    maxHeight: '100%',
+    // Maintain aspect ratio
+    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {}),
+    // Center the image
+    objectPosition: 'center'
   };
   
   // If preserving crop dimensions, ensure the image maintains its aspect ratio
-  if (preserveCropDimensions && aspectRatio) {
+  if (preserveCropDimensions) {
     style.objectPosition = 'center';
-    style.aspectRatio = `${aspectRatio}`;
+    if (!aspectRatio) {
+      // Calculate aspect ratio from width and height if not provided
+      const w = typeof width === 'number' ? width : undefined;
+      const h = typeof height === 'number' ? height : undefined;
+      if (w && h) {
+        style.aspectRatio = `${w}/${h}`;
+      }
+    }
   }
   
-  // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
   return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
 };
