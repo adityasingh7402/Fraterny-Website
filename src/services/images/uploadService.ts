@@ -128,4 +128,3 @@ export const uploadImage = async (
     return handleApiError(error, 'Unexpected error during image upload', false) as null;
   }
 };
-
