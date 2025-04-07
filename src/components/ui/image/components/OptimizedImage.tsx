@@ -77,8 +77,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       <LoadingPlaceholder
         alt={alt}
         className={className}
-        width={width}
-        height={height}
+        width={typeof width === 'string' ? parseInt(width, 10) : width}
+        height={typeof height === 'string' ? parseInt(height, 10) : height}
       />
     );
   }
@@ -89,8 +89,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       <ErrorPlaceholder
         alt={alt}
         className={className}
-        width={width}
-        height={height}
+        width={typeof width === 'string' ? parseInt(width, 10) : width}
+        height={typeof height === 'string' ? parseInt(height, 10) : height}
       />
     );
   }
@@ -115,7 +115,16 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 };
 
 export const OptimizedImageWithBoundary: React.FC<OptimizedImageProps> = (props) => (
-  <ErrorBoundary fallback={<ErrorPlaceholder {...props} />}>
+  <ErrorBoundary 
+    fallback={
+      <ErrorPlaceholder
+        alt={props.alt}
+        className={props.className}
+        width={typeof props.width === 'string' ? parseInt(props.width, 10) : props.width}
+        height={typeof props.height === 'string' ? parseInt(props.height, 10) : props.height}
+      />
+    }
+  >
     <OptimizedImage {...props} />
   </ErrorBoundary>
 ); 
