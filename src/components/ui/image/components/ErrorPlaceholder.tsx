@@ -1,11 +1,10 @@
-
 import React from 'react';
 
 interface ErrorPlaceholderProps {
   alt: string;
   className?: string;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   aspectRatio?: number;
   fallbackSrc?: string | React.ReactNode;
 }
@@ -21,22 +20,27 @@ export const ErrorPlaceholder = ({
   aspectRatio = 16/9,
   fallbackSrc = '/placeholder.svg'
 }: ErrorPlaceholderProps) => {
+  const containerStyle: React.CSSProperties = {
+    width: width ? (typeof width === 'string' ? width : `${width}px`) : '100%',
+    height: height ? (typeof height === 'string' ? height : `${height}px`) : 'auto',
+    aspectRatio: width && height ? undefined : `${aspectRatio}`,
+    backgroundColor: '#f3f4f6',
+    position: 'relative',
+    overflow: 'hidden'
+  };
+
   return (
     <div 
-      className={`bg-gray-100 flex items-center justify-center ${className}`}
-      style={{ 
-        aspectRatio: width && height ? `${width}/${height}` : aspectRatio ? `${aspectRatio}` : '16/9',
-        width: width,
-        height: height 
-      }}
+      className={`flex items-center justify-center ${className}`}
+      style={containerStyle}
     >
       {typeof fallbackSrc === 'string' ? (
         <img 
           src={fallbackSrc} 
           alt={`Placeholder for ${alt}`} 
-          className="max-h-full max-w-full p-4 opacity-30 object-contain"
-          width={width}
-          height={height}
+          className="absolute inset-0 w-full h-full object-contain opacity-30"
+          width={typeof width === 'number' ? width : undefined}
+          height={typeof height === 'number' ? height : undefined}
         />
       ) : (
         <div className="text-gray-400 text-sm text-center p-4">
