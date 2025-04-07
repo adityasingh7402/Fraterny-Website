@@ -11,8 +11,8 @@ export const createImageProps = (
   className: string | undefined,
   loading: 'lazy' | 'eager',
   sizes: string | undefined,
-  width: number | undefined,
-  height: number | undefined,
+  width: number | string | undefined,
+  height: number | string | undefined,
   fallbackSrc: string,
   fetchPriority?: 'high' | 'low' | 'auto'
 ): React.ImgHTMLAttributes<HTMLImageElement> => {
