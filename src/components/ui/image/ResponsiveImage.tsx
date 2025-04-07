@@ -177,6 +177,7 @@ const ResponsiveImage = ({
         style={{ 
           width, 
           height,
+          aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
           ...imageStyle 
         }}
       >
@@ -213,10 +214,11 @@ const ResponsiveImage = ({
   // Default case: simple image
   return (
     <div 
-      className="relative" 
+       className={`relative ${className}`} 
       style={{ 
         width, 
         height,
+        aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
         ...imageStyle 
       }}
     >
