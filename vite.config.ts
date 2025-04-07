@@ -43,19 +43,32 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        // Optimize chunk sizes for better caching
+        // Refined chunking strategy to prevent React context errors
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Group React and core dependencies
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
+            // React ecosystem bundle - all React and dependencies that use React internals
+            if (id.includes('react') || 
+                id.includes('react-dom') || 
+                id.includes('react-router') ||
+                id.includes('@radix-ui') ||  // UI components that depend on React
+                id.includes('sonner') ||     // Toast notifications that use React contexts
+                id.includes('@tanstack/react-query') || // React Query uses React contexts
+                id.includes('@supabase') ||  // May use React internals
+                id.includes('zod') ||        // Often used with React forms
+                id.includes('date-fns')) {   // Date libraries used with React
+              return 'vendor-react-ecosystem';
             }
-            // Group UI components 
-            if (id.includes('@radix-ui') || id.includes('lucide')) {
-              return 'vendor-ui';
+            
+            // UI utilities that don't directly depend on React internals
+            if (id.includes('lucide') || 
+                id.includes('clsx') || 
+                id.includes('tailwind-merge') ||
+                id.includes('class-variance-authority')) {
+              return 'vendor-ui-utils';
             }
-            // Other dependencies
-            return 'vendor';
+            
+            // All other dependencies
+            return 'vendor-other';
           }
         },
         // Fixed TypeScript error by correctly typing the assetFileNames function
