@@ -33,8 +33,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     // Ensure CSS is properly extracted in production
     cssCodeSplit: true,
-    // Remove the cssMinify option that depends on lightningcss
-    // cssMinify: 'lightningcss',
     // Output build stats for analysis
     reportCompressedSize: true,
     // Output source maps for debugging
@@ -46,26 +44,34 @@ export default defineConfig(({ mode }) => ({
         // Refined chunking strategy to prevent React context errors
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // React ecosystem bundle - all React and dependencies that use React internals
+            // React ecosystem bundle - must include ALL packages that use React contexts or internals
             if (id.includes('react') || 
                 id.includes('react-dom') || 
                 id.includes('react-router') ||
-                id.includes('@radix-ui') ||  // UI components that depend on React
-                id.includes('sonner') ||     // Toast notifications that use React contexts
-                id.includes('@tanstack/react-query') || // React Query uses React contexts
-                id.includes('@supabase') ||  // May use React internals
-                id.includes('zod') ||        // Often used with React forms
-                id.includes('date-fns') ||   // Date libraries used with React
-                id.includes('next-themes')) {  // Added next-themes to React ecosystem bundle
-              return 'vendor-react-ecosystem';
+                id.includes('@radix-ui') ||
+                id.includes('sonner') ||
+                id.includes('@tanstack/react-query') ||
+                id.includes('next-themes') ||
+                id.includes('vaul') ||
+                id.includes('cmdk') ||
+                id.includes('embla-carousel-react') ||
+                id.includes('react-day-picker') ||
+                id.includes('react-hook-form') ||
+                id.includes('react-image-crop') ||
+                id.includes('react-resizable-panels')) {
+              return 'vendor-react';
             }
             
-            // UI utilities that don't directly depend on React internals
+            // UI utilities and libraries that don't directly depend on React internals
             if (id.includes('lucide') || 
                 id.includes('clsx') || 
                 id.includes('tailwind-merge') ||
-                id.includes('class-variance-authority')) {
-              return 'vendor-ui-utils';
+                id.includes('class-variance-authority') ||
+                id.includes('date-fns') ||
+                id.includes('zod') ||
+                id.includes('@supabase') ||
+                id.includes('@hookform')) {
+              return 'vendor-utils';
             }
             
             // All other dependencies
