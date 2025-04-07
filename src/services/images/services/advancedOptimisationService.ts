@@ -37,51 +37,52 @@ export class AdvancedImageOptimizer {
   ): Promise<OptimizedImage[]> {
     const finalOptions = { ...this.DEFAULT_OPTIONS, ...options };
     const results: OptimizedImage[] = [];
-    
-    // Generate content hash for cache busting
-    const contentHash = await generateContentHash(file);
-    
-    // Create canvas for image manipulation
+    let img: HTMLImageElement | null = null;
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Could not create canvas context');
-    
-    // Load and resize image
-    const img = await this.loadImage(file);
-    const dimensions = this.calculateDimensions(img, finalOptions.maxWidth!);
-    
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-    ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
-    
-    // Generate optimized versions for each format
-    for (const format of finalOptions.formats!) {
-      const optimized = await this.generateOptimizedVersion(
-        canvas,
-        format,
-        finalOptions.quality!,
-        contentHash
-      );
-      
-      if (optimized) {
-        results.push({
-          path: optimized,
-          format,
-          width: dimensions.width,
-          height: dimensions.height,
-          quality: finalOptions.quality!
-        });
-      }
-    }
     
     try {
-      // Clean up temporary files
-      URL.revokeObjectURL((img as any).__objectUrl);
+      // Generate content hash for cache busting
+      const contentHash = await generateContentHash(file);
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not create canvas context');
+      
+      // Load and resize image
+      img = await this.loadImage(file);
+      const dimensions = this.calculateDimensions(img, finalOptions.maxWidth!);
+      
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
+      
+      // Generate optimized versions for each format
+      for (const format of finalOptions.formats!) {
+        const optimized = await this.generateOptimizedVersion(
+          canvas,
+          format,
+          finalOptions.quality!,
+          contentHash
+        );
+        
+        if (optimized) {
+          results.push({
+            path: optimized,
+            format,
+            width: dimensions.width,
+            height: dimensions.height,
+            quality: finalOptions.quality!
+          });
+        }
+      }
+      
+      return results;
+    } finally {
+      // Clean up resources
+      if (img) {
+        URL.revokeObjectURL((img as any).__objectUrl);
+      }
       canvas.remove();
-    } catch (error) {
-      console.error('Error cleaning up temporary files:', error);
     }
-    return results;
   }
 
   /**
@@ -92,7 +93,10 @@ export class AdvancedImageOptimizer {
       const img = new Image();
       const objectUrl = URL.createObjectURL(file);
       img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
       img.src = objectUrl;
       // Store the object URL for cleanup
       (img as any).__objectUrl = objectUrl;
@@ -154,7 +158,7 @@ export class AdvancedImageOptimizer {
     }
   }
 
- /**
+  /**
    * Get the best format for the current browser
    */
   static getBestFormat(): 'avif' | 'webp' | 'jpeg' {
@@ -215,17 +219,19 @@ export class AdvancedImageOptimizer {
         throw new Error('Could not get public URL');
       }
 
-      // Add format parameter to URL
+      // Use the passed options for optimization
       const optimizedUrl = `${urlData.publicUrl}?format=${bestFormat}&width=${options.maxWidth}&quality=${options.quality}`;
       
       // Cache the URL
       urlCache.set(cacheKey, optimizedUrl);
       
       return optimizedUrl;
-     } finally {
+    } catch (error) {
+      console.error('Error getting optimized URL:', error);
+      return '/placeholder.svg';
+    } finally {
       const duration = performance.now() - startTime;
       console.log(`Image optimization took ${duration}ms`);
-      // Add monitoring logic here
     }
   }
 } 
