@@ -1,92 +1,125 @@
-
 /**
  * A generic cache service for storing and retrieving data with expiration
  */
 
-interface CacheEntry<T> {
-  data: T;
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { urlCache } from './utils/urlCache';
+
+interface ImageCacheEntry {
+  data: Blob;
   timestamp: number;
   expiresAt: number;
+  version: string;
 }
 
-export class GenericCache<T> {
-  private cache = new Map<string, CacheEntry<T>>();
-  private DEFAULT_TTL: number;
-  private MAX_CACHE_SIZE: number;
-  
-  constructor(defaultTtl: number = 5 * 60 * 1000, maxCacheSize: number = 100) {
-    this.DEFAULT_TTL = defaultTtl;
-    this.MAX_CACHE_SIZE = maxCacheSize;
-    
-    // Periodically clean expired cache entries
-    setInterval(() => this.cleanExpired(), 60 * 1000); // Clean every minute
-  }
+interface ImageCacheDB extends DBSchema {
+  images: {
+    key: string;
+    value: ImageCacheEntry;
+  };
+}
 
-  get(key: string): T | undefined {
-    const entry = this.cache.get(key);
-    
-    if (!entry) return undefined;
-    
-    // Check if entry has expired
-    if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      return undefined;
-    }
-    
-    return entry.data;
-  }
-  
-  set(key: string, data: T, ttl: number = this.DEFAULT_TTL): void {
-    // If cache is at capacity, remove oldest entries
-    if (this.cache.size >= this.MAX_CACHE_SIZE) {
-      const oldestEntry = [...this.cache.entries()]
-        .sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
-      
-      if (oldestEntry) {
-        this.cache.delete(oldestEntry[0]);
+class EnhancedImageCache {
+  private db: IDBPDatabase<ImageCacheDB> | null = null;
+  private readonly DB_NAME = 'image-cache';
+  private readonly DB_VERSION = 1;
+  private readonly STORE_NAME = 'images';
+  private readonly MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
+  private readonly CACHE_VERSION = '1.0';
+
+  async initialize(): Promise<void> {
+    if (this.db) return;
+
+    this.db = await openDB<ImageCacheDB>(this.DB_NAME, this.DB_VERSION, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('images')) {
+          db.createObjectStore('images');
+        }
       }
-    }
-    
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + ttl
     });
   }
-  
-  // Add the missing delete method
-  delete(key: string): boolean {
-    return this.cache.delete(key);
+
+  async set(key: string, data: Blob, ttl: number = 5 * 60 * 1000): Promise<void> {
+    await this.initialize();
+    if (!this.db) throw new Error('Database not initialized');
+
+    const entry: ImageCacheEntry = {
+      data,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + ttl,
+      version: this.CACHE_VERSION
+    };
+
+    await this.db.put(this.STORE_NAME, entry, key);
+    await this.cleanup();
   }
-  
-  invalidate(keyPattern: string): void {
-    // Remove all entries that match the pattern
-    for (const key of this.cache.keys()) {
-      if (key.includes(keyPattern)) {
-        this.cache.delete(key);
+
+  async get(key: string): Promise<Blob | null> {
+    await this.initialize();
+    if (!this.db) throw new Error('Database not initialized');
+
+    const entry = await this.db.get(this.STORE_NAME, key);
+    if (!entry) return null;
+
+    if (Date.now() > entry.expiresAt) {
+      await this.invalidate(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  async invalidate(key: string): Promise<void> {
+    await this.initialize();
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.delete(this.STORE_NAME, key);
+    urlCache.delete(key);
+  }
+
+  async clear(): Promise<void> {
+    await this.initialize();
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.clear(this.STORE_NAME);
+    urlCache.clear();
+  }
+
+  private async cleanup(): Promise<void> {
+    if (!this.db) return;
+
+    const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
+    const store = tx.objectStore(this.STORE_NAME);
+    let totalSize = 0;
+    const entries: { key: string; size: number }[] = [];
+
+    await store.openCursor().then(async (cursor) => {
+      while (cursor) {
+        const size = cursor.value.data.size;
+        totalSize += size;
+        entries.push({ key: cursor.key as string, size });
+        cursor = await cursor.continue();
+      }
+    });
+
+    if (totalSize > this.MAX_CACHE_SIZE) {
+      entries.sort((a, b) => a.size - b.size);
+      let sizeToRemove = totalSize - this.MAX_CACHE_SIZE;
+      
+      for (const entry of entries) {
+        if (sizeToRemove <= 0) break;
+        await this.invalidate(entry.key);
+        sizeToRemove -= entry.size;
       }
     }
-  }
-  
-  cleanExpired(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiresAt) {
-        this.cache.delete(key);
-      }
-    }
-  }
-  
-  clear(): void {
-    this.cache.clear();
   }
 }
 
-// Image Cache instance for use in image service
-export const imageCache = new GenericCache<WebsiteImage | null>();
+// Export singleton instance
+export const imageCache = new EnhancedImageCache();
 
-// URL Cache instance with a shorter TTL for faster updates
-export const urlCache = new GenericCache<string>((2 * 60 * 1000)); // 2 minutes TTL
+// Initialize cache
+imageCache.initialize().catch(console.error);
 
 // Re-export types needed for the cache
 import { WebsiteImage } from './types';
