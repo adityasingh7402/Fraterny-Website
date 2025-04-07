@@ -74,6 +74,13 @@ export class AdvancedImageOptimizer {
       }
     }
     
+    try {
+      // Clean up temporary files
+      URL.revokeObjectURL((img as any).__objectUrl);
+      canvas.remove();
+    } catch (error) {
+      console.error('Error cleaning up temporary files:', error);
+    }
     return results;
   }
 
@@ -83,9 +90,12 @@ export class AdvancedImageOptimizer {
   private static loadImage(file: File): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
       img.onload = () => resolve(img);
       img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+      img.src = objectUrl;
+      // Store the object URL for cleanup
+      (img as any).__objectUrl = objectUrl;
     });
   }
 
