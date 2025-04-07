@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -60,11 +59,20 @@ const router = createBrowserRouter([
   },
 ]);
 
-// Register service worker
-registerServiceWorker().catch(console.error);
-
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
-)
+// Register service worker with error handling
+registerServiceWorker()
+  .then(() => {
+    console.log('Service worker registered successfully');
+  })
+  .catch((error) => {
+    console.error('Service worker registration failed:', error);
+    // Continue with app initialization even if service worker fails
+  })
+  .finally(() => {
+    // Initialize the app
+    ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+      <React.StrictMode>
+        <RouterProvider router={router} />
+      </React.StrictMode>
+    );
+  });
