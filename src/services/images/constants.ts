@@ -164,3 +164,20 @@ export const IMAGE_USAGE_MAP: Record<string, string> = {
   'blog-hero': 'Blog Page - Hero Section',
   'blog-hero-mobile': 'Blog Page - Hero Section (Mobile)',
 };
+
+// Cache versioning for different parts of the system
+export const CACHE_VERSIONS = {
+  IMAGE: '1.0',
+  URL: '1.0',
+  QUERY: '1.0',
+  STORAGE: '1.0'
+} as const;
+
+// Cache configuration
+export const CACHE_CONFIG = {
+  URL_TTL: 5 * 60 * 1000, // 5 minutes
+  IMAGE_TTL: 15 * 60 * 1000, // 15 minutes
+  MAX_CACHE_SIZE: 100 * 1024 * 1024, // 100MB
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000
+} as const;
