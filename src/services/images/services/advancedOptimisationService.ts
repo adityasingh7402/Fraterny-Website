@@ -144,21 +144,26 @@ export class AdvancedImageOptimizer {
     }
   }
 
-  /**
+ /**
    * Get the best format for the current browser
    */
   static getBestFormat(): 'avif' | 'webp' | 'jpeg' {
-    // Check AVIF support
-    const avifSupported = document.createElement('canvas')
-      .toDataURL('image/avif')
-      .indexOf('data:image/avif') === 0;
+    try {
+      // Check AVIF support
+      const avifSupported = document.createElement('canvas')
+        .toDataURL('image/avif')
+        .indexOf('data:image/avif') === 0;
 
-    // Check WebP support
-    const webpSupported = document.createElement('canvas')
-      .toDataURL('image/webp')
-      .indexOf('data:image/webp') === 0;
+      // Check WebP support
+      const webpSupported = document.createElement('canvas')
+        .toDataURL('image/webp')
+        .indexOf('data:image/webp') === 0;
 
-    return avifSupported ? 'avif' : webpSupported ? 'webp' : 'jpeg';
+      return avifSupported ? 'avif' : webpSupported ? 'webp' : 'jpeg';
+    } catch (error) {
+      console.warn('Format detection failed, falling back to JPEG');
+      return 'jpeg';
+    }
   }
 
   /**
