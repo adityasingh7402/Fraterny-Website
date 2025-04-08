@@ -7,6 +7,9 @@ interface LoadingPlaceholderProps {
   height?: number | string;
   isHero?: boolean;
   stage?: 'tiny' | 'low' | 'medium' | 'full';
+  aspectRatio?: number;
+  placeholderSrc?: string;
+  colorPlaceholder?: string;
 }
 
 const STAGE_STYLES = {
