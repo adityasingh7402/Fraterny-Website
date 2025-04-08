@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../cacheService";
+import { urlCache } from "../utils/urlCache";
 import { Json } from "@/integrations/supabase/types";
 
 /**
@@ -13,8 +12,8 @@ export const getImagePlaceholdersByKey = async (
   colorPlaceholder: string | null;
 }> => {
   // Check cache for placeholders
-  const cachedTiny = urlCache.get(`placeholder:tiny:${key}`);
-  const cachedColor = urlCache.get(`placeholder:color:${key}`);
+  const cachedTiny = await urlCache.get(`placeholder:tiny:${key}`);
+  const cachedColor = await urlCache.get(`placeholder:color:${key}`);
   
   if (cachedTiny && cachedColor) {
     return { 
