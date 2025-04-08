@@ -16,6 +16,44 @@ const CACHE_CONFIG = {
   ]
 };
 
+// Add service worker config storage
+let serviceWorkerConfig = null;
+
+// Add the preloadCriticalImages function
+async function preloadCriticalImages(cache) {
+  if (!serviceWorkerConfig?.supabaseUrl) {
+    console.warn('Service worker not initialized with Supabase URL');
+    return;
+  }
+
+  try {
+    const criticalAssets = CACHE_CONFIG.CRITICAL_ASSETS.map(path => {
+      // If the path is already a full URL, use it as is
+      if (path.startsWith('http')) return path;
+      // Otherwise, construct the Supabase URL
+      return `${serviceWorkerConfig.supabaseUrl}/storage/v1/object/public${path}`;
+    });
+
+    return Promise.all(
+      criticalAssets.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            const responseClone = response.clone();
+            await cache.put(url, responseClone);
+            return;
+          }
+          console.warn(`Failed to fetch: ${url}`);
+        } catch (error) {
+          console.error(`Failed to preload: ${url}`, error);
+        }
+      })
+    );
+  } catch (error) {
+    console.error('Error in preloadCriticalImages:', error);
+  }
+}
+
 // Performance Monitoring
 const PERFORMANCE_METRICS = {
   cacheHits: 0,
@@ -129,6 +167,45 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'periodic-sync') {
     event.waitUntil(syncOfflineChanges());
+  }
+});
+
+// Message event handler for cache operations
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type) {
+    switch (event.data.type) {
+      case 'GET_CACHE_STATUS':
+        event.ports[0].postMessage({
+          size: currentCacheSize,
+          itemCount: cacheSizeMap.size,
+          lastUpdated: Date.now(),
+          metrics: PERFORMANCE_METRICS
+        });
+        break;
+      case 'CLEAR_CACHE':
+        clearCache(event.data.cacheType);
+        break;
+      case 'GET_PERFORMANCE_METRICS':
+        event.ports[0].postMessage(PERFORMANCE_METRICS);
+        break;
+    }
+  }
+});
+
+// Message event - handle cache invalidation
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'INVALIDATE_CACHE') {
+    caches.delete(CACHE_CONFIG.IMAGE_CACHE).then(() => {
+      caches.open(CACHE_CONFIG.IMAGE_CACHE);
+    });
+  }
+});
+
+// Add initialization message handler
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'INITIALIZE') {
+    serviceWorkerConfig = event.data.config;
+    console.log('Service worker initialized with config:', serviceWorkerConfig);
   }
 });
 
@@ -477,41 +554,10 @@ async function updateMetrics() {
   });
 }
 
-// Message event handler for cache operations
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type) {
-    switch (event.data.type) {
-      case 'GET_CACHE_STATUS':
-        event.ports[0].postMessage({
-          size: currentCacheSize,
-          itemCount: cacheSizeMap.size,
-          lastUpdated: Date.now(),
-          metrics: PERFORMANCE_METRICS
-        });
-        break;
-      case 'CLEAR_CACHE':
-        clearCache(event.data.cacheType);
-        break;
-      case 'GET_PERFORMANCE_METRICS':
-        event.ports[0].postMessage(PERFORMANCE_METRICS);
-        break;
-    }
-  }
-});
-
 function isImageRequest(request) {
   return request.destination === 'image' || 
          /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(request.url);
 }
-
-// Message event - handle cache invalidation
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'INVALIDATE_CACHE') {
-    caches.delete(CACHE_CONFIG.IMAGE_CACHE).then(() => {
-      caches.open(CACHE_CONFIG.IMAGE_CACHE);
-    });
-  }
-});
 
 async function getPlaceholderResponse(request) {
   try {
