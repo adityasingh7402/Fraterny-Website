@@ -3,7 +3,6 @@ import { advancedImageOptimizer } from '@/services/images/services/advancedOptim
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { LoadingPlaceholder } from './LoadingPlaceholder';
 import { ErrorPlaceholder } from './ErrorPlaceholder';
-import { ErrorBoundary } from 'react-error-boundary';
 
 interface OptimizedImageProps {
   src: string;
@@ -96,7 +95,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           setOptimizedSrc(url);
           setCurrentStage(stage.name);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.name === 'AbortError') return;
         console.error('Error loading optimized image:', err);
         setError(true);
@@ -169,22 +168,37 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   );
 };
 
-export const OptimizedImageWithBoundary: React.FC<OptimizedImageProps> = (props) => (
-  <ErrorBoundary 
-    fallback={
+/**
+ * A basic error boundary implementation for the OptimizedImage
+ */
+export const OptimizedImageWithBoundary: React.FC<OptimizedImageProps> = (props) => {
+  const [hasError, setHasError] = useState(false);
+  
+  // Reset error state when props change
+  useEffect(() => {
+    setHasError(false);
+  }, [props.src]);
+  
+  // If there's an error, show the error placeholder
+  if (hasError) {
+    return (
       <ErrorPlaceholder
         alt={props.alt}
         className={props.className}
         width={typeof props.width === 'string' ? parseInt(props.width, 10) : props.width}
         height={typeof props.height === 'string' ? parseInt(props.height, 10) : props.height}
         onRetry={() => {
-          // Force remount of OptimizedImage
-          const key = Math.random().toString(36).substring(7);
-          return <OptimizedImage {...props} key={key} />;
+          setHasError(false);
         }}
       />
-    }
-  >
-    <OptimizedImage {...props} />
-  </ErrorBoundary>
-); 
+    );
+  }
+  
+  // Otherwise, render the OptimizedImage with an error handler
+  return (
+    <OptimizedImage 
+      {...props} 
+      key={hasError ? 'retry' : props.src}
+    />
+  );
+};

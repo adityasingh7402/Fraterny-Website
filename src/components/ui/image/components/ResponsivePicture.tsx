@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { CSSProperties } from 'react';
 
 interface ResponsivePictureProps {
   sources: {
@@ -46,7 +46,7 @@ export const ResponsivePicture = ({
   const imgSrc = useMobileSrc ? mobile : desktop || mobile;
   
   // Style for the image, including object-fit property
-  const imgStyle: React.CSSProperties = {
+  const imgStyle: CSSProperties = {
     width: '100%',
     height: '100%',
     objectFit
@@ -85,7 +85,7 @@ export const ResponsivePicture = ({
         alt={alt}
         className={className}
         loading={loading}
-        fetchpriority={fetchPriority}
+        fetchPriority={fetchPriority}
         onClick={onClick}
         width={width}
         height={height}
