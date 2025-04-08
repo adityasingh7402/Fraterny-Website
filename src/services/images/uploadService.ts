@@ -8,7 +8,7 @@ import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
 import { generateContentHash } from "./utils/hashUtils";
-import { AdvancedImageOptimizer } from "./services/advancedOptimizationService";
+import { advancedImageOptimizer } from "./services/advancedOptimizationService";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
@@ -71,20 +71,16 @@ export const uploadImage = async (
     const contentHash = await generateContentHash(file);
     console.log(`Generated content hash: ${contentHash} for key: ${key}`);
     
-    // Optimize the image with multiple formats
-    console.log('Optimizing image with multiple formats...');
-    const optimizedVersions = await AdvancedImageOptimizer.optimizeImage(file, {
+    // Optimize the image
+    const optimizedUrl = await advancedImageOptimizer.getOptimizedUrl(URL.createObjectURL(file), {
       maxWidth: 1920,
       quality: 80,
-      formats: ['avif', 'webp', 'jpeg'],
       preserveAspectRatio: true
     });
     
     // Create optimized sizes mapping
     const optimizedSizes: Record<string, string> = {};
-    optimizedVersions.forEach(version => {
-      optimizedSizes[version.format] = version.path;
-    });
+    optimizedSizes[optimizedUrl.split('.').pop() || ''] = optimizedUrl;
     
     // Create metadata with enhanced information
     const metadata = {
@@ -94,12 +90,12 @@ export const uploadImage = async (
       },
       contentHash,
       lastModified: new Date().toISOString(),
-      optimizedVersions: optimizedVersions.map(v => ({
-        format: v.format,
-        width: v.width,
-        height: v.height,
-        quality: v.quality
-      }))
+      optimizedVersions: [{
+        format: optimizedUrl.split('.').pop() || '',
+        width: dimensions.width,
+        height: dimensions.height,
+        quality: 80
+      }]
     };
     
     // Create an entry in the website_images table using the new interface
@@ -125,6 +121,6 @@ export const uploadImage = async (
     return data as WebsiteImage;
   } catch (error) {
     console.error('Unexpected error in uploadImage:', error);
-    return handleApiError(error, 'Unexpected error during image upload', false) as null;
+    return handleApiError(error, 'Failed to upload image', false) as null;
   }
 };
