@@ -36,6 +36,7 @@ export class AdvancedImageOptimizer {
   private static readonly DEFAULT_OPTIONS: OptimizationOptions = {
     maxWidth: 1920,
     quality: 80,
+    formats: ['webp', 'jpeg'],
     preserveAspectRatio: true
   };
   private readonly MAX_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -69,11 +70,8 @@ export class AdvancedImageOptimizer {
       return;
     }
 
-    // Type assertion to include toDataURL method
-    const typedContext = context as CanvasRenderingContext2D & { toDataURL(type: string): string };
-    
     this.browserCapabilities = {
-      webp: typedContext.toDataURL('image/webp').startsWith('data:image/webp'),
+      webp: canvas.toDataURL('image/webp').startsWith('data:image/webp'),
       avif: false, // AVIF detection is more complex
       highDensity: window.devicePixelRatio > 1
     };
