@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => ({
     reportCompressedSize: true,
     // Split chunks for better caching
     rollupOptions: {
+      external: ['idb'],
       output: {
         manualChunks: {
           // Group React dependencies together
