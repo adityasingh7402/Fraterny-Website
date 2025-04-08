@@ -390,5 +390,5 @@ export class AdvancedImageOptimizer {
     this.clearCache();
   }
 }
-
+// Export the singleton instance
 export const advancedImageOptimizer = AdvancedImageOptimizer.getInstance(); 
