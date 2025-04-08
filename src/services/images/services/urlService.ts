@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../cacheService";
+import { urlCache } from "../utils/urlCache";
 import { WebsiteImage } from "../types";
 import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
