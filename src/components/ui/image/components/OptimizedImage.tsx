@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AdvancedImageOptimizer } from '@/services/images/services/advancedOptimizationService';
+import { advancedImageOptimizer } from '@/services/images/services/advancedOptimizationService';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { LoadingPlaceholder } from './LoadingPlaceholder';
 import { ErrorPlaceholder } from './ErrorPlaceholder';
@@ -85,7 +85,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             stage.quality
           );
 
-          const url = await AdvancedImageOptimizer.getOptimizedUrl(src, {
+          const url = await advancedImageOptimizer.getOptimizedUrl(src, {
             maxWidth: Math.min(maxWidth, stage.maxWidth),
             quality: adjustedQuality,
             preserveAspectRatio,
