@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../cacheService";
+import { urlCache } from "../utils/urlCache";
 import { Json } from "@/integrations/supabase/types";
 
 /**

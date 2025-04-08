@@ -233,5 +233,8 @@ export const imageCache = new EnhancedImageCache();
 // Initialize cache
 imageCache.initialize().catch(console.error);
 
+// Re-export urlCache from utils for convenience
+export { urlCache } from './utils/urlCache';
+
 // Re-export types needed for the cache
 import { WebsiteImage } from './types';

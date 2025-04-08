@@ -43,7 +43,8 @@ export {
 } from './fetchService';
 
 // Export cache instances for advanced usage
-export { imageCache, urlCache } from './cacheService';
+export { imageCache } from './cacheService';
+export { urlCache } from './utils/urlCache';
 
 // Export utility functions for broader use
 export * from './utils/cacheUtils';
