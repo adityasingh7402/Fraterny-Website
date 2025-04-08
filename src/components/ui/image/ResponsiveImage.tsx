@@ -128,10 +128,12 @@ const ResponsiveImage = ({
   if (dynamicKey && dynamicSrc) {
     return (
       <div 
-        className={`relative ${className}`} 
+        className="relative" 
         style={{ 
           width, 
           height,
+          aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+          overflow: 'hidden',
           ...imageStyle 
         }}
       >
@@ -140,7 +142,7 @@ const ResponsiveImage = ({
           lowQualitySrc={tinyPlaceholder || undefined}
           alt={alt}
           loading={loading}
-          className="w-full h-full"
+          className={className}
           width={width}
           height={height}
           sizes={sizes}
@@ -178,6 +180,7 @@ const ResponsiveImage = ({
           width, 
           height,
           aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+          overflow: 'hidden',
           ...imageStyle 
         }}
       >
@@ -214,7 +217,7 @@ const ResponsiveImage = ({
   // Default case: simple image
   return (
     <div 
-       className={`relative ${className}`} 
+      className="relative"
       style={{ 
         width, 
         height,
@@ -229,7 +232,7 @@ const ResponsiveImage = ({
         loading={loading}
         fetchPriority={finalFetchPriority}
         onClick={onClick}
-        className={className || "w-full h-full"}
+        className={className}
         width={width}
         height={height}
         sizes={sizes}
