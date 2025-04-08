@@ -1,4 +1,3 @@
-
 /**
  * Re-export utility functions for image processing
  * This file serves as a facade for backward compatibility
@@ -8,5 +7,5 @@
 export { getImageDimensions } from './dimensions';
 export { createOptimizedVersions } from './optimizationService';
 export { resizeImage } from './optimizationUtils';
-export { generateTinyPlaceholder, generateColorPlaceholder } from './placeholderService';
+export { generateTinyPlaceholder, generateColorPlaceholder } from './placeholderGenerator';
 export { generateContentHash, addHashToUrl, generateCacheKey, parseCacheKey } from './hashUtils';
