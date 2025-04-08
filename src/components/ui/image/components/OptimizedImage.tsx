@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AdvancedImageOptimizer } from '@/services/images/services/advancedOptimizationService';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { LoadingPlaceholder } from './LoadingPlaceholder';
@@ -17,7 +17,22 @@ interface OptimizedImageProps {
   quality?: number;
   maxWidth?: number;
   preserveAspectRatio?: boolean;
+  isBanner?: boolean;
+  priority?: 'high' | 'low' | 'auto';
 }
+
+interface LoadingStage {
+  name: 'tiny' | 'low' | 'medium' | 'full';
+  quality: number;
+  maxWidth: number;
+}
+
+const LOADING_STAGES: LoadingStage[] = [
+  { name: 'tiny', quality: 20, maxWidth: 100 },
+  { name: 'low', quality: 40, maxWidth: 400 },
+  { name: 'medium', quality: 60, maxWidth: 800 },
+  { name: 'full', quality: 80, maxWidth: 1920 }
+];
 
 export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
@@ -27,48 +42,78 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width,
   height,
   sizes,
-  objectFit = 'contain',
+  objectFit,
   quality = 80,
   maxWidth = 1920,
-  preserveAspectRatio = true
+  preserveAspectRatio = true,
+  isBanner = false,
+  priority = 'auto'
 }) => {
   const [optimizedSrc, setOptimizedSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [currentStage, setCurrentStage] = useState<LoadingStage['name']>('tiny');
+  const controllerRef = useRef<AbortController | null>(null);
   const network = useNetworkStatus();
 
+  // Determine the appropriate objectFit value
+  const finalObjectFit = objectFit || (isBanner ? 'cover' : 'contain');
+
   useEffect(() => {
-    const loadOptimizedImage = async (retries = 3) => {
+    const loadOptimizedImage = async () => {
+      // Cancel any existing request
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+      controllerRef.current = new AbortController();
+
       try {
         setIsLoading(true);
         setError(false);
 
-        // Adjust quality based on network conditions
-        const adjustedQuality = network.effectiveConnectionType === '4g' 
+        // Adjust base quality based on network conditions
+        const baseQuality = network.effectiveConnectionType === '4g' 
           ? quality 
-          : Math.max(quality - 20, 40); // Lower quality on slower connections
+          : Math.max(quality - 20, 40);
 
-        // Get optimized URL with format detection
-        const url = await AdvancedImageOptimizer.getOptimizedUrl(src, {
-          maxWidth,
-          quality: adjustedQuality,
-          preserveAspectRatio
-        });
+        // Progressive loading through stages
+        for (const stage of LOADING_STAGES) {
+          if (controllerRef.current.signal.aborted) return;
 
-        setOptimizedSrc(url);
+          const adjustedQuality = Math.min(
+            baseQuality,
+            stage.quality
+          );
+
+          const url = await AdvancedImageOptimizer.getOptimizedUrl(src, {
+            maxWidth: Math.min(maxWidth, stage.maxWidth),
+            quality: adjustedQuality,
+            preserveAspectRatio,
+            stage: stage.name,
+            signal: controllerRef.current.signal
+          });
+
+          setOptimizedSrc(url);
+          setCurrentStage(stage.name);
+        }
       } catch (err) {
+        if (err.name === 'AbortError') return;
         console.error('Error loading optimized image:', err);
         setError(true);
-        if (retries > 0) {
-          return loadOptimizedImage(retries - 1);
-        }
-        throw err;
       } finally {
+        controllerRef.current = null;
         setIsLoading(false);
       }
     };
 
     loadOptimizedImage();
+
+    // Cleanup on unmount
+    return () => {
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+    };
   }, [src, quality, maxWidth, preserveAspectRatio, network.effectiveConnectionType]);
 
   // Show loading placeholder while optimizing
@@ -79,6 +124,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         className={className}
         width={typeof width === 'string' ? parseInt(width, 10) : width}
         height={typeof height === 'string' ? parseInt(height, 10) : height}
+        stage={currentStage}
       />
     );
   }
@@ -91,6 +137,10 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         className={className}
         width={typeof width === 'string' ? parseInt(width, 10) : width}
         height={typeof height === 'string' ? parseInt(height, 10) : height}
+        onRetry={() => {
+          setError(false);
+          setIsLoading(true);
+        }}
       />
     );
   }
@@ -105,10 +155,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       width={width}
       height={height}
       sizes={sizes}
+      fetchPriority={priority}
       style={{
-        objectFit,
+        objectFit: finalObjectFit,
         width: '100%',
-        height: '100%'
+        height: '100%',
+        maxWidth: '100%',
+        maxHeight: '100%',
+        transition: 'opacity 0.3s ease-in-out',
+        opacity: currentStage === 'full' ? 1 : 0.8
       }}
     />
   );
@@ -122,6 +177,11 @@ export const OptimizedImageWithBoundary: React.FC<OptimizedImageProps> = (props)
         className={props.className}
         width={typeof props.width === 'string' ? parseInt(props.width, 10) : props.width}
         height={typeof props.height === 'string' ? parseInt(props.height, 10) : props.height}
+        onRetry={() => {
+          // Force remount of OptimizedImage
+          const key = Math.random().toString(36).substring(7);
+          return <OptimizedImage {...props} key={key} />;
+        }}
       />
     }
   >
