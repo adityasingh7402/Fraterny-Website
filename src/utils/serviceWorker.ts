@@ -2,6 +2,16 @@
 // Handles registration, updates, and development mode bypass
 
 import { isLocalhost } from './environment';
+import { supabase } from '@/integrations/supabase/client';
+
+// Vite env type declaration
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 
 // Cache invalidation types
 export type CacheInvalidationType = 'all' | 'image' | 'placeholder';
@@ -23,8 +33,8 @@ let lastUpdateCheck = 0;
  */
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
   if (isLocalhost) {
-    console.log('Service worker bypassed in development mode');
-    return Promise.reject(new Error('Service worker disabled in development'));
+    console.log('Service worker running in development mode');
+    // Development mode is now allowed
   }
 
   if (registration) {
@@ -37,6 +47,20 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       registration = await navigator.serviceWorker.register('/sw.js', {
         scope: SW_CONFIG.scope
       });
+
+      // Initialize the service worker with Supabase config
+      if (registration.active) {
+        registration.active.postMessage({
+          type: 'INITIALIZE',
+          config: {
+            supabaseUrl: supabase.supabaseUrl,
+            imageConfig: {
+              maxSize: 50 * 1024 * 1024,
+              supportedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
+            }
+          }
+        });
+      }
 
       // Handle updates
       registration.addEventListener('updatefound', () => {
