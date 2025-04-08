@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect, SyntheticEvent, CSSProperties } from 'react';
 
 interface ResponsivePictureProps {
-  sources: {
-    mobile: string;
+  src: {
+    mobile?: string;
     tablet?: string;
     desktop: string;
   };
@@ -11,90 +11,101 @@ interface ResponsivePictureProps {
   className?: string;
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
-  onClick?: () => void;
+  onLoad?: () => void;
+  onError?: (e: SyntheticEvent<HTMLImageElement, Event>) => void;
   width?: number | string;
   height?: number | string;
   sizes?: string;
-  fallbackSrc?: string;
-  useMobileSrc?: boolean;
-  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  preserveCropDimensions?: boolean;
+  mobileCutoff?: string;
+  tabletCutoff?: string;
 }
 
 /**
- * Component that uses the HTML picture element for responsive images
- * Enhanced to maintain consistent aspect ratios and preserve crop dimensions
+ * ResponsivePicture component for delivering optimized images based on screen size
  */
 export const ResponsivePicture = ({
-  sources,
+  src,
   alt,
   className = '',
   loading = 'lazy',
-  fetchPriority,
-  onClick,
+  fetchPriority = 'auto',
+  onLoad,
+  onError,
   width,
   height,
-  sizes,
-  fallbackSrc = '/placeholder.svg',
-  useMobileSrc = false,
-  objectFit = 'contain',
-  preserveCropDimensions = false
+  sizes = '100vw',
+  mobileCutoff = '640px',
+  tabletCutoff = '1024px',
 }: ResponsivePictureProps) => {
-  const { mobile, tablet, desktop } = sources;
-  
-  // Use mobile source directly if specified
-  const imgSrc = useMobileSrc ? mobile : desktop || mobile;
-  
-  // Style for the image, including object-fit property
-  const imgStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    objectFit
+  const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  // Reset states when src changes
+  useEffect(() => {
+    setError(false);
+    setLoaded(false);
+  }, [src.desktop, src.tablet, src.mobile]);
+
+  const handleLoad = () => {
+    setLoaded(true);
+    if (onLoad) onLoad();
   };
-  
-  // If preserving crop dimensions, ensure consistent positioning
-  if (preserveCropDimensions) {
-    imgStyle.objectPosition = 'center';
+
+  const handleError = (e: SyntheticEvent<HTMLImageElement, Event>) => {
+    setError(true);
+    if (onError) onError(e);
+  };
+
+  const imgStyle: CSSProperties = {
+    display: loaded ? 'block' : 'none',
+  };
+
+  // Image dimensions
+  if (width) {
+    imgStyle.width = typeof width === 'number' ? `${width}px` : width;
   }
-  
-  return (
-    <picture>
-      {/* Mobile source */}
-      <source 
-        srcSet={mobile} 
-        media="(max-width: 640px)" 
+  if (height) {
+    imgStyle.height = typeof height === 'number' ? `${height}px` : height;
+  }
+
+  if (error) {
+    return (
+      <img
+        src="/placeholder.svg"
+        alt={alt}
+        className={className}
+        style={imgStyle}
+        width={width}
+        height={height}
       />
-      
-      {/* Tablet source (if provided) */}
-      {tablet && (
-        <source 
-          srcSet={tablet} 
-          media="(min-width: 641px) and (max-width: 1024px)" 
+    );
+  }
+
+  return (
+    <picture className={className}>
+      {src.mobile && (
+        <source srcSet={src.mobile} media={`(max-width: ${mobileCutoff})`} />
+      )}
+      {src.tablet && (
+        <source
+          srcSet={src.tablet}
+          media={`(min-width: ${mobileCutoff}) and (max-width: ${tabletCutoff})`}
         />
       )}
-      
-      {/* Desktop source */}
-      <source 
-        srcSet={desktop} 
-        media="(min-width: 1025px)" 
-      />
-      
-      {/* Fallback image element */}
+      <source srcSet={src.desktop} media={`(min-width: ${tabletCutoff})`} />
       <img
-        src={imgSrc || fallbackSrc}
+        src={src.desktop}
         alt={alt}
         className={className}
         loading={loading}
-        fetchpriority={fetchPriority}
-        onClick={onClick}
+        fetchPriority={fetchPriority}
+        onClick={() => {}}
         width={width}
         height={height}
         sizes={sizes}
         style={imgStyle}
-        onError={(e) => {
-          // Fallback to the default image if the source fails to load
-          (e.target as HTMLImageElement).src = fallbackSrc;
-        }}
+        onError={handleError}
+        onLoad={handleLoad}
       />
     </picture>
   );
