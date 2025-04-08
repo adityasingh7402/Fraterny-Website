@@ -30,7 +30,7 @@ interface BrowserCapabilities {
  * Advanced image optimization service with multiple format support
  */
 export class AdvancedImageOptimizer {
-  private static instance: AdvancedImageOptimizer;
+  private static instance: AdvancedImageOptimizer | null = null;
   private browserCapabilities: BrowserCapabilities | null = null;
   private readonly CACHE_KEY_PREFIX = 'optimized_image_';
   private static readonly DEFAULT_OPTIONS: OptimizationOptions = {
@@ -48,7 +48,7 @@ export class AdvancedImageOptimizer {
     this.setupMemoryPressureHandling();
   }
 
-  static getInstance(): AdvancedImageOptimizer {
+  public static getInstance(): AdvancedImageOptimizer {
     if (!AdvancedImageOptimizer.instance) {
       AdvancedImageOptimizer.instance = new AdvancedImageOptimizer();
     }
@@ -390,5 +390,6 @@ export class AdvancedImageOptimizer {
     this.clearCache();
   }
 }
+
 // Export the singleton instance
 export const advancedImageOptimizer = AdvancedImageOptimizer.getInstance(); 
