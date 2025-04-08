@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface LoadingPlaceholderProps {
@@ -8,9 +7,6 @@ interface LoadingPlaceholderProps {
   height?: number | string;
   isHero?: boolean;
   stage?: 'tiny' | 'low' | 'medium' | 'full';
-  aspectRatio?: number;
-  placeholderSrc?: string;
-  colorPlaceholder?: string;
 }
 
 const STAGE_STYLES = {
@@ -42,18 +38,14 @@ export const LoadingPlaceholder: React.FC<LoadingPlaceholderProps> = ({
   width,
   height,
   isHero = false,
-  stage = 'tiny',
-  aspectRatio,
-  placeholderSrc,
-  colorPlaceholder
+  stage = 'tiny'
 }) => {
   // Calculate container style
   const containerStyle: React.CSSProperties = {
     width: typeof width === 'string' ? width : width ? `${width}px` : '100%',
     height: typeof height === 'string' ? height : height ? `${height}px` : 'auto',
     position: 'relative',
-    overflow: 'hidden',
-    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {})
+    overflow: 'hidden'
   };
 
   // Get stage-specific styles
@@ -76,45 +68,20 @@ export const LoadingPlaceholder: React.FC<LoadingPlaceholderProps> = ({
         }}
       />
 
-      {/* Placeholder image if provided */}
-      {placeholderSrc && (
-        <div className={`absolute inset-0 ${stageStyle.blur}`}>
-          <img 
-            src={placeholderSrc} 
-            alt={`Placeholder for ${alt}`}
-            className="w-full h-full object-cover"
-            style={{ opacity: 0.6 }}
-          />
-        </div>
-      )}
-
-      {/* Color placeholder if provided */}
-      {colorPlaceholder && !placeholderSrc && (
-        <div 
-          className={`absolute inset-0 ${stageStyle.blur}`}
-          style={{ 
-            backgroundColor: colorPlaceholder,
-            opacity: 0.4
-          }}
-        />
-      )}
-
       {/* Content placeholder */}
-      {!placeholderSrc && !colorPlaceholder && (
-        <div 
-          className={`absolute inset-0 flex items-center justify-center ${stageStyle.blur}`}
-        >
-          {isHero ? (
-            // Hero image placeholder
-            <div className="w-full h-full bg-gray-200" />
-          ) : (
-            // Regular image placeholder
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin" />
-            </div>
-          )}
-        </div>
-      )}
+      <div 
+        className={`absolute inset-0 flex items-center justify-center ${stageStyle.blur}`}
+      >
+        {isHero ? (
+          // Hero image placeholder
+          <div className="w-full h-full bg-gray-200" />
+        ) : (
+          // Regular image placeholder
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
 
       {/* Loading indicator */}
       <div className="absolute bottom-2 right-2 text-xs text-gray-500">
