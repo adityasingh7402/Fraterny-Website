@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface ErrorPlaceholderProps {
@@ -29,14 +30,17 @@ export const ErrorPlaceholder: React.FC<ErrorPlaceholderProps> = ({
   height,
   isHero = false,
   onRetry,
-  errorType = 'network'
+  errorType = 'network',
+  aspectRatio,
+  fallbackSrc
 }) => {
   // Calculate container style
   const containerStyle: React.CSSProperties = {
     width: typeof width === 'string' ? width : width ? `${width}px` : '100%',
     height: typeof height === 'string' ? height : height ? `${height}px` : 'auto',
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {})
   };
 
   return (

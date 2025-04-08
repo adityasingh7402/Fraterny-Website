@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface LoadingPlaceholderProps {
@@ -41,14 +42,18 @@ export const LoadingPlaceholder: React.FC<LoadingPlaceholderProps> = ({
   width,
   height,
   isHero = false,
-  stage = 'tiny'
+  stage = 'tiny',
+  aspectRatio,
+  placeholderSrc,
+  colorPlaceholder
 }) => {
   // Calculate container style
   const containerStyle: React.CSSProperties = {
     width: typeof width === 'string' ? width : width ? `${width}px` : '100%',
     height: typeof height === 'string' ? height : height ? `${height}px` : 'auto',
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {})
   };
 
   // Get stage-specific styles

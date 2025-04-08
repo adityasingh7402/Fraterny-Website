@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { BasicImage } from './BasicImage';
@@ -33,7 +34,8 @@ export function MobileOptimizedImage({
   sizes,
   objectFit = 'contain',
   aspectRatio,
-  preserveCropDimensions = true
+  preserveCropDimensions = true,
+  style
 }: MobileOptimizedImageProps) {
   const network = useNetworkStatus();
   
@@ -69,6 +71,7 @@ export function MobileOptimizedImage({
       objectFit={objectFit}
       aspectRatio={aspectRatio}
       preserveCropDimensions={preserveCropDimensions}
+      style={style}
     />
   );
 }

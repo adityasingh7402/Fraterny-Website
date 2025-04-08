@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createImageProps } from '../utils';
 
@@ -35,7 +36,8 @@ export const BasicImage = ({
   sizes,
   objectFit = 'contain',
   aspectRatio,
-  preserveCropDimensions = true
+  preserveCropDimensions = true,
+  style: customStyle
 }: BasicImageProps) => {
   const imgProps = createImageProps(
     src, alt, className, loading, sizes,
@@ -47,6 +49,7 @@ export const BasicImage = ({
   // Calculate dimensions based on props and container
   const style: React.CSSProperties = { 
     ...imgProps.style,
+    ...customStyle,
     objectFit,
     // Only set width/height if explicitly provided
     ...(width ? { width: typeof width === 'string' ? width : `${width}px` } : {}),
