@@ -60,7 +60,7 @@ export function MobileOptimizedImage({
     <BasicImage
       src={finalSrc}
       alt={alt}
-       width={width}
+      width={width}
       height={height}
       className={className}
       loading={finalLoading}
@@ -69,10 +69,6 @@ export function MobileOptimizedImage({
       objectFit={objectFit}
       aspectRatio={aspectRatio}
       preserveCropDimensions={preserveCropDimensions}
-      style={{
-        maxWidth: '100%',
-        maxHeight: '100%'
-      }}
     />
   );
 }
