@@ -2,7 +2,6 @@
 // Handles registration, updates, and development mode bypass
 
 import { isLocalhost } from './environment';
-import { supabase } from '@/integrations/supabase/client';
 
 // Vite env type declaration
 interface ImportMetaEnv {
@@ -21,7 +20,8 @@ const SW_CONFIG = {
   scope: '/',
   updateInterval: 24 * 60 * 60 * 1000, // 24 hours
   retryCount: 3,
-  retryDelay: 1000 // 1 second
+  retryDelay: 1000, // 1 second
+  supabaseUrl: "https://eukenximajiuhrtljnpw.supabase.co"
 };
 
 // Track registration state
@@ -53,7 +53,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
         registration.active.postMessage({
           type: 'INITIALIZE',
           config: {
-            supabaseUrl: supabase.supabaseUrl,
+            supabaseUrl: SW_CONFIG.supabaseUrl,
             imageConfig: {
               maxSize: 50 * 1024 * 1024,
               supportedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
