@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createImageProps } from '../utils';
 
@@ -16,7 +15,6 @@ interface BasicImageProps {
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   aspectRatio?: number;
   preserveCropDimensions?: boolean;
-  style?: React.CSSProperties;
 }
 
 /**
@@ -36,8 +34,7 @@ export const BasicImage = ({
   sizes,
   objectFit = 'contain',
   aspectRatio,
-  preserveCropDimensions = true,
-  style
+  preserveCropDimensions = true
 }: BasicImageProps) => {
   const imgProps = createImageProps(
     src, alt, className, loading, sizes,
@@ -47,7 +44,7 @@ export const BasicImage = ({
   );
   
   // Calculate dimensions based on props and container
-  const finalStyle: React.CSSProperties = { 
+  const style: React.CSSProperties = { 
     ...imgProps.style,
     objectFit,
     // Only set width/height if explicitly provided
@@ -59,23 +56,21 @@ export const BasicImage = ({
     // Maintain aspect ratio
     ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {}),
     // Center the image
-    objectPosition: 'center',
-    // Add any custom styles
-    ...style
+    objectPosition: 'center'
   };
   
   // If preserving crop dimensions, ensure the image maintains its aspect ratio
   if (preserveCropDimensions) {
-    finalStyle.objectPosition = 'center';
+    style.objectPosition = 'center';
     if (!aspectRatio) {
       // Calculate aspect ratio from width and height if not provided
       const w = typeof width === 'number' ? width : undefined;
       const h = typeof height === 'number' ? height : undefined;
       if (w && h) {
-        finalStyle.aspectRatio = `${w}/${h}`;
+        style.aspectRatio = `${w}/${h}`;
       }
     }
   }
   
-  return <img {...imgProps} style={finalStyle} onClick={onClick} fetchPriority={fetchPriority} />;
+  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
 };
