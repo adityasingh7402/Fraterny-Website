@@ -2,4 +2,5 @@ export * from './urlService';
 export * from './placeholderService';
 export * from './cacheVersionService';
 export * from './cacheService';
-export { advancedImageOptimizer } from './advancedOptimizationService';
+import advancedImageOptimizer from './advancedOptimizationService';
+export { advancedImageOptimizer };
