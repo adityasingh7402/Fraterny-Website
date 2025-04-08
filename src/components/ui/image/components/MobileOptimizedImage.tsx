@@ -60,7 +60,7 @@ export function MobileOptimizedImage({
     <BasicImage
       src={finalSrc}
       alt={alt}
-       width={width}
+      width={width}
       height={height}
       className={className}
       loading={finalLoading}

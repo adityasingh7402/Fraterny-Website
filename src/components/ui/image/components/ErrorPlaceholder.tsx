@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface ErrorPlaceholderProps {
@@ -8,6 +9,8 @@ interface ErrorPlaceholderProps {
   isHero?: boolean;
   onRetry?: () => void;
   errorType?: 'network' | 'format' | 'size' | 'corrupt';
+  aspectRatio?: number;
+  fallbackSrc?: string;
 }
 
 const ERROR_MESSAGES = {
@@ -27,14 +30,17 @@ export const ErrorPlaceholder: React.FC<ErrorPlaceholderProps> = ({
   height,
   isHero = false,
   onRetry,
-  errorType = 'network'
+  errorType = 'network',
+  aspectRatio,
+  fallbackSrc
 }) => {
   // Calculate container style
   const containerStyle: React.CSSProperties = {
     width: typeof width === 'string' ? width : width ? `${width}px` : '100%',
     height: typeof height === 'string' ? height : height ? `${height}px` : 'auto',
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {})
   };
 
   return (
@@ -44,11 +50,20 @@ export const ErrorPlaceholder: React.FC<ErrorPlaceholderProps> = ({
       role="alert"
       aria-label={`Error loading ${alt}`}
     >
+      {/* Display fallback image if provided */}
+      {fallbackSrc && (
+        <img 
+          src={fallbackSrc}
+          alt={`Fallback for ${alt}`}
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+        />
+      )}
+
       {/* Error background */}
-      <div className="absolute inset-0 bg-gray-100" />
+      {!fallbackSrc && <div className="absolute inset-0 bg-gray-100" />}
 
       {/* Error content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-white bg-opacity-80">
         {/* Error icon */}
         <div className="w-12 h-12 mb-4 text-red-500">
           <svg
