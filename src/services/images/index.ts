@@ -18,7 +18,7 @@ export {
 // Export placeholder functions
 export { 
   getImagePlaceholdersByKey 
-} from './services/placeholderService';
+} from './services/placeholderCacheService';
 
 // Export cache management functions
 export {
@@ -56,5 +56,5 @@ export * from './utils/databaseUtils';
 export * from './utils/dimensions';
 export * from './utils/optimizationService';
 export * from './utils/optimizationUtils';
-export * from './utils/placeholderService';
+export { generateTinyPlaceholder, generateColorPlaceholder } from './utils/placeholderGenerator';
 export * from './utils/hashUtils';
