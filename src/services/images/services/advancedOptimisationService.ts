@@ -29,7 +29,7 @@ interface BrowserCapabilities {
 /**
  * Advanced image optimization service with multiple format support
  */
-export class AdvancedImageOptimizer {
+class AdvancedImageOptimizer {
   private static instance: AdvancedImageOptimizer | null = null;
   private browserCapabilities: BrowserCapabilities | null = null;
   private readonly CACHE_KEY_PREFIX = 'optimized_image_';
