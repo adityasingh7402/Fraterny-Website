@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { advancedImageOptimizer } from '@/services/images/services/advancedOptimizationService';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -96,8 +97,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           setOptimizedSrc(url);
           setCurrentStage(stage.name);
         }
-      } catch (err) {
-        if (err.name === 'AbortError') return;
+      } catch (err: any) { // Type the error as 'any' to safely check for name property
+        if (err && err.name === 'AbortError') return;
         console.error('Error loading optimized image:', err);
         setError(true);
       } finally {
