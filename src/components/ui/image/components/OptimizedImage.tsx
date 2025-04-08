@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { advancedImageOptimizer } from '@/services/images/services/advancedOptimizationService';
+import advancedImageOptimizer from '@/services/images/services/advancedOptimizationService';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { LoadingPlaceholder } from './LoadingPlaceholder';
 import { ErrorPlaceholder } from './ErrorPlaceholder';
