@@ -110,6 +110,27 @@ const DB_CONFIG = {
 
 let db = null;
 
+// URL normalization for Supabase storage
+function normalizeImageUrl(url) {
+  if (!serviceWorkerConfig?.supabaseUrl) {
+    return url;
+  }
+
+  const urlObj = new URL(url);
+  
+  // If it's already a Supabase URL, return as is
+  if (urlObj.origin === serviceWorkerConfig.supabaseUrl) {
+    return url;
+  }
+
+  // If it's a relative path starting with /images, convert to Supabase URL
+  if (url.startsWith('/images/')) {
+    return `${serviceWorkerConfig.supabaseUrl}/storage/v1/object/public${url}`;
+  }
+
+  return url;
+}
+
 // Install event - Enhanced caching of critical assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -150,8 +171,13 @@ self.addEventListener('fetch', (event) => {
   updateAccessTracking(url.toString());
   
   if (isImageRequest(event.request)) {
+    const normalizedUrl = normalizeImageUrl(url.toString());
+    const normalizedRequest = normalizedUrl === url.toString() 
+      ? event.request 
+      : new Request(normalizedUrl, event.request);
+      
     event.respondWith(
-      handleImageRequest(event.request, url)
+      handleImageRequest(normalizedRequest, new URL(normalizedUrl))
     );
   }
 });
@@ -217,12 +243,14 @@ async function handleImageRequest(request, url) {
   PERFORMANCE_METRICS.totalRequests++;
 
   if (cachedResponse) {
-    const cacheEntry = await cache.match(request, { ignoreSearch: true });
-    const cacheData = await cacheEntry.json();
+    // Check if the cached response is still valid
+    const cacheControl = cachedResponse.headers.get('Cache-Control');
+    const maxAge = cacheControl ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1] || '0') : 0;
+    const dateCreated = parseInt(cachedResponse.headers.get('X-Cache-Date') || '0');
     
-    if (Date.now() - cacheData.timestamp < CACHE_CONFIG.CACHE_EXPIRATION) {
+    if (Date.now() - dateCreated < (maxAge * 1000 || CACHE_CONFIG.CACHE_EXPIRATION)) {
       PERFORMANCE_METRICS.cacheHits++;
-      return optimizeResponseForNetwork(cachedResponse);
+      return cachedResponse;
     }
   }
 
@@ -231,11 +259,24 @@ async function handleImageRequest(request, url) {
   try {
     const response = await fetch(request);
     if (response.ok) {
-      const optimizedResponse = await optimizeAndCacheResponse(response, request, cache);
-      return optimizedResponse;
+      const clonedResponse = response.clone();
+      
+      // Add cache date header
+      const headers = new Headers(clonedResponse.headers);
+      headers.set('X-Cache-Date', Date.now().toString());
+      
+      const cachedResponse = new Response(await clonedResponse.blob(), {
+        status: clonedResponse.status,
+        statusText: clonedResponse.statusText,
+        headers: headers
+      });
+      
+      await cache.put(request, cachedResponse.clone());
+      return response;
     }
     throw new Error('Network response was not ok');
   } catch (error) {
+    console.error('Error fetching image:', error);
     if (cachedResponse) {
       return cachedResponse;
     }
