@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../utils/urlCache";
+import { urlCache } from "../cacheService";
 
 /**
  * Helper function to retrieve the global cache version from website settings

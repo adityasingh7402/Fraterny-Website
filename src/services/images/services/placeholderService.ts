@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../utils/urlCache";
+import { urlCache } from "../cacheService";
 import { Json } from "@/integrations/supabase/types";
 
 /**
@@ -36,11 +36,11 @@ export const getImagePlaceholdersByKey = async (
     }
 
     // Safe access to nested properties using type checking
-    let tinyPlaceholder: string | null = null;
-    let colorPlaceholder: string | null = null;
+    let tinyPlaceholder = null;
+    let colorPlaceholder = null;
     
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      const placeholders = (data.metadata as any).placeholders;
+      const placeholders = data.metadata.placeholders;
       if (typeof placeholders === 'object' && placeholders !== null && !Array.isArray(placeholders)) {
         tinyPlaceholder = placeholders.tiny || null;
         colorPlaceholder = placeholders.color || null;

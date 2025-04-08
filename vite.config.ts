@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -28,6 +27,7 @@ export default defineConfig(({ mode }) => ({
     reportCompressedSize: true,
     // Split chunks for better caching
     rollupOptions: {
+      external: ['idb'],
       output: {
         manualChunks: {
           // Group React dependencies together
@@ -36,8 +36,6 @@ export default defineConfig(({ mode }) => ({
           'vendor-ui': ['@tanstack/react-query', '@radix-ui/react-toast', '@radix-ui/react-dialog'],
           // Group charting libraries
           'vendor-charts': ['recharts'],
-          // Include idb in indexedDB chunk
-          'vendor-storage': ['idb']
         }
       }
     },
@@ -53,6 +51,6 @@ export default defineConfig(({ mode }) => ({
   },
   // Optimize dependencies in dev mode
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'idb'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
   },
 }));
