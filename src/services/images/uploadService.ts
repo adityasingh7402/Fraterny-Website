@@ -8,7 +8,7 @@ import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
 import { generateContentHash } from "./utils/hashUtils";
-import { advancedImageOptimizer } from "@/services/images/services/advancedOptimizationService";
+import { advancedImageOptimizer } from "./services/advancedOptimizationService";
 
 /**
  * Upload a new image to storage and create an entry in the website_images table
