@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface ResponsivePictureProps {
@@ -81,19 +80,21 @@ export const ResponsivePicture = ({
       
       {/* Fallback image element */}
       <img
-        src={imgSrc || fallbackSrc}
+        src={imgSrc}
         alt={alt}
         className={className}
         loading={loading}
-        fetchpriority={fetchPriority}
+        fetchPriority={fetchPriority}
         onClick={onClick}
         width={width}
         height={height}
         sizes={sizes}
         style={imgStyle}
         onError={(e) => {
-          // Fallback to the default image if the source fails to load
-          (e.target as HTMLImageElement).src = fallbackSrc;
+          const target = e.target as HTMLImageElement;
+          if (fallbackSrc && target.src !== fallbackSrc) {
+            target.src = fallbackSrc;
+          }
         }}
       />
     </picture>
