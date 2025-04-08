@@ -8,6 +8,8 @@ interface ErrorPlaceholderProps {
   isHero?: boolean;
   onRetry?: () => void;
   errorType?: 'network' | 'format' | 'size' | 'corrupt';
+  aspectRatio?: number;
+  fallbackSrc?: string;
 }
 
 const ERROR_MESSAGES = {
