@@ -95,16 +95,19 @@ export const useResponsiveImage = (
           return;
         }
         
+        // Determine if we should try mobile version
+        const isMobile = isMobileDevice();
+        const baseKey = dynamicKey.replace(/-mobile$/, ''); // Remove any existing -mobile suffix
+        const mobileKey = `${baseKey}-mobile`;
+        const shouldTryMobile = isMobile;
+        
         if (debugCache) {
           console.log(`[useResponsiveImage] Device: ${getDeviceType()}`);
           console.log(`[useResponsiveImage] Original key: ${dynamicKey}`);
-          console.log(`[useResponsiveImage] Should try mobile: ${isMobileDevice()}`);
+          console.log(`[useResponsiveImage] Base key: ${baseKey}`);
+          console.log(`[useResponsiveImage] Mobile key: ${mobileKey}`);
+          console.log(`[useResponsiveImage] Should try mobile: ${shouldTryMobile}`);
         }
-        
-        // Determine if we should try mobile version
-        const isMobile = isMobileDevice();
-        const mobileKey = `${dynamicKey}-mobile`;
-        const shouldTryMobile = isMobile && !dynamicKey.includes('-mobile');
         
         // Adjust size based on bandwidth
         const adjustedSize = isLowBandwidth() && size === 'large' ? 'medium' : size;
@@ -118,35 +121,32 @@ export const useResponsiveImage = (
             // Try mobile key first
             imageUrl = await getImageUrlByKeyAndSize(mobileKey, adjustedSize);
             if (imageUrl === '/placeholder.svg') {
+              if (debugCache) console.log(`[useResponsiveImage] Mobile image not found, falling back to desktop`);
               // Fall back to desktop key
-              imageUrl = await getImageUrlByKeyAndSize(dynamicKey, adjustedSize);
+              imageUrl = await getImageUrlByKeyAndSize(baseKey, adjustedSize);
               fallbackToDesktop = true;
+            } else if (debugCache) {
+              console.log(`[useResponsiveImage] Using mobile image: ${imageUrl}`);
             }
           } else {
-            // Use provided key (could be mobile or desktop)
-            imageUrl = await getImageUrlByKeyAndSize(dynamicKey, adjustedSize);
-            if (imageUrl === '/placeholder.svg' && dynamicKey.includes('-mobile')) {
-              // If mobile key fails, try desktop version
-              const desktopKey = dynamicKey.replace('-mobile', '');
-              imageUrl = await getImageUrlByKeyAndSize(desktopKey, adjustedSize);
-              fallbackToDesktop = true;
-            }
+            // Use desktop key
+            imageUrl = await getImageUrlByKeyAndSize(baseKey, adjustedSize);
+            if (debugCache) console.log(`[useResponsiveImage] Using desktop image: ${imageUrl}`);
           }
         } else {
           // Similar logic for non-sized images
           if (shouldTryMobile) {
             imageUrl = await getImageUrlByKey(mobileKey);
             if (imageUrl === '/placeholder.svg') {
-              imageUrl = await getImageUrlByKey(dynamicKey);
+              if (debugCache) console.log(`[useResponsiveImage] Mobile image not found, falling back to desktop`);
+              imageUrl = await getImageUrlByKey(baseKey);
               fallbackToDesktop = true;
+            } else if (debugCache) {
+              console.log(`[useResponsiveImage] Using mobile image: ${imageUrl}`);
             }
           } else {
-            imageUrl = await getImageUrlByKey(dynamicKey);
-            if (imageUrl === '/placeholder.svg' && dynamicKey.includes('-mobile')) {
-              const desktopKey = dynamicKey.replace('-mobile', '');
-              imageUrl = await getImageUrlByKey(desktopKey);
-              fallbackToDesktop = true;
-            }
+            imageUrl = await getImageUrlByKey(baseKey);
+            if (debugCache) console.log(`[useResponsiveImage] Using desktop image: ${imageUrl}`);
           }
         }
         
