@@ -13,46 +13,57 @@ const CACHE_CONFIG = {
     '/images/loading.gif',
     '/images/hero.jpg',
     '/images/logo.png'
-  ]
+  ],
+  INITIALIZATION_TIMEOUT: 5000 // 5 second timeout for initialization
 };
 
 // Add service worker config storage
 let serviceWorkerConfig = null;
 
-// Add the preloadCriticalImages function
-async function preloadCriticalImages(cache) {
-  if (!serviceWorkerConfig?.supabaseUrl) {
-    console.warn('Service worker not initialized with Supabase URL');
-    return;
-  }
+// Add initialization promise with timeout
+let initializationPromise = new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => {
+    console.warn('Service worker initialization timed out, proceeding with default config');
+    resolve(null);
+  }, CACHE_CONFIG.INITIALIZATION_TIMEOUT);
 
-  try {
-    const criticalAssets = CACHE_CONFIG.CRITICAL_ASSETS.map(path => {
-      // If the path is already a full URL, use it as is
-      if (path.startsWith('http')) return path;
-      // Otherwise, construct the Supabase URL
-      return `${serviceWorkerConfig.supabaseUrl}/storage/v1/object/public${path}`;
-    });
+  // Single message event listener for all operations
+  self.addEventListener('message', (event) => {
+    if (!event.data?.type) return;
 
-    return Promise.all(
-      criticalAssets.map(async (url) => {
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
-            const responseClone = response.clone();
-            await cache.put(url, responseClone);
-            return;
-          }
-          console.warn(`Failed to fetch: ${url}`);
-        } catch (error) {
-          console.error(`Failed to preload: ${url}`, error);
-        }
-      })
-    );
-  } catch (error) {
-    console.error('Error in preloadCriticalImages:', error);
-  }
-}
+    switch (event.data.type) {
+      case 'INITIALIZE':
+        clearTimeout(timeout);
+        serviceWorkerConfig = event.data.config;
+        console.log('Service worker initialized with config:', serviceWorkerConfig);
+        resolve(serviceWorkerConfig);
+        break;
+
+      case 'GET_CACHE_STATUS':
+        event.ports[0].postMessage({
+          size: currentCacheSize,
+          itemCount: cacheSizeMap.size,
+          lastUpdated: Date.now(),
+          metrics: PERFORMANCE_METRICS
+        });
+        break;
+
+      case 'CLEAR_CACHE':
+        clearCache(event.data.cacheType);
+        break;
+
+      case 'GET_PERFORMANCE_METRICS':
+        event.ports[0].postMessage(PERFORMANCE_METRICS);
+        break;
+
+      case 'INVALIDATE_CACHE':
+        caches.delete(CACHE_CONFIG.IMAGE_CACHE).then(() => {
+          caches.open(CACHE_CONFIG.IMAGE_CACHE);
+        });
+        break;
+    }
+  });
+});
 
 // Performance Monitoring
 const PERFORMANCE_METRICS = {
@@ -134,11 +145,16 @@ function normalizeImageUrl(url) {
 // Install event - Enhanced caching of critical assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    Promise.all([
-      caches.open(CACHE_CONFIG.IMAGE_CACHE),
-      caches.open(CACHE_CONFIG.PLACEHOLDER_CACHE)
-    ]).then(([imageCache, placeholderCache]) => {
-      return Promise.all([
+    (async () => {
+      // Wait for initialization first
+      await initializationPromise;
+      
+      const [imageCache, placeholderCache] = await Promise.all([
+        caches.open(CACHE_CONFIG.IMAGE_CACHE),
+        caches.open(CACHE_CONFIG.PLACEHOLDER_CACHE)
+      ]);
+
+      await Promise.all([
         ...CACHE_CONFIG.CRITICAL_ASSETS.map(url => 
           fetch(url).then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
@@ -148,7 +164,7 @@ self.addEventListener('install', (event) => {
         preloadCriticalImages(imageCache),
         initializeIndexedDB()
       ]);
-    })
+    })()
   );
 });
 
@@ -224,14 +240,6 @@ self.addEventListener('message', (event) => {
     caches.delete(CACHE_CONFIG.IMAGE_CACHE).then(() => {
       caches.open(CACHE_CONFIG.IMAGE_CACHE);
     });
-  }
-});
-
-// Add initialization message handler
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'INITIALIZE') {
-    serviceWorkerConfig = event.data.config;
-    console.log('Service worker initialized with config:', serviceWorkerConfig);
   }
 });
 
@@ -631,5 +639,41 @@ async function getPlaceholderResponse(request) {
   } catch (error) {
     console.error('Placeholder generation failed:', error);
     return new Response('', { status: 404 });
+  }
+}
+
+// Update preloadCriticalImages to work with or without config
+async function preloadCriticalImages(cache) {
+  const config = await initializationPromise;
+  
+  try {
+    const criticalAssets = CACHE_CONFIG.CRITICAL_ASSETS.map(path => {
+      // If the path is already a full URL, use it as is
+      if (path.startsWith('http')) return path;
+      // If we have Supabase config, use it
+      if (config?.supabaseUrl) {
+        return `${config.supabaseUrl}/storage/v1/object/public${path}`;
+      }
+      // Otherwise use the path as is
+      return path;
+    });
+
+    return Promise.all(
+      criticalAssets.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            const responseClone = response.clone();
+            await cache.put(url, responseClone);
+            return;
+          }
+          console.warn(`Failed to fetch: ${url}`);
+        } catch (error) {
+          console.error(`Failed to preload: ${url}`, error);
+        }
+      })
+    );
+  } catch (error) {
+    console.error('Error in preloadCriticalImages:', error);
   }
 } 
