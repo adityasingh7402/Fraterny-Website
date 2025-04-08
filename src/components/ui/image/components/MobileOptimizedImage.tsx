@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { BasicImage } from './BasicImage';
@@ -15,6 +14,7 @@ interface MobileOptimizedImageProps {
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   aspectRatio?: number;
   preserveCropDimensions?: boolean;
+  style?: React.CSSProperties;
 }
 
 /**
