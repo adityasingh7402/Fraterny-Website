@@ -1,4 +1,3 @@
-
 import { 
   ChartContainer,
   ChartTooltip,
@@ -75,9 +74,10 @@ export function DistributionChart({ data, title }: DistributionChartProps) {
                 <ChartTooltip 
                   content={
                     <ChartTooltipContent 
-                      formatter={(value: number) => {
-                        const percentage = ((value / total) * 100).toFixed(1);
-                        return `${value} (${percentage}%)`;
+                      formatter={(value: any) => {
+                        const numValue = typeof value === 'number' ? value : Number(value);
+                        const percentage = ((numValue / total) * 100).toFixed(1);
+                        return `${numValue} (${percentage}%)`;
                       }}
                     />
                   }
