@@ -230,9 +230,6 @@ class EnhancedImageCache {
 // Export singleton instance
 export const imageCache = new EnhancedImageCache();
 
-// Export urlCache to fix circular dependency
-export { urlCache };
-
 // Initialize cache
 imageCache.initialize().catch(console.error);
 
