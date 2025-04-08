@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../utils/urlCache";
 import { generateContentHash } from "../utils/hashUtils";
+import { CACHE_CONFIG } from '../constants';
 
 interface OptimizedImage {
   path: string;
@@ -15,18 +16,95 @@ interface OptimizationOptions {
   quality?: number;
   formats?: ('avif' | 'webp' | 'jpeg')[];
   preserveAspectRatio?: boolean;
+  stage?: 'tiny' | 'low' | 'medium' | 'full';
+  signal?: AbortSignal;
+}
+
+interface BrowserCapabilities {
+  webp: boolean;
+  avif: boolean;
+  highDensity: boolean;
 }
 
 /**
  * Advanced image optimization service with multiple format support
  */
 export class AdvancedImageOptimizer {
+  private static instance: AdvancedImageOptimizer;
+  private browserCapabilities: BrowserCapabilities | null = null;
+  private readonly CACHE_KEY_PREFIX = 'optimized_image_';
   private static readonly DEFAULT_OPTIONS: OptimizationOptions = {
     maxWidth: 1920,
     quality: 80,
-    formats: ['avif', 'webp', 'jpeg'],
     preserveAspectRatio: true
   };
+  private readonly MAX_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
+  private readonly MAX_ITEMS = 100;
+  private memoryPressureListener: (() => void) | null = null;
+
+  private constructor() {
+    this.detectBrowserCapabilities();
+    this.setupMemoryPressureHandling();
+  }
+
+  static getInstance(): AdvancedImageOptimizer {
+    if (!AdvancedImageOptimizer.instance) {
+      AdvancedImageOptimizer.instance = new AdvancedImageOptimizer();
+    }
+    return AdvancedImageOptimizer.instance;
+  }
+
+  private detectBrowserCapabilities(): void {
+    if (typeof window === 'undefined') return;
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    if (!context) {
+      this.browserCapabilities = {
+        webp: false,
+        avif: false,
+        highDensity: window.devicePixelRatio > 1
+      };
+      return;
+    }
+
+    // Type assertion to include toDataURL method
+    const typedContext = context as CanvasRenderingContext2D & { toDataURL(type: string): string };
+    
+    this.browserCapabilities = {
+      webp: typedContext.toDataURL('image/webp').startsWith('data:image/webp'),
+      avif: false, // AVIF detection is more complex
+      highDensity: window.devicePixelRatio > 1
+    };
+  }
+
+  private getOptimizedFormat(url: string): string {
+    if (!this.browserCapabilities) return 'jpg';
+
+    const extension = url.split('.').pop()?.toLowerCase();
+    
+    if (this.browserCapabilities.avif && extension !== 'gif') {
+      return 'avif';
+    }
+    
+    if (this.browserCapabilities.webp && extension !== 'gif') {
+      return 'webp';
+    }
+    
+    return extension || 'jpg';
+  }
+
+  private generateCacheKey(url: string, options: OptimizationOptions): string {
+    const params = new URLSearchParams();
+    
+    if (options.maxWidth) params.append('w', options.maxWidth.toString());
+    if (options.quality) params.append('q', options.quality.toString());
+    if (options.preserveAspectRatio) params.append('ar', '1');
+    if (options.stage) params.append('s', options.stage);
+    
+    return `${this.CACHE_KEY_PREFIX}${url}_${params.toString()}`;
+  }
 
   /**
    * Optimize an image with multiple formats and sizes
@@ -180,58 +258,139 @@ export class AdvancedImageOptimizer {
     }
   }
 
+  private getCacheSize(): number {
+    return Object.keys(sessionStorage)
+      .filter(key => key.startsWith(this.CACHE_KEY_PREFIX))
+      .reduce((total, key) => {
+        const item = sessionStorage.getItem(key);
+        return total + (item ? item.length * 2 : 0); // Approximate size in bytes
+      }, 0);
+  }
+
+  private evictOldestItems(): void {
+    const items = Object.keys(sessionStorage)
+      .filter(key => key.startsWith(this.CACHE_KEY_PREFIX))
+      .map(key => ({
+        key,
+        timestamp: JSON.parse(sessionStorage.getItem(key) || '{}').timestamp || 0
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
+
+    while (items.length > this.MAX_ITEMS || this.getCacheSize() > this.MAX_CACHE_SIZE) {
+      const item = items.shift();
+      if (item) {
+        sessionStorage.removeItem(item.key);
+      }
+    }
+  }
+
   /**
    * Get optimized image URL with format detection
    */
-  static async getOptimizedUrl(
-    key: string,
-    options: OptimizationOptions = {}
-  ): Promise<string> {
-    const startTime = performance.now();
-    const cacheKey = `optimized:${key}:${JSON.stringify(options)}`;
-    const cachedUrl = urlCache.get(cacheKey);
-    
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-
+  async getOptimizedUrl(url: string, options: OptimizationOptions = {}): Promise<string> {
     try {
-      // Get image record from Supabase
-      const { data, error } = await supabase
-        .from('website_images')
-        .select('storage_path, metadata')
-        .eq('key', key)
-        .maybeSingle();
-
-      if (error || !data) {
-        throw new Error('Image not found');
+      const mergedOptions = { ...AdvancedImageOptimizer.DEFAULT_OPTIONS, ...options };
+      const cacheKey = this.generateCacheKey(url, mergedOptions);
+      const cachedUrl = sessionStorage.getItem(cacheKey);
+      
+      if (cachedUrl) {
+        const { timestamp, url: cachedImageUrl } = JSON.parse(cachedUrl);
+        if (Date.now() - timestamp < CACHE_CONFIG.URL_TTL) {
+          return cachedImageUrl;
+        }
       }
 
-      // Get the best format for current browser
-      const bestFormat = this.getBestFormat();
-      
-      // Construct URL with format parameter
-      const { data: urlData } = supabase.storage
-        .from('website-images')
-        .getPublicUrl(data.storage_path);
+      const format = this.getOptimizedFormat(url);
+      const optimizedUrl = await this.optimizeImage(url, mergedOptions, format);
 
-      if (!urlData || !urlData.publicUrl) {
-        throw new Error('Could not get public URL');
+      // Check cache size before adding new item
+      if (this.getCacheSize() + (optimizedUrl.length * 2) > this.MAX_CACHE_SIZE) {
+        this.evictOldestItems();
       }
 
-      // Use the passed options for optimization
-      const optimizedUrl = `${urlData.publicUrl}?format=${bestFormat}&width=${options.maxWidth}&quality=${options.quality}`;
-      
-      // Cache the URL
-      urlCache.set(cacheKey, optimizedUrl);
-      
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        timestamp: Date.now(),
+        url: optimizedUrl
+      }));
+
       return optimizedUrl;
     } catch (error) {
-      console.error('Error getting optimized URL:', error);
-      return '/placeholder.svg';
-    } finally {
-      const duration = performance.now() - startTime;
-      console.log(`Image optimization took ${duration}ms`);
+      console.error('Error optimizing image:', error);
+      throw error;
     }
   }
-} 
+
+  private async optimizeImage(
+    url: string,
+    options: OptimizationOptions,
+    format: string
+  ): Promise<string> {
+    // Check for abort signal
+    if (options.signal?.aborted) {
+      throw new Error('Optimization aborted');
+    }
+
+    // Create a new URL with optimization parameters
+    const optimizedUrl = new URL(url);
+    
+    // Add optimization parameters
+    if (options.maxWidth) {
+      optimizedUrl.searchParams.append('width', options.maxWidth.toString());
+    }
+    
+    if (options.quality) {
+      optimizedUrl.searchParams.append('quality', options.quality.toString());
+    }
+    
+    if (options.preserveAspectRatio) {
+      optimizedUrl.searchParams.append('ar', '1');
+    }
+    
+    optimizedUrl.searchParams.append('format', format);
+    
+    if (options.stage) {
+      optimizedUrl.searchParams.append('stage', options.stage);
+    }
+
+    // Add device pixel ratio for high-density displays
+    if (this.browserCapabilities?.highDensity) {
+      optimizedUrl.searchParams.append('dpr', window.devicePixelRatio.toString());
+    }
+
+    return optimizedUrl.toString();
+  }
+
+  private setupMemoryPressureHandling(): void {
+    if (typeof window !== 'undefined' && 'performance' in window) {
+      this.memoryPressureListener = () => {
+        const memory = (performance as any).memory;
+        if (memory && memory.usedJSHeapSize > memory.jsHeapSizeLimit * 0.8) {
+          this.clearCache();
+        }
+      };
+      
+      window.addEventListener('memory-pressure', this.memoryPressureListener);
+    }
+  }
+
+  private cleanupMemoryPressureHandling(): void {
+    if (this.memoryPressureListener) {
+      window.removeEventListener('memory-pressure', this.memoryPressureListener);
+      this.memoryPressureListener = null;
+    }
+  }
+
+  clearCache(): void {
+    Object.keys(sessionStorage)
+      .filter(key => key.startsWith(this.CACHE_KEY_PREFIX))
+      .forEach(key => sessionStorage.removeItem(key));
+  }
+
+  // Add cleanup in destructor
+  destroy(): void {
+    this.cleanupMemoryPressureHandling();
+    this.clearCache();
+  }
+}
+
+export const advancedImageOptimizer = AdvancedImageOptimizer.getInstance(); 
