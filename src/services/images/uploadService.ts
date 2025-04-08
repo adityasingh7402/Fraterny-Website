@@ -3,7 +3,7 @@ import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
 import { invalidateImageCache } from "./fetchService";
 import { getImageDimensions } from "./utils/dimensions";
-import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderService";
+import { generateTinyPlaceholder, generateColorPlaceholder } from "./utils/placeholderGenerator";
 import { sanitizeFilename } from "./utils/fileUtils";
 import { removeExistingImage, cleanupUploadedFiles } from "./utils/cleanupUtils";
 import { createImageRecord } from "./utils/databaseUtils";
