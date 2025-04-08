@@ -15,6 +15,7 @@ interface BasicImageProps {
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   aspectRatio?: number;
   preserveCropDimensions?: boolean;
+  style?: React.CSSProperties;
 }
 
 /**
