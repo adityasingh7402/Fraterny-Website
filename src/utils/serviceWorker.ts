@@ -1,3 +1,4 @@
+
 // Service Worker Registration Utility
 // Handles registration, updates, and development mode bypass
 
@@ -21,7 +22,8 @@ const SW_CONFIG = {
   updateInterval: 24 * 60 * 60 * 1000, // 24 hours
   retryCount: 3,
   retryDelay: 1000, // 1 second
-  supabaseUrl: "https://eukenximajiuhrtljnpw.supabase.co"
+  supabaseUrl: "https://eukenximajiuhrtljnpw.supabase.co",
+  initializationTimeout: 3000 // 3 seconds - reduced from 5 seconds
 };
 
 // Track registration state
@@ -48,9 +50,11 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
         scope: SW_CONFIG.scope
       });
 
+      console.log('Service worker registered successfully');
+
       // Initialize the service worker with Supabase config
       if (registration.active) {
-        registration.active.postMessage({
+        const initMessage = {
           type: 'INITIALIZE',
           config: {
             supabaseUrl: SW_CONFIG.supabaseUrl,
@@ -59,7 +63,12 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
               supportedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
             }
           }
-        });
+        };
+        
+        console.log('Sending initialization message to service worker:', initMessage);
+        registration.active.postMessage(initMessage);
+      } else {
+        console.warn('Service worker registered but not active yet');
       }
 
       // Handle updates

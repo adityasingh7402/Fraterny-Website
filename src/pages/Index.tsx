@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
+import ServiceWorkerInitializer from '../components/ServiceWorkerInitializer';
 import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
@@ -60,6 +61,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Service worker initializer (doesn't render anything visually) */}
+      <ServiceWorkerInitializer />
+      
       <Navigation />
       <Hero />
       
