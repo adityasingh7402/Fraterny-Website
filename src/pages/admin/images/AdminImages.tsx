@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from '@/services/images';
@@ -21,6 +20,8 @@ import { UploadModal } from './components/upload';
 import ImageContainer from './components/ImageContainer';
 import { useImageManagement } from './hooks/useImageManagement';
 
+const STORAGE_BUCKET_NAME = 'website-images';
+
 const AdminImages = () => {
   const [selectedTab, setSelectedTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,7 +29,6 @@ const AdminImages = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const queryClient = useQueryClient();
   
-  // Use the custom hook for managing images
   const {
     images,
     totalCount,
@@ -50,12 +50,10 @@ const AdminImages = () => {
     clearFilters
   } = useImageManagement();
 
-  // Sync the hook's search term with local state
   React.useEffect(() => {
     setHookSearchTerm(searchTerm);
   }, [searchTerm, setHookSearchTerm]);
 
-  // Handle file upload
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -64,33 +62,39 @@ const AdminImages = () => {
     setUploadProgress(0);
     
     try {
-      // Process each file
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const fileName = `${Date.now()}-${file.name}`;
         
-        // Verify that the bucket exists first
-        const { data: bucketData, error: bucketError } = await supabase.storage
-          .getBucket('website-images');
-          
-        if (bucketError) {
-          console.error("Storage bucket error:", bucketError);
-          // If bucket doesn't exist, try to create it
-          if (bucketError.message.includes('not found')) {
-            const { data: createData, error: createError } = await supabase.storage
-              .createBucket('website-images', { public: true });
-              
-            if (createError) {
-              throw new Error(`Failed to create storage bucket: ${createError.message}`);
+        try {
+          const { data: bucketData, error: bucketError } = await supabase.storage
+            .getBucket(STORAGE_BUCKET_NAME);
+            
+          if (bucketError) {
+            if (bucketError.message.includes('not found')) {
+              console.log(`Bucket ${STORAGE_BUCKET_NAME} not found, attempting to create it`);
+              const { data: createData, error: createError } = await supabase.storage
+                .createBucket(STORAGE_BUCKET_NAME, { public: true });
+                
+              if (createError) {
+                if (createError.message.includes('policy') || createError.message.includes('permission')) {
+                  console.log("Permission error when creating bucket. Proceeding with upload anyway.");
+                } else {
+                  throw new Error(`Failed to create storage bucket: ${createError.message}`);
+                }
+              }
+            } else if (bucketError.message.includes('policy') || bucketError.message.includes('permission')) {
+              console.log("Permission error when checking bucket. Proceeding with upload anyway.");
+            } else {
+              throw bucketError;
             }
-          } else {
-            throw bucketError;
           }
+        } catch (bucketCheckError) {
+          console.error("Error checking/creating bucket:", bucketCheckError);
         }
         
-        // Upload to storage
         const { data: storageData, error: storageError } = await supabase.storage
-          .from('website-images')
+          .from(STORAGE_BUCKET_NAME)
           .upload(fileName, file, {
             cacheControl: '3600',
             upsert: false
@@ -101,21 +105,19 @@ const AdminImages = () => {
           throw storageError;
         }
         
-        // Get public URL
         const { data: urlData } = supabase.storage
-          .from('website-images')
+          .from(STORAGE_BUCKET_NAME)
           .getPublicUrl(fileName);
           
-        // Create record in website_images table
         const { data: dbData, error: dbError } = await supabase
           .from('website_images')
           .insert([
             {
-              key: file.name.split('.')[0], // Use filename as key (without extension)
+              key: file.name.split('.')[0],
               description: `Uploaded image: ${file.name}`,
               storage_path: fileName,
               alt_text: file.name,
-              width: null, // Add logic to get dimensions if needed
+              width: null,
               height: null
             }
           ])
@@ -127,11 +129,9 @@ const AdminImages = () => {
           throw dbError;
         }
         
-        // Update progress
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));
       }
       
-      // Refresh the images list
       queryClient.invalidateQueries({ queryKey: ['admin-images'] });
       toast.success("Image(s) uploaded successfully");
     } catch (error) {
@@ -143,12 +143,10 @@ const AdminImages = () => {
     }
   };
 
-  // Delete image mutation
   const deleteMutation = useMutation({
     mutationFn: async (image: WebsiteImage) => {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('website-images')
+        .from(STORAGE_BUCKET_NAME)
         .remove([image.storage_path]);
         
       if (storageError) {
@@ -156,7 +154,6 @@ const AdminImages = () => {
         throw storageError;
       }
       
-      // Delete from database
       const { error: dbError } = await supabase
         .from('website_images')
         .delete()
@@ -179,19 +176,16 @@ const AdminImages = () => {
     }
   });
 
-  // Handle delete image
   const handleDeleteImage = (image: WebsiteImage) => {
     if (confirm(`Are you sure you want to delete ${image.key}?`)) {
       deleteMutation.mutate(image);
     }
   };
 
-  // Open the upload modal
   const openUploadModal = () => {
     setIsUploadModalOpen(true);
   };
 
-  // Render loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -210,7 +204,6 @@ const AdminImages = () => {
     );
   }
 
-  // Render error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -241,7 +234,6 @@ const AdminImages = () => {
     );
   }
 
-  // Render main content
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -326,7 +318,6 @@ const AdminImages = () => {
         </Card>
       </div>
       
-      {/* Upload Modal */}
       <UploadModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)} 
