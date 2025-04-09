@@ -1,3 +1,4 @@
+
 // Re-export type definitions
 export * from './types';
 
@@ -44,6 +45,9 @@ export {
 // Export cache instances for advanced usage
 export { imageCache } from './cacheService';
 export { urlCache } from './utils/urlCache';
+
+// Export bucket management functions
+export { ensureImageBucketExists, initializeImageStorage } from './utils/checkBucket';
 
 // Export utility functions for broader use
 export * from './utils/cacheUtils';

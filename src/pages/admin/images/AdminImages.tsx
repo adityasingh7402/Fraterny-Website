@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, ImagePlus, Trash2, RefreshCw, Search } from 'lucide-react';
+import { UploadModal } from './components/upload';
+import ImageContainer from './components/ImageContainer';
+import { useImageManagement } from './hooks/useImageManagement';
 
 const AdminImages = () => {
   const [selectedTab, setSelectedTab] = useState("all");
@@ -24,42 +27,33 @@ const AdminImages = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const queryClient = useQueryClient();
+  
+  // Use the custom hook for managing images
+  const {
+    images,
+    totalCount,
+    categories,
+    selectedCategory,
+    setSelectedCategory,
+    searchTerm: hookSearchTerm,
+    setSearchTerm: setHookSearchTerm,
+    page,
+    pageSize,
+    isLoading,
+    error,
+    isUploadModalOpen,
+    setIsUploadModalOpen,
+    openEditModal,
+    openDeleteModal,
+    handlePageChange,
+    handleSearch,
+    clearFilters
+  } = useImageManagement();
 
-  // Fetch images from the database
-  const { data: images, isLoading, error } = useQuery({
-    queryKey: ['admin-images', selectedTab, searchTerm],
-    queryFn: async () => {
-      let query = supabase
-        .from('website_images')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      // Apply category filter if not "all"
-      if (selectedTab !== "all") {
-        query = query.eq('category', selectedTab);
-      }
-      
-      // Apply search term if provided
-      if (searchTerm) {
-        query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Extract unique categories
-  const categories = React.useMemo(() => {
-    if (!images) return [];
-    const categorySet = new Set<string>();
-    images.forEach(img => {
-      if (img.category) categorySet.add(img.category);
-    });
-    return Array.from(categorySet);
-  }, [images]);
+  // Sync the hook's search term with local state
+  React.useEffect(() => {
+    setHookSearchTerm(searchTerm);
+  }, [searchTerm, setHookSearchTerm]);
 
   // Handle file upload
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +69,25 @@ const AdminImages = () => {
         const file = files[i];
         const fileName = `${Date.now()}-${file.name}`;
         
+        // Verify that the bucket exists first
+        const { data: bucketData, error: bucketError } = await supabase.storage
+          .getBucket('website-images');
+          
+        if (bucketError) {
+          console.error("Storage bucket error:", bucketError);
+          // If bucket doesn't exist, try to create it
+          if (bucketError.message.includes('not found')) {
+            const { data: createData, error: createError } = await supabase.storage
+              .createBucket('website-images', { public: true });
+              
+            if (createError) {
+              throw new Error(`Failed to create storage bucket: ${createError.message}`);
+            }
+          } else {
+            throw bucketError;
+          }
+        }
+        
         // Upload to storage
         const { data: storageData, error: storageError } = await supabase.storage
           .from('website-images')
@@ -83,7 +96,10 @@ const AdminImages = () => {
             upsert: false
           });
           
-        if (storageError) throw storageError;
+        if (storageError) {
+          console.error("Storage upload error:", storageError);
+          throw storageError;
+        }
         
         // Get public URL
         const { data: urlData } = supabase.storage
@@ -106,7 +122,10 @@ const AdminImages = () => {
           .select()
           .single();
           
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error("Database insert error:", dbError);
+          throw dbError;
+        }
         
         // Update progress
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));
@@ -117,7 +136,7 @@ const AdminImages = () => {
       toast.success("Image(s) uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload image");
+      toast.error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -132,7 +151,10 @@ const AdminImages = () => {
         .from('website-images')
         .remove([image.storage_path]);
         
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error("Storage deletion error:", storageError);
+        throw storageError;
+      }
       
       // Delete from database
       const { error: dbError } = await supabase
@@ -140,7 +162,10 @@ const AdminImages = () => {
         .delete()
         .eq('id', image.id);
         
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database deletion error:", dbError);
+        throw dbError;
+      }
       
       return image.id;
     },
@@ -150,7 +175,7 @@ const AdminImages = () => {
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("Failed to delete image");
+      toast.error(`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 
@@ -159,6 +184,11 @@ const AdminImages = () => {
     if (confirm(`Are you sure you want to delete ${image.key}?`)) {
       deleteMutation.mutate(image);
     }
+  };
+
+  // Open the upload modal
+  const openUploadModal = () => {
+    setIsUploadModalOpen(true);
   };
 
   // Render loading state
@@ -256,6 +286,12 @@ const AdminImages = () => {
                   )}
                 </Button>
               </div>
+              <Button 
+                variant="outline" 
+                onClick={openUploadModal}
+              >
+                Advanced Upload
+              </Button>
             </div>
           </CardHeader>
           
@@ -271,73 +307,30 @@ const AdminImages = () => {
               </TabsList>
               
               <TabsContent value={selectedTab} className="mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {images && images.length > 0 ? (
-                    images.map(image => (
-                      <Card key={image.id} className="overflow-hidden">
-                        <div className="aspect-video relative bg-gray-100">
-                          {/* Get image from Supabase storage */}
-                          <img
-                            src={supabase.storage.from('website-images').getPublicUrl(image.storage_path).data.publicUrl}
-                            alt={image.alt_text}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // Fallback for broken images
-                              (e.target as HTMLImageElement).src = '/placeholder.svg';
-                            }}
-                          />
-                        </div>
-                        <CardHeader className="p-3">
-                          <CardTitle className="text-sm font-medium">{image.key}</CardTitle>
-                          <CardDescription className="text-xs line-clamp-2">
-                            {image.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardFooter className="p-3 pt-0 flex justify-between">
-                          <div className="text-xs text-gray-500">
-                            {new Date(image.created_at).toLocaleDateString()}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600"
-                            onClick={() => handleDeleteImage(image)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center p-12 text-center">
-                      <ImagePlus className="h-12 w-12 text-gray-300 mb-2" />
-                      <h3 className="text-lg font-medium mb-1">No images found</h3>
-                      <p className="text-gray-500 mb-4">
-                        {searchTerm ? "Try adjusting your search" : "Upload some images to get started"}
-                      </p>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          id="image-upload-empty"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          accept="image/*"
-                          multiple
-                          onChange={handleFileUpload}
-                          disabled={isUploading}
-                        />
-                        <Button disabled={isUploading}>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Upload Images
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <ImageContainer 
+                  images={images}
+                  selectedCategory={selectedCategory}
+                  searchTerm={searchTerm}
+                  onClearFilter={clearFilters}
+                  onUploadClick={openUploadModal}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteImage}
+                  page={page}
+                  pageSize={pageSize}
+                  totalCount={totalCount}
+                  onPageChange={handlePageChange}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Upload Modal */}
+      <UploadModal 
+        isOpen={isUploadModalOpen} 
+        onClose={() => setIsUploadModalOpen(false)} 
+      />
     </div>
   );
 };
