@@ -16,9 +16,12 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
 
     // First check if this URL is in the URL cache
     const cachedUrl = urlCache.get(`url:${key}`);
-    if (cachedUrl) {
-      console.log(`[getImageUrlByKey] Using cached URL for ${key}:`, cachedUrl);
+    if (cachedUrl && typeof cachedUrl === 'string' && cachedUrl !== 'null') {
+      console.log(`[getImageUrlByKey] Using valid cached URL for ${key}:`, cachedUrl);
       return cachedUrl;
+    } else {
+      // Clear invalid cache entry if it exists
+      urlCache.delete(`url:${key}`);
     }
 
     // Fetch the image record to get the storage path and metadata
@@ -28,13 +31,11 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .eq('key', key)
       .maybeSingle();
 
-    // Log the complete database response
-    console.log(`[getImageUrlByKey] Complete database response:`, {
+    console.log(`[getImageUrlByKey] Database response for ${key}:`, {
       data,
       error,
       hasStoragePath: data?.storage_path ? true : false,
-      storagePath: data?.storage_path,
-      metadata: data?.metadata
+      storagePath: data?.storage_path
     });
 
     if (error) {
@@ -47,66 +48,45 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       return '/placeholder.svg';
     }
 
-    // Get the global cache version from website settings
-    const globalVersion = await getGlobalCacheVersion();
-    console.log(`[getImageUrlByKey] Global cache version for ${key}:`, globalVersion);
-
     // Try to get a public URL first
     const publicUrlResult = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(data.storage_path);
 
-    // Log the complete URL generation attempt
-    console.log(`[getImageUrlByKey] URL generation details:`, {
+    console.log(`[getImageUrlByKey] Public URL generation attempt:`, {
       bucket: STORAGE_BUCKET,
       storagePath: data.storage_path,
-      publicUrlResult,
-      constructedUrl: publicUrlResult.data?.publicUrl,
-      error: publicUrlResult.error
+      result: publicUrlResult
     });
 
-    if (!publicUrlResult.data?.publicUrl) {
-      console.error(`[getImageUrlByKey] Failed to generate public URL:`, publicUrlResult);
-      return '/placeholder.svg';
+    let finalUrl = '';
+
+    if (publicUrlResult.data?.publicUrl) {
+      finalUrl = publicUrlResult.data.publicUrl;
+      console.log(`[getImageUrlByKey] Successfully generated public URL:`, finalUrl);
+    } else {
+      // Fall back to signed URL if public URL is not available
+      console.log(`[getImageUrlByKey] Falling back to signed URL`);
+      const signedUrlResult = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(data.storage_path, 3600);
+
+      if (!signedUrlResult.data?.signedUrl) {
+        console.warn(`[getImageUrlByKey] Failed to generate any URL`);
+        return '/placeholder.svg';
+      }
+
+      finalUrl = signedUrlResult.data.signedUrl;
     }
 
-    let finalUrl = publicUrlResult.data.publicUrl;
-
-    // Log the final URL before returning
-    console.log(`[getImageUrlByKey] Final URL:`, {
-      originalUrl: finalUrl,
-      key,
-      bucket: STORAGE_BUCKET,
-      storagePath: data.storage_path
-    });
-
-    // Extract content hash from metadata if available
-    let contentHash = null;
-    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      contentHash = data.metadata.contentHash || null;
-    }
-    
-    console.log(`[getImageUrlByKey] Content hash for ${key}:`, contentHash);
-    
-    // Build the final URL with both content hash and global version for cache busting
-    if (contentHash) {
-      finalUrl = addHashToUrl(finalUrl, contentHash);
-    }
-    
-    // Add global version as secondary cache parameter if available
-    if (globalVersion) {
-      finalUrl = finalUrl.includes('?') 
-        ? `${finalUrl}&gv=${globalVersion}` 
-        : `${finalUrl}?gv=${globalVersion}`;
+    // Only cache and return valid URLs
+    if (finalUrl && typeof finalUrl === 'string' && finalUrl !== 'null') {
+      const ttl = finalUrl.includes('token=') ? 3000 : 3600;
+      urlCache.set(`url:${key}`, finalUrl, ttl);
+      return finalUrl;
     }
 
-    console.log(`[getImageUrlByKey] Final URL for ${key}:`, finalUrl);
-
-    // Cache the URL for future use (with shorter TTL for signed URLs)
-    const ttl = finalUrl.includes('token=') ? 3000 : 3600; // 50 minutes for signed URLs, 1 hour for public
-    urlCache.set(`url:${key}`, finalUrl, ttl);
-
-    return finalUrl;
+    return '/placeholder.svg';
   } catch (e) {
     console.error(`[getImageUrlByKey] Unexpected error:`, e);
     return '/placeholder.svg';
