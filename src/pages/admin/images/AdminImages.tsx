@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from '@/services/images';
@@ -16,11 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, ImagePlus, Trash2, RefreshCw, Search } from 'lucide-react';
-import { UploadModal } from './components/upload';
-import ImageContainer from './components/ImageContainer';
-import { useImageManagement } from './hooks/useImageManagement';
-
-const STORAGE_BUCKET_NAME = 'website-images';
 
 const AdminImages = () => {
   const [selectedTab, setSelectedTab] = useState("all");
@@ -28,32 +24,44 @@ const AdminImages = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const queryClient = useQueryClient();
-  
-  const {
-    images,
-    totalCount,
-    categories,
-    selectedCategory,
-    setSelectedCategory,
-    searchTerm: hookSearchTerm,
-    setSearchTerm: setHookSearchTerm,
-    page,
-    pageSize,
-    isLoading,
-    error,
-    isUploadModalOpen,
-    setIsUploadModalOpen,
-    openEditModal,
-    openDeleteModal,
-    handlePageChange,
-    handleSearch,
-    clearFilters
-  } = useImageManagement();
 
-  React.useEffect(() => {
-    setHookSearchTerm(searchTerm);
-  }, [searchTerm, setHookSearchTerm]);
+  // Fetch images from the database
+  const { data: images, isLoading, error } = useQuery({
+    queryKey: ['admin-images', selectedTab, searchTerm],
+    queryFn: async () => {
+      let query = supabase
+        .from('website_images')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Apply category filter if not "all"
+      if (selectedTab !== "all") {
+        query = query.eq('category', selectedTab);
+      }
+      
+      // Apply search term if provided
+      if (searchTerm) {
+        query = query.or(`key.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
+  // Extract unique categories
+  const categories = React.useMemo(() => {
+    if (!images) return [];
+    const categorySet = new Set<string>();
+    images.forEach(img => {
+      if (img.category) categorySet.add(img.category);
+    });
+    return Array.from(categorySet);
+  }, [images]);
+
+  // Handle file upload
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -62,107 +70,77 @@ const AdminImages = () => {
     setUploadProgress(0);
     
     try {
+      // Process each file
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const fileName = `${Date.now()}-${file.name}`;
         
-        try {
-          const { data: bucketData, error: bucketError } = await supabase.storage
-            .getBucket(STORAGE_BUCKET_NAME);
-            
-          if (bucketError) {
-            if (bucketError.message.includes('not found')) {
-              console.log(`Bucket ${STORAGE_BUCKET_NAME} not found, attempting to create it`);
-              const { data: createData, error: createError } = await supabase.storage
-                .createBucket(STORAGE_BUCKET_NAME, { public: true });
-                
-              if (createError) {
-                if (createError.message.includes('policy') || createError.message.includes('permission')) {
-                  console.log("Permission error when creating bucket. Proceeding with upload anyway.");
-                } else {
-                  throw new Error(`Failed to create storage bucket: ${createError.message}`);
-                }
-              }
-            } else if (bucketError.message.includes('policy') || bucketError.message.includes('permission')) {
-              console.log("Permission error when checking bucket. Proceeding with upload anyway.");
-            } else {
-              throw bucketError;
-            }
-          }
-        } catch (bucketCheckError) {
-          console.error("Error checking/creating bucket:", bucketCheckError);
-        }
-        
+        // Upload to storage
         const { data: storageData, error: storageError } = await supabase.storage
-          .from(STORAGE_BUCKET_NAME)
+          .from('website-images')
           .upload(fileName, file, {
             cacheControl: '3600',
             upsert: false
           });
           
-        if (storageError) {
-          console.error("Storage upload error:", storageError);
-          throw storageError;
-        }
+        if (storageError) throw storageError;
         
+        // Get public URL
         const { data: urlData } = supabase.storage
-          .from(STORAGE_BUCKET_NAME)
+          .from('website-images')
           .getPublicUrl(fileName);
           
+        // Create record in website_images table
         const { data: dbData, error: dbError } = await supabase
           .from('website_images')
           .insert([
             {
-              key: file.name.split('.')[0],
+              key: file.name.split('.')[0], // Use filename as key (without extension)
               description: `Uploaded image: ${file.name}`,
               storage_path: fileName,
               alt_text: file.name,
-              width: null,
+              width: null, // Add logic to get dimensions if needed
               height: null
             }
           ])
           .select()
           .single();
           
-        if (dbError) {
-          console.error("Database insert error:", dbError);
-          throw dbError;
-        }
+        if (dbError) throw dbError;
         
+        // Update progress
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));
       }
       
+      // Refresh the images list
       queryClient.invalidateQueries({ queryKey: ['admin-images'] });
       toast.success("Image(s) uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error("Failed to upload image");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
     }
   };
 
+  // Delete image mutation
   const deleteMutation = useMutation({
     mutationFn: async (image: WebsiteImage) => {
+      // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from(STORAGE_BUCKET_NAME)
+        .from('website-images')
         .remove([image.storage_path]);
         
-      if (storageError) {
-        console.error("Storage deletion error:", storageError);
-        throw storageError;
-      }
+      if (storageError) throw storageError;
       
+      // Delete from database
       const { error: dbError } = await supabase
         .from('website_images')
         .delete()
         .eq('id', image.id);
         
-      if (dbError) {
-        console.error("Database deletion error:", dbError);
-        throw dbError;
-      }
+      if (dbError) throw dbError;
       
       return image.id;
     },
@@ -172,20 +150,18 @@ const AdminImages = () => {
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error(`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error("Failed to delete image");
     }
   });
 
+  // Handle delete image
   const handleDeleteImage = (image: WebsiteImage) => {
     if (confirm(`Are you sure you want to delete ${image.key}?`)) {
       deleteMutation.mutate(image);
     }
   };
 
-  const openUploadModal = () => {
-    setIsUploadModalOpen(true);
-  };
-
+  // Render loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -204,6 +180,7 @@ const AdminImages = () => {
     );
   }
 
+  // Render error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -234,6 +211,7 @@ const AdminImages = () => {
     );
   }
 
+  // Render main content
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -278,12 +256,6 @@ const AdminImages = () => {
                   )}
                 </Button>
               </div>
-              <Button 
-                variant="outline" 
-                onClick={openUploadModal}
-              >
-                Advanced Upload
-              </Button>
             </div>
           </CardHeader>
           
@@ -299,29 +271,73 @@ const AdminImages = () => {
               </TabsList>
               
               <TabsContent value={selectedTab} className="mt-0">
-                <ImageContainer 
-                  images={images}
-                  selectedCategory={selectedCategory}
-                  searchTerm={searchTerm}
-                  onClearFilter={clearFilters}
-                  onUploadClick={openUploadModal}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteImage}
-                  page={page}
-                  pageSize={pageSize}
-                  totalCount={totalCount}
-                  onPageChange={handlePageChange}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {images && images.length > 0 ? (
+                    images.map(image => (
+                      <Card key={image.id} className="overflow-hidden">
+                        <div className="aspect-video relative bg-gray-100">
+                          {/* Get image from Supabase storage */}
+                          <img
+                            src={supabase.storage.from('website-images').getPublicUrl(image.storage_path).data.publicUrl}
+                            alt={image.alt_text}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback for broken images
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                        </div>
+                        <CardHeader className="p-3">
+                          <CardTitle className="text-sm font-medium">{image.key}</CardTitle>
+                          <CardDescription className="text-xs line-clamp-2">
+                            {image.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardFooter className="p-3 pt-0 flex justify-between">
+                          <div className="text-xs text-gray-500">
+                            {new Date(image.created_at).toLocaleDateString()}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600"
+                            onClick={() => handleDeleteImage(image)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="col-span-full flex flex-col items-center justify-center p-12 text-center">
+                      <ImagePlus className="h-12 w-12 text-gray-300 mb-2" />
+                      <h3 className="text-lg font-medium mb-1">No images found</h3>
+                      <p className="text-gray-500 mb-4">
+                        {searchTerm ? "Try adjusting your search" : "Upload some images to get started"}
+                      </p>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="image-upload-empty"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          accept="image/*"
+                          multiple
+                          onChange={handleFileUpload}
+                          disabled={isUploading}
+                        />
+                        <Button disabled={isUploading}>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Images
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
-      
-      <UploadModal 
-        isOpen={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
-      />
     </div>
   );
 };
