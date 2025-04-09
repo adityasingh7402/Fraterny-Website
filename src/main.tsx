@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { registerServiceWorker } from './utils/serviceWorker';
 import './index.css';
 import App from './App';
 import Index from './pages/Index';
@@ -59,45 +58,9 @@ const router = createBrowserRouter([
   },
 ]);
 
-// Register service worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('Service Worker registered successfully:', registration.scope);
-        
-        // Send initialization config to the service worker
-        if (registration.active) {
-          registration.active.postMessage({
-            type: 'INITIALIZE',
-            config: {
-              // Add any configuration needed by the service worker
-              debug: import.meta.env.DEV,
-              version: '1.0.0'
-            }
-          });
-        }
-      })
-      .catch(error => {
-        console.warn('Service Worker registration failed:', error);
-      });
-  });
-}
-
-// Register service worker with error handling
-registerServiceWorker()
-  .then(() => {
-    console.log('Service worker registered successfully');
-  })
-  .catch((error) => {
-    console.error('Service worker registration failed:', error);
-    // Continue with app initialization even if service worker fails
-  })
-  .finally(() => {
-    // Initialize the app
-    ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-      <React.StrictMode>
-        <RouterProvider router={router} />
-      </React.StrictMode>
-    );
-  });
+// Initialize the app
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+);
