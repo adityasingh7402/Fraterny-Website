@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import ResponsiveImage from './ui/image/ResponsiveImage';
+import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
 
@@ -47,7 +47,7 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
-      {/* Background Image - using local references */}
+      {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage
           src={{
@@ -59,7 +59,6 @@ const Hero = () => {
           loading="eager"
           fetchPriority="high"
           dynamicKey="hero-background"
-          size="large"
         />
       </div>
       
