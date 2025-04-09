@@ -1,6 +1,6 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createImageProps } from '../utils';
+import { getImageUrlByKey } from '@/services/images';
 
 interface BasicImageProps {
   src: string;
@@ -17,6 +17,7 @@ interface BasicImageProps {
   aspectRatio?: number;
   preserveCropDimensions?: boolean;
   style?: React.CSSProperties;
+  dynamicKey?: string;
 }
 
 /**
@@ -37,12 +38,50 @@ export const BasicImage = ({
   objectFit = 'contain',
   aspectRatio,
   preserveCropDimensions = true,
-  style: customStyle
+  style: customStyle,
+  dynamicKey
 }: BasicImageProps) => {
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    // Reset error state when src changes
+    setIsError(false);
+    setCurrentSrc(src);
+  }, [src]);
+
+  useEffect(() => {
+    // If using a dynamic key, fetch the signed URL
+    if (dynamicKey && !isError) {
+      const fetchSignedUrl = async () => {
+        try {
+          const signedUrl = await getImageUrlByKey(dynamicKey);
+          if (signedUrl && signedUrl !== '/placeholder.svg') {
+            setCurrentSrc(signedUrl);
+          }
+        } catch (error) {
+          console.error(`Error fetching signed URL for ${dynamicKey}:`, error);
+          setIsError(true);
+        }
+      };
+
+      fetchSignedUrl();
+
+      // Refresh the signed URL periodically (every 45 minutes)
+      const refreshInterval = setInterval(fetchSignedUrl, 45 * 60 * 1000);
+      return () => clearInterval(refreshInterval);
+    }
+  }, [dynamicKey, isError]);
+
   const imgProps = createImageProps(
-    src, alt, className, loading, sizes,
-    width, height, 
-    fallbackSrc, 
+    currentSrc,
+    alt,
+    className,
+    loading,
+    sizes,
+    width,
+    height,
+    fallbackSrc,
     fetchPriority
   );
   
@@ -76,5 +115,11 @@ export const BasicImage = ({
     }
   }
   
-  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
+  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} onError={(e) => {
+    console.warn(`Failed to load image: ${e.currentTarget.src}`);
+    setIsError(true);
+    if (e.currentTarget.src !== fallbackSrc) {
+      e.currentTarget.src = fallbackSrc;
+    }
+  }} />;
 };
