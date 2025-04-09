@@ -11,15 +11,15 @@ const STORAGE_BUCKET = 'website-images';  // Updated to match exact bucket name
  * Get the image URL by key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  // First check if this URL is in the URL cache
-  const cachedUrl = urlCache.get(`url:${key}`);
-  if (cachedUrl) {
-    console.log(`[getImageUrlByKey] Using cached URL for ${key}:`, cachedUrl);
-    return cachedUrl;
-  }
-
   try {
-    console.log(`[getImageUrlByKey] Fetching image with normalized key: "${key}"`);
+    console.log(`[getImageUrlByKey] Starting URL generation for key: "${key}"`);
+
+    // First check if this URL is in the URL cache
+    const cachedUrl = urlCache.get(`url:${key}`);
+    if (cachedUrl) {
+      console.log(`[getImageUrlByKey] Using cached URL for ${key}:`, cachedUrl);
+      return cachedUrl;
+    }
 
     // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
@@ -28,64 +28,57 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .eq('key', key)
       .maybeSingle();
 
-    console.log(`[getImageUrlByKey] Raw database response:`, { data, error });
+    // Log the complete database response
+    console.log(`[getImageUrlByKey] Complete database response:`, {
+      data,
+      error,
+      hasStoragePath: data?.storage_path ? true : false,
+      storagePath: data?.storage_path,
+      metadata: data?.metadata
+    });
 
     if (error) {
-      console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
+      console.error(`[getImageUrlByKey] Database error:`, error);
       return '/placeholder.svg';
     }
 
     if (!data || !data.storage_path) {
-      console.warn(`[getImageUrlByKey] No image or storage path found for key ${key}`);
+      console.warn(`[getImageUrlByKey] Missing data or storage_path`);
       return '/placeholder.svg';
     }
-
-    console.log(`[getImageUrlByKey] Found storage path for ${key}:`, data.storage_path);
 
     // Get the global cache version from website settings
     const globalVersion = await getGlobalCacheVersion();
     console.log(`[getImageUrlByKey] Global cache version for ${key}:`, globalVersion);
 
     // Try to get a public URL first
-    const { data: publicUrlData, error: publicUrlError } = supabase.storage
+    const publicUrlResult = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(data.storage_path);
 
-    console.log(`[getImageUrlByKey] Public URL attempt:`, { 
-      publicUrlData, 
-      publicUrlError,
+    // Log the complete URL generation attempt
+    console.log(`[getImageUrlByKey] URL generation details:`, {
       bucket: STORAGE_BUCKET,
-      path: data.storage_path 
+      storagePath: data.storage_path,
+      publicUrlResult,
+      constructedUrl: publicUrlResult.data?.publicUrl,
+      error: publicUrlResult.error
     });
 
-    let finalUrl = '';
-
-    // If public URL is available, use it
-    if (publicUrlData?.publicUrl) {
-      finalUrl = publicUrlData.publicUrl;
-      console.log(`[getImageUrlByKey] Using public URL for ${key}:`, finalUrl);
-    } else {
-      // Fall back to signed URL if public URL is not available
-      console.log(`[getImageUrlByKey] Public URL not available for ${key}, trying signed URL`);
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(data.storage_path, 3600); // 1 hour expiry
-
-      console.log(`[getImageUrlByKey] Signed URL attempt:`, { 
-        signedUrlData, 
-        signedUrlError,
-        bucket: STORAGE_BUCKET,
-        path: data.storage_path 
-      });
-
-      if (!signedUrlData?.signedUrl) {
-        console.warn(`[getImageUrlByKey] Failed to get URL for storage path: ${data.storage_path}`);
-        return '/placeholder.svg';
-      }
-
-      finalUrl = signedUrlData.signedUrl;
-      console.log(`[getImageUrlByKey] Using signed URL for ${key}:`, finalUrl);
+    if (!publicUrlResult.data?.publicUrl) {
+      console.error(`[getImageUrlByKey] Failed to generate public URL:`, publicUrlResult);
+      return '/placeholder.svg';
     }
+
+    let finalUrl = publicUrlResult.data.publicUrl;
+
+    // Log the final URL before returning
+    console.log(`[getImageUrlByKey] Final URL:`, {
+      originalUrl: finalUrl,
+      key,
+      bucket: STORAGE_BUCKET,
+      storagePath: data.storage_path
+    });
 
     // Extract content hash from metadata if available
     let contentHash = null;
@@ -115,7 +108,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
 
     return finalUrl;
   } catch (e) {
-    console.error(`[getImageUrlByKey] Unexpected error for key ${key}:`, e);
+    console.error(`[getImageUrlByKey] Unexpected error:`, e);
     return '/placeholder.svg';
   }
 };
