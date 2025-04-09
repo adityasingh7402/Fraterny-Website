@@ -5,7 +5,7 @@ import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
 
 // Constants
-const STORAGE_BUCKET = 'Website Images';  // Updated to match exact bucket name
+const STORAGE_BUCKET = 'website-images';  // Updated to match exact bucket name
 
 /**
  * Get the image URL by key
@@ -28,6 +28,8 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .eq('key', key)
       .maybeSingle();
 
+    console.log(`[getImageUrlByKey] Raw database response:`, { data, error });
+
     if (error) {
       console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
       return '/placeholder.svg';
@@ -45,11 +47,16 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     console.log(`[getImageUrlByKey] Global cache version for ${key}:`, globalVersion);
 
     // Try to get a public URL first
-    const { data: publicUrlData } = supabase.storage
-      .from(STORAGE_BUCKET)  // Using constant
+    const { data: publicUrlData, error: publicUrlError } = supabase.storage
+      .from(STORAGE_BUCKET)
       .getPublicUrl(data.storage_path);
 
-    console.log(`[getImageUrlByKey] Public URL data for ${key}:`, publicUrlData);
+    console.log(`[getImageUrlByKey] Public URL attempt:`, { 
+      publicUrlData, 
+      publicUrlError,
+      bucket: STORAGE_BUCKET,
+      path: data.storage_path 
+    });
 
     let finalUrl = '';
 
@@ -60,11 +67,16 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     } else {
       // Fall back to signed URL if public URL is not available
       console.log(`[getImageUrlByKey] Public URL not available for ${key}, trying signed URL`);
-      const { data: signedUrlData } = await supabase.storage
-        .from(STORAGE_BUCKET)  // Using constant
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from(STORAGE_BUCKET)
         .createSignedUrl(data.storage_path, 3600); // 1 hour expiry
 
-      console.log(`[getImageUrlByKey] Signed URL data for ${key}:`, signedUrlData);
+      console.log(`[getImageUrlByKey] Signed URL attempt:`, { 
+        signedUrlData, 
+        signedUrlError,
+        bucket: STORAGE_BUCKET,
+        path: data.storage_path 
+      });
 
       if (!signedUrlData?.signedUrl) {
         console.warn(`[getImageUrlByKey] Failed to get URL for storage path: ${data.storage_path}`);
