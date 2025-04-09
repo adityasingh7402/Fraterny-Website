@@ -9,7 +9,8 @@ const CACHE_CONFIG = {
   MAX_ITEMS: 100,
   CACHE_EXPIRATION: 7 * 24 * 60 * 60 * 1000, // 7 days
   CRITICAL_ASSETS: [
-    '/placeholder.svg'
+    '/placeholder.svg',
+    'https://eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images'
   ],
   INITIALIZATION_TIMEOUT: 10000 // Increased to 10 seconds
 };
@@ -603,9 +604,11 @@ async function updateMetrics() {
   });
 }
 
+// Update isImageRequest to handle Supabase URLs
 function isImageRequest(request) {
   return request.destination === 'image' || 
-         /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(request.url);
+         /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(request.url) ||
+         request.url.includes('eukenximajiuhrtljnpw.supabase.co/storage/v1/object/public/website-images');
 }
 
 async function getPlaceholderResponse(request) {
@@ -676,4 +679,4 @@ async function preloadCriticalImages(cache) {
   } catch (error) {
     console.error('Error in preloadCriticalImages:', error);
   }
-} 
+}
