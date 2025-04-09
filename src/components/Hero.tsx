@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import ResponsiveImage from './ui/ResponsiveImage';
+import ResponsiveImage from './ui/image/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
 
@@ -59,6 +59,7 @@ const Hero = () => {
           loading="eager"
           fetchPriority="high"
           dynamicKey="hero-background"
+          size="large"
         />
       </div>
       

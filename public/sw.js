@@ -676,4 +676,4 @@ async function preloadCriticalImages(cache) {
   } catch (error) {
     console.error('Error in preloadCriticalImages:', error);
   }
-} 
+}
