@@ -16,7 +16,7 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
   }
 
   try {
-    console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
+    console.log(`[getImageUrlByKey] Fetching image with normalized key: "${key}"`);
 
     // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
@@ -38,27 +38,40 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
     // Get the global cache version from website settings
     const globalVersion = await getGlobalCacheVersion();
 
-    // Get the public URL for this storage path
-    const { data: urlData } = supabase.storage
+    // Try to get a public URL first
+    const { data: publicUrlData } = supabase.storage
       .from('website-images')
       .getPublicUrl(data.storage_path);
 
-    if (!urlData || !urlData.publicUrl) {
-      console.warn(`[getImageUrlByKey] Failed to get public URL for storage path: ${data.storage_path}`);
-      return '/placeholder.svg';
+    let finalUrl = '';
+
+    // If public URL is available, use it
+    if (publicUrlData?.publicUrl) {
+      finalUrl = publicUrlData.publicUrl;
+      console.log(`[getImageUrlByKey] Using public URL for ${key}`);
+    } else {
+      // Fall back to signed URL if public URL is not available
+      const { data: signedUrlData } = await supabase.storage
+        .from('website-images')
+        .createSignedUrl(data.storage_path, 3600); // 1 hour expiry
+
+      if (!signedUrlData?.signedUrl) {
+        console.warn(`[getImageUrlByKey] Failed to get URL for storage path: ${data.storage_path}`);
+        return '/placeholder.svg';
+      }
+
+      finalUrl = signedUrlData.signedUrl;
+      console.log(`[getImageUrlByKey] Using signed URL for ${key}`);
     }
 
     // Extract content hash from metadata if available
-    // Use safe type checking to avoid errors with different metadata formats
     let contentHash = null;
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
       contentHash = data.metadata.contentHash || null;
     }
     
     // Build the final URL with both content hash and global version for cache busting
-    let finalUrl = urlData.publicUrl;
     if (contentHash) {
-      // Use content hash as primary cache key
       finalUrl = addHashToUrl(finalUrl, contentHash);
     }
     
@@ -71,8 +84,9 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
 
     console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
 
-    // Cache the URL for future use
-    urlCache.set(`url:${key}`, finalUrl);
+    // Cache the URL for future use (with shorter TTL for signed URLs)
+    const ttl = finalUrl.includes('token=') ? 3000 : 3600; // 50 minutes for signed URLs, 1 hour for public
+    urlCache.set(`url:${key}`, finalUrl, ttl);
 
     return finalUrl;
   } catch (e) {
