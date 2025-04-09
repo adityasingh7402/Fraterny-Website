@@ -9,12 +9,9 @@ const CACHE_CONFIG = {
   MAX_ITEMS: 100,
   CACHE_EXPIRATION: 7 * 24 * 60 * 60 * 1000, // 7 days
   CRITICAL_ASSETS: [
-    '/placeholder.svg',
-    '/images/loading.gif',
-    '/images/hero.jpg',
-    '/images/logo.png'
+    '/placeholder.svg'
   ],
-  INITIALIZATION_TIMEOUT: 5000 // 5 second timeout for initialization
+  INITIALIZATION_TIMEOUT: 10000 // Increased to 10 seconds
 };
 
 // Add service worker config storage
@@ -142,28 +139,41 @@ function normalizeImageUrl(url) {
   return url;
 }
 
-// Install event - Enhanced caching of critical assets
+// Install event - Enhanced caching of critical assets with error handling
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
-      // Wait for initialization first
-      await initializationPromise;
-      
-      const [imageCache, placeholderCache] = await Promise.all([
-        caches.open(CACHE_CONFIG.IMAGE_CACHE),
-        caches.open(CACHE_CONFIG.PLACEHOLDER_CACHE)
-      ]);
+      try {
+        // Wait for initialization first
+        await initializationPromise;
+        
+        const [imageCache, placeholderCache] = await Promise.all([
+          caches.open(CACHE_CONFIG.IMAGE_CACHE),
+          caches.open(CACHE_CONFIG.PLACEHOLDER_CACHE)
+        ]);
 
-      await Promise.all([
-        ...CACHE_CONFIG.CRITICAL_ASSETS.map(url => 
-          fetch(url).then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return compressAndCache(response, url, placeholderCache);
-          })
-        ),
-        preloadCriticalImages(imageCache),
-        initializeIndexedDB()
-      ]);
+        // Cache critical assets with error handling
+        await Promise.allSettled([
+          ...CACHE_CONFIG.CRITICAL_ASSETS.map(async url => {
+            try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+              await compressAndCache(response, url, placeholderCache);
+            } catch (error) {
+              console.warn(`Failed to cache critical asset ${url}:`, error);
+            }
+          }),
+          preloadCriticalImages(imageCache),
+          initializeIndexedDB()
+        ]);
+
+        // Force activation even if some assets failed to cache
+        self.skipWaiting();
+      } catch (error) {
+        console.error('Service worker installation failed:', error);
+        // Continue installation even if there are errors
+        self.skipWaiting();
+      }
     })()
   );
 });
@@ -367,40 +377,30 @@ async function applyProgressiveLoading(response, quality, maxSize) {
 }
 
 async function compressAndCache(response, url, cache) {
-  if (!CACHE_WARMING.compressionEnabled) {
-    return cache.put(url, response);
-  }
-
   try {
-    // Create a canvas to compress the image
+    if (!response.ok) throw new Error('Invalid response');
+    
     const blob = await response.blob();
-    const bitmap = await createImageBitmap(blob);
-    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-    const ctx = canvas.getContext('2d');
-    
-    // Draw the image
-    ctx.drawImage(bitmap, 0, 0);
-    
-    // Get compressed data
-    const compressedBlob = await canvas.convertToBlob({
-      type: 'image/webp',
-      quality: 0.8
-    });
-    
-    // Create new response with compressed data
-    const compressedResponse = new Response(compressedBlob, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: new Headers({
-        'Content-Type': 'image/webp',
-        'Content-Length': compressedBlob.size.toString()
-      })
-    });
-    
-    return cache.put(url, compressedResponse);
+    if (!blob || blob.size === 0) throw new Error('Empty response');
+
+    // Skip compression for GIF files
+    if (url.toLowerCase().endsWith('.gif')) {
+      await cache.put(url, new Response(blob, response));
+      return;
+    }
+
+    // Attempt compression
+    try {
+      const compressed = await compressImage(blob);
+      await cache.put(url, new Response(compressed, response));
+    } catch (compressionError) {
+      console.warn(`Compression failed for ${url}, caching original:`, compressionError);
+      // Fall back to caching the original if compression fails
+      await cache.put(url, new Response(blob, response));
+    }
   } catch (error) {
-    console.error('Compression failed:', error);
-    return cache.put(url, response);
+    console.error(`Failed to process ${url}:`, error);
+    throw error;
   }
 }
 
