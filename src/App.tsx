@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -7,13 +7,41 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import Index from "./pages/Index";
-import Admin from "./pages/Admin";
-import AnalyticsDashboard from './pages/admin/analytics';
-import ImagesDashboard from './pages/admin/images';
-import SettingsDashboard from './pages/admin/settings';
 import NotFound from './pages/NotFound';
 import CdnTestPage from './pages/cdn-test';
 import CdnDebugPage from './pages/admin/cdn-debug';
+
+// Create a simple Admin component since it's missing
+const Admin = () => {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6 text-navy">Admin Dashboard</h1>
+      <p className="mb-4">Select an option from the navigation above.</p>
+    </div>
+  );
+};
+
+// Create empty dashboard components
+const AnalyticsDashboard = () => (
+  <div className="container mx-auto py-8">
+    <h1 className="text-2xl font-bold mb-6 text-navy">Analytics Dashboard</h1>
+    <p>Analytics content will appear here.</p>
+  </div>
+);
+
+const ImagesDashboard = () => (
+  <div className="container mx-auto py-8">
+    <h1 className="text-2xl font-bold mb-6 text-navy">Images Dashboard</h1>
+    <p>Images management content will appear here.</p>
+  </div>
+);
+
+const SettingsDashboard = () => (
+  <div className="container mx-auto py-8">
+    <h1 className="text-2xl font-bold mb-6 text-navy">Settings Dashboard</h1>
+    <p>Settings content will appear here.</p>
+  </div>
+);
 
 const router = createBrowserRouter(
   createRoutesFromElements(

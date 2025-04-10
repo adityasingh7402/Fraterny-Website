@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle2, RefreshCw, AlertTriangle, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle, RefreshCw, AlertTriangle, ArrowRight } from "lucide-react";
 import { getCdnBaseUrl, testCdnConnection, isCdnEnabled } from '@/utils/cdnUtils';
 import { getCdnUrl } from '@/utils/cdnUtils';
 
@@ -91,7 +90,7 @@ const CdnDebugTool = () => {
                   {isCdnAvailable ? (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   ) : (
-                    <XCircle2 className="h-4 w-4 text-red-500" />
+                    <XCircle className="h-4 w-4 text-red-500" />
                   )}
                   <span className={`text-sm ${isCdnAvailable ? 'text-green-600' : 'text-red-600'}`}>
                     {isCdnAvailable ? 'Connected' : 'Failed'}
