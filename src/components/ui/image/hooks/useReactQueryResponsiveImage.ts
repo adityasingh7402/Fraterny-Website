@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getImageUrlByKeyAndSize } from '@/services/images';
+import { getImageUrlsByKeys } from '@/services/images';
 import { ResponsiveImageSource } from '../types';
 
 interface UseReactQueryResponsiveImageOptions {
@@ -36,15 +36,27 @@ export const useReactQueryResponsiveImage = (options: UseReactQueryResponsiveIma
   const { data: urlData, isLoading } = useQuery({
     queryKey: ['image', key],
     queryFn: async () => {
-      const desktopUrl = await getImageUrlByKeyAndSize(key, 'large');
-      const mobileUrl = await getImageUrlByKeyAndSize(key, 'small');
-      const tabletUrl = await getImageUrlByKeyAndSize(key, 'medium');
+      try {
+        // Fetch all sizes in parallel using batch operations
+        const [urls, urlsSmall, urlsMedium] = await Promise.all([
+          getImageUrlsByKeys([key]),
+          getImageUrlsByKeys([key], 'small'),
+          getImageUrlsByKeys([key], 'medium')
+        ]);
 
-      return {
-        desktop: desktopUrl,
-        mobile: mobileUrl,
-        tablet: tabletUrl
-      };
+        return {
+          desktop: urls[key] || fallbackSrc,
+          mobile: urlsSmall[key] || fallbackSrc,
+          tablet: urlsMedium[key] || fallbackSrc
+        };
+      } catch (error) {
+        console.error('Error fetching responsive image URLs:', error);
+        return {
+          desktop: fallbackSrc,
+          mobile: fallbackSrc,
+          tablet: fallbackSrc
+        };
+      }
     }
   });
 
