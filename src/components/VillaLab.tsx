@@ -1,4 +1,3 @@
-
 import { ArrowRight } from 'lucide-react';
 import { useMemo, useEffect, useState } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
@@ -173,7 +172,7 @@ const VillaLab = () => {
             return (
               <div 
                 key={index}
-                className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 ${
+                className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 flex items-center justify-center ${
                   isVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
@@ -189,7 +188,7 @@ const VillaLab = () => {
                   width={activity.width}
                   height={activity.height}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                  objectFit="contain"
+                  objectFit="cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                   <span className="text-white p-4 font-medium">{activity.title}</span>
