@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for database queries
  */
@@ -7,10 +6,13 @@ import { handleApiError } from "@/utils/errorHandling";
 import { WebsiteImage } from "../types";
 
 /**
- * Create a base query for images
+ * Create a base query for images with selective field fetching
  */
 export const createImagesQuery = () => {
-  return supabase.from('website_images').select('*', { count: 'exact' });
+  return supabase.from('website_images')
+    .select('id, key, alt_text, description, category, storage_path, metadata, sizes, width, height, created_at, updated_at', { 
+      count: 'exact' 
+    });
 };
 
 /**
