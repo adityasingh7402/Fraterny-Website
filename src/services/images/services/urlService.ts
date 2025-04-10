@@ -5,87 +5,90 @@ import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
 
 // Constants
-const STORAGE_BUCKET = 'website-images';
-const CACHE_TTL = {
-  DEFAULT: 3600,          // 1 hour
-  SIGNED: 1800,          // 30 minutes for signed URLs
-  SIZED: 7200,          // 2 hours for sized images (less likely to change)
-};
-
-/**
- * Validate a cached URL
- */
-const isValidCachedUrl = (url: unknown): url is string => {
-  return typeof url === 'string' && url.length > 0 && !url.includes('/placeholder.svg');
-};
+const STORAGE_BUCKET = 'website-images';  // Updated to match exact bucket name
 
 /**
  * Get the image URL by key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
   try {
-    // Check cache first with proper validation
-    const cacheKey = `url:${key}`;
-    const cachedUrl = urlCache.get(cacheKey);
-    if (isValidCachedUrl(cachedUrl)) {
-      console.log(`[getImageUrlByKey] Using cached URL for ${key}`);
+    console.log(`[getImageUrlByKey] Starting URL generation for key: "${key}"`);
+
+    // First check if this URL is in the URL cache
+    const cachedUrl = urlCache.get(`url:${key}`);
+    if (cachedUrl && typeof cachedUrl === 'string' && cachedUrl !== 'null') {
+      console.log(`[getImageUrlByKey] Using valid cached URL for ${key}:`, cachedUrl);
       return cachedUrl;
+    } else {
+      // Clear invalid cache entry if it exists
+      urlCache.delete(`url:${key}`);
     }
 
-    console.log(`[getImageUrlByKey] Generating fresh URL for ${key}`);
-
-    // Fetch the image record
+    // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
       .from('website_images')
       .select('storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
-    if (error || !data?.storage_path) {
-      console.error(`[getImageUrlByKey] Error or missing path for ${key}:`, error || 'No storage_path');
+    console.log(`[getImageUrlByKey] Database response for ${key}:`, {
+      data,
+      error,
+      hasStoragePath: data?.storage_path ? true : false,
+      storagePath: data?.storage_path
+    });
+
+    if (error) {
+      console.error(`[getImageUrlByKey] Database error:`, error);
       return '/placeholder.svg';
     }
 
-    // Get the public URL - this is the key part that must remain unmodified
-    const { data: publicUrlData } = supabase.storage
+    if (!data || !data.storage_path) {
+      console.warn(`[getImageUrlByKey] Missing data or storage_path`);
+      return '/placeholder.svg';
+    }
+
+    // Try to get a public URL first
+    const publicUrlResult = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(data.storage_path);
 
-    if (!publicUrlData?.publicUrl) {
-      console.error(`[getImageUrlByKey] Failed to generate public URL for ${key}`);
-      return '/placeholder.svg';
-    }
+    console.log(`[getImageUrlByKey] Public URL generation attempt:`, {
+      bucket: STORAGE_BUCKET,
+      storagePath: data.storage_path,
+      result: publicUrlResult
+    });
 
-    const finalUrl = publicUrlData.publicUrl;
+    let finalUrl = '';
 
-    // Add cache control headers through URL parameters without breaking the URL structure
-    const urlWithCacheControl = new URL(finalUrl);
-    
-    // Add a cache version if image has been modified (using metadata)
-    if (data.metadata?.lastModified) {
-      urlWithCacheControl.searchParams.append('v', data.metadata.lastModified);
-    }
+    if (publicUrlResult.data?.publicUrl) {
+      finalUrl = publicUrlResult.data.publicUrl;
+      console.log(`[getImageUrlByKey] Successfully generated public URL:`, finalUrl);
+    } else {
+      // Fall back to signed URL if public URL is not available
+      console.log(`[getImageUrlByKey] Falling back to signed URL`);
+      const signedUrlResult = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(data.storage_path, 3600);
 
-    // Get global cache version for system-wide cache busting if needed
-    try {
-      const globalVersion = await getGlobalCacheVersion();
-      if (globalVersion) {
-        urlWithCacheControl.searchParams.append('gv', globalVersion);
+      if (!signedUrlResult.data?.signedUrl) {
+        console.warn(`[getImageUrlByKey] Failed to generate any URL`);
+        return '/placeholder.svg';
       }
-    } catch (e) {
-      console.warn(`[getImageUrlByKey] Failed to get global version, continuing without it:`, e);
+
+      finalUrl = signedUrlResult.data.signedUrl;
     }
 
-    const finalUrlWithCache = urlWithCacheControl.toString();
+    // Only cache and return valid URLs
+    if (finalUrl && typeof finalUrl === 'string' && finalUrl !== 'null') {
+      const ttl = finalUrl.includes('token=') ? 3000 : 3600;
+      urlCache.set(`url:${key}`, finalUrl, ttl);
+      return finalUrl;
+    }
 
-    // Cache the URL with appropriate TTL
-    urlCache.set(cacheKey, finalUrlWithCache, CACHE_TTL.DEFAULT);
-
-    console.log(`[getImageUrlByKey] Successfully generated URL for ${key}`);
-    return finalUrlWithCache;
-
+    return '/placeholder.svg';
   } catch (e) {
-    console.error(`[getImageUrlByKey] Unexpected error for ${key}:`, e);
+    console.error(`[getImageUrlByKey] Unexpected error:`, e);
     return '/placeholder.svg';
   }
 };
@@ -99,9 +102,9 @@ export const getImageUrlByKeyAndSize = async (
 ): Promise<string> => {
   const cacheKey = `url:${key}:${size}`;
   
-  // Check cache first with proper validation
+  // First check if this URL is already cached
   const cachedUrl = urlCache.get(cacheKey);
-  if (isValidCachedUrl(cachedUrl)) {
+  if (cachedUrl) {
     console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size})`);
     return cachedUrl;
   }
@@ -109,39 +112,71 @@ export const getImageUrlByKeyAndSize = async (
   try {
     console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
 
-    // Fetch the image record
+    // Fetch the image record to get sizes and metadata
     const { data, error } = await supabase
       .from('website_images')
-      .select('sizes, storage_path')
+      .select('sizes, storage_path, metadata')
       .eq('key', key)
       .maybeSingle();
 
-    if (error || !data) {
-      console.error(`[getImageUrlByKeyAndSize] Error fetching image:`, error || 'No data');
+    if (error) {
+      console.error(`[getImageUrlByKeyAndSize] Error fetching image with key ${key}:`, error);
       return '/placeholder.svg';
     }
 
-    // Check if sized version exists
-    if (data.sizes?.[size]) {
+    if (!data) {
+      console.warn(`[getImageUrlByKeyAndSize] No image found for key ${key}`);
+      return '/placeholder.svg';
+    }
+    
+    // Get the global cache version from website settings
+    const globalVersion = await getGlobalCacheVersion();
+    
+    // Extract content hash from metadata if available using safe type checking
+    let contentHash = null;
+    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
+      contentHash = data.metadata.contentHash || null;
+    }
+    
+    // Check if sizes exists and if the requested size is available
+    if (data.sizes && data.sizes[size]) {
+      // Get the public URL for this optimized size
       const { data: urlData } = supabase.storage
-        .from(STORAGE_BUCKET)
+        .from(STORAGE_BUCKET)  // Using constant instead of hardcoded string
         .getPublicUrl(data.sizes[size]);
 
-      if (!urlData?.publicUrl) {
-        console.warn(`[getImageUrlByKeyAndSize] Failed to get sized URL, falling back to original`);
-        return getImageUrlByKey(key);
+      if (!urlData || !urlData.publicUrl) {
+        console.warn(`[getImageUrlByKeyAndSize] Failed to get public URL for size path: ${data.sizes[size]}`);
+        return '/placeholder.svg';
       }
 
-      // Cache the sized URL
-      urlCache.set(cacheKey, urlData.publicUrl, CACHE_TTL.SIZED);
-      return urlData.publicUrl;
+      // Build the final URL with both content hash and global version for cache busting
+      let finalUrl = urlData.publicUrl;
+      if (contentHash) {
+        // Use content hash as primary cache key
+        finalUrl = addHashToUrl(finalUrl, contentHash);
+      }
+      
+      // Add global version as secondary cache parameter if available
+      if (globalVersion) {
+        finalUrl = finalUrl.includes('?') 
+          ? `${finalUrl}&gv=${globalVersion}` 
+          : `${finalUrl}?gv=${globalVersion}`;
+      }
+
+      console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
+
+      // Cache the URL for future use
+      urlCache.set(cacheKey, finalUrl);
+      
+      return finalUrl;
     }
 
-    // Fall back to original image if size not available
-    console.log(`[getImageUrlByKeyAndSize] Size ${size} not found, using original`);
+    // If the requested size doesn't exist, fall back to the original image
+    console.log(`[getImageUrlByKeyAndSize] Size ${size} not found for ${key}, falling back to original`);
     return getImageUrlByKey(key);
   } catch (e) {
-    console.error(`[getImageUrlByKeyAndSize] Unexpected error:`, e);
+    console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}, size ${size}:`, e);
     return '/placeholder.svg';
   }
 };
