@@ -123,7 +123,7 @@ export const useResponsiveImage = (
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
         // Handle mobile variant keys
-        const isMobileKey = dynamicKey.includes('-mobile');
+        const isMobileKey = dynamicKey.includes('mobile');
         let imageUrl: string;
         let fallbackToDesktop = false;
         
