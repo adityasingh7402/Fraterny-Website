@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
 import { WebsiteImage } from "../types";
@@ -167,5 +166,58 @@ export const getImageUrlByKeyAndSize = async (
   } catch (e) {
     console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}, size ${size}:`, e);
     return '/placeholder.svg';
+  }
+};
+
+/**
+ * Get multiple image URLs by keys in a single batch operation
+ * @param keys Array of image keys to fetch
+ * @param size Optional size parameter for responsive images
+ * @returns Record of image keys to their URLs
+ */
+export const getImageUrlsByKeys = async (
+  keys: string[],
+  size?: 'small' | 'medium' | 'large'
+): Promise<Record<string, string>> => {
+  const urls: Record<string, string> = {};
+  
+  // First check cache for all keys
+  keys.forEach(key => {
+    const cacheKey = size ? `url:${key}:${size}` : `url:${key}`;
+    const cachedUrl = urlCache.get(cacheKey);
+    if (cachedUrl) {
+      urls[key] = cachedUrl;
+    }
+  });
+  
+  // Get remaining uncached keys
+  const uncachedKeys = keys.filter(key => !urls[key]);
+  if (uncachedKeys.length === 0) return urls;
+  
+  try {
+    // Fetch remaining URLs in batch
+    const { data, error } = await supabase
+      .from('website_images')
+      .select('key, storage_path, sizes, metadata')
+      .in('key', uncachedKeys);
+    
+    if (error) {
+      console.error('[getImageUrlsByKeys] Error fetching batch of image URLs:', error);
+      return urls;
+    }
+    
+    // Process and cache each URL
+    for (const image of data) {
+      const url = size && image.sizes?.[size]
+        ? await getImageUrlByKeyAndSize(image.key, size)
+        : await getImageUrlByKey(image.key);
+      
+      urls[image.key] = url;
+    }
+    
+    return urls;
+  } catch (e) {
+    console.error('[getImageUrlsByKeys] Unexpected error:', e);
+    return urls;
   }
 };
