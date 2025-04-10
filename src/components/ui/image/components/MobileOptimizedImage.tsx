@@ -28,7 +28,7 @@ export function MobileOptimizedImage({
   className,
   loading = 'lazy',
   sizes,
-  objectFit = 'cover'
+  objectFit = 'contain'
 }: MobileOptimizedImageProps) {
   const network = useNetworkStatus();
   
