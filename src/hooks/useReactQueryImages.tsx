@@ -5,9 +5,11 @@ import {
   fetchImagesByCategory,
   getImageUrlByKey,
   getImageUrlByKeyAndSize,
+  getImageUrlsByKeys,
   WebsiteImage,
   clearImageCache,
-  clearImageUrlCache
+  clearImageUrlCache,
+  urlCache
 } from '@/services/images';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 
@@ -148,8 +150,33 @@ export const useReactQueryImages = () => {
    * Prefetch a batch of images by keys - useful for gallery views
    */
   const prefetchImages = async (keys: string[]) => {
-    const promises = keys.map(key => prefetchImage(key, false));
-    await Promise.all(promises);
+    try {
+      // Use batch operation to fetch URLs
+      const urls = await getImageUrlsByKeys(keys);
+      
+      // Cache the results
+      keys.forEach(key => {
+        if (urls[key]) {
+          urlCache.set(`url:${key}`, urls[key]);
+        }
+      });
+      
+      // Also prefetch metadata for each image
+      const metadataPromises = keys.map(key => 
+        queryClient.prefetchQuery({
+          queryKey: ['image', key],
+          queryFn: () => fetchImageByKey(key),
+          staleTime: getCacheConfig().staleTime,
+        })
+      );
+      
+      await Promise.all(metadataPromises);
+    } catch (error) {
+      console.error('Error prefetching batch of images:', error);
+      // Fall back to individual prefetching if batch operation fails
+      const promises = keys.map(key => prefetchImage(key, false));
+      await Promise.all(promises);
+    }
   };
 
   /**
