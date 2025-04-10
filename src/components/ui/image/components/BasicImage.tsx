@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { createImageProps } from '../utils';
-import { getCdnUrl } from '@/utils/cdnUtils';
 
 interface BasicImageProps {
   src: string;
@@ -15,12 +13,10 @@ interface BasicImageProps {
   height?: number;
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  useCdn?: boolean;
 }
 
 /**
  * Basic image component for simple URL sources
- * Now with optional CDN support
  */
 export const BasicImage = ({
   src,
@@ -33,22 +29,17 @@ export const BasicImage = ({
   width,
   height,
   sizes,
-  objectFit = 'cover',
-  useCdn = true
+  objectFit = 'cover'
 }: BasicImageProps) => {
-  // Process through CDN if enabled
-  const processedSrc = useCdn ? getCdnUrl(src) || src : src;
-  const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
-  
   const imgProps = createImageProps(
-    processedSrc, 
+    src, 
     alt, 
     className, 
     loading, 
     sizes,
     width, 
     height, 
-    processedFallbackSrc, 
+    fallbackSrc, 
     fetchPriority
   );
   
