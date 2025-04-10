@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteImage } from "./types";
 import { handleApiError } from "@/utils/errorHandling";
@@ -40,7 +39,7 @@ export const fetchImageByKey = async (key: string): Promise<WebsiteImage | null>
     
     const { data, error } = await supabase
       .from('website_images')
-      .select('*')
+      .select('id, key, alt_text, description, category, storage_path, metadata, sizes, width, height, created_at, updated_at')
       .eq('key', normalizedKey)
       .maybeSingle();
     
