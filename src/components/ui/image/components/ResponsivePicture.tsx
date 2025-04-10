@@ -32,7 +32,7 @@ export const ResponsivePicture = ({
   height,
   sizes,
   useMobileSrc,
-  objectFit = 'cover'
+  objectFit = 'contain'
 }: ResponsivePictureProps) => {
   const imgProps = createImageProps(
     sources.desktop, 
