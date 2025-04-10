@@ -1,103 +1,77 @@
 
 import React from 'react';
+import { createImageProps } from '../utils';
+import { ResponsiveImageSource } from '../types';
+import { getCdnUrl } from '@/utils/cdnUtils';
 
 interface ResponsivePictureProps {
-  sources: {
-    mobile: string;
-    tablet?: string;
-    desktop: string;
-  };
+  sources: ResponsiveImageSource;
   alt: string;
   className?: string;
   loading?: 'lazy' | 'eager';
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
-  width?: number | string;
-  height?: number | string;
-  sizes?: string;
   fallbackSrc?: string;
+  width?: number;
+  height?: number;
+  sizes?: string;
   useMobileSrc?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  preserveCropDimensions?: boolean;
+  useCdn?: boolean;
 }
 
 /**
- * Component that uses the HTML picture element for responsive images
- * Enhanced to maintain consistent aspect ratios and preserve crop dimensions
+ * Responsive picture component for different device sizes
+ * Now with optional CDN support
  */
 export const ResponsivePicture = ({
   sources,
   alt,
-  className = '',
+  className,
   loading = 'lazy',
   fetchPriority,
   onClick,
+  fallbackSrc = '/placeholder.svg',
   width,
   height,
   sizes,
-  fallbackSrc = '/placeholder.svg',
-  useMobileSrc = false,
-  objectFit = 'contain',
-  preserveCropDimensions = false
+  useMobileSrc,
+  objectFit = 'cover',
+  useCdn = true
 }: ResponsivePictureProps) => {
-  const { mobile, tablet, desktop } = sources;
+  // Process all URLs through CDN if enabled
+  const processedSources = useCdn ? {
+    desktop: getCdnUrl(sources.desktop) || sources.desktop,
+    mobile: sources.mobile ? (getCdnUrl(sources.mobile) || sources.mobile) : undefined,
+    tablet: sources.tablet ? (getCdnUrl(sources.tablet) || sources.tablet) : undefined
+  } : sources;
   
-  // Use mobile source directly if specified
-  const imgSrc = useMobileSrc ? mobile : desktop || mobile;
+  const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
   
-  // Style for the image, including object-fit property
-  const imgStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    objectFit
+  const imgProps = createImageProps(
+    processedSources.desktop, 
+    alt, 
+    className, 
+    loading, 
+    sizes,
+    width, 
+    height, 
+    processedFallbackSrc, 
+    fetchPriority
+  );
+  
+  // Apply object-fit directly to the style object for the img element
+  const style = { 
+    ...imgProps.style, 
+    objectFit 
   };
   
-  // If preserving crop dimensions, ensure consistent positioning
-  if (preserveCropDimensions) {
-    imgStyle.objectPosition = 'center';
-  }
-  
   return (
-    <picture>
-      {/* Mobile source */}
-      <source 
-        srcSet={mobile} 
-        media="(max-width: 640px)" 
-      />
-      
-      {/* Tablet source (if provided) */}
-      {tablet && (
-        <source 
-          srcSet={tablet} 
-          media="(min-width: 641px) and (max-width: 1024px)" 
-        />
-      )}
-      
-      {/* Desktop source */}
-      <source 
-        srcSet={desktop} 
-        media="(min-width: 1025px)" 
-      />
-      
-      {/* Fallback image element */}
-      <img
-        src={imgSrc}
-        alt={alt}
-        className={className}
-        loading={loading}
-        fetchPriority={fetchPriority}
-        onClick={onClick}
-        width={width}
-        height={height}
-        sizes={sizes}
-        style={imgStyle}
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          if (fallbackSrc && target.src !== fallbackSrc) {
-            target.src = fallbackSrc;
-          }
-        }}
-      />
+    <picture onClick={onClick}>
+      {processedSources.mobile && <source media="(max-width: 640px)" srcSet={processedSources.mobile} />}
+      {processedSources.tablet && <source media="(max-width: 1024px)" srcSet={processedSources.tablet} />}
+      <source media="(min-width: 641px)" srcSet={processedSources.desktop} />
+      <img {...imgProps} style={style} />
     </picture>
   );
 };

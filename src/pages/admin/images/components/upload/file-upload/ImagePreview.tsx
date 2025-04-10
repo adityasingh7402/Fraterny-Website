@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Crop as CropIcon, Info, Trash2 } from 'lucide-react';
+import { Crop as CropIcon, Trash2 } from 'lucide-react';
 import { ImageCropHandler } from '../../upload/crop-handler';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { IMAGE_USAGE_MAP } from '@/services/images';
@@ -9,12 +10,10 @@ interface ImagePreviewProps {
   previewUrl: string;
   onCroppedFile: (file: File) => void;
   imageKey: string;
-  aspectRatio?: string;
 }
 
-const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey, aspectRatio }: ImagePreviewProps) => {
+const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey }: ImagePreviewProps) => {
   const [isCropping, setIsCropping] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
   const isMobile = useIsMobile();
   
   // Determine if image is used as cover or contain based on usage key
@@ -22,7 +21,9 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey, aspectRatio }
     if (
       imageKey.includes('hero') || 
       imageKey.includes('background') || 
-      imageKey.includes('banner')
+      imageKey.includes('banner') ||
+      imageKey.includes('villalab') ||
+      imageKey.includes('experience')
     ) {
       return 'cover';
     }
@@ -69,37 +70,11 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey, aspectRatio }
             {usageInfo && ` • ${usageInfo}`}
           </div>
         )}
-        
-        {/* Preview showing exactly how the image will display on the website */}
-        <div className={`relative w-full ${isMobile ? 'h-48' : 'h-64'} bg-gray-50`}>
-          <img 
-            src={previewUrl} 
-            alt="Preview" 
-            className={`w-full h-full`}
-            style={{
-              objectFit,
-              aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
-              objectPosition: 'center'
-            }}
-          />
-          
-          {/* Info overlay that shows when hovering on the info icon */}
-          {showInfo && (
-            <div className="absolute inset-0 bg-navy bg-opacity-90 text-white p-3 text-xs overflow-y-auto">
-              <h4 className="font-bold mb-1">About Image Display</h4>
-              <p className="mb-2">The image above shows exactly how it will appear on the website.</p>
-              
-              <h5 className="font-semibold mb-1">Tips:</h5>
-              <ul className="list-disc pl-4 space-y-1">
-                <li>{objectFit === 'cover' ? 
-                  "This image uses 'cover' mode - it will fill the entire container but may crop edges" : 
-                  "This image uses 'contain' mode - the entire image will be visible"}</li>
-                <li>Use the crop tool to adjust which parts of the image are visible</li>
-                <li>Cropping is preserved across all devices and screen sizes</li>
-              </ul>
-            </div>
-          )}
-        </div>
+        <img 
+          src={previewUrl} 
+          alt="Preview" 
+          className={`w-full ${isMobile ? 'h-48' : 'h-64'} object-${objectFit} bg-gray-50`}
+        />
       </div>
       
       <div className="flex items-center justify-between">
@@ -113,14 +88,6 @@ const ImagePreview = ({ file, previewUrl, onCroppedFile, imageKey, aspectRatio }
         </div>
         
         <div className="flex gap-2">
-          <button
-            type="button"
-            className={`${isMobile ? 'p-1.5' : 'p-2'} bg-gray-100 text-gray-700 rounded hover:bg-gray-200`}
-            onClick={() => setShowInfo(!showInfo)}
-            title="Display information"
-          >
-            <Info className="w-4 h-4" />
-          </button>
           <button
             type="button"
             onClick={handleStartCrop}

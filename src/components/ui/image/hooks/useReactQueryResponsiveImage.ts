@@ -4,10 +4,11 @@ import { useReactQueryImages } from '@/hooks/useReactQueryImages';
 import { getImagePlaceholdersByKey } from '@/services/images';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { ImageLoadingState } from '../types';
+import { getCdnUrl } from '@/utils/cdnUtils';
 
 /**
  * Enhanced hook that combines React Query with existing image loading system
- * With improved dimension handling and aspect ratio preservation
+ * Now with optional CDN support
  */
 export const useReactQueryResponsiveImage = (
   dynamicKey?: string,
@@ -23,9 +24,7 @@ export const useReactQueryResponsiveImage = (
     colorPlaceholder: null,
     contentHash: null,
     isCached: false,
-    lastUpdated: null,
-    originalWidth: undefined,
-    originalHeight: undefined
+    lastUpdated: null
   });
   
   const network = useNetworkStatus();
@@ -77,14 +76,14 @@ export const useReactQueryResponsiveImage = (
           // Check if we have any content hash from the metadata
           let contentHash = null;
           
-          // Safely access contentHash from metadata by checking type first
+          // Safely extract contentHash from metadata if it exists and is an object (not an array)
           if (imageData && imageData.metadata) {
-            // Make sure metadata is an object and not an array or primitive
+            // Check if metadata is an object (not null and not an array)
             if (typeof imageData.metadata === 'object' && 
                 imageData.metadata !== null && 
                 !Array.isArray(imageData.metadata)) {
-              // Now TypeScript knows this is an object, we can safely use bracket notation
-              contentHash = imageData.metadata['contentHash'] || null;
+              // Now TypeScript knows this is a record/object type
+              contentHash = (imageData.metadata as Record<string, any>).contentHash || null;
             }
           }
           
@@ -93,34 +92,26 @@ export const useReactQueryResponsiveImage = (
             placeholderData = await getImagePlaceholdersByKey(dynamicKey);
           }
           
-          // Get original width and height from image data
-          let originalWidth = undefined;
-          let originalHeight = undefined;
-          
-          if (imageData) {
-            originalWidth = imageData.width || undefined;
-            originalHeight = imageData.height || undefined;
-          }
-          
-          // Calculate aspect ratio - favor the database values over calculated ones
+          // Calculate aspect ratio
           let aspectRatio: number | undefined = undefined;
-          if (originalWidth && originalHeight && originalHeight > 0) {
-            aspectRatio = originalWidth / originalHeight;
+          if (imageData && imageData.width && imageData.height) {
+            aspectRatio = imageData.width / imageData.height;
           }
+          
+          // Process the URL through our CDN if available
+          const processedUrl = getCdnUrl(urlData.url) || urlData.url;
           
           // Update state with all the information
           setState({
             isLoading: false,
             error: false,
-            dynamicSrc: urlData.url,
+            dynamicSrc: processedUrl,
             aspectRatio,
             tinyPlaceholder: placeholderData.tinyPlaceholder,
             colorPlaceholder: placeholderData.colorPlaceholder,
             contentHash,
             isCached: true, // We're using React Query, so it's always from cache first
-            lastUpdated: imageData?.updated_at || null,
-            originalWidth,
-            originalHeight
+            lastUpdated: imageData?.updated_at || null
           });
         }
       } catch (error) {

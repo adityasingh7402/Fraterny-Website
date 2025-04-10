@@ -7,6 +7,9 @@ import { initializeAnalytics } from '@/utils/analyticsInitializer';
 import { trackPageView } from '@/services/analyticsService';
 import { updateDaysLeftCount } from '@/services/website-settings';
 import { scheduleAtMidnight } from '@/utils/dateUtils';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 // Lazy load components that are below the fold
 const NavalQuote = lazy(() => import('../components/NavalQuote'));
@@ -62,6 +65,26 @@ const Index = () => {
     <div className="min-h-screen">
       <Navigation />
       <Hero />
+      
+      {/* CDN Testing Banner (temporary) */}
+      <div className="container mx-auto px-4 my-4">
+        <Card className="bg-sky-50 border-sky-200 p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <h3 className="font-medium text-navy">CDN Implementation Testing</h3>
+              <p className="text-sm text-gray-600">Use these tools to verify CDN functionality</p>
+            </div>
+            <div className="flex gap-2 flex-wrap justify-center">
+              <Button asChild size="sm" variant="outline">
+                <Link to="/cdn-test">Test Page</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/admin/cdn-debug">Debug Tool</Link>
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
       
       {/* Use Intersection Observer to lazy load components */}
       <Suspense fallback={<LoadingFallback />}>

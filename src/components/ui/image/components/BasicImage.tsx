@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import { createImageProps } from '../utils';
-import { getImageUrlByKey } from '@/services/images';
+import { getCdnUrl } from '@/utils/cdnUtils';
 
 interface BasicImageProps {
   src: string;
@@ -10,19 +11,16 @@ interface BasicImageProps {
   fetchPriority?: 'high' | 'low' | 'auto';
   onClick?: () => void;
   fallbackSrc?: string;
-  width?: number | string;
-  height?: number | string;
+  width?: number;
+  height?: number;
   sizes?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  aspectRatio?: number;
-  preserveCropDimensions?: boolean;
-  style?: React.CSSProperties;
-  dynamicKey?: string;
+  useCdn?: boolean;
 }
 
 /**
  * Basic image component for simple URL sources
- * Enhanced to better handle aspect ratios and maintain crop dimensions
+ * Now with optional CDN support
  */
 export const BasicImage = ({
   src,
@@ -35,91 +33,31 @@ export const BasicImage = ({
   width,
   height,
   sizes,
-  objectFit = 'contain',
-  aspectRatio,
-  preserveCropDimensions = true,
-  style: customStyle,
-  dynamicKey
+  objectFit = 'cover',
+  useCdn = true
 }: BasicImageProps) => {
-  const [currentSrc, setCurrentSrc] = useState(src);
-  const [isError, setIsError] = useState(false);
-
-  useEffect(() => {
-    // Reset error state when src changes
-    setIsError(false);
-    setCurrentSrc(src);
-  }, [src]);
-
-  useEffect(() => {
-    // If using a dynamic key, fetch the signed URL
-    if (dynamicKey && !isError) {
-      const fetchSignedUrl = async () => {
-        try {
-          const signedUrl = await getImageUrlByKey(dynamicKey);
-          if (signedUrl && signedUrl !== '/placeholder.svg') {
-            setCurrentSrc(signedUrl);
-          }
-        } catch (error) {
-          console.error(`Error fetching signed URL for ${dynamicKey}:`, error);
-          setIsError(true);
-        }
-      };
-
-      fetchSignedUrl();
-
-      // Refresh the signed URL periodically (every 45 minutes)
-      const refreshInterval = setInterval(fetchSignedUrl, 45 * 60 * 1000);
-      return () => clearInterval(refreshInterval);
-    }
-  }, [dynamicKey, isError]);
-
+  // Process through CDN if enabled
+  const processedSrc = useCdn ? getCdnUrl(src) || src : src;
+  const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
+  
   const imgProps = createImageProps(
-    currentSrc,
-    alt,
-    className,
-    loading,
+    processedSrc, 
+    alt, 
+    className, 
+    loading, 
     sizes,
-    width,
-    height,
-    fallbackSrc,
+    width, 
+    height, 
+    processedFallbackSrc, 
     fetchPriority
   );
   
-  // Calculate dimensions based on props and container
-  const style: React.CSSProperties = { 
-    ...imgProps.style,
-    ...customStyle,
-    objectFit,
-    // Only set width/height if explicitly provided
-    ...(width ? { width: typeof width === 'string' ? width : `${width}px` } : {}),
-    ...(height ? { height: typeof height === 'string' ? height : `${height}px` } : {}),
-    // Ensure proper scaling
-    maxWidth: '100%',
-    maxHeight: '100%',
-    // Maintain aspect ratio
-    ...(aspectRatio ? { aspectRatio: `${aspectRatio}` } : {}),
-    // Center the image
-    objectPosition: 'center'
+  // Apply object-fit directly to the style object for the img element
+  const style = { 
+    ...imgProps.style, 
+    objectFit 
   };
   
-  // If preserving crop dimensions, ensure the image maintains its aspect ratio
-  if (preserveCropDimensions) {
-    style.objectPosition = 'center';
-    if (!aspectRatio) {
-      // Calculate aspect ratio from width and height if not provided
-      const w = typeof width === 'number' ? width : undefined;
-      const h = typeof height === 'number' ? height : undefined;
-      if (w && h) {
-        style.aspectRatio = `${w}/${h}`;
-      }
-    }
-  }
-  
-  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} onError={(e) => {
-    console.warn(`Failed to load image: ${e.currentTarget.src}`);
-    setIsError(true);
-    if (e.currentTarget.src !== fallbackSrc) {
-      e.currentTarget.src = fallbackSrc;
-    }
-  }} />;
+  // Use fetchPriority as a regular prop, not fetchpriority (lowercase)
+  return <img {...imgProps} style={style} onClick={onClick} fetchPriority={fetchPriority} />;
 };

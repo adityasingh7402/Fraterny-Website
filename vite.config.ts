@@ -11,9 +11,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-     react({
-      jsxImportSource: 'react'
-    }),
+    react(),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
@@ -21,7 +19,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
   build: {
     // Output build stats for analysis
@@ -51,6 +48,6 @@ export default defineConfig(({ mode }) => ({
   },
   // Optimize dependencies in dev mode
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'idb'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
   },
 }));

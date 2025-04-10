@@ -1,3 +1,4 @@
+
 // Re-export type definitions
 export * from './types';
 
@@ -18,13 +19,13 @@ export {
 // Export placeholder functions
 export { 
   getImagePlaceholdersByKey 
-} from './services/placeholderCacheService';
+} from './services/placeholderService';
 
 // Export cache management functions
 export {
   clearImageUrlCache,
   clearImageUrlCacheForKey
-} from './services/urlCacheService';
+} from './services/cacheService';
 
 // Export cache version management
 export {
@@ -42,8 +43,7 @@ export {
 } from './fetchService';
 
 // Export cache instances for advanced usage
-export { imageCache } from './cacheService';
-export { urlCache } from './utils/urlCache';
+export { imageCache, urlCache } from './cacheService';
 
 // Export utility functions for broader use
 export * from './utils/cacheUtils';
@@ -56,5 +56,5 @@ export * from './utils/databaseUtils';
 export * from './utils/dimensions';
 export * from './utils/optimizationService';
 export * from './utils/optimizationUtils';
-export { generateTinyPlaceholder, generateColorPlaceholder } from './utils/placeholderGenerator';
+export * from './utils/placeholderService';
 export * from './utils/hashUtils';

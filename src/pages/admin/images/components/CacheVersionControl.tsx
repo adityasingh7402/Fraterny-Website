@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Info } from "lucide-react";
+import { RefreshCw, Info, Settings } from "lucide-react";
 import { updateGlobalCacheVersion, getGlobalCacheVersion } from '@/services/images/services/cacheVersionService';
 import { clearImageCache, clearImageUrlCache } from '@/services/images';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import CdnTestingPanel from '@/components/admin/images/CdnTestingPanel';
 
 /**
  * Admin panel component for managing cache versions
@@ -14,6 +15,7 @@ const CacheVersionControl = () => {
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [showCdnPanel, setShowCdnPanel] = useState(false);
 
   // Fetch the current cache version when the component mounts
   React.useEffect(() => {
@@ -79,6 +81,11 @@ const CacheVersionControl = () => {
       setIsLoading(false);
     }
   };
+  
+  // Toggle CDN panel visibility
+  const toggleCdnPanel = () => {
+    setShowCdnPanel(!showCdnPanel);
+  };
 
   return (
     <Card className="bg-white shadow-sm border">
@@ -112,6 +119,21 @@ const CacheVersionControl = () => {
               Updating the cache version will force browsers to download fresh copies of all images, 
               even if they were previously cached. Use this when you've updated images but users are still seeing old versions.
             </p>
+          </div>
+          
+          {/* CDN Settings Section */}
+          <div className="border-t pt-4">
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2 mb-4 text-sm"
+              onClick={toggleCdnPanel}
+              size="sm"
+            >
+              <Settings className="h-4 w-4" />
+              <span>{showCdnPanel ? 'Hide CDN Settings' : 'Show CDN Settings'}</span>
+            </Button>
+            
+            {showCdnPanel && <CdnTestingPanel />}
           </div>
         </div>
       </CardContent>

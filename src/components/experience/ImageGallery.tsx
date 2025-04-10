@@ -88,7 +88,6 @@ const ImageGallery = () => {
               height={image.height}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
               objectFit="cover"
-              preserveCropDimensions={true}
             />
           </div>
         ))}

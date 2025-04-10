@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
 import { useResponsiveImage } from './useResponsiveImage';
-import { useReactQueryResponsiveImage } from './hooks/useReactQueryResponsiveImage';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LoadingPlaceholder } from './components/LoadingPlaceholder';
 import { ErrorPlaceholder } from './components/ErrorPlaceholder';
@@ -13,7 +13,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 
 /**
  * A component that renders responsive images with different sources for mobile, tablet, and desktop
- * Enhanced to maintain crop dimensions and aspect ratios consistently across devices
+ * Enhanced with content-based cache keys, debugging capabilities, and mobile optimization
  */
 const ResponsiveImage = ({
   src,
@@ -29,9 +29,8 @@ const ResponsiveImage = ({
   width,
   height,
   sizes,
-  objectFit = 'contain',
-  debugCache = false,
-  preserveCropDimensions = true // Default to preserving crop dimensions
+  objectFit = 'cover',
+  debugCache = false
 }: ResponsiveImageProps) => {
   const [useMobileSrc, setUseMobileSrc] = useState<boolean>(false);
   const isMobile = useIsMobile();
@@ -56,7 +55,7 @@ const ResponsiveImage = ({
         ? (useLowQualityOnPoorConnection ? 'auto' : 'high') 
         : 'auto'));
 
-  // Use the enhanced React Query hook to load dynamic images with proper dimensions
+  // Use the hook to load dynamic images from storage
   const { 
     isLoading, 
     error, 
@@ -66,21 +65,11 @@ const ResponsiveImage = ({
     colorPlaceholder,
     contentHash,
     isCached,
-    lastUpdated,
-    originalWidth,
-    originalHeight
-  } = useReactQueryResponsiveImage(dynamicKey, 
+    lastUpdated
+  } = useResponsiveImage(dynamicKey, 
     // Use a smaller size on poor connections
     useLowQualityOnPoorConnection && size === 'large' ? 'medium' : size, 
     debugCache);
-  
-  // Determine dimensions and constraints based on original image dimensions
-  const imageStyle: React.CSSProperties = {};
-  
-  // Apply aspect ratio if available
-  if (aspectRatio && preserveCropDimensions) {
-    imageStyle.aspectRatio = `${aspectRatio}`;
-  }
   
   // For debugging
   useEffect(() => {
@@ -89,11 +78,8 @@ const ResponsiveImage = ({
       if (useLowQualityOnPoorConnection) {
         console.log(`[ResponsiveImage] Using lower quality for ${dynamicKey} due to network conditions`);
       }
-      if (originalWidth && originalHeight) {
-        console.log(`[ResponsiveImage] Original dimensions for ${dynamicKey}: ${originalWidth}x${originalHeight}`);
-      }
     }
-  }, [dynamicKey, dynamicSrc, useLowQualityOnPoorConnection, originalWidth, originalHeight]);
+  }, [dynamicKey, dynamicSrc, useLowQualityOnPoorConnection]);
 
   // If we're loading a dynamic image and it's still loading
   if (dynamicKey && isLoading) {
@@ -127,28 +113,17 @@ const ResponsiveImage = ({
   // If we have a dynamic source, use it with mobile optimization
   if (dynamicKey && dynamicSrc) {
     return (
-      <div 
-        className="relative" 
-        style={{ 
-          width, 
-          height,
-          aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
-          overflow: 'hidden',
-          ...imageStyle 
-        }}
-      >
+      <div className={`relative ${className}`} style={{ width, height }}>
         <MobileOptimizedImage
           src={dynamicSrc}
           lowQualitySrc={tinyPlaceholder || undefined}
           alt={alt}
           loading={loading}
-          className={className}
+          className="w-full h-full"
           width={width}
           height={height}
           sizes={sizes}
           objectFit={objectFit}
-          aspectRatio={aspectRatio}
-          preserveCropDimensions={preserveCropDimensions}
         />
         {onClick && (
           <div 
@@ -174,16 +149,7 @@ const ResponsiveImage = ({
   // For responsive image object with mobile, tablet, desktop variants
   if (typeof src === 'object' && 'mobile' in src && 'desktop' in src) {
     return (
-      <div 
-        className="relative" 
-        style={{ 
-          width, 
-          height,
-          aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
-          overflow: 'hidden',
-          ...imageStyle 
-        }}
-      >
+      <div className="relative" style={{ width, height }}>
         <ResponsivePicture
           sources={{
             mobile: src.mobile,
@@ -201,7 +167,6 @@ const ResponsiveImage = ({
           fallbackSrc={fallbackSrc}
           useMobileSrc={useMobileSrc}
           objectFit={objectFit}
-          preserveCropDimensions={preserveCropDimensions}
         />
         {debugCache && (
           <CacheDebugInfo
@@ -216,29 +181,19 @@ const ResponsiveImage = ({
 
   // Default case: simple image
   return (
-    <div 
-      className="relative"
-      style={{ 
-        width, 
-        height,
-        aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
-        overflow: 'hidden',
-        ...imageStyle 
-      }}
-    >
+    <div className="relative" style={{ width, height }}>
       <BasicImage
         src={typeof src === 'string' ? src : fallbackSrc}
         alt={alt}
         loading={loading}
         fetchPriority={finalFetchPriority}
         onClick={onClick}
-        className={className}
+        className={className || "w-full h-full"}
         width={width}
         height={height}
         sizes={sizes}
         fallbackSrc={fallbackSrc}
         objectFit={objectFit}
-        preserveCropDimensions={preserveCropDimensions}
       />
       {debugCache && (
         <CacheDebugInfo

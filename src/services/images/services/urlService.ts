@@ -1,28 +1,23 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../utils/urlCache";
+import { urlCache } from "../cacheService";
 import { WebsiteImage } from "../types";
 import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
-
-// Constants
-const STORAGE_BUCKET = 'website-images';  // Updated to match exact bucket name
 
 /**
  * Get the image URL by key
  */
 export const getImageUrlByKey = async (key: string): Promise<string> => {
-  try {
-    console.log(`[getImageUrlByKey] Starting URL generation for key: "${key}"`);
+  // First check if this URL is in the URL cache
+  const cachedUrl = urlCache.get(`url:${key}`);
+  if (cachedUrl) {
+    console.log(`[getImageUrlByKey] Using cached URL for ${key}`);
+    return cachedUrl;
+  }
 
-    // First check if this URL is in the URL cache
-    const cachedUrl = urlCache.get(`url:${key}`);
-    if (cachedUrl && typeof cachedUrl === 'string' && cachedUrl !== 'null') {
-      console.log(`[getImageUrlByKey] Using valid cached URL for ${key}:`, cachedUrl);
-      return cachedUrl;
-    } else {
-      // Clear invalid cache entry if it exists
-      urlCache.delete(`url:${key}`);
-    }
+  try {
+    console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
 
     // Fetch the image record to get the storage path and metadata
     const { data, error } = await supabase
@@ -31,64 +26,58 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .eq('key', key)
       .maybeSingle();
 
-    console.log(`[getImageUrlByKey] Database response for ${key}:`, {
-      data,
-      error,
-      hasStoragePath: data?.storage_path ? true : false,
-      storagePath: data?.storage_path
-    });
-
     if (error) {
-      console.error(`[getImageUrlByKey] Database error:`, error);
+      console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
       return '/placeholder.svg';
     }
 
     if (!data || !data.storage_path) {
-      console.warn(`[getImageUrlByKey] Missing data or storage_path`);
+      console.warn(`[getImageUrlByKey] No image or storage path found for key ${key}`);
       return '/placeholder.svg';
     }
 
-    // Try to get a public URL first
-    const publicUrlResult = supabase.storage
-      .from(STORAGE_BUCKET)
+    // Get the global cache version from website settings
+    const globalVersion = await getGlobalCacheVersion();
+
+    // Get the public URL for this storage path
+    const { data: urlData } = supabase.storage
+      .from('website-images')
       .getPublicUrl(data.storage_path);
 
-    console.log(`[getImageUrlByKey] Public URL generation attempt:`, {
-      bucket: STORAGE_BUCKET,
-      storagePath: data.storage_path,
-      result: publicUrlResult
-    });
-
-    let finalUrl = '';
-
-    if (publicUrlResult.data?.publicUrl) {
-      finalUrl = publicUrlResult.data.publicUrl;
-      console.log(`[getImageUrlByKey] Successfully generated public URL:`, finalUrl);
-    } else {
-      // Fall back to signed URL if public URL is not available
-      console.log(`[getImageUrlByKey] Falling back to signed URL`);
-      const signedUrlResult = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(data.storage_path, 3600);
-
-      if (!signedUrlResult.data?.signedUrl) {
-        console.warn(`[getImageUrlByKey] Failed to generate any URL`);
-        return '/placeholder.svg';
-      }
-
-      finalUrl = signedUrlResult.data.signedUrl;
+    if (!urlData || !urlData.publicUrl) {
+      console.warn(`[getImageUrlByKey] Failed to get public URL for storage path: ${data.storage_path}`);
+      return '/placeholder.svg';
     }
 
-    // Only cache and return valid URLs
-    if (finalUrl && typeof finalUrl === 'string' && finalUrl !== 'null') {
-      const ttl = finalUrl.includes('token=') ? 3000 : 3600;
-      urlCache.set(`url:${key}`, finalUrl, ttl);
-      return finalUrl;
+    // Extract content hash from metadata if available
+    // Use safe type checking to avoid errors with different metadata formats
+    let contentHash = null;
+    if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
+      contentHash = data.metadata.contentHash || null;
+    }
+    
+    // Build the final URL with both content hash and global version for cache busting
+    let finalUrl = urlData.publicUrl;
+    if (contentHash) {
+      // Use content hash as primary cache key
+      finalUrl = addHashToUrl(finalUrl, contentHash);
+    }
+    
+    // Add global version as secondary cache parameter if available
+    if (globalVersion) {
+      finalUrl = finalUrl.includes('?') 
+        ? `${finalUrl}&gv=${globalVersion}` 
+        : `${finalUrl}?gv=${globalVersion}`;
     }
 
-    return '/placeholder.svg';
+    console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
+
+    // Cache the URL for future use
+    urlCache.set(`url:${key}`, finalUrl);
+
+    return finalUrl;
   } catch (e) {
-    console.error(`[getImageUrlByKey] Unexpected error:`, e);
+    console.error(`[getImageUrlByKey] Unexpected error for key ${key}:`, e);
     return '/placeholder.svg';
   }
 };
@@ -142,7 +131,7 @@ export const getImageUrlByKeyAndSize = async (
     if (data.sizes && data.sizes[size]) {
       // Get the public URL for this optimized size
       const { data: urlData } = supabase.storage
-        .from(STORAGE_BUCKET)  // Using constant instead of hardcoded string
+        .from('website-images')
         .getPublicUrl(data.sizes[size]);
 
       if (!urlData || !urlData.publicUrl) {
