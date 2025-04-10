@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Info, Globe, CheckCircle2, XCircle, RefreshCw, 
-  Settings2, Ban, AlertTriangle, Trash2 
+  Settings2, Ban, AlertTriangle, Trash2, FileWarning
 } from "lucide-react";
 import { 
   testCdnConnection, 
@@ -63,12 +62,57 @@ const CdnTestingPanel = () => {
   const testCdnAvailability = async () => {
     setIsTestingCdn(true);
     try {
-      const isAvailable = await testCdnConnection();
-      setIsCdnAvailable(isAvailable);
+      // Test with both an image and placeholder
+      const cdnBase = getCdnBaseUrl();
+      const testImageUrl = `${cdnBase}/images/hero/luxury-villa-mobile.webp`;
+      const testPlaceholderUrl = `${cdnBase}/placeholder.svg`;
       
-      if (isAvailable) {
+      console.log(`[CDN] Testing regular image URL: ${testImageUrl}`);
+      console.log(`[CDN] Testing placeholder URL: ${testPlaceholderUrl}`);
+      
+      // Test both URLs
+      const [imageResponse, placeholderResponse] = await Promise.all([
+        fetch(testImageUrl, { 
+          method: 'HEAD',
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }),
+        fetch(testPlaceholderUrl, { 
+          method: 'HEAD',
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
+      ]);
+      
+      console.log(`[CDN] Image test result: ${imageResponse.status} ${imageResponse.ok}`);
+      console.log(`[CDN] Placeholder test result: ${placeholderResponse.status} ${placeholderResponse.ok}`);
+      
+      // Check if both tests passed
+      const isImageAvailable = imageResponse.ok;
+      const isPlaceholderAvailable = placeholderResponse.ok;
+      const isFullyAvailable = isImageAvailable && isPlaceholderAvailable;
+      
+      setIsCdnAvailable(isFullyAvailable);
+      
+      if (isFullyAvailable) {
         toast.success('CDN connection successful', {
-          description: 'Your CDN is correctly configured.',
+          description: 'Your CDN is correctly configured for both images and placeholders.',
+        });
+      } else if (isImageAvailable) {
+        toast.warning('CDN partially working', {
+          description: 'Regular images work but placeholder images are not being served correctly.',
+        });
+      } else if (isPlaceholderAvailable) {
+        toast.warning('CDN partially working', {
+          description: 'Placeholder images work but regular images are not being served correctly.',
         });
       } else {
         toast.error('CDN connection failed', {
@@ -200,7 +244,16 @@ const CdnTestingPanel = () => {
         )}
       </Button>
 
-      {/* Advanced Settings Toggle */}
+      <div className="border rounded-md p-3 bg-amber-50 border-amber-200">
+        <div className="flex items-start">
+          <FileWarning className="h-4 w-4 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
+          <div className="text-sm text-amber-800">
+            <p>If you're seeing 404 errors for placeholder.svg, make sure your CDN worker is configured to handle placeholder images.</p>
+            <p className="mt-1">Consider adding '/placeholder.svg' to your CDN exclusions below if the issue persists.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="pt-2">
         <Button
           variant="ghost"
@@ -213,10 +266,8 @@ const CdnTestingPanel = () => {
         </Button>
       </div>
 
-      {/* Advanced Settings Panel */}
       {showAdvancedSettings && (
         <div className="border rounded-md p-3 space-y-4 bg-gray-50">
-          {/* Path Exclusion Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Ban className="h-4 w-4 text-amber-600" />
@@ -245,7 +296,6 @@ const CdnTestingPanel = () => {
             </Button>
           </div>
 
-          {/* Add Exclusion Input */}
           <div className="flex space-x-2">
             <Input
               placeholder="/images/hero/* or /specific-path.jpg"
@@ -262,7 +312,6 @@ const CdnTestingPanel = () => {
             </Button>
           </div>
 
-          {/* Exclusion List */}
           <div className="space-y-2">
             {pathExclusions.length > 0 ? (
               <div className="flex flex-wrap gap-2">
