@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { createImageProps } from '../utils';
 import { ResponsiveImageSource } from '../types';
-import { getCdnUrl } from '@/utils/cdnUtils';
 
 interface ResponsivePictureProps {
   sources: ResponsiveImageSource;
@@ -17,12 +15,10 @@ interface ResponsivePictureProps {
   sizes?: string;
   useMobileSrc?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  useCdn?: boolean;
 }
 
 /**
  * Responsive picture component for different device sizes
- * Now with optional CDN support
  */
 export const ResponsivePicture = ({
   sources,
@@ -36,27 +32,17 @@ export const ResponsivePicture = ({
   height,
   sizes,
   useMobileSrc,
-  objectFit = 'cover',
-  useCdn = true
+  objectFit = 'cover'
 }: ResponsivePictureProps) => {
-  // Process all URLs through CDN if enabled
-  const processedSources = useCdn ? {
-    desktop: getCdnUrl(sources.desktop) || sources.desktop,
-    mobile: sources.mobile ? (getCdnUrl(sources.mobile) || sources.mobile) : undefined,
-    tablet: sources.tablet ? (getCdnUrl(sources.tablet) || sources.tablet) : undefined
-  } : sources;
-  
-  const processedFallbackSrc = useCdn ? getCdnUrl(fallbackSrc) || fallbackSrc : fallbackSrc;
-  
   const imgProps = createImageProps(
-    processedSources.desktop, 
+    sources.desktop, 
     alt, 
     className, 
     loading, 
     sizes,
     width, 
     height, 
-    processedFallbackSrc, 
+    fallbackSrc, 
     fetchPriority
   );
   
@@ -68,9 +54,9 @@ export const ResponsivePicture = ({
   
   return (
     <picture onClick={onClick}>
-      {processedSources.mobile && <source media="(max-width: 640px)" srcSet={processedSources.mobile} />}
-      {processedSources.tablet && <source media="(max-width: 1024px)" srcSet={processedSources.tablet} />}
-      <source media="(min-width: 641px)" srcSet={processedSources.desktop} />
+      {sources.mobile && <source media="(max-width: 640px)" srcSet={sources.mobile} />}
+      {sources.tablet && <source media="(max-width: 1024px)" srcSet={sources.tablet} />}
+      <source media="(min-width: 641px)" srcSet={sources.desktop} />
       <img {...imgProps} style={style} />
     </picture>
   );
