@@ -29,7 +29,7 @@ export const BasicImage = ({
   width,
   height,
   sizes,
-  objectFit = 'cover'
+  objectFit = 'contain'
 }: BasicImageProps) => {
   const imgProps = createImageProps(
     src, 
