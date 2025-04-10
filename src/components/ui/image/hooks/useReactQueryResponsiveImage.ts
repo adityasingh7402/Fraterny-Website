@@ -1,136 +1,66 @@
+import { useQuery } from '@tanstack/react-query';
+import { getImageUrlByKeyAndSize } from '@/services/images';
+import { ResponsiveImageSource } from '../types';
 
-import { useState, useEffect } from 'react';
-import { useReactQueryImages } from '@/hooks/useReactQueryImages';
-import { getImagePlaceholdersByKey } from '@/services/images';
-import { useNetworkStatus } from '@/hooks/use-network-status';
-import { ImageLoadingState } from '../types';
-import { getCdnUrl } from '@/utils/cdnUtils';
+interface UseReactQueryResponsiveImageOptions {
+  key: string;
+  alt: string;
+  className?: string;
+  loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
+  onClick?: () => void;
+  fallbackSrc?: string;
+  width?: number;
+  height?: number;
+  sizes?: string;
+  useMobileSrc?: boolean;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+}
 
-/**
- * Enhanced hook that combines React Query with existing image loading system
- * Now with optional CDN support
- */
-export const useReactQueryResponsiveImage = (
-  dynamicKey?: string,
-  size?: 'small' | 'medium' | 'large',
-  debugCache?: boolean
-): ImageLoadingState => {
-  const [state, setState] = useState<ImageLoadingState>({
-    isLoading: !!dynamicKey,
-    error: false,
-    dynamicSrc: null,
-    aspectRatio: undefined,
-    tinyPlaceholder: null,
-    colorPlaceholder: null,
-    contentHash: null,
-    isCached: false,
-    lastUpdated: null
-  });
-  
-  const network = useNetworkStatus();
-  const { useImageUrl, useImage } = useReactQueryImages();
-  
-  // Use React Query to fetch the image URL
-  const { 
-    data: urlData, 
-    isLoading: urlLoading,
-    error: urlError
-  } = useImageUrl(dynamicKey, size);
-  
-  // In parallel, fetch the image metadata to get additional information
+export const useReactQueryResponsiveImage = (options: UseReactQueryResponsiveImageOptions) => {
   const {
-    data: imageData,
-    isLoading: imageLoading,
-    error: imageError
-  } = useImage(dynamicKey);
-  
-  // Combine the data from both queries to provide all necessary information
-  useEffect(() => {
-    if (!dynamicKey) return;
-    
-    const loadPlaceholders = async () => {
-      try {
-        if (!imageData && !urlData) return;
-        
-        // Get placeholders for progressive loading
-        let placeholderData = { tinyPlaceholder: null, colorPlaceholder: null };
-        
-        // Prioritize placeholders on slow connections
-        const fetchPlaceholdersFirst = ['slow-2g', '2g'].includes(network.effectiveConnectionType);
-        
-        if (fetchPlaceholdersFirst) {
-          placeholderData = await getImagePlaceholdersByKey(dynamicKey);
-          
-          // Show placeholder immediately
-          if (placeholderData.tinyPlaceholder) {
-            setState(prev => ({
-              ...prev,
-              tinyPlaceholder: placeholderData.tinyPlaceholder,
-              colorPlaceholder: placeholderData.colorPlaceholder,
-            }));
-          }
-        }
-        
-        // If we have the URL data, we can show the image
-        if (urlData && urlData.url) {
-          // Check if we have any content hash from the metadata
-          let contentHash = null;
-          
-          // Safely extract contentHash from metadata if it exists and is an object (not an array)
-          if (imageData && imageData.metadata) {
-            // Check if metadata is an object (not null and not an array)
-            if (typeof imageData.metadata === 'object' && 
-                imageData.metadata !== null && 
-                !Array.isArray(imageData.metadata)) {
-              // Now TypeScript knows this is a record/object type
-              contentHash = (imageData.metadata as Record<string, any>).contentHash || null;
-            }
-          }
-          
-          // If we don't have placeholders yet, fetch them
-          if (!placeholderData.tinyPlaceholder && !fetchPlaceholdersFirst) {
-            placeholderData = await getImagePlaceholdersByKey(dynamicKey);
-          }
-          
-          // Calculate aspect ratio
-          let aspectRatio: number | undefined = undefined;
-          if (imageData && imageData.width && imageData.height) {
-            aspectRatio = imageData.width / imageData.height;
-          }
-          
-          // Process the URL through our CDN if available
-          const processedUrl = getCdnUrl(urlData.url) || urlData.url;
-          
-          // Update state with all the information
-          setState({
-            isLoading: false,
-            error: false,
-            dynamicSrc: processedUrl,
-            aspectRatio,
-            tinyPlaceholder: placeholderData.tinyPlaceholder,
-            colorPlaceholder: placeholderData.colorPlaceholder,
-            contentHash,
-            isCached: true, // We're using React Query, so it's always from cache first
-            lastUpdated: imageData?.updated_at || null
-          });
-        }
-      } catch (error) {
-        console.error(`Error in useReactQueryResponsiveImage for ${dynamicKey}:`, error);
-        setState(prev => ({ ...prev, error: true, isLoading: false }));
-      }
-    };
-    
-    // Only need to load placeholders if we have the URL
-    if (!urlLoading && !imageLoading && !urlError && !imageError) {
-      loadPlaceholders();
+    key,
+    alt,
+    className,
+    loading = 'lazy',
+    fetchPriority,
+    onClick,
+    fallbackSrc = '/placeholder.svg',
+    width,
+    height,
+    sizes,
+    useMobileSrc,
+    objectFit = 'cover'
+  } = options;
+
+  const { data: urlData, isLoading } = useQuery({
+    queryKey: ['image', key],
+    queryFn: async () => {
+      const desktopUrl = await getImageUrlByKeyAndSize(key, 'large');
+      const mobileUrl = await getImageUrlByKeyAndSize(key, 'small');
+      const tabletUrl = await getImageUrlByKeyAndSize(key, 'medium');
+
+      return {
+        desktop: desktopUrl,
+        mobile: mobileUrl,
+        tablet: tabletUrl
+      };
     }
-    
-    // Set error state if there was a problem
-    if (urlError || imageError) {
-      setState(prev => ({ ...prev, error: true, isLoading: false }));
-    }
-    
-  }, [dynamicKey, urlData, imageData, urlLoading, imageLoading, urlError, imageError, network.effectiveConnectionType]);
-  
-  return state;
+  });
+
+  return {
+    sources: urlData,
+    alt,
+    className,
+    loading,
+    fetchPriority,
+    onClick,
+    fallbackSrc,
+    width,
+    height,
+    sizes,
+    useMobileSrc,
+    objectFit,
+    isLoading
+  };
 };
