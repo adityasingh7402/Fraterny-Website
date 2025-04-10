@@ -24,13 +24,15 @@ import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
+// Create a more explicit router configuration
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <Index /> },
+      // Make the Index component explicitly assigned to the root path
+      { path: "", element: <Index /> },
       { path: "auth", element: <Auth /> },
       { path: "experience", element: <Experience /> },
       { path: "process", element: <Process /> },

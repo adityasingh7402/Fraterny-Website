@@ -24,7 +24,7 @@ const NotFound = () => {
     }
   }, [location]);
 
-  const handleHomeClick = (e) => {
+  const handleHomeClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     if (navigate) {
       navigate("/");
