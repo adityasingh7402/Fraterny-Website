@@ -1,4 +1,3 @@
-
 // Re-export type definitions
 export * from './types';
 
@@ -13,7 +12,8 @@ export * from './deleteService';
 // Export URL service functions directly
 export { 
   getImageUrlByKey, 
-  getImageUrlByKeyAndSize 
+  getImageUrlByKeyAndSize,
+  getImageUrlsByKeys
 } from './services/urlService';
 
 // Export placeholder functions
