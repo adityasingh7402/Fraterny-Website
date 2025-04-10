@@ -1,4 +1,3 @@
-
 import { WebsiteImage } from '@/services/images';
 import PageHeader from './components/PageHeader';
 import LoadingState from './components/LoadingState';
@@ -10,7 +9,7 @@ import { UploadModal } from './components/upload';
 import EditModal from './components/EditModal';
 import DeleteModal from './components/DeleteModal';
 import { useImageManagement } from './hooks/useImageManagement';
-import CacheVersionControl from './components/CacheVersionControl';
+import { CacheVersionControl } from './components/CacheVersionControl';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminImages = () => {
