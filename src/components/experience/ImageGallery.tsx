@@ -1,5 +1,6 @@
+'use client';
 
-import React from 'react';
+import { FC } from 'react';
 import ResponsiveImage from '../ui/ResponsiveImage';
 
 // Updated to use dynamic keys where possible and add sizes
@@ -13,7 +14,7 @@ const experienceImages = [
     },
     alt: "Luxury villa retreat where entrepreneurs gather for deep connections",
     width: 800,
-    height: 600
+    height: 800
   },
   {
     dynamicKey: "experience-workshop",
@@ -24,7 +25,7 @@ const experienceImages = [
     },
     alt: "Interactive workshop session with driven professionals",
     width: 800,
-    height: 600
+    height: 800
   },
   {
     dynamicKey: "experience-networking",
@@ -35,7 +36,7 @@ const experienceImages = [
     },
     alt: "Meaningful networking among ambitious individuals",
     width: 800,
-    height: 600
+    height: 800
   },
   {
     dynamicKey: "experience-collaboration",
@@ -46,7 +47,7 @@ const experienceImages = [
     },
     alt: "Collaborative problem-solving in a premium environment",
     width: 800,
-    height: 600
+    height: 800
   },
   {
     dynamicKey: "experience-evening-session",
@@ -57,7 +58,7 @@ const experienceImages = [
     },
     alt: "Evening mastermind session with panoramic views",
     width: 800,
-    height: 600
+    height: 800
   },
   {
     dynamicKey: "experience-gourmet-dining",
@@ -68,16 +69,16 @@ const experienceImages = [
     },
     alt: "Gourmet dining experience bringing people together",
     width: 800,
-    height: 600
+    height: 800
   }
 ];
 
-const ImageGallery = () => {
+const ImageGallery: FC = () => {
   return (
-    <section className="w-full overflow-hidden">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1">
+    <section className="w-full">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-0">
         {experienceImages.map((image, index) => (
-          <div key={index} className="aspect-[4/3] w-full">
+          <div key={index} className="aspect-square w-full">
             <ResponsiveImage 
               src={image.fallback}
               alt={image.alt}
@@ -86,8 +87,8 @@ const ImageGallery = () => {
               dynamicKey={image.dynamicKey}
               width={image.width}
               height={image.height}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-              objectFit="contain"
+              sizes="(max-width: 768px) 50vw, 33.33vw"
+              objectFit="cover"
             />
           </div>
         ))}
