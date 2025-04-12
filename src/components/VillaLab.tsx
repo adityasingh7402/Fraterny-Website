@@ -41,8 +41,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/workshop-desktop.webp"
       },
       alt: "Interactive workshop session",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Gourmet Meals", 
@@ -52,8 +51,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/gourmet-desktop.webp"
       },
       alt: "Premium dining experience",
-      width: 600,
-      height: 600
+      
     },
     { 
       title: "Group Activities", 
@@ -63,8 +61,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/group-desktop.webp"
       },
       alt: "Team-building activity in progress",
-      width: 600,
-      height: 600
+      
     },
     { 
       title: "Candid Interactions", 
@@ -74,8 +71,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/candid-desktop.webp"
       },
       alt: "Natural conversation between participants",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Networking", 
@@ -85,8 +81,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/networking-desktop.webp"
       },
       alt: "Professional connections being formed",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Evening Sessions", 
@@ -96,8 +91,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/evening-desktop.webp"
       },
       alt: "Deep discussions in evening setting",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Brainstorming", 
@@ -107,8 +101,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/brainstorm-desktop.webp"
       },
       alt: "Collaborative ideation session",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Mentorship", 
@@ -118,8 +111,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/mentorship-desktop.webp"
       },
       alt: "One-on-one guidance session",
-      width: 600,
-      height: 600
+    
     },
     { 
       title: "Social Events", 
@@ -129,8 +121,7 @@ const VillaLab = () => {
         desktop: "/images/villalab/social-desktop.webp"
       },
       alt: "Relaxed social gathering",
-      width: 600,
-      height: 600
+    
     }
   ], []);
 
@@ -154,7 +145,7 @@ const VillaLab = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
           {activities.slice(0, displayCount).map((activity, index) => {
             // Determine loading strategy:
             // - First images load eagerly
@@ -172,7 +163,7 @@ const VillaLab = () => {
             return (
               <div 
                 key={index}
-                className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 flex items-center justify-center ${
+                className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 ${
                   isVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
@@ -182,13 +173,10 @@ const VillaLab = () => {
                 <ResponsiveImage
                   src={activity.fallbackSrc}
                   alt={activity.alt}
-                  className="w-full h-full"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   loading={loadingStrategy}
                   dynamicKey={activity.dynamicKey}
-                  width={activity.width}
-                  height={activity.height}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
-                  objectFit="cover"
+                  
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                   <span className="text-white p-4 font-medium">{activity.title}</span>
