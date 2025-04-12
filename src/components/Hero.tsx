@@ -50,10 +50,6 @@ const Hero = () => {
       {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
         <ResponsiveImage
-          src={{
-            mobile: "/images/hero/luxury-villa-mobile.webp",
-            desktop: "/images/hero/luxury-villa-desktop.webp"
-          }}
           alt="Stunning luxury villa with breathtaking views"
           className="w-full h-full object-cover"
           loading="eager"
