@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getImageUrlByKey, 
@@ -10,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import { ImageLoadingState } from './types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * Custom hook to handle dynamic image loading from storage
@@ -33,16 +33,22 @@ export const useResponsiveImage = (
   });
   
   const network = useNetworkStatus();
+  const isMobile = useIsMobile();
   
   // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
     if (!dynamicKey) return;
     
+    // Modify the key for mobile devices if it doesn't already have a mobile suffix
+    const effectiveKey = isMobile && !dynamicKey.includes('-mobile') 
+      ? `${dynamicKey}-mobile`
+      : dynamicKey;
+    
     setState(prev => ({ ...prev, isLoading: true, error: false }));
     
     // Clear cache for this key to ensure we get fresh data in development
     if (process.env.NODE_ENV === 'development') {
-      clearImageUrlCacheForKey(dynamicKey);
+      clearImageUrlCacheForKey(effectiveKey);
     }
     
     const fetchImage = async () => {
@@ -51,7 +57,7 @@ export const useResponsiveImage = (
         const globalVersion = await getGlobalCacheVersion();
         
         // Load from performance cache if available and network is not offline
-        const cacheKey = `perfcache:${dynamicKey}:${size || 'original'}:${globalVersion || ''}`;
+        const cacheKey = `perfcache:${effectiveKey}:${size || 'original'}:${globalVersion || ''}`;
         const cachedData = navigator.onLine ? sessionStorage.getItem(cacheKey) : null;
         let cachedImageInfo: any = null;
         
@@ -69,7 +75,7 @@ export const useResponsiveImage = (
             // Use cache if it's less than the expiry time
             if (cacheAge < cacheExpiryTime) {
               cachedImageInfo = parsed;
-              if (debugCache) console.log(`Using cached image data for ${dynamicKey}`);
+              if (debugCache) console.log(`Using cached image data for ${effectiveKey}`);
             }
           } catch (e) {
             console.error('Error parsing cached image data:', e);
@@ -84,7 +90,7 @@ export const useResponsiveImage = (
         let colorPlaceholder = null;
         
         if (fetchPlaceholdersFirst) {
-          const placeholders = await getImagePlaceholdersByKey(dynamicKey);
+          const placeholders = await getImagePlaceholdersByKey(effectiveKey);
           tinyPlaceholder = placeholders.tinyPlaceholder;
           colorPlaceholder = placeholders.colorPlaceholder;
           
@@ -115,15 +121,15 @@ export const useResponsiveImage = (
           return;
         }
         
-        if (debugCache) console.log(`Fetching image with key: ${dynamicKey}, size: ${size || 'original'}`);
+        if (debugCache) console.log(`Fetching image with key: ${effectiveKey}, size: ${size || 'original'}`);
         
         // Fetch placeholders in parallel with the main image for faster loading
         const placeholdersPromise = !fetchPlaceholdersFirst ? 
-          getImagePlaceholdersByKey(dynamicKey) : 
+          getImagePlaceholdersByKey(effectiveKey) : 
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
         // Handle mobile variant keys
-        const isMobileKey = dynamicKey.includes('mobile');
+        const isMobileKey = effectiveKey.includes('mobile');
         let imageUrl: string;
         let fallbackToDesktop = false;
         
@@ -132,7 +138,7 @@ export const useResponsiveImage = (
         
         // If size is specified, try to get that specific size
         if (size) {
-          imageUrl = await getImageUrlByKeyAndSize(dynamicKey, size);
+          imageUrl = await getImageUrlByKeyAndSize(effectiveKey, size);
           
           // Extract content hash from URL
           try {
@@ -145,14 +151,14 @@ export const useResponsiveImage = (
           if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
             // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
+            const desktopKey = effectiveKey.replace('-mobile', '');
             console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
             imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
             fallbackToDesktop = true;
           }
         } else {
           // Otherwise get the original image
-          imageUrl = await getImageUrlByKey(dynamicKey);
+          imageUrl = await getImageUrlByKey(effectiveKey);
           
           // Extract content hash from URL
           try {
@@ -165,7 +171,7 @@ export const useResponsiveImage = (
           if (imageUrl === '/placeholder.svg' && isMobileKey) {
             // If this is a mobile key and we got a placeholder,
             // try the desktop version instead (removing the -mobile suffix)
-            const desktopKey = dynamicKey.replace('-mobile', '');
+            const desktopKey = effectiveKey.replace('-mobile', '');
             console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
             imageUrl = await getImageUrlByKey(desktopKey);
             fallbackToDesktop = true;
@@ -181,7 +187,7 @@ export const useResponsiveImage = (
         
         // If we switched to desktop key but don't have placeholders, try getting them from desktop key
         if (fallbackToDesktop && (!tinyPlaceholder && !colorPlaceholder)) {
-          const desktopKey = dynamicKey.replace('-mobile', '');
+          const desktopKey = effectiveKey.replace('-mobile', '');
           const desktopPlaceholders = await getImagePlaceholdersByKey(desktopKey);
           tinyPlaceholder = desktopPlaceholders.tinyPlaceholder;
           colorPlaceholder = desktopPlaceholders.colorPlaceholder;
