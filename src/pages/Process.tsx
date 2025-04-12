@@ -41,52 +41,51 @@ const Process = () => {
       
         {/* Gradient Overlay */}
         <div 
-           className="absolute inset-0"
-           style={{
-             background: `linear-gradient(to right, 
-               rgba(10, 26, 47, 0.95) 0%,
-               rgba(10, 26, 47, 0.8) 50%,
-               rgba(10, 26, 47, 0.6) 100%
-             )`
-           }}
-         />
- 
-         <div className="container mx-auto px-6 relative z-10">
-           <div className="max-w-3xl">
-             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
-               It's not special if everyone has it
-             </h1>
-             <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-               We make sure you interact with only ambitious, likeminded and interesting people.
-             </p>
-             
-             {/* Application Status */}
-             <div className="flex flex-wrap gap-8 items-center">
-               <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-lg p-4">
-                 <div className="text-sm text-gray-400">Available Seats</div>
-                 <div className="text-2xl font-mono">
-                   {isLoading ? (
-                     <span className="opacity-50">Loading...</span>
-                   ) : (
-                     settings?.available_seats || 20
-                   )}
-                 </div>
-               </div>
-               <div>
-                 <div className="text-sm text-gray-400">Applications Close</div>
-                 <div className="text-xl">
-                   {isLoading ? (
-                     <span className="opacity-50">Loading...</span>
-                   ) : (
-                     formattedCloseDate
-                   )}
-                 </div>
-               </div>
-             </div>
-           </div>
-      </section>
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to right, 
+              rgba(10, 26, 47, 0.95) 0%,
+              rgba(10, 26, 47, 0.8) 50%,
+              rgba(10, 26, 47, 0.6) 100%
+            )`
+          }}
+        />
 
- 
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
+              It's not special if everyone has it
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+              We make sure you interact with only ambitious, likeminded and interesting people.
+            </p>
+            
+            {/* Application Status */}
+            <div className="flex flex-wrap gap-8 items-center">
+              <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-sm text-gray-400">Available Seats</div>
+                <div className="text-2xl font-mono">
+                  {isLoading ? (
+                    <span className="opacity-50">Loading...</span>
+                  ) : (
+                    settings?.available_seats || 20
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400">Applications Close</div>
+                <div className="text-xl">
+                  {isLoading ? (
+                    <span className="opacity-50">Loading...</span>
+                  ) : (
+                    formattedCloseDate
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Who is this for? Section - MOBILE OPTIMIZED */}
       <section className="pt-16 md:pt-20 pb-10 md:pb-16 bg-white">
