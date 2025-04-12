@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { lazy, Suspense } from 'react';
 import { formatRegistrationCloseDate } from '@/services/website-settings';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import ResponsiveImage from '../components/ui/ResponsiveImage';
 
 const APPLICATION_FORM_URL = "https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit";
 const LEARN_MORE_URL = "https://docs.google.com/forms/d/1lJIJPAbR3BqiLNRdRrUpuulDYPVGdYN34Th840/edit";
@@ -102,11 +103,15 @@ const Pricing = () => {
       
       <section className="pt-32 pb-16 bg-navy text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img
-            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&q=75&w=1920"
-            alt="Luxury Work-Vacation Setting"
-            className="w-full h-full object-cover"
-            fetchPriority="high"
+        <ResponsiveImage 
+            src={{
+              mobile: "/images/hero/pricing-hero-mobile.webp",
+              desktop: "/images/hero/pricing-hero-desktop.webp"
+            }}
+            alt="Luxury villa experience setting"
+            className="h-full w-full object-cover"
+            loading="eager"
+            dynamicKey="pricing-hero"
           />
         </div>
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
