@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/websiteSettingsService';
-import ResponsiveImage from '../ui/ResponsiveImage';
+import ResponsiveImage from '../components/ui/ResponsiveImage';
 
 const Process = () => {
   const { data: settings, isLoading } = useQuery({
