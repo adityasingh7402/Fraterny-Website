@@ -29,8 +29,8 @@ const Process = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat">
           <ResponsiveImage 
             src={{
-              mobile: "/images/hero/experience-hero-mobile.webp",
-              desktop: "/images/hero/experience-hero-desktop.webp"
+              mobile: "/images/hero/process-hero-mobile.webp",
+              desktop: "/images/hero/process-hero-desktop.webp"
             }}
             alt="Luxury villa experience setting"
             className="h-full w-full object-cover"
