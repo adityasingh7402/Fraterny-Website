@@ -171,7 +171,6 @@ const VillaLab = () => {
                 }}
               >
                 <ResponsiveImage
-                  src={activity.fallbackSrc}
                   alt={activity.alt}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   loading={loadingStrategy}
