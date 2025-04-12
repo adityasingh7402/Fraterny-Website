@@ -68,7 +68,6 @@ const ImageGallery = () => {
         {experienceImages.map((image, index) => (
           <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 
-              src={image.fallback}
               alt={image.alt}
               loading={index < 2 ? "eager" : "lazy"}
               dynamicKey={image.dynamicKey}
