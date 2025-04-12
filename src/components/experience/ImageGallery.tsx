@@ -75,24 +75,22 @@ const experienceImages = [
 
 const ImageGallery: FC = () => {
   return (
-    <section className="w-full bg-white">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0">
+    <section className="w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
         {experienceImages.map((image, index) => (
-          <div key={index} className="relative w-full h-[400px] flex items-center justify-center">
-            <div className="w-full h-full flex items-center justify-center">
-              <ResponsiveImage 
-                src={image.fallback}
-                alt={image.alt}
-                className="max-w-full max-h-full w-auto h-auto"
-                loading={index < 2 ? "eager" : "lazy"}
-                dynamicKey={image.dynamicKey}
-                width={image.width}
-                height={image.height}
-                sizes="(max-width: 640px) 100vw, 50vw"
-                objectFit="contain"
-                priority={index < 2}
-              />
-            </div>
+          <div key={index} className="relative h-[300px] overflow-hidden">
+            <ResponsiveImage 
+              src={image.fallback}
+              alt={image.alt}
+              className="w-full h-full"
+              loading={index < 2 ? "eager" : "lazy"}
+              dynamicKey={image.dynamicKey}
+              width={image.width}
+              height={image.height}
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33.33vw"
+              objectFit="cover"
+              priority={index < 2}
+            />
           </div>
         ))}
       </div>
