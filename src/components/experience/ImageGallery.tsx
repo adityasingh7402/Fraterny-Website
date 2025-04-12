@@ -1,4 +1,3 @@
-
 'use client';
 
 import { FC } from 'react';
@@ -14,8 +13,6 @@ const experienceImages = [
       desktop: "/images/experience/villa-retreat-desktop.webp"
     },
     alt: "Luxury villa retreat where entrepreneurs gather for deep connections",
-    width: 1920,
-    height: 1080
   },
   {
     dynamicKey: "experience-workshop",
@@ -25,8 +22,6 @@ const experienceImages = [
       desktop: "/images/experience/workshop-desktop.webp"
     },
     alt: "Interactive workshop session with driven professionals",
-    width: 1920,
-    height: 1080
   },
   {
     dynamicKey: "experience-networking",
@@ -36,8 +31,6 @@ const experienceImages = [
       desktop: "/images/experience/networking-desktop.webp"
     },
     alt: "Meaningful networking among ambitious individuals",
-    width: 1920,
-    height: 1080
   },
   {
     dynamicKey: "experience-collaboration",
@@ -47,8 +40,6 @@ const experienceImages = [
       desktop: "/images/experience/collaboration-desktop.webp"
     },
     alt: "Collaborative problem-solving in a premium environment",
-    width: 1920,
-    height: 1080
   },
   {
     dynamicKey: "experience-evening-session",
@@ -58,8 +49,6 @@ const experienceImages = [
       desktop: "/images/experience/evening-session-desktop.webp"
     },
     alt: "Evening mastermind session with panoramic views",
-    width: 1920,
-    height: 1080
   },
   {
     dynamicKey: "experience-gourmet-dining",
@@ -69,28 +58,21 @@ const experienceImages = [
       desktop: "/images/experience/gourmet-dining-desktop.webp"
     },
     alt: "Gourmet dining experience bringing people together",
-    width: 1920,
-    height: 1080
   }
 ];
 
-const ImageGallery: FC = () => {
+const ImageGallery = () => {
   return (
     <section className="w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
+      <div className="grid grid-cols-2 md:grid-cols-2">
         {experienceImages.map((image, index) => (
-          <div key={index} className="relative h-[400px] overflow-hidden">
+          <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 
               src={image.fallback}
               alt={image.alt}
-              className="w-full h-full"
               loading={index < 2 ? "eager" : "lazy"}
               dynamicKey={image.dynamicKey}
-              width={image.width}
-              height={image.height}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33.33vw"
-              objectFit="cover"
-              priority={index < 2}
+              className="w-full h-full object-cover"
             />
           </div>
         ))}
