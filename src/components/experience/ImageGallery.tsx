@@ -1,3 +1,4 @@
+
 'use client';
 
 import { FC } from 'react';
@@ -78,7 +79,7 @@ const ImageGallery: FC = () => {
     <section className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
         {experienceImages.map((image, index) => (
-          <div key={index} className="relative h-[300px] overflow-hidden">
+          <div key={index} className="relative h-[400px] overflow-hidden">
             <ResponsiveImage 
               src={image.fallback}
               alt={image.alt}
