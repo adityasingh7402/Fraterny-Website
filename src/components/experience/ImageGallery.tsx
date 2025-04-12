@@ -13,8 +13,8 @@ const experienceImages = [
       desktop: "/images/experience/villa-retreat-desktop.webp"
     },
     alt: "Luxury villa retreat where entrepreneurs gather for deep connections",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   },
   {
     dynamicKey: "experience-workshop",
@@ -24,8 +24,8 @@ const experienceImages = [
       desktop: "/images/experience/workshop-desktop.webp"
     },
     alt: "Interactive workshop session with driven professionals",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   },
   {
     dynamicKey: "experience-networking",
@@ -35,8 +35,8 @@ const experienceImages = [
       desktop: "/images/experience/networking-desktop.webp"
     },
     alt: "Meaningful networking among ambitious individuals",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   },
   {
     dynamicKey: "experience-collaboration",
@@ -46,8 +46,8 @@ const experienceImages = [
       desktop: "/images/experience/collaboration-desktop.webp"
     },
     alt: "Collaborative problem-solving in a premium environment",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   },
   {
     dynamicKey: "experience-evening-session",
@@ -57,8 +57,8 @@ const experienceImages = [
       desktop: "/images/experience/evening-session-desktop.webp"
     },
     alt: "Evening mastermind session with panoramic views",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   },
   {
     dynamicKey: "experience-gourmet-dining",
@@ -68,17 +68,17 @@ const experienceImages = [
       desktop: "/images/experience/gourmet-dining-desktop.webp"
     },
     alt: "Gourmet dining experience bringing people together",
-    width: 800,
-    height: 800
+    width: 1200,
+    height: 900
   }
 ];
 
 const ImageGallery: FC = () => {
   return (
-    <section className="w-full">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-0">
+    <section className="w-full max-w-screen-2xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0">
         {experienceImages.map((image, index) => (
-          <div key={index} className="aspect-square w-full">
+          <div key={index} className="aspect-[4/3] w-full">
             <ResponsiveImage 
               src={image.fallback}
               alt={image.alt}
@@ -87,7 +87,7 @@ const ImageGallery: FC = () => {
               dynamicKey={image.dynamicKey}
               width={image.width}
               height={image.height}
-              sizes="(max-width: 768px) 50vw, 33.33vw"
+              sizes="(max-width: 640px) 100vw, 50vw"
               objectFit="cover"
             />
           </div>
