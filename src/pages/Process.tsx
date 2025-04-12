@@ -40,8 +40,6 @@ const Process = () => {
         </div>
       </section>
 
- 
-
       {/* Who is this for? Section - MOBILE OPTIMIZED */}
       <section className="pt-16 md:pt-20 pb-10 md:pb-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6">
