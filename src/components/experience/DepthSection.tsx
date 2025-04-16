@@ -9,7 +9,7 @@ const depthFeatures = [
     icon: <Code className="w-6 h-6" />, 
     title: "Ingrained House Code", 
     description: "Crafted house rules to boost engagement, clarity of thought and productivity",
-    dynamicKey: "experience-villa-retreat",
+    dynamicKey: "depth-house-code",
     imageSrc: {
       mobile: "/images/depth/house-code-mobile.webp",
       desktop: "/images/depth/house-code-desktop.webp"
@@ -20,6 +20,7 @@ const depthFeatures = [
     icon: <Brain className="w-6 h-6" />, 
     title: "Startup Simulations", 
     description: "Building a startup from ground up in a team environment",
+    dynamicKey: "depth-startup",
     imageSrc: {
       mobile: "/images/depth/startup-mobile.webp", 
       desktop: "/images/depth/startup-desktop.webp"
@@ -30,6 +31,7 @@ const depthFeatures = [
     icon: <BookOpen className="w-6 h-6" />, 
     title: "Learning Experience", 
     description: "Business Knowledge is not even a unique proposition, its a given",
+    dynamicKey: "depth-learning",
     imageSrc: {
       mobile: "/images/depth/learning-mobile.webp",
       desktop: "/images/depth/learning-desktop.webp"
@@ -40,6 +42,7 @@ const depthFeatures = [
     icon: <FileCheck className="w-6 h-6" />, 
     title: "Curated frameworks & templates", 
     description: "Carefully crafted Frameworks for personal and career growth",
+    dynamicKey: "depth-frameworks",
     imageSrc: {
       mobile: "/images/depth/frameworks-mobile.webp",
       desktop: "/images/depth/frameworks-desktop.webp"
@@ -50,6 +53,7 @@ const depthFeatures = [
     icon: <Users className="w-6 h-6" />, 
     title: "Group Think", 
     description: "Collaborative thinking and team activities to broaden your perspective",
+    dynamicKey: "depth-group-think",
     imageSrc: {
       mobile: "/images/depth/group-think-mobile.webp",
       desktop: "/images/depth/group-think-desktop.webp"
@@ -60,6 +64,7 @@ const depthFeatures = [
     icon: <Heart className="w-6 h-6" />, 
     title: "Lifelong memories", 
     description: "Feel amazing while on the grind",
+    dynamicKey: "depth-memories",
     imageSrc: {
       mobile: "/images/depth/memories-mobile.webp",
       desktop: "/images/depth/memories-desktop.webp"
@@ -70,6 +75,7 @@ const depthFeatures = [
     icon: <ChefHat className="w-6 h-6" />, 
     title: "Great Food, Good Coffee and more", 
     description: "Caffeine is the secret of my energy",
+    dynamicKey: "depth-food",
     imageSrc: {
       mobile: "/images/depth/food-mobile.webp",
       desktop: "/images/depth/food-desktop.webp"
@@ -80,6 +86,7 @@ const depthFeatures = [
     icon: <Users2 className="w-6 h-6" />, 
     title: "Post Program Community", 
     description: "Fraterny is not a one week experience, it is a constantly growing ecosystem.",
+    dynamicKey: "depth-community",
     imageSrc: {
       mobile: "/images/depth/community-mobile.webp",
       desktop: "/images/depth/community-desktop.webp"
@@ -90,6 +97,7 @@ const depthFeatures = [
     icon: <Brain className="w-6 h-6" />, 
     title: "Soft Skills", 
     description: "Critical Thinking, Effective Communication and Empathy. Everyone has principles, no one offers practice",
+    dynamicKey: "depth-soft-skills",
     imageSrc: {
       mobile: "/images/depth/soft-skills-mobile.webp",
       desktop: "/images/depth/soft-skills-desktop.webp"
@@ -124,7 +132,7 @@ const DepthSection = () => {
                 
                 <div className="aspect-[16/9] w-full overflow-hidden rounded-xl shadow-md">
                   <ResponsiveImage 
-                    src={feature.imageSrc}
+                    dynamicKey={feature.dynamicKey}
                     alt={feature.imageAlt}
                     className="w-full h-full object-cover"
                     loading="lazy"
