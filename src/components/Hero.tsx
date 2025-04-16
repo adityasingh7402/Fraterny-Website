@@ -36,12 +36,13 @@ const Hero = () => {
     }
   }, [settings]);
 
+
   // Gradient style for the overlay
   const gradientStyle = {
     background: `linear-gradient(to right, 
-      rgba(10, 26, 47, 0.95) 0%,
-      rgba(10, 26, 47, 0.8) 50%,
-      rgba(10, 26, 47, 0.6) 100%
+      rgba(10, 26, 47, 0.8) 0%,
+      rgba(10, 26, 47, 0.6) 50%,
+      rgba(10, 26, 47, 0.3) 100%
     )`
   };
 
