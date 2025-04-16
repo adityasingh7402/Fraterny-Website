@@ -9,6 +9,7 @@ const depthFeatures = [
     icon: <Code className="w-6 h-6" />, 
     title: "Ingrained House Code", 
     description: "Crafted house rules to boost engagement, clarity of thought and productivity",
+    dynamicKey: "experience-villa-retreat",
     imageSrc: {
       mobile: "/images/depth/house-code-mobile.webp",
       desktop: "/images/depth/house-code-desktop.webp"
