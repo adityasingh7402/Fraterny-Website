@@ -178,7 +178,6 @@ const VillaLab = () => {
                   
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                  <span className="text-white p-4 font-medium">{activity.title}</span>
                 </div>
               </div>
             );
