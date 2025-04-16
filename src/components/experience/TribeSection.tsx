@@ -6,6 +6,7 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 const peers = [
   { 
     title: "The Visionary", 
+    dynamicKey: "tribe-visionary",
     description: "Sees possibilities others don't",
     imageSrc: {
       mobile: "/images/tribe/visionary-mobile.webp",
@@ -14,6 +15,7 @@ const peers = [
   },
   { 
     title: "The Hustler", 
+    dynamicKey: "tribe-hustler",
     description: "Gets things done, period",
     imageSrc: {
       mobile: "/images/tribe/hustler-mobile.webp",
@@ -22,6 +24,7 @@ const peers = [
   },
   { 
     title: "The Workaholic", 
+    dynamicKey: "tribe-workaholic",
     description: "Lives and breathes excellence",
     imageSrc: {
       mobile: "/images/tribe/workaholic-mobile.webp",
@@ -30,6 +33,7 @@ const peers = [
   },
   { 
     title: "The Experienced", 
+    dynamicKey: "tribe-experienced",
     description: "Been there, done that",
     imageSrc: {
       mobile: "/images/tribe/experienced-mobile.webp",
@@ -38,6 +42,7 @@ const peers = [
   },
   { 
     title: "The Optimist", 
+    dynamicKey: "tribe-optimist",
     description: "Finds silver linings",
     imageSrc: {
       mobile: "/images/tribe/optimist-mobile.webp",
@@ -46,6 +51,7 @@ const peers = [
   },
   { 
     title: "The Guardian", 
+    dynamicKey: "tribe-guardian",
     description: "Keeps the ship steady",
     imageSrc: {
       mobile: "/images/tribe/guardian-mobile.webp",
