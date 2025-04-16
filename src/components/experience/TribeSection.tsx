@@ -72,7 +72,7 @@ const TribeSection = () => {
             <div key={index} className="text-center">
               <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-full overflow-hidden">
                 <ResponsiveImage 
-                  src={peer.imageSrc} 
+                  src={peer.dynamicKey} 
                   alt={peer.title}
                   className="w-full h-full object-cover"
                   loading={index < 3 ? "eager" : "lazy"}
