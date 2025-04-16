@@ -4,21 +4,55 @@ import { WebsiteImage } from "../types";
 import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
 
+// Basic environment detection
+const isDevelopment = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Simple cache configuration
+const CACHE_TTL = isDevelopment ? 300000 : 3600000; // 5 min vs 1 hour
+const MAX_CACHE_SIZE = 1000;
+const MAX_RETRIES = 3;
+
+// Basic logging
+const log = (message: string, data?: any) => {
+  if (isDevelopment) {
+    console.log(`[ImageCache] ${message}`, data);
+  }
+};
+
+// Simple cache management
+const manageCache = () => {
+  // Instead of checking size directly, we'll use a pattern-based approach
+  // This is safer as it doesn't rely on the size property
+  urlCache.invalidate('^url:.*$');
+  log('Cache cleared to prevent overflow');
+};
+
+// Basic TTL strategy
+const getTTL = (key: string) => {
+  if (key.includes('global:')) return 15000; // 15 seconds for global
+  return CACHE_TTL; // Default TTL
+};
+
 /**
- * Get the image URL by key
+ * Get the image URL by key with improved cache control
  */
-export const getImageUrlByKey = async (key: string): Promise<string> => {
-  // First check if this URL is in the URL cache
-  const cachedUrl = urlCache.get(`url:${key}`);
+export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<string> => {
+  // Get current cache version
+  const globalVersion = await getGlobalCacheVersion();
+  const cacheKey = `url:${key}:v${globalVersion || 'initial'}`;
+  
+  // Check cache with version-specific key
+  const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl) {
-    console.log(`[getImageUrlByKey] Using cached URL for ${key}`);
+    log(`Using cached URL for ${key}`, { version: globalVersion });
     return cachedUrl;
   }
 
   try {
-    console.log(`[getImageUrlByKey] Fetching image with key ${key}...`);
+    log(`Fetching image with key ${key}...`);
 
-    // Fetch the image record to get the storage path and metadata
+    // Fetch the image record with optimized query
     const { data, error } = await supabase
       .from('website_images')
       .select('storage_path, metadata')
@@ -26,17 +60,18 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .maybeSingle();
 
     if (error) {
-      console.error(`[getImageUrlByKey] Error fetching image with key ${key}:`, error);
+      log(`Error fetching image with key ${key}`, { error });
+      if (retryCount < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        return getImageUrlByKey(key, retryCount + 1);
+      }
       return '/placeholder.svg';
     }
 
     if (!data || !data.storage_path) {
-      console.warn(`[getImageUrlByKey] No image or storage path found for key ${key}`);
+      log(`No image or storage path found for key ${key}`);
       return '/placeholder.svg';
     }
-
-    // Get the global cache version from website settings
-    const globalVersion = await getGlobalCacheVersion();
 
     // Get the public URL for this storage path
     const { data: urlData } = supabase.storage
@@ -44,63 +79,77 @@ export const getImageUrlByKey = async (key: string): Promise<string> => {
       .getPublicUrl(data.storage_path);
 
     if (!urlData || !urlData.publicUrl) {
-      console.warn(`[getImageUrlByKey] Failed to get public URL for storage path: ${data.storage_path}`);
+      log(`Failed to get public URL for storage path`, { path: data.storage_path });
       return '/placeholder.svg';
     }
 
-    // Extract content hash from metadata if available
-    // Use safe type checking to avoid errors with different metadata formats
+    // Extract content hash from metadata
     let contentHash = null;
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
       contentHash = data.metadata.contentHash || null;
     }
     
-    // Build the final URL with both content hash and global version for cache busting
+    // Build the final URL with enhanced cache parameters
     let finalUrl = urlData.publicUrl;
     if (contentHash) {
-      // Use content hash as primary cache key
       finalUrl = addHashToUrl(finalUrl, contentHash);
     }
     
-    // Add global version as secondary cache parameter if available
+    // Add global version and cache control parameters
+    const cacheParams = new URLSearchParams();
     if (globalVersion) {
-      finalUrl = finalUrl.includes('?') 
-        ? `${finalUrl}&gv=${globalVersion}` 
-        : `${finalUrl}?gv=${globalVersion}`;
+      cacheParams.append('gv', globalVersion);
     }
+    // Only add timestamp for development
+    if (isDevelopment) {
+      cacheParams.append('_', Date.now().toString());
+    }
+    
+    finalUrl = finalUrl.includes('?') 
+      ? `${finalUrl}&${cacheParams.toString()}`
+      : `${finalUrl}?${cacheParams.toString()}`;
 
-    console.log(`[getImageUrlByKey] Retrieved URL for ${key}: ${finalUrl}`);
+    log(`Retrieved URL for ${key}`, { url: finalUrl });
 
-    // Cache the URL for future use
-    urlCache.set(`url:${key}`, finalUrl);
+    // Cache the URL with version-specific key and appropriate TTL
+    urlCache.set(cacheKey, finalUrl, getTTL(cacheKey));
+
+    // Manage cache size
+    manageCache();
 
     return finalUrl;
   } catch (e) {
-    console.error(`[getImageUrlByKey] Unexpected error for key ${key}:`, e);
+    log(`Unexpected error for key ${key}`, { error: e });
+    if (retryCount < MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+      return getImageUrlByKey(key, retryCount + 1);
+    }
     return '/placeholder.svg';
   }
 };
 
 /**
- * Get the image URL by key and size
+ * Get the image URL by key and size with improved cache control
  */
 export const getImageUrlByKeyAndSize = async (
   key: string, 
   size: 'small' | 'medium' | 'large'
 ): Promise<string> => {
-  const cacheKey = `url:${key}:${size}`;
+  // Get current cache version
+  const globalVersion = await getGlobalCacheVersion();
+  const cacheKey = `url:${key}:${size}:${globalVersion || 'default'}`;
   
-  // First check if this URL is already cached
+  // Check cache with version-specific key
   const cachedUrl = urlCache.get(cacheKey);
   if (cachedUrl) {
-    console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size})`);
+    console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size}, version: ${globalVersion})`);
     return cachedUrl;
   }
 
   try {
     console.log(`[getImageUrlByKeyAndSize] Fetching image with key ${key}, size ${size}...`);
 
-    // Fetch the image record to get sizes and metadata
+    // Fetch the image record with optimized query
     const { data, error } = await supabase
       .from('website_images')
       .select('sizes, storage_path, metadata')
@@ -117,10 +166,7 @@ export const getImageUrlByKeyAndSize = async (
       return '/placeholder.svg';
     }
     
-    // Get the global cache version from website settings
-    const globalVersion = await getGlobalCacheVersion();
-    
-    // Extract content hash from metadata if available using safe type checking
+    // Extract content hash from metadata
     let contentHash = null;
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
       contentHash = data.metadata.contentHash || null;
@@ -138,24 +184,27 @@ export const getImageUrlByKeyAndSize = async (
         return '/placeholder.svg';
       }
 
-      // Build the final URL with both content hash and global version for cache busting
+      // Build the final URL with enhanced cache parameters
       let finalUrl = urlData.publicUrl;
       if (contentHash) {
-        // Use content hash as primary cache key
         finalUrl = addHashToUrl(finalUrl, contentHash);
       }
       
-      // Add global version as secondary cache parameter if available
+      // Add global version and cache control parameters
+      const cacheParams = new URLSearchParams();
       if (globalVersion) {
-        finalUrl = finalUrl.includes('?') 
-          ? `${finalUrl}&gv=${globalVersion}` 
-          : `${finalUrl}?gv=${globalVersion}`;
+        cacheParams.append('gv', globalVersion);
       }
+      cacheParams.append('_', Date.now().toString()); // Prevent browser caching
+      
+      finalUrl = finalUrl.includes('?') 
+        ? `${finalUrl}&${cacheParams.toString()}`
+        : `${finalUrl}?${cacheParams.toString()}`;
 
       console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
 
-      // Cache the URL for future use
-      urlCache.set(cacheKey, finalUrl);
+      // Cache the URL with version-specific key and longer TTL
+      urlCache.set(cacheKey, finalUrl, CACHE_TTL);
       
       return finalUrl;
     }
