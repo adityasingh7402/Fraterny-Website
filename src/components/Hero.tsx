@@ -40,9 +40,9 @@ const Hero = () => {
   // Gradient style for the overlay
   const gradientStyle = {
     background: `linear-gradient(to right, 
-      rgba(10, 26, 47, 0.8) 0%,
-      rgba(10, 26, 47, 0.6) 50%,
-      rgba(10, 26, 47, 0.3) 100%
+      rgba(10, 26, 47, 0.9) 0%,
+      rgba(10, 26, 47, 0.7) 50%,
+      rgba(10, 26, 47, 0.4) 100%
     )`
   };
 
