@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
 
-// Cache version TTL in milliseconds (15 seconds - more balanced)
-const CACHE_VERSION_TTL = 15000;
+// Cache version TTL in milliseconds (5 minutes for better consistency)
+const CACHE_VERSION_TTL = 5 * 60 * 1000;
 
 // Maximum retries for fetching cache version
 const MAX_RETRIES = 3;
@@ -13,7 +13,7 @@ const MAX_RETRIES = 3;
  */
 export const getGlobalCacheVersion = async (retryCount = 0): Promise<string | null> => {
   try {
-    // Check in-memory cache first with shorter TTL
+    // Check in-memory cache first
     const cachedVersion = urlCache.get('global:cache:version');
     if (cachedVersion) {
       return cachedVersion;
@@ -29,8 +29,9 @@ export const getGlobalCacheVersion = async (retryCount = 0): Promise<string | nu
     if (error) {
       console.error('Error fetching global cache version:', error);
       if (retryCount < MAX_RETRIES) {
-        // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        // Exponential backoff with jitter
+        const backoffTime = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
         return getGlobalCacheVersion(retryCount + 1);
       }
       return null;
@@ -41,14 +42,15 @@ export const getGlobalCacheVersion = async (retryCount = 0): Promise<string | nu
       return null;
     }
 
-    // Cache for future use with balanced TTL
+    // Cache for future use with longer TTL
     urlCache.set('global:cache:version', data.value, CACHE_VERSION_TTL);
     
     return data.value;
   } catch (e) {
     console.error('Error fetching global cache version:', e);
     if (retryCount < MAX_RETRIES) {
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+      const backoffTime = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
       return getGlobalCacheVersion(retryCount + 1);
     }
     return null;
