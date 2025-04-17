@@ -8,7 +8,7 @@ RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteRule ^ - [L]
 
 # If the requested resource doesn't exist, use index.html
-RewriteRule ^ /index.html [L]
+RewriteRule ^ index.html [L]
 
 # Set proper MIME types for JavaScript modules
 <IfModule mod_mime.c>

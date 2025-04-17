@@ -24,7 +24,7 @@ import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
-// Create router with basename set explicitly and no hashRouter
+// Create router with proper configuration for production deployment
 const router = createBrowserRouter([
   {
     path: "/",
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       // Make the Index component explicitly assigned to the root path
-      { path: "", element: <Index /> },
+      { index: true, element: <Index /> },
       { path: "auth", element: <Auth /> },
       { path: "experience", element: <Experience /> },
       { path: "process", element: <Process /> },
@@ -59,10 +59,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-], {
-  // Ensure the basename is correctly set for your deployment
-  basename: '/',
-});
+]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
