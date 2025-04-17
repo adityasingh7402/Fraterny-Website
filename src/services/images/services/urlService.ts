@@ -8,7 +8,7 @@ import { getGlobalCacheVersion } from "./cacheVersionService";
 const isDevelopment = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Simple cache configuration
+// Cache configuration
 const CACHE_TTL = isDevelopment ? 300000 : 3600000; // 5 min vs 1 hour
 const MAX_CACHE_SIZE = 1000;
 const MAX_RETRIES = 3;
@@ -20,17 +20,31 @@ const log = (message: string, data?: any) => {
   }
 };
 
-// Simple cache management
+// Improved cache management
 const manageCache = () => {
-  // Instead of checking size directly, we'll use a pattern-based approach
-  // This is safer as it doesn't rely on the size property
-  urlCache.invalidate('^url:.*$');
-  log('Cache cleared to prevent overflow');
+  // Get current cache version
+  const currentVersion = urlCache.get('global:cache:version');
+  
+  // Only clear cache entries that don't match current version
+  if (currentVersion) {
+    const pattern = `^url:.*:(?!${currentVersion})`;
+    urlCache.invalidate(pattern);
+  }
+  
+  // If cache is still too large, clear oldest entries
+  if (urlCache.size > MAX_CACHE_SIZE) {
+    const entries = [...urlCache.entries()];
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+    const entriesToRemove = entries.slice(0, Math.floor(MAX_CACHE_SIZE * 0.2)); // Remove 20% of oldest entries
+    entriesToRemove.forEach(([key]) => urlCache.delete(key));
+  }
+  
+  log('Cache managed', { currentVersion, size: urlCache.size });
 };
 
-// Basic TTL strategy
+// Improved TTL strategy
 const getTTL = (key: string) => {
-  if (key.includes('global:')) return 15000; // 15 seconds for global
+  if (key.includes('global:')) return 5 * 60 * 1000; // 5 minutes for global
   return CACHE_TTL; // Default TTL
 };
 
@@ -100,10 +114,8 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
     if (globalVersion) {
       cacheParams.append('gv', globalVersion);
     }
-    // Only add timestamp for development
-    if (isDevelopment) {
-      cacheParams.append('_', Date.now().toString());
-    }
+    // Add timestamp for both dev and prod to prevent browser caching
+    cacheParams.append('_', Date.now().toString());
     
     finalUrl = finalUrl.includes('?') 
       ? `${finalUrl}&${cacheParams.toString()}`
