@@ -1,0 +1,24 @@
+
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://fraternity.in/sitemap.xml
+
+# Prevent crawling of private routes
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /api/
+
+# Prevent crawling of search results and dynamic routes
+Disallow: /*?*
+
+# Allow crawling of static assets
+Allow: /assets/
+Allow: /images/
+Allow: /static/
+
+# Prevent crawling of development assets
+Disallow: /_vite/
+Disallow: /node_modules/
