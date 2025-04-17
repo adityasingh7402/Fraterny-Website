@@ -1,4 +1,3 @@
-
 /**
  * A generic cache service for storing and retrieving data with expiration
  */
@@ -54,7 +53,6 @@ export class GenericCache<T> {
     });
   }
   
-  // Add the missing delete method
   delete(key: string): boolean {
     return this.cache.delete(key);
   }
@@ -80,13 +78,23 @@ export class GenericCache<T> {
   clear(): void {
     this.cache.clear();
   }
+
+  // Add size getter
+  get size(): number {
+    return this.cache.size;
+  }
+
+  // Add entries method
+  entries(): [string, CacheEntry<T>][] {
+    return [...this.cache.entries()];
+  }
 }
 
 // Image Cache instance for use in image service
 export const imageCache = new GenericCache<WebsiteImage | null>();
 
-// URL Cache instance with a shorter TTL for faster updates
-export const urlCache = new GenericCache<string>((2 * 60 * 1000)); // 2 minutes TTL
+// URL Cache instance with TTL matching version cache
+export const urlCache = new GenericCache<string>(5 * 60 * 1000); // 5 minutes TTL to match version cache
 
 // Re-export types needed for the cache
 import { WebsiteImage } from './types';
