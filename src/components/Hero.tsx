@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
+  const isMobile = useIsMobile();
   
   // Use our React Query powered hook
   const { settings, isLoading } = useReactQueryWebsiteSettings();
@@ -55,7 +56,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
-          dynamicKey="hero-background-mobile"
+          dynamicKey={isMobile ? "hero-background-mobile" : "hero-background"}
         />
       </div>
       
