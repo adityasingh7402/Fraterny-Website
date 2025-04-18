@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -46,6 +47,9 @@ const Hero = () => {
     )`
   };
 
+  const isMobile = useIsMobile();
+
+if (typeof isMobile !== 'boolean') return null;
   return (
     <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
       {/* Background Image - using dynamicKey to fetch from admin upload */}
