@@ -12,27 +12,6 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
- * Helper function to determine the appropriate image key based on device type
- */
-const getEffectiveImageKey = (
-  baseKey: string,
-  isMobile: boolean,
-  forceDesktop: boolean = false
-): { key: string; isMobileVariant: boolean } => {
-  if (forceDesktop) {
-    return { key: baseKey.replace('-mobile', ''), isMobileVariant: false };
-  }
-  
-  const hasMobileSuffix = baseKey.includes('-mobile');
-  const shouldUseMobile = isMobile && !hasMobileSuffix;
-  
-  return {
-    key: shouldUseMobile ? `${baseKey}-mobile` : baseKey,
-    isMobileVariant: shouldUseMobile || hasMobileSuffix
-  };
-};
-
-/**
  * Custom hook to handle dynamic image loading from storage
  * Enhanced with versioning, cache coordination, and mobile optimization
  */
@@ -56,20 +35,14 @@ export const useResponsiveImage = (
   const network = useNetworkStatus();
   const isMobile = useIsMobile();
   
+  // Fetch dynamic image if dynamicKey is provided
   useEffect(() => {
     if (!dynamicKey) return;
     
-    // Make a single, definitive decision about which variant to use
-    const { key: effectiveKey, isMobileVariant } = getEffectiveImageKey(dynamicKey, isMobile);
-    
-    if (debugCache) {
-      console.log(`Image loading strategy for ${dynamicKey}:`, {
-        isMobile,
-        effectiveKey,
-        isMobileVariant,
-        originalKey: dynamicKey
-      });
-    }
+    // Modify the key for mobile devices if it doesn't already have a mobile suffix
+    const effectiveKey = isMobile && !dynamicKey.includes('-mobile') 
+      ? `${dynamicKey}-mobile`
+      : dynamicKey;
     
     setState(prev => ({ ...prev, isLoading: true, error: false }));
     
@@ -83,32 +56,26 @@ export const useResponsiveImage = (
         // Get the global cache version for proper cache coordination
         const globalVersion = await getGlobalCacheVersion();
         
-        // Create a cache key that includes the variant decision
+        // Load from performance cache if available and network is not offline
         const cacheKey = `perfcache:${effectiveKey}:${size || 'original'}:${globalVersion || ''}`;
         const cachedData = navigator.onLine ? sessionStorage.getItem(cacheKey) : null;
+        let cachedImageInfo: any = null;
         
-        // Check cache first
+        // Check if we have a valid cached version that's not too old
+        // Use a shorter cache expiry on slow connections
+        const cacheExpiryTime = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType) 
+          ? 15 * 60 * 1000  // 15 minutes for slower connections
+          : 5 * 60 * 1000;  // 5 minutes for faster connections
+          
         if (cachedData) {
           try {
             const parsed = JSON.parse(cachedData);
-            const cacheExpiryTime = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType) 
-              ? 15 * 60 * 1000  // 15 minutes for slower connections
-              : 5 * 60 * 1000;  // 5 minutes for faster connections
             const cacheAge = Date.now() - parsed.timestamp;
             
+            // Use cache if it's less than the expiry time
             if (cacheAge < cacheExpiryTime) {
-              setState(prev => ({
-                ...prev,
-                dynamicSrc: parsed.url,
-                isLoading: false,
-                aspectRatio: parsed.aspectRatio,
-                tinyPlaceholder: parsed.tinyPlaceholder,
-                colorPlaceholder: parsed.colorPlaceholder,
-                contentHash: parsed.contentHash,
-                isCached: true,
-                lastUpdated: parsed.lastUpdated
-              }));
-              return;
+              cachedImageInfo = parsed;
+              if (debugCache) console.log(`Using cached image data for ${effectiveKey}`);
             }
           } catch (e) {
             console.error('Error parsing cached image data:', e);
@@ -133,8 +100,25 @@ export const useResponsiveImage = (
               ...prev,
               tinyPlaceholder,
               colorPlaceholder,
+              // Don't set isLoading to false yet, we're still loading the full image
             }));
           }
+        }
+        
+        // If we have valid cached data, use it
+        if (cachedImageInfo) {
+          setState(prev => ({ 
+            ...prev, 
+            dynamicSrc: cachedImageInfo.url, 
+            isLoading: false,
+            aspectRatio: cachedImageInfo.aspectRatio,
+            tinyPlaceholder: cachedImageInfo.tinyPlaceholder || prev.tinyPlaceholder,
+            colorPlaceholder: cachedImageInfo.colorPlaceholder || prev.colorPlaceholder,
+            contentHash: cachedImageInfo.contentHash,
+            isCached: true,
+            lastUpdated: cachedImageInfo.lastUpdated
+          }));
+          return;
         }
         
         if (debugCache) console.log(`Fetching image with key: ${effectiveKey}, size: ${size || 'original'}`);
@@ -144,69 +128,53 @@ export const useResponsiveImage = (
           getImagePlaceholdersByKey(effectiveKey) : 
           Promise.resolve({ tinyPlaceholder, colorPlaceholder });
         
-        // Try to load the image with the definitive key
-        const imageUrl = size 
-          ? await getImageUrlByKeyAndSize(effectiveKey, size)
-          : await getImageUrlByKey(effectiveKey);
+        // Handle mobile variant keys
+        const isMobileKey = effectiveKey.includes('mobile');
+        let imageUrl: string;
+        let fallbackToDesktop = false;
         
-        // Only fallback to desktop if we get a placeholder AND we're using a mobile key
-        if (imageUrl === '/placeholder.svg' && isMobileVariant) {
-          const { key: desktopKey } = getEffectiveImageKey(dynamicKey, isMobile, true);
-          const desktopUrl = size 
-            ? await getImageUrlByKeyAndSize(desktopKey, size)
-            : await getImageUrlByKey(desktopKey);
-            
-          if (desktopUrl !== '/placeholder.svg') {
-            // Get placeholders for desktop version if needed
-            if (!fetchPlaceholdersFirst) {
-              const desktopPlaceholders = await getImagePlaceholdersByKey(desktopKey);
-              tinyPlaceholder = desktopPlaceholders.tinyPlaceholder;
-              colorPlaceholder = desktopPlaceholders.colorPlaceholder;
-            }
-            
-            // Cache and use the desktop version
-            const aspectRatio = await getImageAspectRatio(desktopUrl);
-            let extractedContentHash = null;
-            
-            try {
-              const urlObj = new URL(desktopUrl);
-              extractedContentHash = urlObj.searchParams.get('v') || null;
-            } catch (err) {
-              // Ignore URL parsing errors
-            }
-            
-            const imageInfo = {
-              url: desktopUrl,
-              aspectRatio,
-              tinyPlaceholder,
-              colorPlaceholder,
-              contentHash: extractedContentHash,
-              timestamp: Date.now(),
-              lastUpdated: new Date().toISOString(),
-              globalVersion,
-              networkType: network.effectiveConnectionType
-            };
-            
-            if (navigator.onLine) {
-              try {
-                sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
-              } catch (e) {
-                console.warn('Failed to cache image data in sessionStorage:', e);
-              }
-            }
-            
-            setState(prev => ({ 
-              ...prev, 
-              dynamicSrc: desktopUrl, 
-              isLoading: false,
-              aspectRatio,
-              tinyPlaceholder,
-              colorPlaceholder,
-              contentHash: extractedContentHash,
-              isCached: false,
-              lastUpdated: imageInfo.lastUpdated
-            }));
-            return;
+        // Extract any content hash and cache metadata from the URL
+        let extractedContentHash = null;
+        
+        // If size is specified, try to get that specific size
+        if (size) {
+          imageUrl = await getImageUrlByKeyAndSize(effectiveKey, size);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
+          
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = effectiveKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            imageUrl = await getImageUrlByKeyAndSize(desktopKey, size);
+            fallbackToDesktop = true;
+          }
+        } else {
+          // Otherwise get the original image
+          imageUrl = await getImageUrlByKey(effectiveKey);
+          
+          // Extract content hash from URL
+          try {
+            const urlObj = new URL(imageUrl);
+            extractedContentHash = urlObj.searchParams.get('v') || null;
+          } catch (err) {
+            // Ignore URL parsing errors
+          }
+          
+          if (imageUrl === '/placeholder.svg' && isMobileKey) {
+            // If this is a mobile key and we got a placeholder,
+            // try the desktop version instead (removing the -mobile suffix)
+            const desktopKey = effectiveKey.replace('-mobile', '');
+            console.log(`Mobile image not found, trying desktop key: ${desktopKey}`);
+            imageUrl = await getImageUrlByKey(desktopKey);
+            fallbackToDesktop = true;
           }
         }
         
@@ -217,18 +185,19 @@ export const useResponsiveImage = (
           colorPlaceholder = placeholders.colorPlaceholder;
         }
         
-        // Get image dimensions for aspect ratio
-        const aspectRatio = await getImageAspectRatio(imageUrl);
-        let extractedContentHash = null;
-        
-        try {
-          const urlObj = new URL(imageUrl);
-          extractedContentHash = urlObj.searchParams.get('v') || null;
-        } catch (err) {
-          // Ignore URL parsing errors
+        // If we switched to desktop key but don't have placeholders, try getting them from desktop key
+        if (fallbackToDesktop && (!tinyPlaceholder && !colorPlaceholder)) {
+          const desktopKey = effectiveKey.replace('-mobile', '');
+          const desktopPlaceholders = await getImagePlaceholdersByKey(desktopKey);
+          tinyPlaceholder = desktopPlaceholders.tinyPlaceholder;
+          colorPlaceholder = desktopPlaceholders.colorPlaceholder;
         }
         
+        // Get image dimensions for aspect ratio
+        const aspectRatio = await getImageAspectRatio(imageUrl);
+        
         // Cache this response in sessionStorage for faster subsequent loads
+        // Include the global version in the cached data for cache coordination
         const imageInfo = {
           url: imageUrl,
           aspectRatio,
@@ -241,12 +210,13 @@ export const useResponsiveImage = (
           networkType: network.effectiveConnectionType
         };
         
-        if (navigator.onLine) {
-          try {
+        try {
+          // Only cache if we're online
+          if (navigator.onLine) {
             sessionStorage.setItem(cacheKey, JSON.stringify(imageInfo));
-          } catch (e) {
-            console.warn('Failed to cache image data in sessionStorage:', e);
           }
+        } catch (e) {
+          console.warn('Failed to cache image data in sessionStorage:', e);
         }
         
         setState(prev => ({ 
@@ -286,7 +256,7 @@ export const useResponsiveImage = (
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [dynamicKey, size, debugCache, network.online, network.effectiveConnectionType, isMobile]);
+  }, [dynamicKey, size, debugCache, network.online, network.effectiveConnectionType]);
   
   return state;
 };
