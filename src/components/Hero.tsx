@@ -55,7 +55,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
-          dynamicKey="hero-background"
+          dynamicKey="hero-background-mobile"
         />
       </div>
       
