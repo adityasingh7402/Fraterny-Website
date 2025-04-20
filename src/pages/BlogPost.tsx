@@ -21,12 +21,6 @@ const BlogPost = () => {
     }
   }, [error, navigate]);
 
-  const formatContent = (content: string) => {
-    return content.split('\n').map((paragraph, index) => (
-      <p key={index} className="mb-4">{paragraph}</p>
-    ));
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -104,7 +98,7 @@ const BlogPost = () => {
           )}
           
           <div className="prose prose-lg max-w-none text-gray-700">
-            {post && <div dangerouslySetInnerHTML={{ __html: post.content }} />}
+            {post && <div dangerouslySetInnerHTML={{ __html: post.content }} className="tinymce-content" />}
           </div>
           
           {id && <CommentSection postId={id} />}

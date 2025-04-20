@@ -297,7 +297,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
             onChange={(value) => setFormValues(prev => ({ ...prev, content: value }))}
           />
           <p className="text-sm text-gray-500 mt-1">
-            Use the formatting tools above to style your content
+            Use the formatting tools to style your content
           </p>
         </div>
 
