@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, ListOrdered, ListUnordered, Heading } from 'lucide-react';
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, ListOrdered, List } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 
 interface TextEditorProps {
@@ -75,14 +75,14 @@ const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
           className="p-2 hover:bg-gray-100 rounded"
           title="Unordered List"
         >
-          <ListUnordered size={18} />
+          <List size={18} />
         </button>
         <button
           onClick={() => handleFormat('formatBlock', '<h2>')}
           className="p-2 hover:bg-gray-100 rounded"
           title="Heading"
         >
-          <Heading size={18} />
+          <Bold size={18} className="font-bold" />
         </button>
       </div>
 

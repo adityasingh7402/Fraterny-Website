@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/services/images';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
-import TextEditor from '@/components/ui/TextEditor';
+import TextEditor from '@/components/blog/TextEditor';
 
 const CATEGORIES = [
   'News',
