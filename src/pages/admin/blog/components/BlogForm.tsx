@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/services/images';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
+import TextEditor from '@/components/ui/TextEditor';
 
-// Available categories
 const CATEGORIES = [
   'News',
   'Announcement',
@@ -292,17 +292,12 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Content
           </label>
-          <textarea
-            id="content"
-            name="content"
-            value={formValues.content}
-            onChange={handleChange}
-            rows={8}
-            className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy focus:border-navy"
-            required
+          <TextEditor
+            content={formValues.content}
+            onChange={(value) => setFormValues(prev => ({ ...prev, content: value }))}
           />
           <p className="text-sm text-gray-500 mt-1">
-            Markdown formatting is supported
+            Use the formatting tools above to style your content
           </p>
         </div>
 

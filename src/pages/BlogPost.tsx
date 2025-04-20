@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useReactQueryBlogPosts } from '@/hooks/useReactQueryBlogPosts';
@@ -13,18 +12,15 @@ const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Use our React Query hook for fetching a single blog post
   const { useBlogPost } = useReactQueryBlogPosts();
   const { data: post, isLoading, error } = useBlogPost(id);
   
-  // Redirect to the blog page if the post doesn't exist or isn't published
   useEffect(() => {
     if (error) {
       navigate('/blog');
     }
   }, [error, navigate]);
 
-  // Format the blog content with proper line breaks
   const formatContent = (content: string) => {
     return content.split('\n').map((paragraph, index) => (
       <p key={index} className="mb-4">{paragraph}</p>
@@ -35,7 +31,6 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen">
         <Navigation />
-        {/* Navy banner that only covers the navigation - increased by 5px */}
         <div className="bg-navy w-full h-[69px]"></div>
         <div className="container mx-auto px-6 pt-12 pb-20">
           <div className="text-center">
@@ -52,7 +47,6 @@ const BlogPost = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Navy banner that only covers the navigation - increased by 5px */}
       <div className="bg-navy w-full h-[69px]"></div>
       
       <article className="container mx-auto px-4 sm:px-6 pt-12 pb-10">
@@ -83,7 +77,6 @@ const BlogPost = () => {
             })}
           </div>
           
-          {/* Featured image with enhanced responsive handling */}
           {post?.image_key && (
             <div className="mb-8 rounded-lg overflow-hidden">
               <ResponsiveImage
@@ -111,15 +104,13 @@ const BlogPost = () => {
           )}
           
           <div className="prose prose-lg max-w-none text-gray-700">
-            {post && formatContent(post.content)}
+            {post && <div dangerouslySetInnerHTML={{ __html: post.content }} />}
           </div>
           
-          {/* Add Comment Section */}
           {id && <CommentSection postId={id} />}
         </div>
       </article>
       
-      {/* Add Newsletter Section */}
       <div className="container mx-auto px-4 sm:px-6 pb-20">
         <div className="max-w-4xl mx-auto">
           <NewsletterSignup />
