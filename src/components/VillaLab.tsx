@@ -108,7 +108,7 @@ const VillaLab = () => {
 
   // Determine if we need to delay loading images based on network conditions
   const shouldDelayNonEssentialImages = ['slow-2g', '2g', '3g'].includes(network.effectiveConnectionType);
-  return <section className="py-16 sm:py-20 bg-white">
+  return <section className="py-16 bg-white sm:py-[49px]">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="mb-8 sm:mb-12">
           {/* CUSTOMIZATION: Villa Lab Section Title */}
