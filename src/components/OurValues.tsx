@@ -30,7 +30,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Brain Hacking</h3>
-              <p className="text-navy/70 leading-relaxed text-center">We don’t play games. We rewire your brain.  </p>
+              <p className="text-navy/70 leading-relaxed text-center">We curate experiences and activities which ensure critical thinking, insightful interactions and openness  </p>
             </div>
             
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
