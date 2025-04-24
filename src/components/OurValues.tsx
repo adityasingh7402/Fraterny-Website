@@ -41,7 +41,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Collaboration</h3>
-              <p className="text-navy/70 leading-relaxed text-center">...</p>
+              <p className="text-navy/70 leading-relaxed text-center">Legends don’t compete. They collaborate. Imagine being stranded on a 10BHK exclusive villa with 19 other ambitious souls like yourself.</p>
             </div>
           </div>
         </div>
