@@ -23,7 +23,7 @@ const HowItWorks = () => {
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16">How to Get an Invite?</h2>
 
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12 lg:gap-16 py-[31px] my-0 mx-0 px-[4px] rounded-none">
+          <div className="grid md:grid-cols-3 gap-12 lg:gap-16 my-0 mx-0 px-[4px] rounded-none py-[23px]">
             {steps.map((Step, index) => <div key={index} className="text-center">
                 <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy text-white">
                   <Step.icon size={32} />
