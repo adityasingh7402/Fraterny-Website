@@ -16,7 +16,7 @@ const NavalQuote = () => {
           <div className="grid md:grid-cols-2 gap-8 bg-gradient-to-br from-navy/5 to-navy/10 rounded-2xl p-8">
             <div className="space-y-4">
               <div className="text-5xl md:text-7xl font-bold text-navy">83%</div>
-              <p className="text-lg md:text-xl text-gray-600">individuals report improved productivity when their team is more likeminded.</p>
+              <p className="text-lg md:text-xl text-gray-600">individuals report improved performance in collaborative projects when their team is more likeminded.</p>
             </div>
             <div className="space-y-4">
               <div className="text-5xl md:text-7xl font-bold text-terracotta">49%</div>
