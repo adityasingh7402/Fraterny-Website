@@ -1,21 +1,21 @@
-
 import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
-
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
-  
-  // Use our React Query powered hook
-  const { settings, isLoading } = useReactQueryWebsiteSettings();
 
+  // Use our React Query powered hook
+  const {
+    settings,
+    isLoading
+  } = useReactQueryWebsiteSettings();
   useEffect(() => {
     // If we have settings from the database, use them
     if (settings?.registration_close_date) {
       // Log the target date for debugging
       console.log('Registration close date from settings:', settings.registration_close_date);
-      
+
       // Define function to calculate and update days left
       const calculateAndSetDaysLeft = () => {
         // Use the direct import from utils to avoid any import chain issues
@@ -29,13 +29,11 @@ const Hero = () => {
 
       // Set up a timer to update at midnight IST each day
       const cleanup = scheduleAtMidnight(calculateAndSetDaysLeft);
-      
       return cleanup;
     } else {
       console.warn('No registration_close_date found in settings');
     }
   }, [settings]);
-
 
   // Gradient style for the overlay
   const gradientStyle = {
@@ -45,18 +43,10 @@ const Hero = () => {
       rgba(10, 26, 47, 0.4) 100%
     )`
   };
-
-  return (
-    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
+  return <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
       {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
-        <ResponsiveImage
-          alt="Stunning luxury villa with breathtaking views"
-          className="w-full h-full object-cover"
-          loading="eager"
-          fetchPriority="high"
-          dynamicKey="hero-background"
-        />
+        <ResponsiveImage alt="Stunning luxury villa with breathtaking views" className="w-full h-full object-cover" loading="eager" fetchPriority="high" dynamicKey="hero-background" />
       </div>
       
       {/* Gradient Overlay */}
@@ -71,23 +61,14 @@ const Hero = () => {
               Finds Its Tribe
             </h1>
             
-            <p className="text-base sm:text-lg md:text-xl text-gray-200">
-              Authenticity, Community, Growth, and Shared Aspirations
-            </p>
+            <p className="text-base sm:text-lg md:text-xl text-gray-200">Surround yourself with the right people</p>
           </div>
 
           <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
-            <a 
-              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit"
-            >
-              Claim your spot →
-            </a>
+            <a href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" target="_blank" rel="noopener noreferrer" className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit">Wanna Experience it?</a>
             
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
-              <p className="text-sm md:text-base text-gray-300 mb-1">Registrations close in:</p>
+              <p className="text-sm md:text-base text-gray-300 mb-1">Villa Registrations close in:</p>
               <div className="text-xl font-mono">
                 {isLoading ? "Loading..." : `${daysLeft} Days`}
               </div>
@@ -95,8 +76,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
