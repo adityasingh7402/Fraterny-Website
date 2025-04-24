@@ -2,9 +2,7 @@ import React from 'react';
 const OurValues = () => {
   return <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-10">
-          Our Values
-        </h2>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-10">What's so Special?</h2>
         
         <div className="max-w-5xl mx-auto">
           <p className="text-lg md:text-xl text-navy/80 leading-relaxed mb-14 max-w-3xl relative z-10">Fraterny is built on the belief that success and self discovery can be accelerated exponentially in the right environment, with the right people and the right mindset. We unite the most driven, high-potential youth in team simulations focused on developing a business mindset, having deep conversations, and embracing constructive criticism. By fostering strong relationships, real-world collaboration, and a culture of shared ambition, Fraterny aims to empower its members to think bigger, execute faster, and build the future together.</p>
