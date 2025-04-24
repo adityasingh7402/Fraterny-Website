@@ -17,8 +17,8 @@ const HowItWorks = () => {
     description: "Welcome to the community",
     icon: Users
   }];
-  return <section className="py-20 bg-white mb-20">
-      <div className="container mx-auto px-6">
+  return <section className="bg-white mb-20 py-[38px] px-0">
+      <div className="container mx-auto px-6 py-0 my-0">
         {/* CUSTOMIZATION: Section Title */}
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16">How to Get an Invite?</h2>
 
