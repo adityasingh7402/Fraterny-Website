@@ -60,7 +60,7 @@ const Hero = () => {
               <br />
               Finds Its Tribe
             </h1>
-            
+
             <p className="text-base sm:text-lg md:text-xl text-gray-200">Surround yourself with the right people</p>
           </div>
 
