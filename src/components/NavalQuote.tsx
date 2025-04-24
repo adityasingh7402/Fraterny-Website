@@ -20,9 +20,7 @@ const NavalQuote = () => {
             </div>
             <div className="space-y-4">
               <div className="text-5xl md:text-7xl font-bold text-terracotta">49%</div>
-              <p className="text-lg md:text-xl text-gray-600">
-                potential achievers are deterred from starting a venture due to inability to take action caused by fear of failure
-              </p>
+              <p className="text-lg md:text-xl text-gray-600">potential achievers are deterred from innovative ideas and passionate ventures due to their fear of criticism and societal pressure.</p>
             </div>
           </div>
         </div>
