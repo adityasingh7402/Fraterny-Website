@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ResponsiveImage from './ui/ResponsiveImage';
 import { scheduleAtMidnight, calculateDaysLeft as utilsCalculateDaysLeft } from '@/utils/dateUtils';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+
 const Hero = () => {
   const [daysLeft, setDaysLeft] = useState(0);
 
@@ -10,6 +11,7 @@ const Hero = () => {
     settings,
     isLoading
   } = useReactQueryWebsiteSettings();
+  
   useEffect(() => {
     // If we have settings from the database, use them
     if (settings?.registration_close_date) {
@@ -43,10 +45,18 @@ const Hero = () => {
       rgba(10, 26, 47, 0.4) 100%
     )`
   };
-  return <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
+  
+  return (
+    <section className="min-h-screen flex items-center justify-center bg-navy text-white relative overflow-hidden">
       {/* Background Image - using dynamicKey to fetch from admin upload */}
       <div className="absolute inset-0">
-        <ResponsiveImage alt="Stunning luxury villa with breathtaking views" className="w-full h-full object-cover" loading="eager" fetchPriority="high" dynamicKey="hero-background" />
+        <ResponsiveImage 
+          alt="Stunning luxury villa with breathtaking views" 
+          className="w-full h-full object-cover" 
+          loading="eager" 
+          fetchPriority="high" 
+          dynamicKey="hero-background" 
+        />
       </div>
       
       {/* Gradient Overlay */}
@@ -65,7 +75,14 @@ const Hero = () => {
           </div>
 
           <div className="animate-fade-up flex flex-col gap-6 sm:gap-8">
-            <a href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" target="_blank" rel="noopener noreferrer" className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit">The Frat Villa Entry -></a>
+            <a 
+              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="px-6 sm:px-8 py-3 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all text-base sm:text-lg font-medium w-fit"
+            >
+              The Frat Villa Entry &gt;
+            </a>
             
             <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-3 sm:py-4 inline-block w-fit">
               <p className="text-sm md:text-base text-gray-300 mb-1">Villa Registrations close in:</p>
@@ -76,6 +93,8 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default Hero;
