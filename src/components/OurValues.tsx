@@ -17,7 +17,7 @@ const OurValues = () => {
                   <path d="M12 7V3"></path>
                 </svg>
               </div>
-              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Community-Driven</h3>
+              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Edu-Vacation</h3>
               <p className="text-navy/70 leading-relaxed text-center">Success thrives in environments where ambition meets collaboration and support.</p>
             </div>
             
@@ -29,7 +29,7 @@ const OurValues = () => {
                   <path d="M12 3v3"></path>
                 </svg>
               </div>
-              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Lifelong Learning</h3>
+              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Brain Hacking</h3>
               <p className="text-navy/70 leading-relaxed text-center">Continuous growth through mentorship, real-world challenges, and shared knowledge.</p>
             </div>
             
@@ -40,7 +40,7 @@ const OurValues = () => {
                   <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
                 </svg>
               </div>
-              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Shared Ambition</h3>
+              <h3 className="text-2xl font-medium text-navy mb-4 text-center">Collaboration</h3>
               <p className="text-navy/70 leading-relaxed text-center">Building the future together by thinking bigger and executing faster.</p>
             </div>
           </div>
