@@ -1,4 +1,3 @@
-
 const NavalQuote = () => {
   return <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
@@ -12,9 +11,7 @@ const NavalQuote = () => {
             </p>
           </div>
           
-          <p className="text-xl md:text-2xl text-gray-600 border-l-4 border-terracotta pl-6">
-            Exclusivity ensures depth. No crowds, no noise – just your future friends, cofounders.
-          </p>
+          <p className="text-xl md:text-2xl text-gray-600 border-l-4 border-terracotta pl-6">Exclusivity ensures depth. No crowds, no noise – just you, your new friends, and a crazy f-ing experience.</p>
           
           <div className="grid md:grid-cols-2 gap-8 bg-gradient-to-br from-navy/5 to-navy/10 rounded-2xl p-8">
             <div className="space-y-4">
