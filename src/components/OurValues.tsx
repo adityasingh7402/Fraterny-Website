@@ -18,7 +18,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Edu-Vacation</h3>
-              <p className="text-navy/70 leading-relaxed text-center">Success thrives in environments where ambition meets collaboration and support.</p>
+              <p className="text-navy/70 leading-relaxed text-center">Looks like a vacation. Feels like a level-up. Ever felt like going on a vacation but not compromise on productivity?</p>
             </div>
             
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
@@ -30,7 +30,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Brain Hacking</h3>
-              <p className="text-navy/70 leading-relaxed text-center">Continuous growth through mentorship, real-world challenges, and shared knowledge.</p>
+              <p className="text-navy/70 leading-relaxed text-center">...</p>
             </div>
             
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
@@ -41,7 +41,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Collaboration</h3>
-              <p className="text-navy/70 leading-relaxed text-center">Building the future together by thinking bigger and executing faster.</p>
+              <p className="text-navy/70 leading-relaxed text-center">...</p>
             </div>
           </div>
         </div>
