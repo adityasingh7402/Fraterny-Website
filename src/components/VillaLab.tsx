@@ -116,7 +116,7 @@ const VillaLab = () => {
             The Villa Lab
           </h2>
           {/* CUSTOMIZATION: Villa Lab Section Tagline */}
-          <p className="text-lg sm:text-xl text-gray-600">  Think hard. Vibe harder.</p>
+          <p className="text-lg sm:text-xl text-gray-600"> Think hard. Vibe harder.</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
