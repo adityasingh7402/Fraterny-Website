@@ -87,21 +87,21 @@ const Process = () => {
                   <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and discuss them with.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-gray-200">You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and discuss them with.</p>
                     </div>
                   </div>
 
                   <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You believe in execution over excuses. You are not here for inspiration; you are here to contribute and collaborate with your own unique perspective.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-gray-200">You believe in execution over excuses. You are not here for inspiration; you are here to contribute and collaborate with your own unique perspective.</p>
                     </div>
                   </div>
 
                   <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You don't follow trends; you create them. Whether you are or aim to be an entrepreneur, investor, or innovator, you want to be in a space where you are encouraged and assisted.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-gray-200">You don't follow trends; you create them. Whether you are or aim to be an entrepreneur, investor, or innovator, you want to be in a space where you are encouraged and assisted.</p>
                     </div>
                   </div>
                 </div>
@@ -110,14 +110,14 @@ const Process = () => {
                   <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-gray-200">You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.</p>
                     </div>
                   </div>
 
                   <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-gray-200">You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.</p>
                     </div>
                   </div>
                 </div>
@@ -133,21 +133,21 @@ const Process = () => {
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[35px] bg-slate-900">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg font-normal text-slate-50">Those looking for a solo experience. </p>
+                    <p className="leading-relaxed text-base md:text-lg font-normal text-gray-200">Those looking for a solo experience. </p>
                   </div>
                 </div>
 
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[35px] bg-slate-900">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg text-slate-50">Anyone with a passive approach.</p>
+                    <p className="leading-relaxed text-base md:text-lg text-gray-200">Anyone with a passive approach.</p>
                   </div>
                 </div>
 
                 <div className="md:col-span-2 shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[35px] bg-slate-900">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg px-0 text-slate-50">Those who are not open to exploring new ideas, values or perspectives.</p>
+                    <p className="leading-relaxed text-base md:text-lg px-0 text-gray-200">Those who are not open to exploring new ideas, values or perspectives.</p>
                   </div>
                 </div>
               </div>
