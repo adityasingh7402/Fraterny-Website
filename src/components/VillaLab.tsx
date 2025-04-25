@@ -112,11 +112,11 @@ const VillaLab = () => {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="mb-8 sm:mb-12">
           {/* CUSTOMIZATION: Villa Lab Section Title */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4">
+          <h2 className="sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4 text-4xl">
             The Villa Lab
           </h2>
           {/* CUSTOMIZATION: Villa Lab Section Tagline */}
-          <p className="text-lg sm:text-xl text-gray-600"> Think hard. Vibe harder.</p>
+          <p className="sm:text-xl text-gray-600 text-base"> Think hard. Vibe harder.</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
