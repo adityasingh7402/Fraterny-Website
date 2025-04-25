@@ -5,51 +5,41 @@ import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/websiteSettingsService';
 import ResponsiveImage from '../components/ui/ResponsiveImage';
-
 const Process = () => {
-  const { data: settings, isLoading } = useQuery({
+  const {
+    data: settings,
+    isLoading
+  } = useQuery({
     queryKey: ['websiteSettings'],
     queryFn: fetchWebsiteSettings
   });
-  
+
   // Format the application close date
   const formattedCloseDate = useMemo(() => {
     if (isLoading || !settings?.registration_close_date) return 'March 2025';
     return formatRegistrationCloseDate(settings.registration_close_date);
   }, [settings?.registration_close_date, isLoading]);
-
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-16 bg-navy text-white relative">
         {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat">
-          <ResponsiveImage 
-            src={{
-              mobile: "/images/hero/process-hero-mobile.webp",
-              desktop: "/images/hero/process-hero-desktop.webp"
-            }}
-            alt="Luxury villa experience setting"
-            className="h-full w-full object-cover"
-            loading="eager"
-            dynamicKey="process-hero"
-          />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
+          <ResponsiveImage src={{
+          mobile: "/images/hero/process-hero-mobile.webp",
+          desktop: "/images/hero/process-hero-desktop.webp"
+        }} alt="Luxury villa experience setting" className="h-full w-full object-cover" loading="eager" dynamicKey="process-hero" />
         </div>
       
         {/* Gradient Overlay */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(to right, 
+        <div className="absolute inset-0" style={{
+        background: `linear-gradient(to right, 
               rgba(10, 26, 47, 0.95) 0%,
               rgba(10, 26, 47, 0.8) 50%,
               rgba(10, 26, 47, 0.6) 100%
             )`
-          }}
-        />
+      }} />
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl">
@@ -65,21 +55,13 @@ const Process = () => {
               <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-lg p-4">
                 <div className="text-sm text-gray-400">Available Seats</div>
                 <div className="text-2xl font-mono">
-                  {isLoading ? (
-                    <span className="opacity-50">Loading...</span>
-                  ) : (
-                    settings?.available_seats || 20
-                  )}
+                  {isLoading ? <span className="opacity-50">Loading...</span> : settings?.available_seats || 20}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-400">Applications Close</div>
                 <div className="text-xl">
-                  {isLoading ? (
-                    <span className="opacity-50">Loading...</span>
-                  ) : (
-                    formattedCloseDate
-                  )}
+                  {isLoading ? <span className="opacity-50">Loading...</span> : formattedCloseDate}
                 </div>
               </div>
             </div>
@@ -88,7 +70,7 @@ const Process = () => {
       </section>
 
       {/* Who is this for? Section - MOBILE OPTIMIZED */}
-      <section className="pt-16 md:pt-20 pb-10 md:pb-16 bg-white">
+      <section className="pt-16 md:pt-20 pb-10 md:pb-16 bg-white py-[34px]">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-6 md:mb-8 text-center">
@@ -276,8 +258,6 @@ const Process = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Process;
