@@ -129,22 +129,22 @@ const Process = () => {
                 Who this is not for:
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8 my-[51px] r px-0">
-                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8 my-[51px] r px-0 py-0">
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[35px]">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     <p className="text-gray-700 leading-relaxed text-base md:text-lg">Those looking for a solo experience. </p>
                   </div>
                 </div>
 
-                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[35px]">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     <p className="text-gray-700 leading-relaxed text-base md:text-lg">Anyone with a passive approach.</p>
                   </div>
                 </div>
 
-                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[35px]">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     <p className="text-gray-700 leading-relaxed text-base md:text-lg px-[52px]">Those who are not open to exploring new ideas, values or perspectives.</p>
