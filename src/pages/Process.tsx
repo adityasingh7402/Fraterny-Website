@@ -42,7 +42,7 @@ const Process = () => {
       }} />
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl ">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
               It's not special if everyone has it
             </h1>
