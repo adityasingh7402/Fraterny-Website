@@ -82,7 +82,7 @@ const Process = () => {
                 This is not for everyone. But if you are the right fit, you will know.
               </p>
 
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8 ">
                 <div className="space-y-4 md:space-y-8">
                   <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 md:gap-4">
@@ -110,18 +110,14 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                        You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.
-                      </p>
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.</p>
                     </div>
                   </div>
 
                   <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                        You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.
-                      </p>
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.</p>
                     </div>
                   </div>
                 </div>
