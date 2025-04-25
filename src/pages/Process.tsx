@@ -133,7 +133,7 @@ const Process = () => {
                 Who this is not for:
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8  px-[92px] my-[51px] r">
                 <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
