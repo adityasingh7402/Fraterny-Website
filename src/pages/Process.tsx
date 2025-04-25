@@ -125,7 +125,7 @@ const Process = () => {
             </div>
 
             <div className="mb-12 md:mb-20">
-              <h3 className="text-2xl md:text-3xl font-playfair text-navy mb-6 md:mb-8 text-center">
+              <h3 className="text-2xl font-playfair text-navy mb-6 md:mb-8 text-center md:text-4xl">
                 Who this is not for:
               </h3>
               
