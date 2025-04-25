@@ -94,9 +94,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                        You believe in execution over excuses. You are not here for inspiration; you are here to build, collaborate, and accelerate.
-                      </p>
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">You believe in execution over excuses. You are not here for inspiration; you are here to contribute and collaborate with your own unique perspective.</p>
                     </div>
                   </div>
 
