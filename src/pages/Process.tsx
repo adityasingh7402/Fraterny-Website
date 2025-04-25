@@ -101,9 +101,7 @@ const Process = () => {
                   <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                        You don't follow trends; you create them. Whether you are an entrepreneur, investor, or innovator, you want to be in a space where real things happen.
-                      </p>
+                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">You don't follow trends; you create them. Whether you are or aim to be an entrepreneur, investor, or innovator, you want to be in a space where you are encouraged and assisted.</p>
                     </div>
                   </div>
                 </div>
