@@ -11,7 +11,7 @@ const NavalQuote = () => {
             </p>
           </div>
           
-          <p className="text-xl md:text-2xl text-gray-600 border-l-4 border-terracotta pl-6">Exclusivity ensures depth. No crowds, no noise – just you, your new friends, and a crazy f-ing experience.</p>
+          <p className="md:text-2xl text-gray-600 border-l-4 border-terracotta pl-6 text-xl">Exclusivity ensures depth. No crowds, no noise – just you, your new friends, and a crazy f-ing experience.</p>
           
           <div className="grid md:grid-cols-2 gap-8 bg-gradient-to-br from-navy/5 to-navy/10 rounded-2xl p-8">
             <div className="space-y-4">
