@@ -46,7 +46,7 @@ const Process = () => {
             <h1 className="md:text-5xl lg:text-6xl font-playfair mb-6 text-5xl">
               It's not special if everyone has it
             </h1>
-            <p className="text-gray-300 mb-8 max-w-2xl font-extralight text-left text-base">
+            <p className="text-gray-300 mb-8 max-w-2xl font-extralight text-left text-lg">
               We make sure you interact with only ambitious, likeminded and interesting people.
             </p>
             
