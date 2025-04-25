@@ -140,7 +140,7 @@ const Process = () => {
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[20px] bg-gray-800">
                   <div className="flex items-start gap-3 md:gap-4">
                     <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 my-[29px]" />
-                    <p className="leading-relaxed text-base text-slate-50 my-[17px] md:text-xl">Anyone with a passive approach.</p>
+                    <p className="leading-relaxed text-base text-slate-50 my-[25px] md:text-xl">Anyone with a passive approach.</p>
                   </div>
                 </div>
 
