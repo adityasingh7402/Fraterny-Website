@@ -5,7 +5,6 @@ import { ClipboardList, Phone, UserCheck, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchWebsiteSettings, formatRegistrationCloseDate } from '@/services/websiteSettingsService';
 import ResponsiveImage from '../components/ui/ResponsiveImage';
-
 const Process = () => {
   const {
     data: settings,
@@ -20,7 +19,6 @@ const Process = () => {
     if (isLoading || !settings?.registration_close_date) return 'March 2025';
     return formatRegistrationCloseDate(settings.registration_close_date);
   }, [settings?.registration_close_date, isLoading]);
-
   return <div className="min-h-screen bg-white">
       <Navigation />
       
@@ -131,43 +129,25 @@ const Process = () => {
                 Who this is not for:
               </h3>
               
-              <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
-                {/* Card 1 */}
-                <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-navy/5 to-navy/10 opacity-50 transition-opacity group-hover:opacity-70"></div>
-                  <div className="relative z-10">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-terracotta/10">
-                      <Check className="h-6 w-6 text-terracotta" />
-                    </div>
-                    <p className="text-gray-700 text-lg font-medium">
-                      Those looking for a solo experience.
-                    </p>
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8  px-[92px] my-[51px] r">
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">Those looking for a solo experience. </p>
                   </div>
                 </div>
 
-                {/* Card 2 */}
-                <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-navy/5 to-navy/10 opacity-50 transition-opacity group-hover:opacity-70"></div>
-                  <div className="relative z-10">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-terracotta/10">
-                      <Check className="h-6 w-6 text-terracotta" />
-                    </div>
-                    <p className="text-gray-700 text-lg font-medium">
-                      Anyone with a passive approach.
-                    </p>
+                <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">Anyone with a passive approach.</p>
                   </div>
                 </div>
 
-                {/* Card 3 */}
-                <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl md:col-span-3">
-                  <div className="absolute inset-0 bg-gradient-to-br from-navy/5 to-navy/10 opacity-50 transition-opacity group-hover:opacity-70"></div>
-                  <div className="relative z-10">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-terracotta/10">
-                      <Check className="h-6 w-6 text-terracotta" />
-                    </div>
-                    <p className="text-gray-700 text-lg font-medium">
-                      Those who are not open to exploring new ideas, values or perspectives.
-                    </p>
+                <div className="md:col-span-2 bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">Those who are not open to exploring new ideas, values or perspectives.</p>
                   </div>
                 </div>
               </div>
@@ -262,5 +242,4 @@ const Process = () => {
       <Footer />
     </div>;
 };
-
 export default Process;
