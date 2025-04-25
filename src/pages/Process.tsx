@@ -125,7 +125,7 @@ const Process = () => {
             </div>
 
             <div className="mb-12 md:mb-20">
-              <h3 className="font-playfair text-navy mb-6 md:mb-8 text-center md:text-4xl text-3xl">Who this is 'not' for?</h3>
+              <h3 className="text-2xl font-playfair text-navy mb-6 md:mb-8 text-center md:text-4xl">Who this is 'not' for?</h3>
               
               <div className="grid md:grid-cols-2 gap-4 md:gap-8 my-[51px] r px-0 py-0">
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[35px] bg-slate-900">
