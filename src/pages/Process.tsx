@@ -129,25 +129,25 @@ const Process = () => {
                 Who this is not for:
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8 px-[92px] r mx-0 my-0">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8 r my-[15px] mx-[5px] px-[2px] py-0">
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[20px] mx-px my-0 bg-gray-800">
                   <div className="flex items-start gap-3 md:gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg text-gray-50">Those looking for a solo experience. </p>
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 my-[32px]" />
+                    <p className="leading-relaxed text-base text-gray-50 my-[27px] md:text-xl">Those looking for a solo experience. </p>
                   </div>
                 </div>
 
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[20px] bg-gray-800">
                   <div className="flex items-start gap-3 md:gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg text-slate-50">Anyone with a passive approach.</p>
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 my-[29px]" />
+                    <p className="leading-relaxed text-base text-slate-50 my-[17px] md:text-xl">Anyone with a passive approach.</p>
                   </div>
                 </div>
 
                 <div className="md:col-span-2 shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[23px] my-[4px] bg-slate-700">
                   <div className="flex items-start gap-3 md:gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                    <p className="leading-relaxed text-base md:text-lg text-gray-50">Those who are not open to exploring new ideas, values or perspectives.</p>
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 my-[25px]" />
+                    <p className="leading-relaxed text-base text-gray-50 py-[20px] mx-[34px] my-0 md:text-xl">Those who are not open to exploring new ideas, values or perspectives.</p>
                   </div>
                 </div>
               </div>
