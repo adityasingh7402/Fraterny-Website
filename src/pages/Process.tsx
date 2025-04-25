@@ -43,10 +43,10 @@ const Process = () => {
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl ">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
+            <h1 className="md:text-5xl lg:text-6xl font-playfair mb-6 text-5xl">
               It's not special if everyone has it
             </h1>
-            <p className="text-gray-300 mb-8 max-w-2xl font-extralight text-xl text-left">
+            <p className="text-gray-300 mb-8 max-w-2xl font-extralight text-left text-base">
               We make sure you interact with only ambitious, likeminded and interesting people.
             </p>
             
@@ -125,7 +125,7 @@ const Process = () => {
             </div>
 
             <div className="mb-12 md:mb-20">
-              <h3 className="font-playfair text-navy mb-6 md:mb-8 text-center text-3xl md:text-5xl">Who this is 'not' for?</h3>
+              <h3 className="font-playfair text-navy mb-6 md:mb-8 text-center md:text-5xl text-3xl">Who this is 'not' for?</h3>
               
               <div className="grid md:grid-cols-2 gap-4 md:gap-8 my-[51px] r px-0 py-0">
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow my-0 py-[35px] bg-slate-900">
