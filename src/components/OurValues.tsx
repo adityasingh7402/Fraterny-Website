@@ -5,7 +5,7 @@ const OurValues = () => {
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-10">What's so Special?</h2>
         
         <div className="max-w-5xl mx-auto">
-          <p className="text-lg text-navy/80 leading-relaxed mb-14 max-w-4xl relative z-10 md:text-xl py-[3px] text-justify">Fraterny is built on the belief that success and self discovery can be accelerated exponentially in the right environment, with the right people and the right mindset. We unite the most driven, high-potential youth in team simulations focused on developing a business mindset, having deep conversations, and embracing constructive criticism. By fostering strong relationships, real-world collaboration, and a culture of shared ambition, Fraterny aims to empower its members to think bigger, execute faster, and build the future together.</p>
+          <p className="text-lg text-navy/80 leading-relaxed mb-14 max-w-4xl relative z-10 py-[3px] text-justify md:text-xl">Fraterny is built on the belief that success and self discovery can be accelerated exponentially in the right environment, with the right people and the right mindset. We unite the most driven, high-potential youth in team simulations focused on developing a business mindset, having deep conversations, and embracing constructive criticism. By fostering strong relationships, real-world collaboration, and a culture of shared ambition, Fraterny aims to empower its members to think bigger, execute faster, and build the future together.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
@@ -16,7 +16,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Edu-Vacation</h3>
-              <p className="text-navy/70 leading-relaxed text-center">Looks like a vacation. Feels like a level-up. Ever felt like going on a vacation but not compromise on productivity?</p>
+              <p className="text-navy/70 leading-relaxed text-center text-lg">Looks like a vacation. Feels like a level-up. Ever felt like going on a vacation but not compromise on productivity?</p>
             </div>
             
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
@@ -28,7 +28,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Brain Hacking</h3>
-              <p className="text-navy/70 leading-relaxed text-center">We curate experiences and activities which ensure critical thinking, insightful interactions and openness  </p>
+              <p className="text-navy/70 leading-relaxed text-center text-lg">We curate experiences and activities which ensure critical thinking, insightful interactions and openness  </p>
             </div>
             
             <div className="group flex flex-col items-center p-5 hover:bg-gray-50 rounded-lg transition-all duration-300">
@@ -39,7 +39,7 @@ const OurValues = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-medium text-navy mb-4 text-center">Collaboration</h3>
-              <p className="text-navy/70 leading-relaxed text-center">Legends don’t compete. They collaborate. Imagine being stranded on a 10BHK exclusive villa with 19 other ambitious souls like yourself.</p>
+              <p className="text-navy/70 leading-relaxed text-center text-lg">Legends don’t compete. They collaborate. Imagine being stranded on a 10BHK exclusive villa with 19 other ambitious souls like yourself.</p>
             </div>
           </div>
         </div>
