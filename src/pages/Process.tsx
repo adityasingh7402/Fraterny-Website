@@ -84,10 +84,10 @@ const Process = () => {
 
               <div className="grid md:grid-cols-2 gap-4 md:gap-8 ">
                 <div className="space-y-4 md:space-y-8">
-                  <div className="bg-white shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow bg-slate-900">
                     <div className="flex items-start gap-3 md:gap-4">
                       <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
-                      <p className="text-gray-700 leading-relaxed text-base md:text-lg">You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and discuss them with.</p>
+                      <p className="leading-relaxed text-base md:text-lg text-slate-50">You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and discuss them with.</p>
                     </div>
                   </div>
 
