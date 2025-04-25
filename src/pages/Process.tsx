@@ -73,7 +73,7 @@ const Process = () => {
       <section className="pt-16 md:pt-20 pb-10 md:pb-16 py-[34px] bg-stone-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-6 md:mb-8 text-center">
+            <h2 className="text-3xl font-playfair text-navy mb-6 md:mb-8 text-center md:text-5xl">
               Who is this for?
             </h2>
             
