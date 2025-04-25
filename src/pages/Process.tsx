@@ -132,7 +132,7 @@ const Process = () => {
               <div className="grid md:grid-cols-2 gap-4 md:gap-8 r my-[15px] mx-[5px] px-[2px] py-0">
                 <div className="shadow-sm rounded-lg p-5 md:p-6 hover:shadow-md transition-shadow py-[20px] mx-px my-0 bg-gray-800">
                   <div className="flex items-start gap-3 md:gap-4">
-                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 my-[32px]" />
+                    <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-slate-50 rounded-none my-[31px]" />
                     <p className="leading-relaxed text-base text-gray-50 my-[27px] md:text-xl">Those looking for a solo experience. </p>
                   </div>
                 </div>
