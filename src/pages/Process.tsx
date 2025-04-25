@@ -239,9 +239,7 @@ const Process = () => {
           </div>
 
           {/* Security Notice */}
-          <div className="mt-12 text-center text-sm text-gray-500">
-            Your data is 100% secure. Not selected? Get priority access for 2025 cohorts.
-          </div>
+          <div className="mt-12 text-center text-sm text-gray-500">Your data is 100% secure. Not selected? You will get priority access in future bootcamps.</div>
         </div>
       </section>
 
