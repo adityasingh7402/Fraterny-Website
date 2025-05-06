@@ -1,60 +1,63 @@
-
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
-import Index from './pages/Index';
-import Auth from './pages/Auth';
-import Experience from './pages/Experience';
-import Process from './pages/Process';
-import Pricing from './pages/Pricing';
-import FAQ from './pages/FAQ';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfUse from './pages/TermsOfUse';
-import TermsAndConditions from './pages/TermsAndConditions';
-import RefundPolicy from './pages/RefundPolicy';
-import NotFound from './pages/NotFound';
-import Dashboard from './pages/admin/dashboard';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
-import AdminBlog from './pages/admin/blog';
-import Analytics from './pages/admin/Analytics';
-import AdminImages from './pages/admin/images';
-import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
-// Create router with proper configuration for production deployment
+// Lazy-loaded components
+const Index = lazy(() => import('./pages/Index'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Experience = lazy(() => import('./pages/Experience'));
+const Process = lazy(() => import('./pages/Process'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Admin
+const Dashboard = lazy(() => import('./pages/admin/dashboard'));
+const AdminBlog = lazy(() => import('./pages/admin/blog'));
+const Analytics = lazy(() => import('./pages/admin/Analytics'));
+const AdminImages = lazy(() => import('./pages/admin/images'));
+const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
+
+const suspenseWrap = (element: React.ReactNode) => (
+  <Suspense fallback={<div>Loading...</div>}>{element}</Suspense>
+);
+
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <App />,
-    errorElement: <NotFound />,
+    errorElement: suspenseWrap(<NotFound />),
     children: [
-      // Make the Index component explicitly assigned to the root path
-      { index: true, element: <Index /> },
-      { path: "auth", element: <Auth /> },
-      { path: "experience", element: <Experience /> },
-      { path: "process", element: <Process /> },
-      { path: "pricing", element: <Pricing /> },
-      { path: "faq", element: <FAQ /> },
-      { path: "blog", element: <Blog /> },
-      { path: "blog/:id", element: <BlogPost /> },
-      { path: "privacy-policy", element: <PrivacyPolicy /> },
-      { path: "terms-of-use", element: <TermsOfUse /> },
-      { path: "terms-and-conditions", element: <TermsAndConditions /> },
-      { path: "refund-policy", element: <RefundPolicy /> },
-      
-      // Admin routes with proper nesting
+      { index: true, element: suspenseWrap(<Index />) },
+      { path: 'auth', element: suspenseWrap(<Auth />) },
+      { path: 'experience', element: suspenseWrap(<Experience />) },
+      { path: 'process', element: suspenseWrap(<Process />) },
+      { path: 'pricing', element: suspenseWrap(<Pricing />) },
+      { path: 'faq', element: suspenseWrap(<FAQ />) },
+      { path: 'blog', element: suspenseWrap(<Blog />) },
+      { path: 'blog/:id', element: suspenseWrap(<BlogPost />) },
+      { path: 'privacy-policy', element: suspenseWrap(<PrivacyPolicy />) },
+      { path: 'terms-of-use', element: suspenseWrap(<TermsOfUse />) },
+      { path: 'terms-and-conditions', element: suspenseWrap(<TermsAndConditions />) },
+      { path: 'refund-policy', element: suspenseWrap(<RefundPolicy />) },
       {
-        path: "admin",
-        element: <AdminRoute />,
+        path: 'admin',
+        element: <AdminRoute />, // ProtectedRoute remains statically imported
         children: [
-          { index: true, element: <Dashboard /> },
-          { path: "blog", element: <AdminBlog /> },
-          { path: "analytics", element: <Analytics /> },
-          { path: "images", element: <AdminImages /> },
-          { path: "newsletter", element: <NewsletterSubscribers /> },
+          { index: true, element: suspenseWrap(<Dashboard />) },
+          { path: 'blog', element: suspenseWrap(<AdminBlog />) },
+          { path: 'analytics', element: suspenseWrap(<Analytics />) },
+          { path: 'images', element: suspenseWrap(<AdminImages />) },
+          { path: 'newsletter', element: suspenseWrap(<NewsletterSubscribers />) },
         ],
       },
     ],
@@ -65,4 +68,4 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />
   </React.StrictMode>
-)
+);
