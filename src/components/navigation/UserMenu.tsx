@@ -1,16 +1,22 @@
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { User, LogOut } from 'lucide-react';
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-interface UserMenuProps {
-  isScrolled: boolean;
-}
-
-const UserMenu = ({ isScrolled }: UserMenuProps) => {
+const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
   const { user, signOut, isAdmin } = useAuth();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   const adminLinks = [
     { name: 'Dashboard', href: '/admin' },
     { name: 'Analytics', href: '/admin/analytics' },
@@ -19,69 +25,68 @@ const UserMenu = ({ isScrolled }: UserMenuProps) => {
     { name: 'Newsletter', href: '/admin/newsletter' },
   ];
 
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(prev => !prev);
-  };
-
   const handleSignOut = async () => {
+    setLoading(true);
     try {
       await signOut();
-      setIsUserMenuOpen(false);
-    } catch (error) {
-      console.error('Error signing out:', error);
+    } catch (err) {
+      console.error('Error signing out:', err);
+      toast.error('Sign out failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="relative">
-      <button 
-        onClick={toggleUserMenu}
-        className="flex items-center space-x-2 focus:outline-none"
-        aria-expanded={isUserMenuOpen}
-        aria-haspopup="true"
-      >
-        <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
-          {user?.user_metadata?.first_name ? (
-            <span className="text-white font-medium">
-              {user.user_metadata.first_name.charAt(0)}
-            </span>
-          ) : (
-            <User size={18} />
-          )}
-        </div>
-      </button>
-      
-      {isUserMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {user?.email}
-            </p>
-            <p className="text-xs text-gray-500">
-              {isAdmin ? 'Administrator' : 'User'}
-            </p>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="flex items-center space-x-2 focus:outline-none"
+          aria-label="User menu"
+        >
+          <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
+            {user?.user_metadata?.first_name ? (
+              <span className="text-white font-medium">
+                {user.user_metadata.first_name.charAt(0)}
+              </span>
+            ) : (
+              <User size={18} />
+            )}
           </div>
-          
-          {isAdmin && adminLinks.map(link => (
-            <a 
-              key={link.name} 
-              href={link.href}
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsUserMenuOpen(false)}
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-48">
+        <DropdownMenuLabel className="text-sm px-4">
+          {user?.email}
+          <div className="text-xs text-gray-500">{isAdmin ? 'Administrator' : 'User'}</div>
+        </DropdownMenuLabel>
+
+        <DropdownMenuSeparator />
+
+        {isAdmin &&
+          adminLinks.map(link => (
+            <DropdownMenuItem
+              key={link.name}
+              onClick={() => navigate(link.href)}
+              className="cursor-pointer"
             >
               {link.name}
-            </a>
+            </DropdownMenuItem>
           ))}
-          <button 
-            onClick={handleSignOut}
-            className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-          >
-            <LogOut size={16} className="mr-2" />
-            Sign Out
-          </button>
-        </div>
-      )}
-    </div>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="text-red-600 cursor-pointer"
+          disabled={loading}
+        >
+          <LogOut size={16} className="mr-2" />
+          {loading ? 'Signing out...' : 'Sign Out'}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
