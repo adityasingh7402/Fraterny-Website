@@ -82,12 +82,10 @@ const BlogPost = () => {
               <ResponsiveImage
                 dynamicKey={post.image_key}
                 alt={post.title}
-                size="large"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="w-full h-auto"
                 loading="eager"
                 priority={true}
-                fallbackSrc="/placeholder.svg"
-                src=""
               />
             </div>
           )}

@@ -1,7 +1,6 @@
-
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { EmailField } from './components/EmailField';
+import { EmailFieldLogin } from './components/EmailFieldLogin';
 import { PasswordFieldLogin } from './components/PasswordFieldLogin';
 import { useLoginForm } from './hooks/useLoginForm';
 
@@ -17,7 +16,7 @@ export const LoginForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-6">
-        <EmailField form={form} />
+        <EmailFieldLogin form={form} />
         <PasswordFieldLogin 
           form={form}
           showPassword={showPassword}

@@ -16,10 +16,10 @@ const TimelineSection = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-6">
         {/* CUSTOMIZATION: Timeline Section Title */}
-        <h2 className="text-3xl md:text-4xl font-playfair text-navy mb-4">A Day in the Villa</h2>
+        <h2 className="text-center text-3xl md:text-4xl font-playfair text-navy mb-4">A Day in the Villa</h2>
         
         {/* CUSTOMIZATION: Timeline Section Description */}
-        <p className="text-lg text-gray-600 mb-12 max-w-3xl">
+        <p className="text-center sm:text-xl text-gray-600 text-base mb-8">
           We create the perfect conditions for you to have the most insightful conversations, amazing memories and take action towards your goals
         </p>
         

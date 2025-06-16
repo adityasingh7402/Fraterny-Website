@@ -1,4 +1,3 @@
-
 // Define the responsive image source type
 export interface ResponsiveImageSource {
   mobile: string;
@@ -6,12 +5,34 @@ export interface ResponsiveImageSource {
   desktop: string;
 }
 
+// Define the image cache entry type
+export interface ImageCacheEntry {
+  url: string;
+  aspectRatio: number | undefined;
+  tinyPlaceholder: string | null;
+  colorPlaceholder: string | null;
+  contentHash: string | null;
+  timestamp: number;
+  lastUpdated: string;
+  globalVersion: string | null;
+  networkType: string;
+  deviceType: 'mobile' | 'desktop';
+  estimatedSize: string;
+}
+
+// Define the memory cache entry type
+export interface MemoryCacheEntry {
+  data: ImageCacheEntry;
+  timestamp: number;
+  ttl: number;
+}
+
 // Add ImageLoadingState interface that was missing
 export interface ImageLoadingState {
   isLoading: boolean;
   error: boolean;
   dynamicSrc: string | null;
-  aspectRatio?: number;
+  aspectRatio: number | undefined;
   tinyPlaceholder: string | null;
   colorPlaceholder: string | null;
   contentHash: string | null;

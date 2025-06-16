@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { urlCache } from "../cacheService";
-import { WebsiteImage } from "../types";
 import { addHashToUrl } from "../utils/hashUtils";
 import { getGlobalCacheVersion } from "./cacheVersionService";
 
@@ -15,20 +14,35 @@ const MAX_RETRIES = 3;
 
 // Basic logging
 const log = (message: string, data?: any) => {
+  // Skip logging for common operations in development
   if (isDevelopment) {
-    console.log(`[ImageCache] ${message}`, data);
+    // Skip logging for cached URLs and cache management
+    if (message.includes('Using cached URL') || 
+        message.includes('Cache managed') ||
+        message.includes('Generated') ||
+        message.includes('Retrieved URL')) {
+      return;
+    }
+    
+    // Only log important events
+    if (message.includes('Error') || 
+        message.includes('No image') || 
+        message.includes('Failed') ||
+        message.includes('Fallback')) {
+      console.log(`[ImageCache] ${message}`, data);
+    }
   }
 };
 
 // Improved cache management
-const manageCache = () => {
+const manageCache = async () => {
   // Get current cache version
-  const currentVersion = urlCache.get('global:cache:version');
+  const currentVersion = await urlCache.get('global:cache:version');
   
   // Only clear cache entries that don't match current version
   if (currentVersion) {
     const pattern = `^url:.*:(?!${currentVersion})`;
-    urlCache.invalidate(pattern);
+    await urlCache.invalidate(pattern);
   }
   
   // If cache is still too large, clear oldest entries
@@ -38,8 +52,6 @@ const manageCache = () => {
     const entriesToRemove = entries.slice(0, Math.floor(MAX_CACHE_SIZE * 0.2)); // Remove 20% of oldest entries
     entriesToRemove.forEach(([key]) => urlCache.delete(key));
   }
-  
-  log('Cache managed', { currentVersion, size: urlCache.size });
 };
 
 // Improved TTL strategy
@@ -47,6 +59,26 @@ const getTTL = (key: string) => {
   if (key.includes('global:')) return 5 * 60 * 1000; // 5 minutes for global
   return CACHE_TTL; // Default TTL
 };
+
+interface ImageMetadata {
+  contentHash?: string;
+  [key: string]: any;
+}
+
+interface ImageSizes {
+  small?: string;
+  medium?: string;
+  large?: string;
+  [key: string]: string | undefined;
+}
+
+// interface ImageData {
+//   storage_path: string;
+//   metadata?: ImageMetadata;
+//   sizes?: ImageSizes;
+// }
+
+type ImageSize = 'small' | 'medium' | 'large';
 
 /**
  * Get the image URL by key with improved cache control
@@ -57,10 +89,10 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
   const cacheKey = `url:${key}:v${globalVersion || 'initial'}`;
   
   // Check cache with version-specific key
-  const cachedUrl = urlCache.get(cacheKey);
+  const cachedUrl = await urlCache.get(cacheKey);
   if (cachedUrl) {
     log(`Using cached URL for ${key}`, { version: globalVersion });
-    return cachedUrl;
+    return cachedUrl as string;
   }
 
   try {
@@ -84,6 +116,36 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
 
     if (!data || !data.storage_path) {
       log(`No image or storage path found for key ${key}`);
+      
+      // Try fallback logic for mobile/desktop variants
+      let fallbackKey: string | null = null;
+      
+      if (key.endsWith('-mobile')) {
+        // If mobile version not found, try desktop version
+        fallbackKey = key.replace('-mobile', '');
+        log(`Mobile key ${key} not found, trying desktop fallback: ${fallbackKey}`);
+      } else if (!key.endsWith('-mobile')) {
+        // If desktop version not found, try mobile version
+        fallbackKey = `${key}-mobile`;
+        log(`Desktop key ${key} not found, trying mobile fallback: ${fallbackKey}`);
+      }
+      
+      // Attempt fallback if we have one and haven't tried it yet
+      if (fallbackKey && retryCount === 0) {
+        log(`Attempting fallback with key: ${fallbackKey}`);
+        try {
+          const fallbackUrl = await getImageUrlByKey(fallbackKey, 1); // Prevent infinite recursion with retryCount = 1
+          if (fallbackUrl && fallbackUrl !== '/placeholder.svg') {
+            log(`Fallback successful for ${fallbackKey}`);
+            return fallbackUrl;
+          }
+          log(`Fallback failed for ${fallbackKey}, using placeholder`);
+        } catch (fallbackError) {
+          log(`Fallback also failed for ${fallbackKey}`, fallbackError);
+        }
+      }
+      
+      log(`No fallback available for key ${key}, using placeholder`);
       return '/placeholder.svg';
     }
 
@@ -97,10 +159,19 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
       return '/placeholder.svg';
     }
 
+    // 🎯 MOBILE DEVICE DETECTION
+    const isMobileDevice = typeof window !== 'undefined' && 
+      (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    
+    const isMobileKey = key.includes('-mobile');
+    const shouldOptimizeForMobile = isMobileDevice || isMobileKey;
+
+    log(`🎯 Generated ${shouldOptimizeForMobile ? 'MOBILE' : 'DESKTOP'} optimized URL for ${key}`);
+
     // Extract content hash from metadata
-    let contentHash = null;
+    let contentHash: string | null = null;
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      contentHash = data.metadata.contentHash || null;
+      contentHash = (data.metadata as ImageMetadata).contentHash || null;
     }
     
     // Build the final URL with enhanced cache parameters
@@ -127,7 +198,7 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
     urlCache.set(cacheKey, finalUrl, getTTL(cacheKey));
 
     // Manage cache size
-    manageCache();
+    await manageCache();
 
     return finalUrl;
   } catch (e) {
@@ -145,14 +216,14 @@ export const getImageUrlByKey = async (key: string, retryCount = 0): Promise<str
  */
 export const getImageUrlByKeyAndSize = async (
   key: string, 
-  size: 'small' | 'medium' | 'large'
+  size: ImageSize
 ): Promise<string> => {
   // Get current cache version
   const globalVersion = await getGlobalCacheVersion();
   const cacheKey = `url:${key}:${size}:${globalVersion || 'default'}`;
   
   // Check cache with version-specific key
-  const cachedUrl = urlCache.get(cacheKey);
+  const cachedUrl = await urlCache.get(cacheKey);
   if (cachedUrl) {
     console.log(`[getImageUrlByKeyAndSize] Using cached URL for ${key} (size: ${size}, version: ${globalVersion})`);
     return cachedUrl;
@@ -179,20 +250,27 @@ export const getImageUrlByKeyAndSize = async (
     }
     
     // Extract content hash from metadata
-    let contentHash = null;
+    let contentHash: string | null = null;
     if (typeof data.metadata === 'object' && data.metadata !== null && !Array.isArray(data.metadata)) {
-      contentHash = data.metadata.contentHash || null;
+      contentHash = (data.metadata as ImageMetadata).contentHash || null;
     }
     
     // Check if sizes exists and if the requested size is available
-    if (data.sizes && data.sizes[size]) {
-      // Get the public URL for this optimized size
+    if (data.sizes && typeof data.sizes === 'object' && !Array.isArray(data.sizes)) {
+      const sizes = data.sizes as ImageSizes;
+      const sizePath = sizes[size];
+      
+      if (!sizePath) {
+        console.warn(`[getImageUrlByKeyAndSize] Size ${size} not found for key ${key}`);
+        return '/placeholder.svg';
+      }
+
       const { data: urlData } = supabase.storage
         .from('website-images')
-        .getPublicUrl(data.sizes[size]);
+        .getPublicUrl(sizePath);
 
       if (!urlData || !urlData.publicUrl) {
-        console.warn(`[getImageUrlByKeyAndSize] Failed to get public URL for size path: ${data.sizes[size]}`);
+        console.warn(`[getImageUrlByKeyAndSize] Failed to get public URL for size path: ${sizePath}`);
         return '/placeholder.svg';
       }
 
@@ -207,78 +285,54 @@ export const getImageUrlByKeyAndSize = async (
       if (globalVersion) {
         cacheParams.append('gv', globalVersion);
       }
-      cacheParams.append('_', Date.now().toString()); // Prevent browser caching
+      // Add timestamp for both dev and prod to prevent browser caching
+      cacheParams.append('_', Date.now().toString());
       
       finalUrl = finalUrl.includes('?') 
         ? `${finalUrl}&${cacheParams.toString()}`
         : `${finalUrl}?${cacheParams.toString()}`;
 
-      console.log(`[getImageUrlByKeyAndSize] Retrieved sized URL for ${key} (${size}): ${finalUrl}`);
+      // Cache the URL with version-specific key and appropriate TTL
+      urlCache.set(cacheKey, finalUrl, getTTL(cacheKey));
 
-      // Cache the URL with version-specific key and longer TTL
-      urlCache.set(cacheKey, finalUrl, CACHE_TTL);
-      
+      // Manage cache size
+      await manageCache();
+
       return finalUrl;
     }
 
-    // If the requested size doesn't exist, fall back to the original image
-    console.log(`[getImageUrlByKeyAndSize] Size ${size} not found for ${key}, falling back to original`);
+    // If size not found, fall back to original image
+    console.warn(`[getImageUrlByKeyAndSize] Size ${size} not found for key ${key}, falling back to original image`);
     return getImageUrlByKey(key);
   } catch (e) {
-    console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}, size ${size}:`, e);
+    console.error(`[getImageUrlByKeyAndSize] Unexpected error for key ${key}:`, e);
     return '/placeholder.svg';
   }
 };
 
 /**
- * Get multiple image URLs by keys in a single batch operation
- * @param keys Array of image keys to fetch
- * @param size Optional size parameter for responsive images
- * @returns Record of image keys to their URLs
+ * Get multiple image URLs by keys
  */
 export const getImageUrlsByKeys = async (
   keys: string[],
-  size?: 'small' | 'medium' | 'large'
+  size?: ImageSize
 ): Promise<Record<string, string>> => {
-  const urls: Record<string, string> = {};
+  const results: Record<string, string> = {};
   
-  // First check cache for all keys
-  keys.forEach(key => {
-    const cacheKey = size ? `url:${key}:${size}` : `url:${key}`;
-    const cachedUrl = urlCache.get(cacheKey);
-    if (cachedUrl) {
-      urls[key] = cachedUrl;
-    }
-  });
+  // Process keys in parallel with Promise.all
+  await Promise.all(
+    keys.map(async (key) => {
+      try {
+        const url = size 
+          ? await getImageUrlByKeyAndSize(key, size)
+          : await getImageUrlByKey(key);
+        results[key] = url;
+      } catch (error) {
+        console.error(`Error getting URL for key ${key}:`, error);
+        results[key] = '/placeholder.svg';
+      }
+    })
+  );
   
-  // Get remaining uncached keys
-  const uncachedKeys = keys.filter(key => !urls[key]);
-  if (uncachedKeys.length === 0) return urls;
-  
-  try {
-    // Fetch remaining URLs in batch
-    const { data, error } = await supabase
-      .from('website_images')
-      .select('key, storage_path, sizes, metadata')
-      .in('key', uncachedKeys);
-    
-    if (error) {
-      console.error('[getImageUrlsByKeys] Error fetching batch of image URLs:', error);
-      return urls;
-    }
-    
-    // Process and cache each URL
-    for (const image of data) {
-      const url = size && image.sizes?.[size]
-        ? await getImageUrlByKeyAndSize(image.key, size)
-        : await getImageUrlByKey(image.key);
-      
-      urls[image.key] = url;
-    }
-    
-    return urls;
-  } catch (e) {
-    console.error('[getImageUrlsByKeys] Unexpected error:', e);
-    return urls;
-  }
+  return results;
 };
