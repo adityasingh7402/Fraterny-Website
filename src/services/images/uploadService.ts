@@ -87,10 +87,31 @@ export const uploadImage = async (
     }
     
     // Create optimized versions if it's an image
+    // console.log('Creating optimized versions...');
+    // const optimizedSizes = await createOptimizedVersions(file, storagePath);
+    // console.log('Optimized sizes:', optimizedSizes);
+    // Create optimized versions if it's an image
     console.log('Creating optimized versions...');
-    const optimizedSizes = await createOptimizedVersions(file, storagePath);
-    console.log('Optimized sizes:', optimizedSizes);
     
+    // 🎯 CREATE BOTH MOBILE AND DESKTOP VERSIONS
+    console.log('Creating desktop optimized versions...');
+    const desktopSizes = await createOptimizedVersions(file, storagePath, false);
+    
+    console.log('Creating mobile optimized versions...');
+    const mobileSizes = await createOptimizedVersions(file, storagePath, true);
+    
+    // Combine both mobile and desktop sizes
+    const optimizedSizes = {
+      ...desktopSizes,
+      // Add mobile versions with mobile prefix
+      'mobile-small': mobileSizes.small,
+      'mobile-medium': mobileSizes.medium,
+      'mobile-large': mobileSizes.large,
+    };
+    
+    console.log('All optimized sizes:', optimizedSizes);
+    
+    // Create an entry in the website_images table with enhanced metadata including content hash
     // Create an entry in the website_images table with enhanced metadata including content hash
     const metadata = {
       placeholders: {
@@ -98,7 +119,13 @@ export const uploadImage = async (
         color: colorPlaceholder
       },
       contentHash: contentHash, // Store content hash in metadata
-      lastModified: new Date().toISOString()
+      lastModified: new Date().toISOString(),
+      // 🎯 ADD MOBILE OPTIMIZATION INFO
+      mobileOptimized: true,
+      versions: {
+        desktop: Object.keys(desktopSizes),
+        mobile: Object.keys(mobileSizes)
+      }
     };
     
     const { data, error: insertError } = await supabase

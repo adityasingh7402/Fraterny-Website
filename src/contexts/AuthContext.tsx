@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useNavigate, useLocation, NavigateFunction, Location } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useAuthState } from '@/hooks/use-auth-state';
 import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, resendVerificationEmail as authResendVerificationEmail } from '@/utils/auth';
 import { AuthContextType } from '@/types/auth';
@@ -9,12 +8,19 @@ import { AuthContextType } from '@/types/auth';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user, session, isLoading, isAdmin } = useAuthState();
-  const [authReady, setAuthReady] = useState(false);
+  const { user: initialUser, session: initialSession, isLoading: initialLoading, isAdmin: initialIsAdmin } = useAuthState();
+  const [authState, setAuthState] = useState({
+    ready: false,
+    loading: true,
+    user: initialUser,
+    session: initialSession,
+    isAdmin: initialIsAdmin,
+    error: null as string | null,
+  });
   
   // Get navigate and location safely
-  let navigate;
-  let location;
+  let navigate: NavigateFunction | undefined;
+  let location: Location | undefined;
   
   try {
     navigate = useNavigate();
@@ -24,110 +30,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('AuthProvider initialized outside router context');
   }
 
-  // Handle email verification link and ensure auth state is properly reflected
-  useEffect(() => {
+  // Centralized verification logic
+  const handleVerificationRedirect = useCallback(async () => {
     if (!location) return;
+    setAuthState(s => ({ ...s, loading: true, error: null }));
+    try {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
 
-    const handleVerificationRedirect = async () => {
-      try {
-        // Check for verification link parameters in the URL
-        const hashParams = new URLSearchParams(location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type');
-
-        if (accessToken && (type === 'signup' || type === 'recovery' || type === 'invite')) {
-          console.log(`Processing ${type} verification from URL hash`);
-          
-          // Set the session with the tokens from the URL
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
-
-          if (error) {
-            console.error('Error setting session from URL:', error);
-            toast.error('Failed to verify email. Please try signing in.');
-            navigate('/auth');
-            return;
-          }
-
-          if (data?.session) {
-            // Clear the hash to avoid repeated processing
-            window.history.replaceState(null, '', window.location.pathname);
-            
-            toast.success('Email verified successfully!');
-            navigate('/');
-            
-            // Force a refresh of the auth state to ensure UI reflects new state
-            const { data: refreshData } = await supabase.auth.getUser();
-            if (refreshData?.user) {
-              console.log('Auth state refreshed after verification');
-              setAuthReady(true);
-            }
-          }
-        } else {
-          // No token in URL, we can set auth as ready
-          setAuthReady(true);
+      if (accessToken && (type === 'signup' || type === 'recovery' || type === 'invite')) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        });
+        if (error) {
+          setAuthState(s => ({ ...s, loading: false, error: 'Failed to verify email. Please try again.' }));
+          return;
         }
-      } catch (error) {
-        console.error('Error handling verification redirect:', error);
-        setAuthReady(true); // Set auth ready even on error
+        if (data?.session) {
+          window.history.replaceState(null, '', window.location.pathname);
+          // Refresh user
+          const { data: refreshData } = await supabase.auth.getUser();
+          setAuthState(s => ({
+            ...s,
+            user: refreshData?.user || null,
+            session: data.session,
+            isAdmin: refreshData?.user?.email ? ['malhotrayash1900@gmail.com'].includes(refreshData.user.email) : false,
+            ready: true,
+            loading: false,
+            error: null,
+          }));
+          return;
+        }
       }
-    };
+      // No token in URL, just mark as ready
+      setAuthState(s => ({ ...s, ready: true, loading: false, error: null }));
+    } catch (error) {
+      setAuthState(s => ({ ...s, loading: false, error: 'Error handling verification. Please try again.' }));
+    }
+  }, [location]);
 
+  // Run verification on mount/location change
+  useEffect(() => {
     handleVerificationRedirect();
-  }, [location, navigate]);
+  }, [handleVerificationRedirect]);
 
   // Ensure auth is marked as ready once we have a definitive user state
   useEffect(() => {
-    if (!isLoading) {
-      setAuthReady(true);
+    if (!initialLoading) {
+      setAuthState(s => ({ ...s, ready: true, loading: false, user: initialUser, session: initialSession, isAdmin: initialIsAdmin }));
     }
-  }, [isLoading, user]);
+  }, [initialLoading, initialUser, initialSession, initialIsAdmin]);
 
-  // Sign in function wrapper
+  // Retry function for verification
+  const retryVerification = useCallback(() => {
+    handleVerificationRedirect();
+  }, [handleVerificationRedirect]);
+
+  // Auth actions
   const signIn = async (email: string, password: string) => {
-    const result = await authSignIn(email, password);
-    
-    // Use navigate only if we're in a router context and not on the home page already
+    await authSignIn(email, password);
     if (navigate && location?.pathname === '/auth') {
       navigate('/');
     }
-    
-    // Force refresh auth state
     const { data } = await supabase.auth.getUser();
-    if (data?.user) {
-      console.log('Auth state refreshed after sign in');
-    }
+    setAuthState(s => ({ ...s, user: data?.user || null, isAdmin: data?.user?.email ? ['malhotrayash1900@gmail.com'].includes(data.user.email) : false }));
   };
-
-  // Sign up function wrapper
   const signUp = authSignUp;
-
-  // Sign out function wrapper
   const signOut = async () => {
     await authSignOut();
-    
-    // Navigate to auth page after sign out if navigate is available
     if (navigate) {
       navigate('/auth');
     }
+    setAuthState(s => ({ ...s, user: null, session: null, isAdmin: false }));
   };
-
-  // Resend verification email wrapper
   const resendVerificationEmail = authResendVerificationEmail;
 
-  const value = {
-    user,
-    session,
+  const value: AuthContextType = {
+    user: authState.user,
+    session: authState.session,
+    isLoading: authState.loading,
+    isAdmin: authState.isAdmin,
     signIn,
     signUp,
     signOut,
-    isLoading,
-    isAdmin,
     resendVerificationEmail,
-    authReady
+    authReady: authState.ready,
+    error: authState.error,
+    retryVerification,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

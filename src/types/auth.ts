@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export type AuthContextType = {
@@ -11,4 +10,6 @@ export type AuthContextType = {
   isAdmin: boolean;
   authReady: boolean;
   resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
+  error?: string | null;
+  retryVerification?: () => void;
 };

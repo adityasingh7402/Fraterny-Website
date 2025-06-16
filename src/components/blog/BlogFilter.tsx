@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { Tag } from 'lucide-react';
+import { Tag, Filter, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface BlogFilterProps {
   categories: string[];
@@ -26,14 +26,36 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
   }
   
   return (
-    <div className="mb-10">
+    <div className="mb-8 bg-white rounded-lg p-6 shadow-sm">
+      {/* Search Section */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Search className="h-5 w-5 text-navy" />
+          <h2 className="text-xl font-semibold text-navy">Search Posts</h2>
+        </div>
+        <Input
+          type="search"
+          placeholder="Search blog posts..."
+          onChange={(e) => onSearch(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
+      {/* Categories Section */}
       {categories.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <h2 className="text-lg font-medium text-navy">Filter by:</h2>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="h-5 w-5 text-navy" />
+            <h2 className="text-xl font-semibold text-navy">Filter by Category</h2>
+          </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             <button 
-              className={`px-3 py-1 rounded-full text-sm ${!selectedCategory ? 'bg-navy text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                !selectedCategory 
+                  ? 'bg-navy text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
               onClick={() => onSelectCategory(null)}
             >
               All Categories
@@ -41,7 +63,11 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
             {categories.map(category => (
               <button 
                 key={category} 
-                className={`px-3 py-1 rounded-full text-sm ${selectedCategory === category ? 'bg-navy text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === category 
+                    ? 'bg-navy text-white shadow-md' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
                 onClick={() => onSelectCategory(category)}
               >
                 {category}
@@ -51,25 +77,40 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
         </div>
       )}
       
+      {/* Tags Section */}
       {tags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-700">Tags:</span>
-          <button 
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${!selectedTag ? 'bg-terracotta text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-            onClick={() => onSelectTag(null)}
-          >
-            All
-          </button>
-          {tags.map(tag => (
+        <div className="pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Tag className="h-5 w-5 text-terracotta" />
+            <h2 className="text-xl font-semibold text-navy">Filter by Tags</h2>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
             <button 
-              key={tag} 
-              className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${selectedTag === tag ? 'bg-terracotta text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-              onClick={() => onSelectTag(tag)}
+              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                !selectedTag 
+                  ? 'bg-terracotta text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => onSelectTag(null)}
             >
-              <Tag size={12} className="mr-1" />
-              {tag}
+              All Tags
             </button>
-          ))}
+            {tags.map(tag => (
+              <button 
+                key={tag} 
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedTag === tag 
+                    ? 'bg-terracotta text-white shadow-md' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={() => onSelectTag(tag)}
+              >
+                <Tag size={14} className="mr-1.5" />
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { NameFields } from './components/NameFields';
@@ -6,7 +5,6 @@ import { EmailField } from './components/EmailField';
 import { PhoneField } from './components/PhoneField';
 import { PasswordField } from './components/PasswordField';
 import { useRegisterForm } from './hooks/useRegisterForm';
-import { RegisterFormValues } from './schemas/registerSchema';
 
 interface RegisterFormProps {
   onRegistrationSuccess: (email: string, needsEmailVerification: boolean, error?: boolean) => void;

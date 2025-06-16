@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fraterny - Where Ambition Finds Its Tribe</title>
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <!-- Preconnect to critical domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Preload critical fonts -->
+    <link 
+      rel="preload" 
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" 
+      as="style"
+    />
+    <link 
+      rel="stylesheet" 
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
+    />
+    
+    <!-- Preload hero images for both mobile and desktop -->
+    <link 
+      rel="preload" 
+      href="/images/hero/luxury-villa-desktop.webp" 
+      as="image" 
+      type="image/webp"
+      media="(min-width: 768px)"
+    />
+    <link 
+      rel="preload" 
+      href="/images/hero/luxury-villa-mobile.webp" 
+      as="image" 
+      type="image/webp"
+      media="(max-width: 767px)"
+    />
+    
+    <!-- Preload critical CSS -->
+    <link 
+      rel="preload" 
+      href="/src/index.css" 
+      as="style"
+    />
+    
+    <!-- Preload critical JavaScript -->
+    <link 
+      rel="preload" 
+      href="/src/main.tsx" 
+      as="script"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html> 

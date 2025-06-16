@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -78,11 +77,11 @@
 
 /* Consistent Heading Styles */
 .heading-1 {
-  @apply text-4xl md:text-5xl lg:text-6xl font-playfair text-navy;
+  @apply text-center text-4xl md:text-5xl lg:text-6xl font-playfair text-navy;
 }
 
 .heading-2 {
-  @apply text-3xl md:text-4xl font-playfair text-navy;
+  @apply text-center text-3xl md:text-4xl font-playfair text-navy;
 }
 
 .heading-3 {
@@ -117,4 +116,3 @@
 .nav-glass {
   @apply bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg border-b border-gray-200;
 }
-

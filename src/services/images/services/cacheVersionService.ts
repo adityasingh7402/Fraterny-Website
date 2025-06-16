@@ -1,11 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
-import { urlCache } from "../cacheService";
+import { urlCache, clearImageUrlCache } from "../cacheService";
 
 // Cache version TTL in milliseconds (5 minutes for better consistency)
 const CACHE_VERSION_TTL = 5 * 60 * 1000;
 
 // Maximum retries for fetching cache version
 const MAX_RETRIES = 3;
+
+let isUpdating = false;
 
 /**
  * Helper function to retrieve the global cache version from website settings
@@ -14,7 +16,7 @@ const MAX_RETRIES = 3;
 export const getGlobalCacheVersion = async (retryCount = 0): Promise<string | null> => {
   try {
     // Check in-memory cache first
-    const cachedVersion = urlCache.get('global:cache:version');
+    const cachedVersion = await urlCache.get('global:cache:version');
     if (cachedVersion) {
       return cachedVersion;
     }
@@ -62,11 +64,15 @@ export const getGlobalCacheVersion = async (retryCount = 0): Promise<string | nu
  * with improved error handling and cache invalidation
  */
 export const updateGlobalCacheVersion = async (retryCount = 0): Promise<boolean> => {
+  if (isUpdating) {
+    console.log('Another update is in progress, retrying later...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return updateGlobalCacheVersion(retryCount);
+  }
+
+  isUpdating = true;
   try {
-    // Generate a new timestamp-based version
     const newVersion = `v${Date.now()}`;
-    
-    // Update in the database with optimistic locking
     const { error } = await supabase
       .from('website_settings')
       .upsert({ 
@@ -86,12 +92,8 @@ export const updateGlobalCacheVersion = async (retryCount = 0): Promise<boolean>
       return false;
     }
     
-    // Clear URL cache to force regeneration with new version
     clearImageUrlCache();
-    
-    // Update in-memory cache with balanced TTL
     urlCache.set('global:cache:version', newVersion, CACHE_VERSION_TTL);
-    
     console.log(`Global cache version updated to ${newVersion}`);
     return true;
   } catch (e) {
@@ -101,8 +103,7 @@ export const updateGlobalCacheVersion = async (retryCount = 0): Promise<boolean>
       return updateGlobalCacheVersion(retryCount + 1);
     }
     return false;
+  } finally {
+    isUpdating = false;
   }
 };
-
-// Import at the top to avoid circular dependency
-import { clearImageUrlCache } from './cacheService';
