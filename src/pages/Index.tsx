@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -21,42 +21,28 @@ const LoadingFallback = () => (
 const Index = () => {
   // Get settings for registration date
   const { settings, isLoading } = useReactQueryWebsiteSettings();
+  const prevRegCloseDate = useRef<string | null>(null);
 
-  // Initialize lightweight analytics and performance monitoring
+  // Initialize lightweight analytics and performance monitoring - Non-blocking
   useEffect(() => {
-    // Initialize lightweight analytics tracking (no heavy imports)
-    initializeLightweightAnalytics();
-    
-    // Only update days left if we have settings and they're not loading
+    // Defer analytics initialization to not block initial render
+    const analyticsTimeout = setTimeout(() => {
+      // Initialize lightweight analytics tracking (no heavy imports)
+      initializeLightweightAnalytics();
+    }, 500); // Delay analytics to prioritize content rendering
+
+    return () => clearTimeout(analyticsTimeout);
+  }, []);
+
+  // Watch for changes to registration_close_date and update days left
+  useEffect(() => {
     if (!isLoading && settings?.registration_close_date) {
-      updateDaysLeftSimple(settings.registration_close_date);
-      
-      // Set up automatic update at midnight (simplified)
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const msUntilMidnight = tomorrow.getTime() - now.getTime();
-      
-      const midnightTimeout = setTimeout(() => {
+      if (prevRegCloseDate.current !== settings.registration_close_date) {
         updateDaysLeftSimple(settings.registration_close_date);
-        
-        // Set up daily interval after first midnight
-        const dailyInterval = setInterval(() => {
-          updateDaysLeftSimple(settings.registration_close_date);
-        }, 24 * 60 * 60 * 1000);
-        
-        // Cleanup function will handle this interval
-        return () => clearInterval(dailyInterval);
-      }, msUntilMidnight);
-      
-      // Cleanup function
-      return () => {
-        clearTimeout(midnightTimeout);
-      };
+        prevRegCloseDate.current = settings.registration_close_date;
+      }
     }
-  }, [settings?.registration_close_date, isLoading]); // Add isLoading dependency
+  }, [settings?.registration_close_date, isLoading]);
 
   return (
     <div className="min-h-screen">

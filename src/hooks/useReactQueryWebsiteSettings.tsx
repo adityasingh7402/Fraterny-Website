@@ -1,16 +1,16 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchWebsiteSettings, updateWebsiteSetting, WebsiteSettings } from '@/services/website-settings';
 
 /**
  * Enhanced website settings hook using React Query for improved caching and performance
+ * Non-blocking version that uses cached data first
  * 
  * @returns Object containing website settings data and utility functions
  */
 export const useReactQueryWebsiteSettings = () => {
   const queryClient = useQueryClient();
   
-  // Use React Query to fetch and cache website settings
+  // Use React Query to fetch and cache website settings with non-blocking approach
   const { 
     data: settings, 
     isLoading, 
@@ -21,6 +21,11 @@ export const useReactQueryWebsiteSettings = () => {
     queryFn: fetchWebsiteSettings,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 30 * 60 * 1000,  // Keep inactive data in cache for 30 minutes (formerly cacheTime)
+    // Non-blocking options
+    refetchOnMount: false, // Don't refetch on mount if we have cached data
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    retry: 1, // Only retry once
+    retryDelay: 1000, // Wait 1 second before retry
   });
 
   /**
