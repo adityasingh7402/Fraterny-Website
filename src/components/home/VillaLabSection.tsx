@@ -1,8 +1,12 @@
-import { ArrowRight } from 'lucide-react';
+
 import { useMemo, useEffect, useState } from 'react';
-import ResponsiveImage from './ui/ResponsiveImage';
+import { motion } from 'framer-motion';
+import ResponsiveImage from '../ui/ResponsiveImage';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSectionRevealAnimation } from './useSectionRevealAnimation';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 // Beautiful spinner loading component for gallery images
 const ImageSpinner = ({ index }: { index: number }) => (
@@ -42,6 +46,33 @@ const VillaLabSection = () => {
   const isMobile = useIsMobile();
   const [visibleCount, setVisibleCount] = useState<number>(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+
+  // Section header animations
+  const headerAnimation = useSectionRevealAnimation({
+    variant: 'fade-up',
+    once: false,
+    threshold: { desktop: 0.3, mobile: 0.2 },
+    duration: 0.7,
+    staggerChildren: 0.2
+  });
+
+  // Gallery animations with simple reveals
+  const galleryAnimation = useSectionRevealAnimation({
+    variant: 'fade-up',
+    once: false,
+    threshold: { desktop: 0.2, mobile: 0.15 },
+    duration: 0.5,
+    staggerChildren: 0.15,
+    delayChildren: 0.2
+  });
+
+  // CTA button animation
+  const ctaAnimation = useSectionRevealAnimation({
+    variant: 'fade-up',
+    once: false,
+    threshold: { desktop: 0.6, mobile: 0.5 },
+    duration: 0.6
+  });
 
   // Determine how many images to initially show based on network conditions & device
   useEffect(() => {
@@ -186,17 +217,39 @@ const VillaLabSection = () => {
   return (
     <section className="bg-white sm:py-[49px] py-[31px]">
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="mb-8 sm:mb-12">
-          <h2 className="text-center sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4 text-4xl">
+        
+        {/* Section Header with scroll animations */}
+        <motion.div 
+          className="mb-8 sm:mb-12"
+          ref={headerAnimation.ref}
+          variants={headerAnimation.parentVariants}
+          initial="hidden"
+          animate={headerAnimation.controls}
+        >
+          <motion.h2 
+            className="text-center sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4 text-4xl"
+            variants={headerAnimation.childVariants}
+          >
             The Villa Lab
-          </h2>
+          </motion.h2>
 
-          <p className="text-center sm:text-xl text-gray-600 text-base">
-            <span className="font-extrabold text-terracotta">Think</span> hard. <span className="font-extrabold text-terracotta">Vibe</span> harder.
-          </p>
-        </div>
+          <motion.p 
+            className="text-center sm:text-xl text-gray-600 text-base"
+            variants={headerAnimation.childVariants}
+          >
+            <span className="font-extrabold text-terracotta">Think</span> hard.{' '}
+            <span className="font-extrabold text-terracotta">Vibe</span> harder.
+          </motion.p>
+        </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+        {/* Gallery Grid with sophisticated scroll reveals */}
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+          // ref={galleryAnimation.ref}
+          // variants={galleryAnimation.parentVariants}
+          // initial="hidden"
+          // animate={galleryAnimation.controls}
+        >
           {activities.slice(0, displayCount).map((activity, index) => {
             // Determine loading strategy:
             // - First images load eagerly
@@ -214,13 +267,18 @@ const VillaLabSection = () => {
             const isImageLoaded = loadedImages.has(index);
             
             return (
-              <div 
+              <motion.div 
                 key={index} 
                 className={`aspect-square bg-navy rounded-lg overflow-hidden relative group transition-opacity duration-500 ${
                   isVisible ? 'opacity-100' : 'opacity-0'
                 }`}
+                variants={galleryAnimation.childVariants}
                 style={{
-                  transitionDelay: `${index * 100}ms`
+                  transitionDelay: `${index * 50}ms` // Staggered visibility
+                }}
+                whileHover={{ 
+                  scale: 1.03,
+                  transition: { duration: 0.3, ease: "easeOut" }
                 }}
               >
                 {/* LOADING STATE: Beautiful spinner while image loads */}
@@ -228,10 +286,15 @@ const VillaLabSection = () => {
                   <ImageSpinner index={index} />
                 )}
                 
-                {/* IMAGE: Fades in when loaded */}
-                <div className={`transition-opacity duration-500 ${
-                  isImageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}>
+                {/* IMAGE: Fades in when loaded with enhanced animations */}
+                <motion.div 
+                  className={`transition-opacity duration-500 ${
+                    isImageLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: isImageLoaded ? 1 : 1.1 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                >
                   <ResponsiveImage 
                     alt={activity.alt} 
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
@@ -239,30 +302,107 @@ const VillaLabSection = () => {
                     dynamicKey={isMobile ? `${activity.dynamicKey}-mobile` : activity.dynamicKey}
                     priority={index < 2} // Prioritize loading for first two images
                   />
-                </div>
+                </motion.div>
                 
-                {/* HOVER OVERLAY: Only visible when image is loaded */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end ${
-                  !isImageLoaded ? 'pointer-events-none' : ''
-                }`}>
-                </div>
-              </div>
+                {/* HOVER OVERLAY: Enhanced with better animations */}
+                <motion.div 
+                  className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end ${
+                    !isImageLoaded ? 'pointer-events-none' : ''
+                  }`}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.div 
+                    className="p-3 sm:p-4"
+                    initial={{ y: 20, opacity: 0 }}
+                    whileHover={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.3 }}
+                  >
+                    <h3 className="text-white font-medium text-sm sm:text-base">
+                      {activity.title}
+                    </h3>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
             );
           })}
+        </motion.div>
+
+        <div className="mt-8 sm:mt-12 text-center sm:text-right">
+          <a 
+            href="https://www.instagram.com/join.fraterny/?hl=en" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center text-navy hover:text-terracotta transition-colors group"
+          >
+            <span className="mr-2">see more</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
 
-        <div className="mt-8 sm:mt-12 flex justify-center">
-          <a
+        {/* CTA Button with scroll trigger */}
+        {/* <motion.div 
+          className="mt-8 sm:mt-12 flex justify-center"
+          ref={ctaAnimation.ref}
+          variants={ctaAnimation.parentVariants}
+          initial="hidden"
+          animate={ctaAnimation.controls}
+        >
+          <motion.a
             href="https://www.instagram.com/join.fraterny/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center bg-terracotta text-white rounded-lg px-6 py-3 font-semibold shadow-lg hover:bg-terracotta/90 active:scale-95 transition-all text-lg group"
             style={{ minWidth: 160 }}
+            variants={ctaAnimation.childVariants}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 12px 30px rgba(224, 122, 95, 0.3)"
+            }}
+            whileTap={{ scale: 0.98 }}
           >
             <span className="mr-2">See More</span>
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </a>
-        </div>
+          </motion.a>
+        </motion.div> */}
+        <motion.div 
+          className="flex justify-center mt-16"
+          ref={ctaAnimation.ref}
+          variants={ctaAnimation.parentVariants}
+          initial="hidden"
+          animate={ctaAnimation.controls}
+        >
+          <motion.div
+            variants={ctaAnimation.childVariants}
+          >
+            <Link 
+              to="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
+              className="px-6 py-3 bg-terracotta text-white rounded-lg transition-all duration-300 hover:bg-terracotta hover:scale-105 hover:shadow-lg inline-block group"
+            >
+              <motion.span
+                className="flex items-center gap-2"
+                whileHover={{ x: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                Apply Now
+                <motion.svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="group-hover:translate-x-1 transition-transform"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </motion.svg>
+              </motion.span>
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

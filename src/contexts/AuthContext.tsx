@@ -10,8 +10,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user: initialUser, session: initialSession, isLoading: initialLoading, isAdmin: initialIsAdmin } = useAuthState();
   const [authState, setAuthState] = useState({
-    ready: true, // Start as ready to not block initial render
-    loading: false, // Start as not loading to not block initial render
+    ready: false,
+    loading: true,
     user: initialUser,
     session: initialSession,
     isAdmin: initialIsAdmin,
@@ -30,11 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('AuthProvider initialized outside router context');
   }
 
-  // Centralized verification logic - now non-blocking
+  // Centralized verification logic
   const handleVerificationRedirect = useCallback(async () => {
     if (!location) return;
-    
-    // Don't set loading to true immediately to avoid blocking UI
+    setAuthState(s => ({ ...s, loading: true, error: null }));
     try {
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
@@ -47,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           refresh_token: refreshToken || '',
         });
         if (error) {
-          setAuthState(s => ({ ...s, error: 'Failed to verify email. Please try again.' }));
+          setAuthState(s => ({ ...s, loading: false, error: 'Failed to verify email. Please try again.' }));
           return;
         }
         if (data?.session) {
@@ -69,31 +68,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // No token in URL, just mark as ready
       setAuthState(s => ({ ...s, ready: true, loading: false, error: null }));
     } catch (error) {
-      setAuthState(s => ({ ...s, error: 'Error handling verification. Please try again.' }));
+      setAuthState(s => ({ ...s, loading: false, error: 'Error handling verification. Please try again.' }));
     }
   }, [location]);
 
-  // Run verification in background after initial render
+  // Run verification on mount/location change
   useEffect(() => {
-    // Use setTimeout to defer auth initialization to not block initial render
-    const authInitTimeout = setTimeout(() => {
-      handleVerificationRedirect();
-    }, 100); // Small delay to ensure UI renders first
-
-    return () => clearTimeout(authInitTimeout);
+    handleVerificationRedirect();
   }, [handleVerificationRedirect]);
 
-  // Update auth state when initial loading completes - non-blocking
+  // Ensure auth is marked as ready once we have a definitive user state
   useEffect(() => {
     if (!initialLoading) {
-      setAuthState(s => ({ 
-        ...s, 
-        ready: true, 
-        loading: false, 
-        user: initialUser, 
-        session: initialSession, 
-        isAdmin: initialIsAdmin 
-      }));
+      setAuthState(s => ({ ...s, ready: true, loading: false, user: initialUser, session: initialSession, isAdmin: initialIsAdmin }));
     }
   }, [initialLoading, initialUser, initialSession, initialIsAdmin]);
 
