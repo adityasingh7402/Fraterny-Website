@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { WebsiteSettings, WebsiteSettingRow } from './types';
 import { getSettingsFromCache, updateSettingsCache, invalidateSettingsCache } from './settingsCache';
@@ -21,51 +22,61 @@ const DEFAULT_SETTINGS: WebsiteSettings = {
 };
 
 /**
- * Fetches website settings from Supabase with caching - Non-blocking version
+ * Fetches website settings from Supabase with caching
  */
 export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
   try {
-    // Always fetch from backend first
+    // Check if we have valid cached settings
+    const cachedSettings = getSettingsFromCache();
+    if (cachedSettings) {
+      return cachedSettings;
+    }
+    
     const { data, error } = await supabase
       .from('website_settings')
       .select('key, value');
-
+    
     if (error) {
-      updateSettingsCache(DEFAULT_SETTINGS);
-      return DEFAULT_SETTINGS;
+      console.error('Error fetching website settings:', error);
+      throw error;
     }
-
+    
     // Convert the array of key-value pairs into an object
     if (data && data.length > 0) {
       const settings = data.reduce((acc: Record<string, string>, item) => {
         acc[item.key] = item.value;
         return acc;
       }, {});
-
+      
       const parsedSettings: WebsiteSettings = {
         registration_days_left: parseInt(settings.registration_days_left || DEFAULT_SETTINGS.registration_days_left.toString()),
         available_seats: parseInt(settings.available_seats || DEFAULT_SETTINGS.available_seats.toString()),
         registration_close_date: settings.registration_close_date || DEFAULT_SETTINGS.registration_close_date,
         accepting_applications_for_date: settings.accepting_applications_for_date || DEFAULT_SETTINGS.accepting_applications_for_date,
+        // Add the pricing fields
         insider_access_price: settings.insider_access_price || DEFAULT_SETTINGS.insider_access_price,
         insider_access_original_price: settings.insider_access_original_price || DEFAULT_SETTINGS.insider_access_original_price,
         main_experience_price: settings.main_experience_price || DEFAULT_SETTINGS.main_experience_price,
         main_experience_original_price: settings.main_experience_original_price || DEFAULT_SETTINGS.main_experience_original_price,
         executive_escape_price: settings.executive_escape_price || DEFAULT_SETTINGS.executive_escape_price,
         executive_escape_original_price: settings.executive_escape_original_price || DEFAULT_SETTINGS.executive_escape_original_price,
+        // Include applications_received field
         applications_received: settings.applications_received || DEFAULT_SETTINGS.applications_received
       };
-
-      // Update cache with server data
+      
+      // Update cache
       updateSettingsCache(parsedSettings);
+      
       return parsedSettings;
     }
-
-    // If no data, return default
+    
+    // Update cache with default settings
     updateSettingsCache(DEFAULT_SETTINGS);
+    
     return DEFAULT_SETTINGS;
   } catch (error) {
-    updateSettingsCache(DEFAULT_SETTINGS);
+    console.error('Failed to fetch website settings:', error);
+    // Return default values if there's an error
     return DEFAULT_SETTINGS;
   }
 };

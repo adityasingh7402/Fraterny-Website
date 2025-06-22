@@ -127,14 +127,12 @@ export const initializeLightweightAnalytics = (): void => {
 export const updateDaysLeftSimple = (registrationDate?: string): void => {
   try {
     if (!registrationDate) {
-      console.log('[DEBUG] No registrationDate provided to updateDaysLeftSimple');
       return;
     }
 
     // Parse the target date
     const targetDate = new Date(registrationDate);
     if (isNaN(targetDate.getTime())) {
-      console.log('[DEBUG] Invalid registrationDate:', registrationDate);
       return;
     }
 
@@ -142,13 +140,6 @@ export const updateDaysLeftSimple = (registrationDate?: string): void => {
     const now = new Date();
     const timeDiff = targetDate.getTime() - now.getTime();
     const daysLeft = Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24)));
-
-    // Debug logs for all values
-    console.log('[DEBUG] registrationDate:', registrationDate);
-    console.log('[DEBUG] targetDate:', targetDate.toISOString());
-    console.log('[DEBUG] now:', now.toISOString());
-    console.log('[DEBUG] timeDiff (ms):', timeDiff);
-    console.log('[DEBUG] daysLeft:', daysLeft);
     
     // Store in localStorage for other components to use
     localStorage.setItem('days_left_count', daysLeft.toString());

@@ -1,15 +1,15 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import Navigation from '../components/Navigation';
-import Hero from '../components/Hero';
+import HeroSection from '../components/home/HeroSection';
 import Footer from '../components/Footer';
 import { initializeLightweightAnalytics, updateDaysLeftSimple } from '@/utils/lightweightAnalytics';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
 
 // Lazy load components that are below the fold
-const NavalQuote = lazy(() => import('../components/NavalQuote'));
-const VillaLab = lazy(() => import('../components/VillaLab'));
-const OurValues = lazy(() => import('../components/OurValues'));
-const HowItWorks = lazy(() => import('../components/HowItWorks'));
+const NavalQuoteSection = lazy(() => import('../components/home/NavalQuoteSection'));
+const VillaLabSection = lazy(() => import('../components/home/VillaLabSection'));
+const OurValuesSection = lazy(() => import('../components/home/OurValuesSection'));
+const HowItWorksSection = lazy(() => import('../components/home/HowItWorksSection'));
 
 // Simple loading fallback with better UX
 const LoadingFallback = () => (
@@ -21,49 +21,63 @@ const LoadingFallback = () => (
 const Index = () => {
   // Get settings for registration date
   const { settings, isLoading } = useReactQueryWebsiteSettings();
-  const prevRegCloseDate = useRef<string | null>(null);
 
-  // Initialize lightweight analytics and performance monitoring - Non-blocking
+  // Initialize lightweight analytics and performance monitoring
   useEffect(() => {
-    // Defer analytics initialization to not block initial render
-    const analyticsTimeout = setTimeout(() => {
-      // Initialize lightweight analytics tracking (no heavy imports)
-      initializeLightweightAnalytics();
-    }, 500); // Delay analytics to prioritize content rendering
-
-    return () => clearTimeout(analyticsTimeout);
-  }, []);
-
-  // Watch for changes to registration_close_date and update days left
-  useEffect(() => {
+    // Initialize lightweight analytics tracking (no heavy imports)
+    initializeLightweightAnalytics();
+    
+    // Only update days left if we have settings and they're not loading
     if (!isLoading && settings?.registration_close_date) {
-      if (prevRegCloseDate.current !== settings.registration_close_date) {
+      updateDaysLeftSimple(settings.registration_close_date);
+      
+      // Set up automatic update at midnight (simplified)
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const msUntilMidnight = tomorrow.getTime() - now.getTime();
+      
+      const midnightTimeout = setTimeout(() => {
         updateDaysLeftSimple(settings.registration_close_date);
-        prevRegCloseDate.current = settings.registration_close_date;
-      }
+        
+        // Set up daily interval after first midnight
+        const dailyInterval = setInterval(() => {
+          updateDaysLeftSimple(settings.registration_close_date);
+        }, 24 * 60 * 60 * 1000);
+        
+        // Cleanup function will handle this interval
+        return () => clearInterval(dailyInterval);
+      }, msUntilMidnight);
+      
+      // Cleanup function
+      return () => {
+        clearTimeout(midnightTimeout);
+      };
     }
-  }, [settings?.registration_close_date, isLoading]);
+  }, [settings?.registration_close_date, isLoading]); // Add isLoading dependency
 
   return (
     <div className="min-h-screen">
       <Navigation />
-      <Hero />
+      <HeroSection />
       
       {/* Use Intersection Observer to lazy load components */}
       <Suspense fallback={<LoadingFallback />}>
-        <NavalQuote />
+        <NavalQuoteSection />
       </Suspense>
       
       <Suspense fallback={<LoadingFallback />}>
-        <VillaLab />
+        <VillaLabSection />
       </Suspense>
       
       <Suspense fallback={<LoadingFallback />}>
-        <OurValues />
+        <OurValuesSection />
       </Suspense>
       
       <Suspense fallback={<LoadingFallback />}>
-        <HowItWorks />
+        <HowItWorksSection />
       </Suspense>
       
       <Footer />
