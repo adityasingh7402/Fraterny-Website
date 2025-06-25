@@ -127,7 +127,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
           backgroundImage: "url('https://images.unsplash.com/photo-1560177112-fbfd5fde9566?auto=format&fit=crop&w=1920&q=80')"
         }}
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.2 }}
+        animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 2.3, ease: "easeOut" }}
       />
       

@@ -199,7 +199,7 @@ const TribeSection = () => {
     variant: 'fade-up',
     once: false,
     threshold: { desktop: 0.6, mobile: 0.5 },
-    duration: 0.6
+    duration: 0.8
   });
 
   // Profile card hover variants

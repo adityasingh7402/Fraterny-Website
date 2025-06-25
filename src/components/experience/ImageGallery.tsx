@@ -167,7 +167,7 @@ const ImageGallery = () => {
   // Gallery grid animation
   const galleryAnimation = useSectionRevealAnimation({
     variant: 'scale-in',
-    once: false,
+    once: true,
     threshold: { desktop: 0.3, mobile: 0.2 },
     duration: 0.6,
     staggerChildren: 0.15,
