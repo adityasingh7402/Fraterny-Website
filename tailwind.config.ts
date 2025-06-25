@@ -60,6 +60,7 @@ export default {
         sans: ["Inter", "sans-serif"],
         playfair: ["Playfair Display", "serif"],
       },
+      
       keyframes: {
         "fade-up": {
           "0%": {
