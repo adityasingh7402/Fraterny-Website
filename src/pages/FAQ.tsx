@@ -75,7 +75,7 @@ const FAQ = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
-              Frequently Asked Questions
+              Frequently Asked <span className='text-terracotta'>Questions</span>
             </h1>
             <p className="text-xl text-gray-300">
               Everything you need to know about the Fraterny experience
