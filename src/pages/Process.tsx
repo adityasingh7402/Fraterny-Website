@@ -1348,6 +1348,235 @@ const Process = () => {
         </div>
       </section>
 
+       {/* Steps Section */}
+      <section className="pt-8 pb-16 bg-white">
+        <div className="container mx-auto px-6">
+          
+          {/* Process Header */}
+          <motion.div
+            ref={processHeaderAnimation.ref}
+            variants={processHeaderAnimation.parentVariants}
+            initial="hidden"
+            animate={processHeaderAnimation.controls}
+          >
+            <motion.h2 
+              className="text-3xl font-playfair text-navy mb-12 text-center md:text-5xl"
+              variants={processHeaderAnimation.childVariants}
+            >
+              The Process
+            </motion.h2>
+          </motion.div>
+          
+          {/* Process Steps Grid */}
+          <motion.div 
+            className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+            ref={processStepsAnimation.ref}
+            variants={processStepsAnimation.parentVariants}
+            initial="hidden"
+            animate={processStepsAnimation.controls}
+          >
+            {/* Step 1: Apply */}
+            <motion.div 
+              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
+              variants={stepCardVariants}
+              whileHover="hover"
+            >
+              <motion.div 
+                className="flex items-center gap-4 mb-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  x: processStepsAnimation.isInView ? 0 : -20
+                }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <motion.div 
+                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
+                  whileHover={{ 
+                    scale: 1.1,
+                    backgroundColor: "#E07A5F" // terracotta
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  1
+                </motion.div>
+                <h3 className="text-xl font-medium text-navy">Apply</h3>
+              </motion.div>
+              
+              <motion.p 
+                className="text-gray-600 mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  y: processStepsAnimation.isInView ? 0 : 10
+                }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we will be able to add value to your life.
+              </motion.p>
+              
+              <motion.div 
+                className="space-y-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: processStepsAnimation.isInView ? 1 : 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Personal Details</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>LinkedIn Profile</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Vision Statement</span>
+                </div>
+              </motion.div>
+              
+              <motion.p 
+                className="mt-4 text-sm text-gray-500"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  y: processStepsAnimation.isInView ? 0 : 10
+                }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                We encourage group applications with 1-2 friends. Only 1 registration is needed for friend groups.
+              </motion.p>
+            </motion.div>
+
+            {/* Step 2: Screening Call */}
+            <motion.div 
+              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
+              variants={stepCardVariants}
+              whileHover="hover"
+            >
+              <motion.div 
+                className="flex items-center gap-4 mb-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  x: processStepsAnimation.isInView ? 0 : -20
+                }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
+                <motion.div 
+                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
+                  whileHover={{ 
+                    scale: 1.1,
+                    backgroundColor: "#E07A5F" // terracotta
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  2
+                </motion.div>
+                <h3 className="text-xl font-medium text-navy">Screening Call</h3>
+              </motion.div>
+              
+              <motion.p 
+                className="text-gray-600 mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  y: processStepsAnimation.isInView ? 0 : 10
+                }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                Have a brief conversation - A Fraterny counselor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
+              </motion.p>
+              
+              <motion.div 
+                className="flex items-center gap-2 text-sm text-gray-600"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  scale: processStepsAnimation.isInView ? 1 : 0.8
+                }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <Phone size={16} className="text-terracotta" />
+                <span>15 Minutes</span>
+              </motion.div>
+            </motion.div>
+
+            {/* Step 3: Join */}
+            <motion.div 
+              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
+              variants={stepCardVariants}
+              whileHover="hover"
+            >
+              <motion.div 
+                className="flex items-center gap-4 mb-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  x: processStepsAnimation.isInView ? 0 : -20
+                }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <motion.div 
+                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
+                  whileHover={{ 
+                    scale: 1.1,
+                    backgroundColor: "#E07A5F" // terracotta
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  3
+                </motion.div>
+                <h3 className="text-xl font-medium text-navy">Join</h3>
+              </motion.div>
+              
+              <motion.p 
+                className="text-gray-600 mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: processStepsAnimation.isInView ? 1 : 0,
+                  y: processStepsAnimation.isInView ? 0 : 10
+                }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+              >
+                Welcome to the Ecosystem - We will send you a confirmation email for your acceptance in Fraterny.
+              </motion.p>
+              
+              <motion.div 
+                className="space-y-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: processStepsAnimation.isInView ? 1 : 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Applying with friends?</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check size={16} className="text-terracotta" />
+                  <span>Group applications welcome</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+
+          {/* Security Notice */}
+          <motion.div 
+            className="mt-12 text-center text-sm text-gray-500"
+            ref={securityNoticeAnimation.ref}
+            variants={securityNoticeAnimation.parentVariants}
+            initial="hidden"
+            animate={securityNoticeAnimation.controls}
+          >
+            <motion.div
+              variants={securityNoticeAnimation.childVariants}
+            >
+              Your data is 100% secure. Not selected? You will get priority access in future bootcamps.
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Who is this for? Section */}
       <section className="pt-16 md:pt-20 pb-10 md:pb-16 py-[34px] bg-stone-50">
         <div className="container mx-auto px-4 sm:px-6">
@@ -1616,235 +1845,6 @@ const Process = () => {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* Steps Section */}
-      <section className="pt-8 pb-16 bg-white">
-        <div className="container mx-auto px-6">
-          
-          {/* Process Header */}
-          <motion.div
-            ref={processHeaderAnimation.ref}
-            variants={processHeaderAnimation.parentVariants}
-            initial="hidden"
-            animate={processHeaderAnimation.controls}
-          >
-            <motion.h2 
-              className="text-3xl font-playfair text-navy mb-12 text-center md:text-5xl"
-              variants={processHeaderAnimation.childVariants}
-            >
-              The Process
-            </motion.h2>
-          </motion.div>
-          
-          {/* Process Steps Grid */}
-          <motion.div 
-            className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
-            ref={processStepsAnimation.ref}
-            variants={processStepsAnimation.parentVariants}
-            initial="hidden"
-            animate={processStepsAnimation.controls}
-          >
-            {/* Step 1: Apply */}
-            <motion.div 
-              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
-              variants={stepCardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="flex items-center gap-4 mb-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  x: processStepsAnimation.isInView ? 0 : -20
-                }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <motion.div 
-                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
-                  whileHover={{ 
-                    scale: 1.1,
-                    backgroundColor: "#E07A5F" // terracotta
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  1
-                </motion.div>
-                <h3 className="text-xl font-medium text-navy">Apply</h3>
-              </motion.div>
-              
-              <motion.p 
-                className="text-gray-600 mb-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  y: processStepsAnimation.isInView ? 0 : 10
-                }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we will be able to add value to your life.
-              </motion.p>
-              
-              <motion.div 
-                className="space-y-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: processStepsAnimation.isInView ? 1 : 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Personal Details</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>LinkedIn Profile</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Vision Statement</span>
-                </div>
-              </motion.div>
-              
-              <motion.p 
-                className="mt-4 text-sm text-gray-500"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  y: processStepsAnimation.isInView ? 0 : 10
-                }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                We encourage group applications with 1-2 friends. Only 1 registration is needed for friend groups.
-              </motion.p>
-            </motion.div>
-
-            {/* Step 2: Screening Call */}
-            <motion.div 
-              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
-              variants={stepCardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="flex items-center gap-4 mb-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  x: processStepsAnimation.isInView ? 0 : -20
-                }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <motion.div 
-                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
-                  whileHover={{ 
-                    scale: 1.1,
-                    backgroundColor: "#E07A5F" // terracotta
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  2
-                </motion.div>
-                <h3 className="text-xl font-medium text-navy">Screening Call</h3>
-              </motion.div>
-              
-              <motion.p 
-                className="text-gray-600 mb-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  y: processStepsAnimation.isInView ? 0 : 10
-                }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                Have a brief conversation - A Fraterny counselor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
-              </motion.p>
-              
-              <motion.div 
-                className="flex items-center gap-2 text-sm text-gray-600"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  scale: processStepsAnimation.isInView ? 1 : 0.8
-                }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                <Phone size={16} className="text-terracotta" />
-                <span>15 Minutes</span>
-              </motion.div>
-            </motion.div>
-
-            {/* Step 3: Join */}
-            <motion.div 
-              className="bg-white p-8 rounded-lg border border-gray-100 group cursor-pointer"
-              variants={stepCardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="flex items-center gap-4 mb-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  x: processStepsAnimation.isInView ? 0 : -20
-                }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                <motion.div 
-                  className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
-                  whileHover={{ 
-                    scale: 1.1,
-                    backgroundColor: "#E07A5F" // terracotta
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  3
-                </motion.div>
-                <h3 className="text-xl font-medium text-navy">Join</h3>
-              </motion.div>
-              
-              <motion.p 
-                className="text-gray-600 mb-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ 
-                  opacity: processStepsAnimation.isInView ? 1 : 0,
-                  y: processStepsAnimation.isInView ? 0 : 10
-                }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                Welcome to the Ecosystem - We will send you a confirmation email for your acceptance in Fraterny.
-              </motion.p>
-              
-              <motion.div 
-                className="space-y-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: processStepsAnimation.isInView ? 1 : 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-              >
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Applying with friends?</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Group applications welcome</span>
-                </div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          {/* Security Notice */}
-          <motion.div 
-            className="mt-12 text-center text-sm text-gray-500"
-            ref={securityNoticeAnimation.ref}
-            variants={securityNoticeAnimation.parentVariants}
-            initial="hidden"
-            animate={securityNoticeAnimation.controls}
-          >
-            <motion.div
-              variants={securityNoticeAnimation.childVariants}
-            >
-              Your data is 100% secure. Not selected? You will get priority access in future bootcamps.
-            </motion.div>
-          </motion.div>
         </div>
       </section>
 
