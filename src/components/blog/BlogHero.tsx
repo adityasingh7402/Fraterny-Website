@@ -1,49 +1,3 @@
-
-// import React from 'react';
-
-// interface BlogHeroProps {
-//   totalPosts?: number;
-// }
-
-// const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
-//   return (
-//     <section className="pt-32 pb-16 bg-navy text-white relative">
-//       {/* Background with gradient overlay */}
-//       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-//            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1560177112-fbfd5fde9566?auto=format&fit=crop&w=1920&q=80')" }}>
-//       </div>
-      
-//       {/* Gradient overlay */}
-//       <div className="absolute inset-0" 
-//            style={{
-//              background: `linear-gradient(to right, 
-//                rgba(10, 26, 47, 0.95) 0%,
-//                rgba(10, 26, 47, 0.8) 50%,
-//                rgba(10, 26, 47, 0.6) 100%
-//              )`
-//            }}>
-//       </div>
-      
-//       <div className="container mx-auto px-6 relative z-10">
-//         <div className="max-w-3xl">
-//           <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
-//             Our Blog
-//           </h1>
-//           <p className="text-xl md:text-2xl text-gray-300">
-//             Insights, stories, and perspectives from our community
-//             {totalPosts !== undefined && (
-//               <span className="ml-2 text-lg text-terracotta">({totalPosts} posts)</span>
-//             )}
-//           </p>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default BlogHero;
-
-
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useSectionRevealAnimation } from '../home/useSectionRevealAnimation';
@@ -77,45 +31,45 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
   });
 
   // Post counter animation
-  const counterAnimation = useSectionRevealAnimation({
-    variant: 'fade-up',
-    once: false,
-    threshold: { desktop: 0.5, mobile: 0.4 },
-    delayChildren: 0.4,
-    duration: 0.6
-  });
+  // const counterAnimation = useSectionRevealAnimation({
+  //   variant: 'fade-up',
+  //   once: false,
+  //   threshold: { desktop: 0.5, mobile: 0.4 },
+  //   delayChildren: 0.4,
+  //   duration: 0.6
+  // });
 
-  // Animated counter for total posts
-  const renderPostCount = () => {
-    if (totalPosts === undefined) {
-      return (
-        <motion.div 
-          className="animate-pulse"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="h-6 w-24 bg-terracotta/30 rounded"></div>
-        </motion.div>
-      );
-    }
+  // // Animated counter for total posts
+  // const renderPostCount = () => {
+  //   if (totalPosts === undefined) {
+  //     return (
+  //       <motion.div 
+  //         className="animate-pulse"
+  //         initial={{ opacity: 0 }}
+  //         animate={{ opacity: 1 }}
+  //         transition={{ duration: 0.3 }}
+  //       >
+  //         <div className="h-6 w-24 bg-terracotta/30 rounded"></div>
+  //       </motion.div>
+  //     );
+  //   }
 
-    return (
-      <motion.span 
-        className="text-lg text-terracotta font-medium"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ 
-          type: 'spring', 
-          stiffness: 200, 
-          damping: 10,
-          delay: 0.2 
-        }}
-      >
-        ({totalPosts} {totalPosts === 1 ? 'post' : 'posts'})
-      </motion.span>
-    );
-  };
+  //   return (
+  //     <motion.span 
+  //       className="text-lg text-terracotta font-medium"
+  //       initial={{ scale: 0.8, opacity: 0 }}
+  //       animate={{ scale: 1, opacity: 1 }}
+  //       transition={{ 
+  //         type: 'spring', 
+  //         stiffness: 200, 
+  //         damping: 10,
+  //         delay: 0.2 
+  //       }}
+  //     >
+  //       ({totalPosts} {totalPosts === 1 ? 'post' : 'posts'})
+  //     </motion.span>
+  //   );
+  // };
 
   return (
     <section className="pt-32 pb-16 bg-navy text-white relative overflow-hidden">
@@ -124,7 +78,8 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
         style={{ 
           y: backgroundY,
-          backgroundImage: "url('https://images.unsplash.com/photo-1560177112-fbfd5fde9566?auto=format&fit=crop&w=1920&q=80')"
+          backgroundImage: "url('/blog.webp')"
+          // backgroundImage: "url('https://images.unsplash.com/photo-1560177112-fbfd5fde9566?auto=format&fit=crop&w=1920&q=80')"
         }}
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -137,9 +92,9 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
         style={{ 
           opacity: overlayOpacity,
           background: `linear-gradient(to right, 
-            rgba(10, 26, 47, 0.95) 0%,
+            rgba(10, 26, 47, 0.95) 100%,
             rgba(10, 26, 47, 0.8) 50%,
-            rgba(10, 26, 47, 0.6) 100%
+            rgba(10, 26, 47, 0.6) 0%
           )`
         }}
       />
@@ -173,7 +128,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
               className="text-xl md:text-2xl text-gray-300 mb-4"
               variants={subtitleAnimation.childVariants}
             >
-              Insights, stories, and perspectives from our community
+              <span className='text-terracotta'>Insights, stories</span>, and <span className='text-terracotta'>perspectives</span> from our community
             </motion.p>
           </motion.div>
           
