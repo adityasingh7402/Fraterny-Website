@@ -1,4 +1,6 @@
 import { User, Session } from '@supabase/supabase-js';
+import type { QuestOperationResult } from './quest';
+import type { UserProfile, UserAnalytics } from './quest';
 
 export type AuthContextType = {
   user: User | null;
@@ -12,4 +14,6 @@ export type AuthContextType = {
   resendVerificationEmail: (email: string) => Promise<{success: boolean; error?: string}>;
   error?: string | null;
   retryVerification?: () => void;
+  getQuestUserProfile: () => Promise<QuestOperationResult<UserProfile>>;
+  getQuestUserAnalytics: () => Promise<QuestOperationResult<UserAnalytics>>;
 };
