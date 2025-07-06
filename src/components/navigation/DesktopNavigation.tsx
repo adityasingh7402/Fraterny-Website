@@ -180,3 +180,91 @@ const DesktopNavigation = ({ isScrolled, navLinks, user, onSignOut }: DesktopNav
 };
 
 export default DesktopNavigation;
+
+
+// import { Link } from 'react-router-dom';
+// import { Button } from '@/components/ui/button';
+// import { User as AuthUser } from '@supabase/supabase-js';
+// import { LogOut, User } from 'lucide-react';
+// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+// interface DesktopNavigationProps {
+//   isScrolled: boolean;
+//   navLinks: { name: string; href: string }[];
+//   user: AuthUser | null;
+//   onSignOut: () => Promise<void>;
+// }
+
+// const DesktopNavigation = ({
+//   isScrolled,
+//   navLinks,
+//   user,
+//   onSignOut,
+// }: DesktopNavigationProps) => {
+//   // Format user display name
+//   const userMetadata = user?.user_metadata || {};
+//   const firstName = userMetadata.firstName || '';
+//   const displayName = firstName || user?.email?.split('@')[0] || 'User';
+
+//   return (
+//     <div className="hidden lg:flex items-center space-x-6">
+//       {/* Navigation Links */}
+//       <div className="flex space-x-6">
+//         {navLinks.map((link) => (
+//           <Link
+//             key={link.name}
+//             to={link.href}
+//             className={`text-sm font-medium hover:opacity-80 transition-opacity ${
+//               isScrolled ? 'text-navy' : 'text-white'
+//             }`}
+//           >
+//             {link.name}
+//           </Link>
+//         ))}
+//       </div>
+
+//       {/* Auth Buttons */}
+//       {user ? (
+//         <Popover>
+//           <PopoverTrigger asChild>
+//             <button
+//               className={`flex items-center space-x-2 ${
+//                 isScrolled ? 'text-navy' : 'text-white'
+//               }`}
+//             >
+//               <span className="text-sm font-medium">{displayName}</span>
+//             </button>
+//           </PopoverTrigger>
+//           <PopoverContent className="w-56 p-0" align="end">
+//             <div className="grid gap-1 p-2">
+//               <Link 
+//                 to="/profile"
+//                 className="flex items-center gap-2 w-full p-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+//               >
+//                 <User className="h-4 w-4" />
+//                 <span>Your Profile</span>
+//               </Link>
+//               <button
+//                 onClick={onSignOut}
+//                 className="flex items-center gap-2 w-full p-2 text-sm text-red-600 rounded-md hover:bg-gray-100 transition-colors"
+//               >
+//                 <LogOut className="h-4 w-4" />
+//                 <span>Sign Out</span>
+//               </button>
+//             </div>
+//           </PopoverContent>
+//         </Popover>
+//       ) : (
+//         <Link to="/auth">
+//           <Button
+//             className={isScrolled ? 'bg-navy text-white' : 'bg-white text-navy'}
+//           >
+//             Sign In
+//           </Button>
+//         </Link>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default DesktopNavigation;

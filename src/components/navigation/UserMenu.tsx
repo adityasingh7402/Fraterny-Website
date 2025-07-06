@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
+import { Link } from 'react-router-dom';
 const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -58,7 +58,9 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
 
       <DropdownMenuContent className="w-48">
         <DropdownMenuLabel className="text-sm px-4">
-          {user?.email}
+          <Link to="/profile" className="flex items-center space-x-2">
+            Your Profile
+          </Link>
           <div className="text-xs text-gray-500">{isAdmin ? 'Administrator' : 'User'}</div>
         </DropdownMenuLabel>
 
