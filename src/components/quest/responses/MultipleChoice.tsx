@@ -1,0 +1,113 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { MultipleChoiceProps } from './types';
+import { useChoiceAnimation } from '../animations/useChoiceAnimation';
+
+/**
+ * Multiple choice selection component
+ * Displays a list of options for selection
+ */
+export function MultipleChoice({
+  question,
+  options,
+  onResponse,
+  isActive = true,
+  isAnswered = false,
+  previousResponse,
+  layout = 'vertical',
+  className = ''
+}: MultipleChoiceProps) {
+  // Selected option state
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(previousResponse);
+  
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
+  
+  const optionVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  };
+  
+  // Handle option selection
+  const handleOptionSelect = (option: string) => {
+    if (!isActive || isAnswered) return;
+    
+    setSelectedOption(option);
+    onResponse(option);
+  };
+  
+  // Determine grid layout class
+  const getLayoutClass = (): string => {
+    switch (layout) {
+      case 'grid':
+        return 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+      case 'vertical':
+      default:
+        return 'space-y-3';
+    }
+  };
+  
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className={`multiple-choice ${getLayoutClass()} ${className}`}
+    >
+      {options.map((option, index) => {
+        const isSelected = option === selectedOption;
+        
+        // Use the choice animation hook
+        const { 
+          controls, 
+          handleHover, 
+          handleHoverEnd, 
+          handleTap,
+          handleSelect,
+          handleDeselect
+        } = useChoiceAnimation(isSelected);
+        
+        // Set selected state on initial render if we have a previous response
+        useEffect(() => {
+          if (isSelected) {
+            handleSelect();
+          }
+        }, []);
+        
+        return (
+          <motion.button
+            key={index}
+            variants={optionVariants}
+            animate={controls}
+            onClick={() => handleOptionSelect(option)}
+            onHoverStart={handleHover}
+            onHoverEnd={handleHoverEnd}
+            onTap={handleTap}
+            disabled={!isActive || isAnswered}
+            className={`
+              w-full p-3 text-left border rounded-lg transition-all
+              ${isSelected 
+                ? 'border-terracotta bg-terracotta/5 shadow-sm' 
+                : 'border-gray-200 hover:border-terracotta/30'
+              }
+              ${!isActive || isAnswered ? 'opacity-80 cursor-default' : 'cursor-pointer'}
+            `}
+          >
+            {option}
+          </motion.button>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+export default MultipleChoice;
