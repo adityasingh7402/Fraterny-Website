@@ -1,149 +1,3 @@
-// // // import React, { lazy, Suspense } from 'react';
-// // // import ReactDOM from 'react-dom/client';
-// // // import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-// // // import './index.css';
-// // // import App from './App';
-// // // import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
-
-// // // // Lazy-loaded components
-// // // const Index = lazy(() => import('./pages/Index'));
-// // // const Auth = lazy(() => import('./pages/Auth'));
-// // // const Experience = lazy(() => import('./pages/Experience'));
-// // // const Process = lazy(() => import('./pages/Process'));
-// // // const Pricing = lazy(() => import('./pages/Pricing'));
-// // // const FAQ = lazy(() => import('./pages/FAQ'));
-// // // const Blog = lazy(() => import('./pages/Blog'));
-// // // const BlogPost = lazy(() => import('./pages/BlogPost'));
-// // // const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-// // // const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
-// // // const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-// // // const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
-// // // const NotFound = lazy(() => import('./pages/NotFound'));
-
-// // // // Admin
-// // // const Dashboard = lazy(() => import('./pages/admin/dashboard'));
-// // // const AdminBlog = lazy(() => import('./pages/admin/blog'));
-// // // const Analytics = lazy(() => import('./pages/admin/Analytics'));
-// // // const AdminImages = lazy(() => import('./pages/admin/images'));
-// // // const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
-
-// // // const suspenseWrap = (element: React.ReactNode) => (
-// // //   <Suspense fallback={<div>Loading...</div>}>{element}</Suspense>
-// // // );
-
-// // // const router = createBrowserRouter([
-// // //   {
-// // //     path: '/',
-// // //     element: <App />,
-// // //     errorElement: suspenseWrap(<NotFound />),
-// // //     children: [
-// // //       { index: true, element: suspenseWrap(<Index />) },
-// // //       { path: 'auth', element: suspenseWrap(<Auth />) },
-// // //       { path: 'experience', element: suspenseWrap(<Experience />) },
-// // //       { path: 'process', element: suspenseWrap(<Process />) },
-// // //       { path: 'pricing', element: suspenseWrap(<Pricing />) },
-// // //       { path: 'faq', element: suspenseWrap(<FAQ />) },
-// // //       { path: 'blog', element: suspenseWrap(<Blog />) },
-// // //       { path: 'blog/:id', element: suspenseWrap(<BlogPost />) },
-// // //       { path: 'privacy-policy', element: suspenseWrap(<PrivacyPolicy />) },
-// // //       { path: 'terms-of-use', element: suspenseWrap(<TermsOfUse />) },
-// // //       { path: 'terms-and-conditions', element: suspenseWrap(<TermsAndConditions />) },
-// // //       { path: 'refund-policy', element: suspenseWrap(<RefundPolicy />) },
-// // //       {
-// // //         path: 'admin',
-// // //         element: <AdminRoute />, // ProtectedRoute remains statically imported
-// // //         children: [
-// // //           { index: true, element: suspenseWrap(<Dashboard />) },
-// // //           { path: 'blog', element: suspenseWrap(<AdminBlog />) },
-// // //           { path: 'analytics', element: suspenseWrap(<Analytics />) },
-// // //           { path: 'images', element: suspenseWrap(<AdminImages />) },
-// // //           { path: 'newsletter', element: suspenseWrap(<NewsletterSubscribers />) },
-// // //         ],
-// // //       },
-// // //     ],
-// // //   },
-// // // ]);
-
-// // // ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-// // //   <React.StrictMode>
-// // //     <RouterProvider router={router} />
-// // //   </React.StrictMode>
-// // // );
-
-// // import React, { lazy, Suspense } from 'react';
-// // import ReactDOM from 'react-dom/client';
-// // import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-// // import './index.css';
-// // import App from './App';
-// // import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
-// // import ModernLoading from './components/ui/ModernLoading';
-
-// // // Lazy-loaded components
-// // const Index = lazy(() => import('./pages/Index'));
-// // const Auth = lazy(() => import('./pages/Auth'));
-// // const Experience = lazy(() => import('./pages/Experience'));
-// // const Process = lazy(() => import('./pages/Process'));
-// // const Pricing = lazy(() => import('./pages/Pricing'));
-// // const FAQ = lazy(() => import('./pages/FAQ'));
-// // const Blog = lazy(() => import('./pages/Blog'));
-// // const BlogPost = lazy(() => import('./pages/BlogPost'));
-// // const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-// // const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
-// // const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-// // const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
-// // const NotFound = lazy(() => import('./pages/NotFound'));
-
-// // // Admin
-// // const Dashboard = lazy(() => import('./pages/admin/dashboard'));
-// // const AdminBlog = lazy(() => import('./pages/admin/blog'));
-// // const Analytics = lazy(() => import('./pages/admin/Analytics'));
-// // const AdminImages = lazy(() => import('./pages/admin/images'));
-// // const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
-
-// // // UPDATED: Modern loading with engaging message
-// // const suspenseWrap = (element: React.ReactNode) => (
-// //   <Suspense fallback={<ModernLoading />}>{element}</Suspense>
-// // );
-
-// // const router = createBrowserRouter([
-// //   {
-// //     path: '/',
-// //     element: <App />,
-// //     errorElement: suspenseWrap(<NotFound />),
-// //     children: [
-// //       { index: true, element: suspenseWrap(<Index />) },
-// //       { path: 'auth', element: suspenseWrap(<Auth />) },
-// //       { path: 'experience', element: suspenseWrap(<Experience />) },
-// //       { path: 'process', element: suspenseWrap(<Process />) },
-// //       { path: 'pricing', element: suspenseWrap(<Pricing />) },
-// //       { path: 'faq', element: suspenseWrap(<FAQ />) },
-// //       { path: 'blog', element: suspenseWrap(<Blog />) },
-// //       { path: 'blog/:id', element: suspenseWrap(<BlogPost />) },
-// //       { path: 'privacy-policy', element: suspenseWrap(<PrivacyPolicy />) },
-// //       { path: 'terms-of-use', element: suspenseWrap(<TermsOfUse />) },
-// //       { path: 'terms-and-conditions', element: suspenseWrap(<TermsAndConditions />) },
-// //       { path: 'refund-policy', element: suspenseWrap(<RefundPolicy />) },
-// //       {
-// //         path: 'admin',
-// //         element: <AdminRoute />, // ProtectedRoute remains statically imported
-// //         children: [
-// //           { index: true, element: suspenseWrap(<Dashboard />) },
-// //           { path: 'blog', element: suspenseWrap(<AdminBlog />) },
-// //           { path: 'analytics', element: suspenseWrap(<Analytics />) },
-// //           { path: 'images', element: suspenseWrap(<AdminImages />) },
-// //           { path: 'newsletter', element: suspenseWrap(<NewsletterSubscribers />) },
-// //         ],
-// //       },
-// //     ],
-// //   },
-// // ]);
-
-// // ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-// //   <React.StrictMode>
-// //     <RouterProvider router={router} />
-// //   </React.StrictMode>
-// // );
-
 // import React, { lazy, Suspense } from 'react';
 // import ReactDOM from 'react-dom/client';
 // import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -180,6 +34,10 @@
 // const AdminImages = lazy(() => import('./pages/admin/images'));
 // const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
 
+// // PROFILE ROUTES - Lazy loaded with optimized chunks
+// const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
+// const ProfilePage = lazy(() => import('./pages/profile'));
+
 // // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 // const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
 //   (element: React.ReactNode) => (
@@ -208,6 +66,16 @@
 //   </div>
 // );
 
+// // Profile loading
+// const ProfileLoading = () => (
+//   <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//     <div className="flex flex-col items-center gap-4">
+//       <div className="w-10 h-10 rounded-full border-4 border-navy border-t-transparent animate-spin"></div>
+//       <p className="text-gray-700 font-medium">Loading Profile...</p>
+//     </div>
+//   </div>
+// );
+
 // const router = createBrowserRouter([
 //   {
 //     path: '/',
@@ -232,6 +100,15 @@
 //       { path: 'terms-and-conditions', element: createSuspenseWrapper()(<TermsAndConditions />) },
 //       { path: 'refund-policy', element: createSuspenseWrapper()(<RefundPolicy />) },
       
+//       // PROFILE ROUTES - Protected and optimized loading
+//       {
+//         path: 'profile',
+//         element: createSuspenseWrapper(ProfileLoading)(<ProfileRoute />),
+//         children: [
+//           { index: true, element: createSuspenseWrapper(ProfileLoading)(<ProfilePage />) },
+//         ],
+//       },
+      
 //       // ADMIN ROUTES - Heavily lazy loaded with admin-specific loading
 //       {
 //         path: 'admin',
@@ -253,6 +130,7 @@
 //     <RouterProvider router={router} />
 //   </React.StrictMode>
 // );
+
 
 
 import React, { lazy, Suspense } from 'react';
@@ -295,6 +173,9 @@ const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscri
 const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
 const ProfilePage = lazy(() => import('./pages/profile'));
 
+// QUEST ROUTE - Lazy loaded with optimized loading
+const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
+
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
   (element: React.ReactNode) => (
@@ -333,6 +214,16 @@ const ProfileLoading = () => (
   </div>
 );
 
+// Quest loading
+const QuestLoading = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-10 h-10 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
+      <p className="text-gray-700 font-medium">Loading Assessment...</p>
+    </div>
+  </div>
+);
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -350,6 +241,9 @@ const router = createBrowserRouter([
       { path: 'faq', element: createSuspenseWrapper(LightLoading)(<FAQ />) },
       { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
+      
+      // QUEST ROUTE - Lazy loaded with custom loading
+      { path: 'assessment', element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
       
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },

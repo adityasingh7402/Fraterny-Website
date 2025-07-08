@@ -1,0 +1,230 @@
+Submission data: {
+  "response": [
+    {
+      "qno": 1,
+      "question_id": "q1_2",
+      "question_text": "What's your email?",
+      "answer": "fghbc",
+      "section_id": "section_1",
+      "section_name": "About You",
+      "difficulty": "easy",
+      "metadata": {
+        "tags": [
+          "Honest"
+        ],
+        "timestamp": "2025-07-08T16:46:17.480Z"
+      }
+    },
+    {
+      "qno": 2,
+      "question_id": "q1_4",
+      "question_text": "What's your gender?",
+      "answer": "Male",
+      "section_id": "section_1",
+      "section_name": "About You",
+      "difficulty": "easy",
+      "metadata": {
+        "tags": [],
+        "timestamp": "2025-07-08T16:46:23.852Z"
+      }
+    },
+    {
+      "qno": 3,
+      "question_id": "q2_1",
+      "question_text": "Who did you grow up living with mostly?",
+      "answer": "sfvs",
+      "section_id": "section_2",
+      "section_name": "Growing Up",
+      "difficulty": "easy",
+      "metadata": {
+        "tags": [
+          "Honest"
+        ],
+        "timestamp": "2025-07-08T16:46:31.769Z"
+      }
+    },
+    {
+      "qno": 4,
+      "question_id": "q2_2",
+      "question_text": "Is there anything about your childhood or family life you wish was different?",
+      "answer": "sfv",
+      "section_id": "section_2",
+      "section_name": "Growing Up",
+      "difficulty": "hard",
+      "metadata": {
+        "tags": [
+          "Honest"
+        ],
+        "timestamp": "2025-07-08T16:46:34.835Z"
+      }
+    },
+    {
+      "qno": 5,
+      "question_id": "q2_3",
+      "question_text": "Who in your family do you fight with or disagree with the most? Why?",
+      "answer": "asfgv",
+      "section_id": "section_2",
+      "section_name": "Growing Up",
+      "difficulty": "easy",
+      "metadata": {
+        "tags": [
+          "Honest"
+        ],
+        "timestamp": "2025-07-08T16:46:40.342Z"
+      }
+    },
+    {
+      "qno": 6,
+      "question_id": "q3_1",
+      "question_text": "What is your highest priority goal for this year/month? Basically what you're looking forward to achieve in a time period you have defined for yourself? You can write more than 1 thing.",
+      "answer": "sfv",
+      "section_id": "section_3",
+      "section_name": "What You Value and Want",
+      "difficulty": "medium",
+      "metadata": {
+        "tags": [
+          "Unsure"
+        ],
+        "timestamp": "2025-07-08T16:46:46.354Z"
+      }
+    },
+    {
+      "qno": 7,
+      "question_id": "q3_2",
+      "question_text": "Which of these matters the most to you? And write one sentence explaining why your top choice is most important.",
+      "answer": "{\"rankings\":[{\"id\":\"option-2\",\"text\":\"Money\"},{\"id\":\"option-0\",\"text\":\"Being Known/Respected\"},{\"id\":\"option-1\",\"text\":\"Family\"},{\"id\":\"option-3\",\"text\":\"Peace\"}],\"explanation\":\"fsv\"}",
+      "section_id": "section_3",
+      "section_name": "What You Value and Want",
+      "difficulty": "hard",
+      "metadata": {
+        "tags": [],
+        "timestamp": "2025-07-08T16:46:52.048Z"
+      }
+    },
+    {
+      "qno": 8,
+      "question_id": "q3_6",
+      "question_text": "Who's someone (alive or not) that really inspires you? What is it about them that connects with you personally?",
+      "answer": "dv",
+      "section_id": "section_3",
+      "section_name": "What You Value and Want",
+      "difficulty": "hard",
+      "metadata": {
+        "tags": [
+          "Sarcastic"
+        ],
+        "timestamp": "2025-07-08T16:47:06.068Z"
+      }
+    },
+    {
+      "qno": 9,
+      "question_id": "q4_1",
+      "question_text": "What's a habit you have that others say is bad, But you feel it's helping you in some way?",
+      "answer": "vz",
+      "section_id": "section_4",
+      "section_name": "Patterns and Behavior",
+      "difficulty": "medium",
+      "metadata": {
+        "tags": [],
+        "timestamp": "2025-07-08T16:47:09.622Z"
+      }
+    },
+    {
+      "qno": 10,
+      "question_id": "q4_3",
+      "question_text": "What's one emotion you find hard to show others? Why do you think that is?",
+      "answer": "df",
+      "section_id": "section_4",
+      "section_name": "Patterns and Behavior",
+      "difficulty": "medium",
+      "metadata": {
+        "tags": [
+          "Honest"
+        ],
+        "timestamp": "2025-07-08T16:47:19.821Z"
+      }
+    },
+    {
+      "qno": 11,
+      "question_id": "q4_4",
+      "question_text": "Are you proud of yourself as a person right now? If yes, what makes you proud? If no, what's missing?",
+      "answer": "dv",
+      "section_id": "section_4",
+      "section_name": "Patterns and Behavior",
+      "difficulty": "hard",
+      "metadata": {
+        "tags": [],
+        "timestamp": "2025-07-08T16:47:22.295Z"
+      }
+    }
+  ],
+  "user_data": {
+    "user_id": "9bba4c19-c22b-4c83-9b60-bfc81a2695fe",
+    "name": "User",
+    "email": "indranilmaiti222@gmail.com"
+  },
+  "assessment_metadata": {
+    "session_id": "session_1751993159852",
+    "start_time": "2025-07-08T16:45:59.852Z",
+    "completion_time": "2025-07-08T16:47:44.971Z",
+    "duration_minutes": 1.8,
+    "completion_percentage": 52,
+    "average_response_time_seconds": 45.2,
+    "device_info": {
+      "type": "desktop",
+      "browser": "Chrome",
+      "operating_system": "Windows"
+    }
+  },
+  "analytics": {
+    "response_patterns": {
+      "tag_distribution": {
+        "Honest": 5,
+        "Unsure": 1,
+        "Sarcastic": 1,
+        "Avoiding": 0
+      },
+      "difficulty_breakdown": {
+        "easy": 4,
+        "medium": 3,
+        "hard": 4
+      },
+      "section_completion_times": {
+        "section_1": 2,
+        "section_2": 3,
+        "section_3": 3,
+        "section_4": 3,
+        "section_5": 0
+      },
+      "average_text_response_length": 19.545454545454547,
+      "longest_response_question_id": "q3_2",
+      "shortest_response_question_id": "q3_6"
+    },
+    "engagement_metrics": {
+      "hesitations": 0,
+      "changed_answers": 2,
+      "time_per_section": {
+        "section_1": 120,
+        "section_2": 180,
+        "section_3": 180,
+        "section_4": 180,
+        "section_5": 0
+      },
+      "pauses": 2
+    }
+  },
+  "preliminary_analysis": {
+    "response_consistency_score": 0.85,
+    "authenticity_score": 0.92,
+    "thoroughness_score": 0.78,
+    "insight_areas": [
+      "self_awareness",
+      "goal_setting",
+      "emotional_expression"
+    ],
+    "potential_focus_areas": [
+      "decision_making",
+      "stress_management"
+    ]
+  }
+}
