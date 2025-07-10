@@ -38,6 +38,13 @@
 // const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
 // const ProfilePage = lazy(() => import('./pages/profile'));
 
+// // QUEST ROUTE - Lazy loaded with optimized loading
+// const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
+
+// const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'));
+// const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestresultIndex'));
+
+
 // // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 // const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
 //   (element: React.ReactNode) => (
@@ -76,6 +83,16 @@
 //   </div>
 // );
 
+// // Quest loading
+// const QuestLoading = () => (
+//   <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//     <div className="flex flex-col items-center gap-4">
+//       <div className="w-10 h-10 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
+//       <p className="text-gray-700 font-medium">Loading Assessment...</p>
+//     </div>
+//   </div>
+// );
+
 // const router = createBrowserRouter([
 //   {
 //     path: '/',
@@ -93,6 +110,11 @@
 //       { path: 'faq', element: createSuspenseWrapper(LightLoading)(<FAQ />) },
 //       { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
 //       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
+      
+//       // QUEST ROUTE - Lazy loaded with custom loading
+//       { path: 'assessment', element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
+//       { path: 'quest-result/*', element: createSuspenseWrapper(QuestLoading)(<QuestResultRoute />) },
+//       { path: 'quest-index', element: createSuspenseWrapper(QuestLoading)(<QuestResultIndex />) },
       
 //       // LEGAL PAGES - Lazy loaded with minimal loading
 //       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },
@@ -133,6 +155,7 @@
 
 
 
+
 import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -159,10 +182,9 @@ const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+
 // ADMIN ROUTES - Heavily lazy loaded and chunk-separated
-const AdminRoute = lazy(() => import('./components/ProtectedRoute').then(module => ({ 
-  default: module.AdminRoute 
-})));
 const Dashboard = lazy(() => import('./pages/admin/dashboard'));
 const AdminBlog = lazy(() => import('./pages/admin/blog'));
 const Analytics = lazy(() => import('./pages/admin/Analytics'));
@@ -175,6 +197,9 @@ const ProfilePage = lazy(() => import('./pages/profile'));
 
 // QUEST ROUTE - Lazy loaded with optimized loading
 const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
+
+const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'));
+const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestresultIndex'));
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
@@ -242,8 +267,18 @@ const router = createBrowserRouter([
       { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
       
-      // QUEST ROUTE - Lazy loaded with custom loading
-      { path: 'assessment', element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
+      // PROTECTED QUEST ROUTE - Authentication required
+      {
+        path: 'assessment',
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
+        ],
+      },
+      
+      // OTHER QUEST ROUTES - Lazy loaded with custom loading
+      { path: 'quest-result/*', element: createSuspenseWrapper(QuestLoading)(<QuestResultRoute />) },
+      { path: 'quest-index', element: createSuspenseWrapper(QuestLoading)(<QuestResultIndex />) },
       
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },
@@ -263,7 +298,7 @@ const router = createBrowserRouter([
       // ADMIN ROUTES - Heavily lazy loaded with admin-specific loading
       {
         path: 'admin',
-        element: createSuspenseWrapper(AdminLoading)(<AdminRoute />),
+        element: <AdminRoute />,
         children: [
           { index: true, element: createSuspenseWrapper(AdminLoading)(<Dashboard />) },
           { path: 'blog', element: createSuspenseWrapper(AdminLoading)(<AdminBlog />) },

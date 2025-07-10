@@ -5,38 +5,65 @@ import { useEffect } from 'react';
 
 export const ProtectedRoute = () => {
   const { user, isLoading, session } = useAuth();
+  const authData = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  console.log('ProtectedRoute - Full Auth Data:', authData);
+  console.log('ProtectedRoute - Auth State:', { 
+    user: !!user, 
+    session: !!session, 
+    isLoading,
+    authReady: authData.authReady,
+    error: authData.error 
+  });
+
+  // useEffect(() => {
+  //   if (!isLoading && !user) {
+  //     navigate('/auth', { replace: true });
+  //   }
+    
+  //   // Handle verification redirects from email
+  //   const handleVerificationRedirect = () => {
+  //     const hashParams = new URLSearchParams(location.hash.substring(1));
+  //     const accessToken = hashParams.get('access_token');
+  //     const type = hashParams.get('type');
+      
+  //     if (accessToken && type === 'signup') {
+  //       console.log('Detected verification redirect in ProtectedRoute');
+  //       // Clear the hash to avoid repeated processing
+  //       window.history.replaceState(null, '', window.location.pathname);
+  //     }
+  //   };
+    
+  //   handleVerificationRedirect();
+  // }, [user, isLoading, navigate, location]);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth', { replace: true });
-    }
+  // Handle verification redirects from email
+  const handleVerificationRedirect = () => {
+    const hashParams = new URLSearchParams(location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
     
-    // Handle verification redirects from email
-    const handleVerificationRedirect = () => {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-      
-      if (accessToken && type === 'signup') {
-        console.log('Detected verification redirect in ProtectedRoute');
-        // Clear the hash to avoid repeated processing
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    };
+    if (accessToken && type === 'signup') {
+      console.log('Detected verification redirect in ProtectedRoute');
+      // Clear the hash to avoid repeated processing
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  };
     
     handleVerificationRedirect();
-  }, [user, isLoading, navigate, location]);
+  }, [location]);
 
   // Show loading state if still checking authentication
-  if (isLoading) {
+  if (isLoading || !authData.authReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy"></div>
       </div>
     );
   }
+
 
   // If not authenticated, redirect to auth page
   if (!user || !session) {
