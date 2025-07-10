@@ -14,6 +14,7 @@ import  ProfileEditForm  from '@/components/profile/forms/ProfileEditForm';
 import AccountSettings from '@/components/profile/sections/AccountSettings';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import QuestHistory from '@/components/profile/sections/QuestHistory';
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -40,8 +41,8 @@ const UserProfile = () => {
             {/* <SubscriptionCard /> */}
           </div>
         );
-      // case 'personal':
-      //   return <ProfileEditForm />;
+      case 'history':
+        return <QuestHistory />;
       // case 'preferences':
       //   return <PreferencesForm />;
       case 'security':

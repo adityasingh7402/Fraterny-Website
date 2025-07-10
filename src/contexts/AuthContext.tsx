@@ -140,10 +140,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthState } from '@/hooks/use-auth-state';
 import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, resendVerificationEmail as authResendVerificationEmail } from '@/utils/auth';
 import { AuthContextType } from '@/types/auth';
-// ADD QUEST DATABASE IMPORT
-import { questDb } from '@/services/quest/questDatabase';
-// ADD QUEST DATABASE IMPORT
-import type { QuestOperationResult, UserProfile, UserAnalytics } from '@/types/quest';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -170,43 +166,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('AuthProvider initialized outside router context');
   }
 
-  // Centralized verification logic
+  // Centralized verification logic - only processes actual verification tokens
   const handleVerificationRedirect = useCallback(async () => {
     if (!location) return;
+    
+    // Only process if there's actually a verification token
+    const hashParams = new URLSearchParams(location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    if (!accessToken || !(type === 'signup' || type === 'recovery' || type === 'invite')) {
+      return; // No verification needed, don't reset state
+    }
+    
     setAuthState(s => ({ ...s, loading: true, error: null }));
+    
     try {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const type = hashParams.get('type');
-
-      if (accessToken && (type === 'signup' || type === 'recovery' || type === 'invite')) {
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        });
-        if (error) {
-          setAuthState(s => ({ ...s, loading: false, error: 'Failed to verify email. Please try again.' }));
-          return;
-        }
-        if (data?.session) {
-          window.history.replaceState(null, '', window.location.pathname);
-          // Refresh user
-          const { data: refreshData } = await supabase.auth.getUser();
-          setAuthState(s => ({
-            ...s,
-            user: refreshData?.user || null,
-            session: data.session,
-            isAdmin: refreshData?.user?.email ? ['malhotrayash1900@gmail.com'].includes(refreshData.user.email) : false,
-            ready: true,
-            loading: false,
-            error: null,
-          }));
-          return;
-        }
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+      });
+      if (error) {
+        setAuthState(s => ({ ...s, loading: false, error: 'Failed to verify email. Please try again.' }));
+        return;
       }
-      // No token in URL, just mark as ready
-      setAuthState(s => ({ ...s, ready: true, loading: false, error: null }));
+      if (data?.session) {
+        window.history.replaceState(null, '', window.location.pathname);
+        // Refresh user
+        const { data: refreshData } = await supabase.auth.getUser();
+        setAuthState(s => ({
+          ...s,
+          user: refreshData?.user || null,
+          session: data.session,
+          isAdmin: refreshData?.user?.email ? ['malhotrayash1900@gmail.com'].includes(refreshData.user.email) : false,
+          ready: true,
+          loading: false,
+          error: null,
+        }));
+        return;
+      }
     } catch (error) {
       setAuthState(s => ({ ...s, loading: false, error: 'Error handling verification. Please try again.' }));
     }
@@ -220,7 +219,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Ensure auth is marked as ready once we have a definitive user state
   useEffect(() => {
     if (!initialLoading) {
-      setAuthState(s => ({ ...s, ready: true, loading: false, user: initialUser, session: initialSession, isAdmin: initialIsAdmin }));
+      setAuthState(s => ({ 
+        ...s, 
+        ready: true, 
+        loading: false, 
+        user: initialUser, 
+        session: initialSession, 
+        isAdmin: initialIsAdmin 
+      }));
     }
   }, [initialLoading, initialUser, initialSession, initialIsAdmin]);
 
@@ -229,82 +235,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleVerificationRedirect();
   }, [handleVerificationRedirect]);
 
-  // UPDATED signIn function with quest analytics
+  // Sign in function
+  // const signIn = async (email: string, password: string) => {
+  //   const result = await authSignIn(email, password);
+  //   console.log(result)
+    
+  //   if (navigate && location?.pathname === '/auth') {
+  //     navigate('/');
+  //   }
+  //   const { data } = await supabase.auth.getUser();
+  //   console.log(`data is`, data);
+    
+  //   setAuthState(s => ({ 
+  //     ...s, 
+  //     user: result.user || null, 
+  //     session: result.session,
+  //     isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user?.email) : false 
+  //   }));
+  //   console.log(authState)
+  // };
   const signIn = async (email: string, password: string) => {
-    const result = await authSignIn(email, password);
-    
-    // Track login analytics for quest system
-    if (result.user) {
-      try {
-        await questDb.updateLoginAnalytics(result.user.id);
-        console.log('Login analytics updated successfully');
-      } catch (error) {
-        console.warn('Failed to update login analytics:', error);
-        // Don't block login if analytics fails - this is non-critical
-      }
-    }
-    
-    if (navigate && location?.pathname === '/auth') {
-      navigate('/');
-    }
-    const { data } = await supabase.auth.getUser();
-    setAuthState(s => ({ ...s, user: data?.user || null, isAdmin: data?.user?.email ? ['malhotrayash1900@gmail.com'].includes(data.user.email) : false }));
-  };
-
-  // ADD NEW QUEST-RELATED FUNCTIONS
-const getQuestUserProfile = async (): Promise<QuestOperationResult<UserProfile>> => {
-  if (!authState.user) {
-    return { 
-      success: false, 
-      error: { 
-        code: 'AUTH_ERROR' as const, 
-        message: 'User not authenticated' 
-      } 
-    };
+  const result = await authSignIn(email, password);
+  
+  if (navigate && location?.pathname === '/auth') {
+    navigate('/');
   }
   
-  try {
-    return await questDb.getUserProfile(authState.user.id);
-  } catch (error) {
-    console.error('Error getting quest user profile:', error);
-    return { 
-      success: false, 
-      error: { 
-        code: 'DATABASE_ERROR' as const, 
-        message: 'Failed to fetch user profile',
-        details: error 
-      } 
-    };
-  }
-};
-
-const getQuestUserAnalytics = async (): Promise<QuestOperationResult<UserAnalytics>> => {
-  if (!authState.user) {
-    return { 
-      success: false, 
-      error: { 
-        code: 'AUTH_ERROR' as const, 
-        message: 'User not authenticated' 
-      } 
-    };
-  }
+  const { data } = await supabase.auth.getUser();
   
-  try {
-    return await questDb.getUserAnalytics(authState.user.id);
-  } catch (error) {
-    console.error('Error getting quest user analytics:', error);
-    return { 
-      success: false, 
-      error: { 
-        code: 'DATABASE_ERROR' as const, 
-        message: 'Failed to fetch user analytics',
-        details: error 
-      } 
-    };
-  }
+  setAuthState(s => ({ 
+    ...s, 
+    user: result.user,  // ✅ Use the full user object, not just first_name
+    session: result.session,  // ✅ This is correct
+    isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user.email) : false  // ✅ Use result.user.email
+  }));
 };
 
   const signUp = authSignUp;
+  
   const signOut = async () => {
     await authSignOut();
     if (navigate) {
@@ -312,10 +280,10 @@ const getQuestUserAnalytics = async (): Promise<QuestOperationResult<UserAnalyti
     }
     setAuthState(s => ({ ...s, user: null, session: null, isAdmin: false }));
   };
+  
   const resendVerificationEmail = authResendVerificationEmail;
 
-  // UPDATED value with quest functions
-  const value: AuthContextType = {
+  const value = {
     user: authState.user,
     session: authState.session,
     isLoading: authState.loading,
@@ -327,10 +295,7 @@ const getQuestUserAnalytics = async (): Promise<QuestOperationResult<UserAnalyti
     authReady: authState.ready,
     error: authState.error,
     retryVerification,
-    // ADD QUEST-RELATED FUNCTIONS
-    getQuestUserProfile,
-    getQuestUserAnalytics,
-  };
+  } as AuthContextType;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
