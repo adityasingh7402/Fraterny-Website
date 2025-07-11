@@ -43,7 +43,7 @@ export function QuestLayout({
       )}
       
       {/* Main content area */}
-      <main className="flex-grow flex items-center justify-center p-4 md:p-6">
+      <main className="flex items-center justify-center p-4 md:p-6">
         <QuestContainer>
           {/* Loading state */}
           {isLoading && (

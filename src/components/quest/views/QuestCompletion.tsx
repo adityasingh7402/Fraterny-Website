@@ -125,10 +125,10 @@ export function QuestCompletion({
         answer: response.response,
         section_id: sectionId,
         section_name: sectionName,
-        difficulty: question?.difficulty || 'medium',
+        // difficulty: question?.difficulty || 'medium',
         metadata: {
           tags: response.tags || [],
-          timestamp: response.timestamp,
+          // timestamp: response.timestamp,
           ...(timeTaken && { time_taken: timeTaken })
         }
       };
@@ -179,6 +179,8 @@ export function QuestCompletion({
     try {
       // Format the submission data (which contains the session.id)
       const submissionData = formatSubmissionData();
+      console.log(submissionData);
+      
       if (!submissionData) {
         console.error('No submission data available');
         return null;
@@ -186,7 +188,7 @@ export function QuestCompletion({
       
       // Extract the sessionId directly from submissionData
       const sessionId = submissionData.assessment_metadata.session_id;
-      console.log('Using sessionId from submissionData:', sessionId);
+      // console.log('Using sessionId from submissionData:', sessionId);
       
       // Call the finishQuest method from context
       const result = await finishQuest();
@@ -197,7 +199,7 @@ export function QuestCompletion({
       
       // Store the sessionId in localStorage
       localStorage.setItem('questSessionId', sessionId);
-      console.log('Stored sessionId in localStorage:', sessionId);
+      // console.log('Stored sessionId in localStorage:', sessionId);
       
       // Store session history in database
       await storeSessionHistory(sessionId);
