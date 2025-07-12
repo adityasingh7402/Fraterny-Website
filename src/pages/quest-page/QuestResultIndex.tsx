@@ -16,9 +16,6 @@ const QuestResultIndex: React.FC = () => {
           <p className="text-gray-600 mb-8">
             Welcome to the Fraterny Psychology Assessment. This assessment will help you gain valuable insights about yourself.
           </p>
-          
-          {/* Assessment starting point would go here */}
-          {/* This would typically include your QuestIntro component */}
         </div>
       </QuestLayout>
     </QuestProvider>
