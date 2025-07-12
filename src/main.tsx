@@ -199,7 +199,7 @@ const ProfilePage = lazy(() => import('./pages/profile'));
 const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
 
 const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'));
-const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestresultIndex'));
+const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
