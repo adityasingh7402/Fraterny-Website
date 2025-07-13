@@ -502,7 +502,7 @@ export function QuestCompletion({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   
   // Function to store session history in database
-  const storeSessionHistory = async (sessionId: string) => {
+  const storeSessionHistory = async (sessionId: string, testid: string) => {
     // Check if user is authenticated
     if (!auth.user?.id) {
       console.warn('You are not authenticated. Please Sign in first');
@@ -516,6 +516,7 @@ export function QuestCompletion({
         .insert({
           user_id: auth.user.id,
           session_id: sessionId,
+          testid: testid || null,
           created_at: new Date().toISOString()
         });
       
@@ -540,8 +541,104 @@ export function QuestCompletion({
   };
   
   // Format session data for submission
-  const formatSubmissionData = () => {
+  // const formatSubmissionData = () => {
+  //   if (!session) return null;
+    
+  //   // Get user information from auth context
+  //   const userData = {
+  //     user_id: auth.user?.id || session.userId,
+  //     name: auth.user?.user_metadata?.first_name 
+  //       ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
+  //       : 'User',
+  //     email: auth.user?.email || 'user@example.com',
+  //     // Add these new fields
+  //     "mobile no": auth.user?.user_metadata?.phone || "",
+  //     city: auth.user?.user_metadata?.city || "",
+  //     DOB: auth.user?.user_metadata?.dob || undefined // Optional field
+  //   };
+    
+  //   // Calculate completion time and duration
+  //   const startTime = session.startedAt;
+  //   const completionTime = new Date().toISOString();
+  //   const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
+    
+  //   // Format responses array with time_taken calculations
+  //   let previousTimestamp: string | null = null;
+  //   const responses = Object.entries(session.responses || {}).map(([questionId, response], index) => {
+  //     // Find question details
+  //     const question = allQuestions?.find(q => q.id === questionId);
+  //     const sectionId = question?.sectionId || '';
+  //     const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
+      
+  //     // Calculate time taken (if previous timestamp exists)
+  //     let timeTaken = null;
+  //     if (previousTimestamp) {
+  //       const currentTime = new Date(response.timestamp).getTime();
+  //       const prevTime = new Date(previousTimestamp).getTime();
+  //       const diffSeconds = Math.round((currentTime - prevTime) / 1000);
+  //       timeTaken = `${diffSeconds}s`;
+  //     }
+  //     previousTimestamp = response.timestamp;
+      
+  //     return {
+  //       qno: index + 1,
+  //       question_id: questionId,
+  //       question_text: question?.text || '',
+  //       answer: response.response,
+  //       section_id: sectionId,
+  //       section_name: sectionName,
+  //       // difficulty: question?.difficulty || 'medium',
+  //       metadata: {
+  //         tags: response.tags || [],
+  //         // timestamp: response.timestamp,
+  //         ...(timeTaken && { time_taken: timeTaken })
+  //       }
+  //     };
+  //   });
+    
+  //   // Calculate tag distribution for simplified analytics
+  //   const tagCounts: Record<string, number> = {};
+  //   responses.forEach(response => {
+  //     if (response.metadata.tags) {
+  //       response.metadata.tags.forEach((tag: string) => {
+  //         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+  //       });
+  //     }
+  //   });
+    
+  //   // Ensure all possible tags have counts
+  //   const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
+  //   allTags.forEach(tag => {
+  //     if (!tagCounts[tag]) tagCounts[tag] = 0;
+  //   });
+    
+  //   // Create the full submission data object with simplified structure
+  //   return {
+  //     response: responses,
+  //     user_data: userData,
+  //     assessment_metadata: {
+  //       session_id: session.id,
+  //       start_time: startTime,
+  //       completion_time: completionTime,
+  //       duration_minutes: Number(durationMinutes.toFixed(1)),
+  //       completion_percentage: Math.round((responses.length / (allQuestions?.length || 1)) * 100),
+  //       device_info: {
+  //         type: detectDeviceType(),
+  //         browser: detectBrowser(),
+  //         operating_system: detectOS()
+  //       }
+  //     },
+  //     analytics: {
+  //       response_patterns: {
+  //         tag_distribution: tagCounts
+  //       }
+  //     }
+  //   };
+  // };
+
+    const formatSubmissionData = () => {
     if (!session) return null;
+    const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
     // Get user information from auth context
     const userData = {
@@ -550,10 +647,10 @@ export function QuestCompletion({
         ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
         : 'User',
       email: auth.user?.email || 'user@example.com',
-      // Add these new fields
       "mobile no": auth.user?.user_metadata?.phone || "",
       city: auth.user?.user_metadata?.city || "",
-      DOB: auth.user?.user_metadata?.dob || undefined // Optional field
+      DOB: auth.user?.user_metadata?.dob || undefined ,// Optional field
+      "testid" : testid
     };
     
     // Calculate completion time and duration
@@ -642,7 +739,7 @@ export function QuestCompletion({
       
       // Format the submission data (existing code)
       const submissionData = formatSubmissionData();
-      console.log(submissionData);
+      // console.log(submissionData);
       
       
       if (!submissionData) {
@@ -651,47 +748,51 @@ export function QuestCompletion({
         setSubmissionError('No submission data available');
         return null;
       }
-      console.log(auth.session?.access_token);
+      // console.log(auth.session?.access_token);
         const sessionId = submissionData.assessment_metadata.session_id;
+        const testid = submissionData?.user_data?.testid || ''
       
       // Submit to backend API
-      const response = await axios.post("/api/agent", submissionData, {
+      const response = await axios.post("http://35.232.81.77/api/agent", submissionData, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.session?.access_token || sessionId}`
+          'Content-Type': 'application/json',  
         },
-        timeout: 30000 // 30 second timeout
+        // timeout: 30000 // 30 second timeout
       });
-      
+
       setSubmissionStatus('submitted');
-      
-      // Set the result from API response
       setResult(response.data);
       setSubmitted(true);
       
       // Store the sessionId in localStorage
       localStorage.setItem('questSessionId', sessionId);
+      localStorage.setItem('testid', testid)
       
       // Store session history in database (existing code)
-      await storeSessionHistory(sessionId);
+      await storeSessionHistory(sessionId, testid);
       
       // Call the onComplete callback if provided
       if (onComplete) {
         onComplete();
       }
       
-      // Show the Thank You message
+      // // Show the Thank You message
       setShowThankYou(true);
       
       // After a delay, navigate to the processing page with the sessionId
       setTimeout(() => {
-        navigate(`/quest-result/processing/${sessionId}`);
+        const targetUrl = `/quest-result/processing/${sessionId}/${auth.user?.id}/${testid}`;
+        console.log('🚀 NAVIGATING TO:', targetUrl);
+        console.log('📊 sessionId:', sessionId);
+        console.log('👤 userId:', auth.user?.id);
+        console.log('🔑 testid:', testid);
+        navigate(targetUrl);
       }, 4000); // Show Thank You for 4 seconds
       
       return response.data;
       
     } catch (error: any) {
-      console.error('Error submitting quest:', error);
+      console.error('Error submitting quest:', error.response?.data?.message || error.message);
       setSubmissionStatus('error');
       setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
       throw error;
