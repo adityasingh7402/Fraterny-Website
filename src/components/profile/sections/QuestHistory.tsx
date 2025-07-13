@@ -339,6 +339,7 @@ interface SessionHistoryItem {
  id: string;
  user_id: string;
  session_id: string;
+ testid: string;
  created_at: string;
  is_viewed?: boolean;
 }
@@ -398,7 +399,7 @@ export function QuestHistory({ className = '' }: { className?: string }) {
          console.error('Error fetching session history:', error);
          setError('Failed to load your assessment history. Please try again later.');
        } else {
-         setSessions(data || []);
+         setSessions(data as any);
        }
      } catch (err) {
        console.error('Error in fetchSessionHistory:', err);
@@ -432,10 +433,24 @@ export function QuestHistory({ className = '' }: { className?: string }) {
    });
  };
  
- // Handle viewing results
- const handleViewResults = (sessionId: string) => {
-   navigate(`/quest-result/result/${sessionId}`);
- };
+const handleViewResults = (session: SessionHistoryItem) => {
+  // Validate all required parameters
+  if (!session.session_id || !session.testid || !user?.id) {
+    console.error('Missing required parameters:', {
+      sessionId: session.session_id,
+      testid: session.testid,
+      userId: user?.id
+    });
+    // Fallback to basic route
+    navigate(`/quest-result/result/${session.session_id}`);
+    return;
+  }
+  
+  // Navigate with all 3 parameters
+  const resultUrl = `/quest-result/result/${session.session_id}/${user.id}/${session.testid}`;
+  console.log('🚀 Navigating to full result URL:', resultUrl);
+  navigate(resultUrl);
+};
  
  // Loading state
  if (isLoading) {
@@ -560,7 +575,7 @@ export function QuestHistory({ className = '' }: { className?: string }) {
                </div>
                
                <Button
-                 onClick={() => handleViewResults(session.session_id)}
+                 onClick={() => handleViewResults(session)}
                  className="bg-navy hover:bg-navy/90 text-white flex items-center"
                  size="sm"
                >

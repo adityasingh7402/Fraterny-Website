@@ -556,7 +556,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { Download, Share2, Home, AlertTriangle } from 'lucide-react';
+import { Download, Share2, Home, AlertTriangle } from 'lucide-react'
+import { supabase } from '../../../integrations/supabase/client';
 // import axios from 'axios'; // For future backend integration
 
 // Import card components
@@ -575,6 +576,7 @@ import QuestLayout from '../layout/QuestLayout';
 
 // Import context
 import { useAuth } from '../../../contexts/AuthContext';
+import axios from 'axios'
 
 export interface QuestResultProps {
   className?: string;
@@ -667,6 +669,7 @@ const validateResultData = (data: any): ResultData => {
 
 export function QuestResult({ className = '' }: QuestResultProps) {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const { testid } = useParams<{ testid: string }>();
   const navigate = useNavigate();
   const auth = useAuth();
   
@@ -676,11 +679,20 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   
   // Get session ID from URL params or localStorage
   const currentSessionId = sessionId || localStorage.getItem('questSessionId');
+  const currenttestid = testid || localStorage.getItem('testid');
+  console.log(`current session id ${currentSessionId}`);
+  console.log(`current test id ${currenttestid}`);
+  
+  
   
   useEffect(() => {
     // If no session ID is available, redirect to homepage or error page
     if (!currentSessionId) {
       setError('No session ID found. Please complete an assessment first.');
+      return;
+    }
+    if(!currenttestid){
+      setError('No test ID found. Please complete an assessment first.');
       return;
     }
     
@@ -690,151 +702,152 @@ export function QuestResult({ className = '' }: QuestResultProps) {
         setIsLoading(true);
         
         // For now, use mock JSON data
-        setTimeout(() => {
-          // Enhanced mock result data structure in JSON format
-          const mockResultData = {
-            session_id: currentSessionId,
-            user_id: auth?.user?.id,
-            completion_date: new Date().toISOString(),
-            results: {
-              "section 1": "You carry ambition quietly, working tirelessly but yearning for the playful freedom you missed as a child.",
-              "Mind Card": {
-                personality: "#Game-Styled Mindcard",
-                attribute: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
-                score: ["65/100", "75/100", "90/100", "85/100"],
-                insight: [
-                  "Your self-awareness is growing; you know strengths but underplay emotional needs.",
-                  "You collaborate respectfully, valuing others' input while driving your own projects.",
-                  "You resolve conflicts playfully and quickly, maintaining strong familial bonds.",
-                  "You embrace ambitious risks, juggling research, business, and sporting dreams fearlessly."
-                ]
-              },
-              findings: [
-                "Your childhood's disciplined push shaped an unquenchable ambition that fuels both research and entrepreneurship.",
-                "You harbor a silent altruism: you dream of wealth not for yourself but to uplift underprivileged students.",
-                "Your emotional reserve around anger reveals a gentle core, cautious of hurting others even when constrained.",
-                "Balancing PhD rigor and cricket aspirations, you forge a unique identity bridging science and sport.",
-                "Your rapid learning skill acts as a secret superpower, accelerating your growth in any domain."
-              ],
-              quotes: [
-                "Ambition is the path, but satisfaction is the journey.",
-                "The mind, once stretched by new ideas, never returns to its original dimensions.",
-                "True generosity is giving without remembering; self-care without hesitation.",
-                "Strength lies in gentleness; power in self-awareness.",
-                "To dare is to lose one's footing momentarily; not to dare is to lose oneself."
-              ],
-              films: [
-                {
-                  title: "The Theory of Everything",
-                  description: "brilliance meets heartache"
-                },
-                {
-                  title: "Lagaan",
-                  description: "ambition and teamwork under pressure"
-                },
-                {
-                  title: "Good Will Hunting",
-                  description: "hidden genius, quiet resilience"
-                },
-                {
-                  title: "Chak De! India",
-                  description: "passion for sport and pride"
-                },
-                {
-                  title: "The Social Network",
-                  description: "innovation driven by obsession"
-                }
-              ],
-              subjects: [
-                {
-                  title: "Neuroeconomics",
-                  description: "merging decision, emotion, and risk",
-                  matchPercentage: 87
-                },
-                {
-                  title: "Sports psychology",
-                  description: "decoding focus in athletes",
-                  matchPercentage: 92
-                },
-                {
-                  title: "Philosophy of education",
-                  description: "shaping future learners",
-                  matchPercentage: 81
-                }
-              ],
-              astrology: {
-                actualSign: "Aries",
-                behavioralSign: "Virgo",
-                description: "Based on behavioral psychology, your personality aligns more with Virgo's discipline than your Aries flair.",
-                predictions: [
-                  {
-                    title: "You'll excel in multidisciplinary projects",
-                    likelihood: 82,
-                    reason: "Your rapid learning and diverse goals"
-                  },
-                  {
-                    title: "You'll struggle to express anger openly",
-                    likelihood: 76,
-                    reason: "You avoid conflict to preserve harmony"
-                  },
-                  {
-                    title: "A philanthropic milestone emerges in two years",
-                    likelihood: 68,
-                    reason: "Your altruistic financial goals"
-                  },
-                  {
-                    title: "You'll pivot career paths within five years",
-                    likelihood: 71,
-                    reason: "Your blend of science and sport passions"
-                  },
-                  {
-                    title: "Strong mentorship bonds will redefine your confidence",
-                    likelihood: 64,
-                    reason: "You seek guidance but rarely ask"
-                  }
-                ]
-              },
-              books: [
-                {
-                  title: "Atomic Habits",
-                  author: "James Clear"
-                },
-                {
-                  title: "Mindset",
-                  author: "Carol Dweck"
-                },
-                {
-                  title: "Flow",
-                  author: "Mihaly Csikszentmihalyi"
-                }
-              ],
-              actionItem: "Practice expressing your needs: voice one honest concern daily for a week."
-            }
-          };
+        // setTimeout(() => {
+        //   // Enhanced mock result data structure in JSON format
+        //   const mockResultData = {
+        //     session_id: currentSessionId,
+        //     user_id: auth?.user?.id,
+        //     completion_date: new Date().toISOString(),
+        //     results: {
+        //       "section 1": "You carry ambition quietly, working tirelessly but yearning for the playful freedom you missed as a child.",
+        //       "Mind Card": {
+        //         personality: "#Game-Styled Mindcard",
+        //         attribute: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
+        //         score: ["65/100", "75/100", "90/100", "85/100"],
+        //         insight: [
+        //           "Your self-awareness is growing; you know strengths but underplay emotional needs.",
+        //           "You collaborate respectfully, valuing others' input while driving your own projects.",
+        //           "You resolve conflicts playfully and quickly, maintaining strong familial bonds.",
+        //           "You embrace ambitious risks, juggling research, business, and sporting dreams fearlessly."
+        //         ]
+        //       },
+        //       findings: [
+        //         "Your childhood's disciplined push shaped an unquenchable ambition that fuels both research and entrepreneurship.",
+        //         "You harbor a silent altruism: you dream of wealth not for yourself but to uplift underprivileged students.",
+        //         "Your emotional reserve around anger reveals a gentle core, cautious of hurting others even when constrained.",
+        //         "Balancing PhD rigor and cricket aspirations, you forge a unique identity bridging science and sport.",
+        //         "Your rapid learning skill acts as a secret superpower, accelerating your growth in any domain."
+        //       ],
+        //       quotes: [
+        //         "Ambition is the path, but satisfaction is the journey.",
+        //         "The mind, once stretched by new ideas, never returns to its original dimensions.",
+        //         "True generosity is giving without remembering; self-care without hesitation.",
+        //         "Strength lies in gentleness; power in self-awareness.",
+        //         "To dare is to lose one's footing momentarily; not to dare is to lose oneself."
+        //       ],
+        //       films: [
+        //         {
+        //           title: "The Theory of Everything",
+        //           description: "brilliance meets heartache"
+        //         },
+        //         {
+        //           title: "Lagaan",
+        //           description: "ambition and teamwork under pressure"
+        //         },
+        //         {
+        //           title: "Good Will Hunting",
+        //           description: "hidden genius, quiet resilience"
+        //         },
+        //         {
+        //           title: "Chak De! India",
+        //           description: "passion for sport and pride"
+        //         },
+        //         {
+        //           title: "The Social Network",
+        //           description: "innovation driven by obsession"
+        //         }
+        //       ],
+        //       subjects: [
+        //         {
+        //           title: "Neuroeconomics",
+        //           description: "merging decision, emotion, and risk",
+        //           matchPercentage: 87
+        //         },
+        //         {
+        //           title: "Sports psychology",
+        //           description: "decoding focus in athletes",
+        //           matchPercentage: 92
+        //         },
+        //         {
+        //           title: "Philosophy of education",
+        //           description: "shaping future learners",
+        //           matchPercentage: 81
+        //         }
+        //       ],
+        //       astrology: {
+        //         actualSign: "Aries",
+        //         behavioralSign: "Virgo",
+        //         description: "Based on behavioral psychology, your personality aligns more with Virgo's discipline than your Aries flair.",
+        //         predictions: [
+        //           {
+        //             title: "You'll excel in multidisciplinary projects",
+        //             likelihood: 82,
+        //             reason: "Your rapid learning and diverse goals"
+        //           },
+        //           {
+        //             title: "You'll struggle to express anger openly",
+        //             likelihood: 76,
+        //             reason: "You avoid conflict to preserve harmony"
+        //           },
+        //           {
+        //             title: "A philanthropic milestone emerges in two years",
+        //             likelihood: 68,
+        //             reason: "Your altruistic financial goals"
+        //           },
+        //           {
+        //             title: "You'll pivot career paths within five years",
+        //             likelihood: 71,
+        //             reason: "Your blend of science and sport passions"
+        //           },
+        //           {
+        //             title: "Strong mentorship bonds will redefine your confidence",
+        //             likelihood: 64,
+        //             reason: "You seek guidance but rarely ask"
+        //           }
+        //         ]
+        //       },
+        //       books: [
+        //         {
+        //           title: "Atomic Habits",
+        //           author: "James Clear"
+        //         },
+        //         {
+        //           title: "Mindset",
+        //           author: "Carol Dweck"
+        //         },
+        //         {
+        //           title: "Flow",
+        //           author: "Mihaly Csikszentmihalyi"
+        //         }
+        //       ],
+        //       actionItem: "Practice expressing your needs: voice one honest concern daily for a week."
+        //     }
+        //   };
           
-          // Validate and set the data
-          const validatedData = validateResultData(mockResultData);
+        //   // Validate and set the data
+        //   const validatedData = validateResultData(mockResultData);
           
-          // Check if the result belongs to the current user
-          if (auth?.user?.id && validatedData.user_id !== auth?.user?.id) {
-            setError('You are not authorized to view these results.');
-            setIsLoading(false);
-            return;
-          }
+        //   // Check if the result belongs to the current user
+        //   if (auth?.user?.id && validatedData.user_id !== auth?.user?.id) {
+        //     setError('You are not authorized to view these results.');
+        //     setIsLoading(false);
+        //     return;
+        //   }
           
-          setResultData(validatedData);
-          setIsLoading(false);
-        }, 1500);
+        //   setResultData(validatedData);
+        //   setIsLoading(false);
+        // }, 1500);
         
         // COMMENTED OUT: Real implementation for fetching data from backend
-        /*
+        
         try {
           // 1. First verify this session belongs to the current user
           const { data: sessionHistory, error: sessionError } = await supabase
             .from('user_session_history')
             .select('*')
             .eq('session_id', currentSessionId)
-            .eq('user_id', auth?.user?.id)
+            .eq('user_id', auth.user?.id || '')
+            .eq('testid', currenttestid)
             .single();
           
           if (sessionError || !sessionHistory) {
@@ -842,28 +855,39 @@ export function QuestResult({ className = '' }: QuestResultProps) {
           }
           
           // 2. Fetch the analysis result from your AI backend using axios
-          const response = await axios.get(`${process.env.REACT_APP_API_URL}/quest-analysis/${currentSessionId}`, {
+          const response = await axios.get(`http://35.232.81.77/api/report/${currentSessionId}/${auth.user?.id}/${currenttestid}`, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${auth?.session?.access_token || ''}`
             },
-            timeout: 30000 // 30 second timeout
+            timeout: 30000
           });
+          if (!response) {
+            console.log('Something went wrong');
+          } else {
+            console.log(`response`, response.data.results);
+            
+            const analysisData = response.data;
+            if (typeof analysisData.results === 'string') {
+              analysisData.results = JSON.parse(analysisData.results);
+            }
+            console.log(`analysis data`, analysisData);
+            console.log(`response data`, response);
+          }
           
           const analysisData = response.data;
-          
           // 3. Validate and format the data
           const validatedData = validateResultData(analysisData);
-          
+          console.log(`validated data ${validatedData}`);
           setResultData(validatedData);
           setIsLoading(false);
           
-          // 4. Update the session history to mark as viewed
-          await supabase
-            .from('user_session_history')
-            .update({ is_viewed: true })
-            .eq('session_id', currentSessionId)
-            .eq('user_id', auth?.user?.id);
+          // // 4. Update the session history to mark as viewed
+          // await supabase
+          //   .from('user_session_history')
+          //   .update({ is_viewed: true })
+          //   .eq('session_id', currentSessionId)
+          //   .eq('user_id', auth?.user?.id || '');
             
         } catch (axiosError: any) {
           if (axiosError.code === 'ECONNABORTED') {
@@ -876,7 +900,7 @@ export function QuestResult({ className = '' }: QuestResultProps) {
             throw new Error(`Network error: ${axiosError.message}`);
           }
         }
-        */
+        
         
       } catch (err) {
         console.error('Error fetching result data:', err);

@@ -172,6 +172,7 @@ export type Database = {
           id: string
           user_id: string
           session_id: string
+          testid: string | null
           created_at: string
           is_viewed: boolean
         }
@@ -179,6 +180,7 @@ export type Database = {
           id?: string
           user_id: string
           session_id: string
+          testid: string | null
           created_at?: string
           is_viewed?: boolean
         }
@@ -186,6 +188,7 @@ export type Database = {
           id?: string
           user_id?: string
           session_id?: string
+          testid: string | null
           created_at?: string
           is_viewed?: boolean
         }
