@@ -539,10 +539,10 @@ export function QuestCompletion({
     setSubmissionStatus('idle');
     setSubmissionError(null);
   };
-  
-  // Format session data for submission
+
   // const formatSubmissionData = () => {
   //   if (!session) return null;
+  //   const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
   //   // Get user information from auth context
   //   const userData = {
@@ -551,10 +551,10 @@ export function QuestCompletion({
   //       ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
   //       : 'User',
   //     email: auth.user?.email || 'user@example.com',
-  //     // Add these new fields
   //     "mobile no": auth.user?.user_metadata?.phone || "",
   //     city: auth.user?.user_metadata?.city || "",
-  //     DOB: auth.user?.user_metadata?.dob || undefined // Optional field
+  //     DOB: auth.user?.user_metadata?.dob || undefined ,// Optional field
+  //     "testid" : testid
   //   };
     
   //   // Calculate completion time and duration
@@ -635,37 +635,40 @@ export function QuestCompletion({
   //     }
   //   };
   // };
-
-    const formatSubmissionData = () => {
-    if (!session) return null;
-    const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+  
+  // Handle final submission with backend integration
+  
+  const formatSubmissionData = () => {
+  if (!session) return null;
+  const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+  
+  // Get user information from auth context
+  const userData = {
+    user_id: auth.user?.id || session.userId,
+    name: auth.user?.user_metadata?.first_name 
+      ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
+      : 'User',
+    email: auth.user?.email || 'user@example.com',
+    "mobile no": auth.user?.user_metadata?.phone || "",
+    city: auth.user?.user_metadata?.city || "",
+    DOB: auth.user?.user_metadata?.dob || undefined,
+    "testid": testid
+  };
+  
+  // Calculate completion time and duration
+  const startTime = session.startedAt;
+  const completionTime = new Date().toISOString();
+  const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
+  
+  // Format responses array - NOW INCLUDES ALL QUESTIONS
+  let previousTimestamp: string | null = null;
+  const responses = allQuestions?.map((question, index) => {
+    const response = session.responses?.[question.id];
+    const sectionId = question?.sectionId || '';
+    const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
     
-    // Get user information from auth context
-    const userData = {
-      user_id: auth.user?.id || session.userId,
-      name: auth.user?.user_metadata?.first_name 
-        ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
-        : 'User',
-      email: auth.user?.email || 'user@example.com',
-      "mobile no": auth.user?.user_metadata?.phone || "",
-      city: auth.user?.user_metadata?.city || "",
-      DOB: auth.user?.user_metadata?.dob || undefined ,// Optional field
-      "testid" : testid
-    };
-    
-    // Calculate completion time and duration
-    const startTime = session.startedAt;
-    const completionTime = new Date().toISOString();
-    const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
-    
-    // Format responses array with time_taken calculations
-    let previousTimestamp: string | null = null;
-    const responses = Object.entries(session.responses || {}).map(([questionId, response], index) => {
-      // Find question details
-      const question = allQuestions?.find(q => q.id === questionId);
-      const sectionId = question?.sectionId || '';
-      const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
-      
+    // Handle answered questions
+    if (response) {
       // Calculate time taken (if previous timestamp exists)
       let timeTaken = null;
       if (previousTimestamp) {
@@ -678,68 +681,83 @@ export function QuestCompletion({
       
       return {
         qno: index + 1,
-        question_id: questionId,
+        question_id: question.id,
         question_text: question?.text || '',
         answer: response.response,
         section_id: sectionId,
         section_name: sectionName,
-        // difficulty: question?.difficulty || 'medium',
         metadata: {
           tags: response.tags || [],
-          // timestamp: response.timestamp,
           ...(timeTaken && { time_taken: timeTaken })
         }
       };
-    });
-    
-    // Calculate tag distribution for simplified analytics
-    const tagCounts: Record<string, number> = {};
-    responses.forEach(response => {
-      if (response.metadata.tags) {
-        response.metadata.tags.forEach((tag: string) => {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-        });
-      }
-    });
-    
-    // Ensure all possible tags have counts
-    const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
-    allTags.forEach(tag => {
-      if (!tagCounts[tag]) tagCounts[tag] = 0;
-    });
-    
-    // Create the full submission data object with simplified structure
-    return {
-      response: responses,
-      user_data: userData,
-      assessment_metadata: {
-        session_id: session.id,
-        start_time: startTime,
-        completion_time: completionTime,
-        duration_minutes: Number(durationMinutes.toFixed(1)),
-        completion_percentage: Math.round((responses.length / (allQuestions?.length || 1)) * 100),
-        device_info: {
-          type: detectDeviceType(),
-          browser: detectBrowser(),
-          operating_system: detectOS()
+    } 
+    // Handle skipped questions
+    else {
+      return {
+        qno: index + 1,
+        question_id: question.id,
+        question_text: question?.text || '',
+        answer: "I preferred not to response for this question",
+        section_id: sectionId,
+        section_name: sectionName,
+        metadata: {
+          tags: [],
+          time_taken: "not answered"
         }
-      },
-      analytics: {
-        response_patterns: {
-          tag_distribution: tagCounts
-        }
-      }
-    };
-  };
+      };
+    }
+  }) || [];
   
-  // Handle final submission with backend integration
+  // Calculate tag distribution for simplified analytics (UNCHANGED)
+  const tagCounts: Record<string, number> = {};
+  responses.forEach(response => {
+    if (response.metadata.tags) {
+      response.metadata.tags.forEach((tag: string) => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
+  });
+  
+  // Ensure all possible tags have counts
+  const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
+  allTags.forEach(tag => {
+    if (!tagCounts[tag]) tagCounts[tag] = 0;
+  });
+  
+  // Create the full submission data object with simplified structure
+  return {
+    response: responses,
+    user_data: userData,
+    assessment_metadata: {
+      session_id: session.id,
+      start_time: startTime,
+      completion_time: completionTime,
+      duration_minutes: Number(durationMinutes.toFixed(1)),
+      completion_percentage: Math.round((Object.keys(session.responses || {}).length / (allQuestions?.length || 1)) * 100),
+      device_info: {
+        type: detectDeviceType(),
+        browser: detectBrowser(),
+        operating_system: detectOS()
+      }
+    },
+    analytics: {
+      response_patterns: {
+        tag_distribution: tagCounts
+      }
+    }
+  };
+  };
+
+
+
   const handleSubmit = async () => {
     try {
       setSubmissionStatus('submitting');
       
       // Format the submission data (existing code)
       const submissionData = formatSubmissionData();
-      // console.log(submissionData);
+      console.log(submissionData);
       
       
       if (!submissionData) {
