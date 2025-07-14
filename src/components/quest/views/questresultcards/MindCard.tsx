@@ -227,10 +227,13 @@ export interface MindCardAttribute {
 export interface MindCardData {
   name?: string;           // User's name
   personality?: string;    // Personality type
-  description?: string;    // Description text
-  attributes: string[];    // ← Changed from 'attribute' to 'attributes' (plural)
-  scores: string[];        // ← Changed from 'score' to 'scores' (plural)
-  insights: string[];      // ← Changed from 'insight' to 'insights' (plural)
+  description?: string; 
+  attribute?: string[];     
+  score?: string[];   
+  insight?: string[];
+  attributes: string[];   
+  scores: string[];       
+  insights: string[];      
 }
 
 interface MindCard3DProps {
@@ -248,9 +251,9 @@ const MindCard3D: React.FC<MindCard3DProps> = ({ data, className = '' }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   // ✅ FIXED: Added null safety and updated to use plural property names
-  const safeAttributes = data.attributes || [];
-  const safeScores = data.scores || [];
-  const safeInsights = data.insights || [];
+  const safeAttributes = data.attributes || data.attribute || [];
+  const safeScores = data.scores || data.score || [];
+  const safeInsights = data.insights || data.insight || [];
 
   // Prepare data in a more structured format with safety checks
   const attributes: MindCardAttribute[] = safeAttributes.map((attr, index) => ({
