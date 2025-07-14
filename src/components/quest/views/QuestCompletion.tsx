@@ -753,7 +753,7 @@ export function QuestCompletion({
         const testid = submissionData?.user_data?.testid || ''
       
       // Submit to backend API
-      const response = await axios.post("http://35.232.81.77/api/agent", submissionData, {
+      const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
         headers: {
           'Content-Type': 'application/json',  
         },

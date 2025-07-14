@@ -617,10 +617,11 @@ interface ResultData {
   results: {
     "section 1"?: string;
     "Mind Card"?: {
+      name?: string;
       personality?: string;
-      attribute: string[];
-      score: string[];
-      insight: string[];
+      attributes: string[];
+      scores: string[];
+      insights: string[];
     };
     findings?: string[];
     quotes?: string[];
@@ -643,15 +644,12 @@ const validateResultData = (data: any): ResultData => {
     results: {
       "section 1": data.results?.["section 1"] || '',
       "Mind Card": data.results?.["Mind Card"] || {
-        personality: "#Game-Styled Mindcard",
-        attribute: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
-        score: ["50/100", "50/100", "50/100", "50/100"],
-        insight: [
-          "Analysis in progress...",
-          "Analysis in progress...",
-          "Analysis in progress...",
-          "Analysis in progress..."
-        ]
+        name: "User",
+        personality: "#Game-Styled Mindcard", 
+        description: "Loading analysis...",
+        attributes: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],  // ← Changed
+        scores: ["50/100", "50/100", "50/100", "50/100"],                                      // ← Changed
+        insights: ["Analysis in progress...", "Analysis in progress...", "Analysis in progress...", "Analysis in progress..."]  // ← Changed
       },
       findings: data.results?.findings || [],
       quotes: data.results?.quotes || [],
@@ -855,7 +853,7 @@ export function QuestResult({ className = '' }: QuestResultProps) {
           }
           
           // 2. Fetch the analysis result from your AI backend using axios
-          const response = await axios.get(`http://35.232.81.77/api/report/${currentSessionId}/${auth.user?.id}/${currenttestid}`, {
+          const response = await axios.get(`https://api.fraterny.in/api/report/${currentSessionId}/${auth.user?.id}/${currenttestid}`, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${auth?.session?.access_token || ''}`
