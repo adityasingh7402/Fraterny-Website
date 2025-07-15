@@ -77,7 +77,7 @@ export interface QuestContextState {
 // Context actions
 export interface QuestContextActions {
   startQuest: () => Promise<QuestSession | null>;
-  submitResponse: (questionId: string, response: string, tags?: string[]) => Promise<void>;
+  submitResponse: (questionId: string, response: string, tags?: HonestyTag[]) => Promise<void>;
   nextQuestion: () => void;
   previousQuestion: () => void;
   finishQuest: () => Promise<QuestResult | null>;

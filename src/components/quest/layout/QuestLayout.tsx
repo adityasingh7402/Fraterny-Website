@@ -5,7 +5,6 @@ import { CalmingBackground } from '../effects/CalmingBackground';
 import { QuestHeader } from './QuestHeader';
 import { QuestContainer } from './QuestContainer';
 import { QuestNavigation } from './QuestNavigation';
-import { useEffect } from 'react';
 
 interface QuestLayoutProps {
   children: React.ReactNode;
@@ -81,9 +80,9 @@ export function QuestLayout({
       </main>
       
       {/* Navigation controls */}
-      {showNavigation && session && (
+      {/* {showNavigation && session && (
         <QuestNavigation />
-      )}
+      )} */}
     </div>
   );
 }

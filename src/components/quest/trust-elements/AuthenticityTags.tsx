@@ -64,7 +64,7 @@ export function AuthenticityTags({
             px-3 py-1 rounded-full text-xs border transition-all
             ${selectedTags.includes(tag.label)
               ? `${tag.color} shadow-sm`
-              : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
+              : 'bg-gray-50 text-gray-600 border-black hover:border-gray-300'
             }
             ${disabled ? 'cursor-default opacity-80' : ''}
           `}

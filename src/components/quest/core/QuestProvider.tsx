@@ -5,7 +5,8 @@ import {
   QuestSession, 
   QuestResult, 
   QuestionResponse,
-  QuestSessionStatus
+  QuestSessionStatus,
+  HonestyTag
 } from './types';
 import questSections, { getAllQuestions, getQuestionsBySection } from './questions';
 
@@ -29,9 +30,14 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   // Derived state
   const currentQuestionIndex = session?.currentQuestionIndex || 0;
   const currentQuestion = sectionQuestions[currentQuestionIndex] || null;
+  // Helper function to count responses in current section
+  const getResponseCountForCurrentSection = () => {
+    if (!session?.responses) return 0;
+    return sectionQuestions.filter(q => session.responses && session.responses[q.id]).length;
+  };
   const progress = sectionQuestions.length > 0 
-    ? ((currentQuestionIndex) / sectionQuestions.length) * 100 
-    : 0;
+  ? ((getResponseCountForCurrentSection()) / sectionQuestions.length) * 100 
+  : 0;
   
   // Update section questions when current section changes  
   useEffect(() => {
@@ -73,12 +79,33 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       setIsLoading(false);
     }
   };
+
+  // Auto-advance logic after response submission
+  const autoAdvance = () => {
+    if (!session) return;
+    
+    const currentIndex = session.currentQuestionIndex || 0;
+    const isLastQuestionInSection = currentIndex === sectionQuestions.length - 1;
+    
+    if (isLastQuestionInSection) {
+      // Try to move to next section
+      const hasMoreSections = finishSection();
+      
+      // If no more sections, finish quest
+      if (!hasMoreSections) {
+        finishQuest();
+      }
+    } else {
+      // Move to next question in current section
+      nextQuestion();
+    }
+  };
   
   // Submit a response to the current question
   const submitResponse = async (
     questionId: string, 
     response: string, 
-    tags?: string[]
+    tags?: HonestyTag[]
   ): Promise<void> => {
     if (!session) return;
     
@@ -107,6 +134,11 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       });
       
       // In a real implementation, this would be an API call to save the response
+      // Auto-advance to next question or section
+      // setTimeout(() => {
+      //   autoAdvance();
+      // }, 300); 
+      autoAdvance();
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -127,12 +159,12 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       );
       
       // If this is the last question in the section and there are more sections
-      if (nextIndex === sectionQuestions.length - 1) {
-        const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-        if (currentSectionIndex < questSections.length - 1) {
-          // We'll handle section transitions in the UI layer
-        }
-      }
+      // if (nextIndex === sectionQuestions.length - 1) {
+      //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+      //   if (currentSectionIndex < questSections.length - 1) {
+      //     // We'll handle section transitions in the UI layer
+      //   }
+      // }
       
       return {
         ...prev,

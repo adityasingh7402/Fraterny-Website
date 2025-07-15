@@ -52,7 +52,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'easy',
         type: 'text_input',
         category: 'personal_info',
-        sectionId: 'section_1'
+        sectionId: 'section_1',
+        placeholder: 'improve accuracy by  giving context. You can write multiple places as well  if you like. ',
       }
     ]
   },
@@ -67,7 +68,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'easy',
         type: 'text_input',
         category: 'family',
-        sectionId: 'section_2'
+        sectionId: 'section_2',
+        placeholder: '“Parents and an older brother”, “Single parent and one dog”, “Grandparents”, “At a Hostel with friends” Siblings, “Alone with a caretaker as my parents were always travelling”, “With Friends in an orphanage”.'
       },
       {
         id: 'q2_2',
@@ -76,7 +78,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'family',
         sectionId: 'section_2',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Be honest. Even a small change you’d have liked is helpful. “I wish my parents did not fight so much”, “I would have to spend more time with my grandparents”, “Nothing as such", "I am very happy with my childhood”, “I wish I had more friends”'
       },
       {
         id: 'q2_3',
@@ -85,7 +88,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'family',
         sectionId: 'section_2',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'No need for big stories, just a quick example is enough. You can write “This is a very personal question. I cannot answer it.”, ”My brother, he used to cry a lot, I bullied him, but I regret it” “My father, he was very strict and did not allow me to go out”'
       }
     ]
   },
@@ -125,7 +129,7 @@ export const questSections: QuestionSection[] = [
         category: 'desires',
         sectionId: 'section_3',
         allowTags: true,
-        placeholder: 'Enter up to 3 wishes...'
+        placeholder: 'Think of anything— “Ability to fly”, “Meeting with Jeff Bezos”, “CEO of Google”, “I have everything I want, I don’t need anything”, “A pet named Jaws”'
       },
       {
         id: 'q3_4',
@@ -134,7 +138,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_3',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'It can be anything— “I am better at solving Rubics Cube”, “Reading People’s emotions”, “Financial Modelling”, “Critical thinking”, “Building Profitable Businesses”, “Pokemon Go cards”'
       },
       {
         id: 'q3_5',
@@ -143,7 +148,9 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'ambition',
         sectionId: 'section_3',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'you can think of. “I wanna be best at Sales”, “Best Chess Player”,  “I wanna be the best Astrologer so I could  predict the future”, “Equity analyst so I can make money in the stock market”, “I don’t want to be best at anything”'
+
       },
       {
         id: 'q3_6',
@@ -152,7 +159,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'inspiration',
         sectionId: 'section_3',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'It can be a celebrity, family member, fictional character, or even a friend.'
       }
     ]
   },
@@ -167,7 +175,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'medium',
         type: 'text_input',
         category: 'habits',
-        sectionId: 'section_4'
+        sectionId: 'section_4',
+        placeholder: 'Examples: Sleeping late, overthinking, isolating, being blunt, etc.'
       },
       {
         id: 'q4_2',
@@ -175,7 +184,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'medium',
         type: 'text_input',
         category: 'habits',
-        sectionId: 'section_4'
+        sectionId: 'section_4',
+        placeholder: 'Be honest. It can be small or big.'
       },
       {
         id: 'q4_3',
@@ -183,7 +193,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'medium',
         type: 'text_input',
         category: 'emotions',
-        sectionId: 'section_4'
+        sectionId: 'section_4',
+        placeholder: 'Examples: Sadness, jealousy, fear, anger, softness, etc.'
       },
       {
         id: 'q4_4',
@@ -192,7 +203,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_4',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Be honest'
       }
     ]
   },
@@ -208,7 +220,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_5',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Try to guess as honestly as possible. “He is a playboy, he just likes to play with women’s emotions”, “She is the most reserved person I have ever met.”,” She is so joyful and carefree, she makes me feel like I am a celebrity”'
       },
       {
         id: 'q5_2',
@@ -217,7 +230,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_5',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Think of how you would explain yourself to someone you are meeting for the first time. '
       },
       {
         id: 'q5_3',
@@ -226,7 +240,8 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_5',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Be honest'
       }
     ]
   }
