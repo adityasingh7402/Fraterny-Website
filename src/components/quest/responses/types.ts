@@ -82,7 +82,7 @@ export interface TextResponseProps extends ResponseInputProps {
   autoFocus?: boolean;
   // NEW: Word count related props
   maxWords?: number;                    // Maximum words allowed (default: 100)
-  showWordCount?: boolean;              // Show word counter (default: true)
+  showWordCount?: boolean;              // Show word counter (default: false)
   wordWarningThreshold?: number;        // Warning threshold in words (default: 90)
 }
 

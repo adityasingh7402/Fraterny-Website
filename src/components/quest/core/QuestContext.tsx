@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { QuestContextValue, QuestionSection } from './types';
 import questSections from './questions';
+import { HonestyTag } from './types';
 
 // Default empty section
 const emptySection: QuestionSection = {
@@ -29,7 +30,7 @@ const defaultContextValue: QuestContextValue = {
   
   // Actions
   startQuest: async () => null,
-  submitResponse: async () => {},
+  submitResponse: async (questionId: string, response: string, tags?: HonestyTag[]) => Promise.resolve(),
   nextQuestion: () => {},
   previousQuestion: () => {},
   changeSection: () => {},

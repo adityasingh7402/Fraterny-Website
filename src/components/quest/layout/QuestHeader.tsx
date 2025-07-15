@@ -80,6 +80,8 @@ interface QuestHeaderProps {
   showProgress?: boolean;
   className?: string;
 }
+
+
 export function QuestHeader({
   title,
   subtitle,
@@ -92,6 +94,12 @@ export function QuestHeader({
     questions, 
     progress 
   } = useQuest();
+
+  // Helper function to count responses in current section
+  const getResponseCountForCurrentSection = () => {
+    if (!session?.responses) return 0;
+    return questions.filter(q => session.responses && session.responses[q.id]).length;
+  };
   
   return (
     <header className={`quest-header py-4 px-4 md:px-6 ${className}`}>
@@ -100,7 +108,7 @@ export function QuestHeader({
         {showProgress && session && (
           <div className="mb-4">
             <ProgressBar 
-              currentValue={session.currentQuestionIndex || 0}
+              currentValue={getResponseCountForCurrentSection()}
               totalValue={questions.length}
               showLabel={true}
               showMilestones={true}

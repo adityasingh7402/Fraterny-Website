@@ -40,7 +40,7 @@ export function QuestAssessment({ onComplete, className = '' }: QuestAssessmentP
     // Submit the response
     await submitResponse(currentQuestion.id, response, tags);
     setIsSubmitting(false);
-    nextQuestion();
+    // nextQuestion();
     
     // Short delay for visual feedback
     // setTimeout(() => {

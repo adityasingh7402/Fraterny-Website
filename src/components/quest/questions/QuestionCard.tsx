@@ -360,12 +360,12 @@ export function QuestionCard({
     onResponse(submittedResponse, selectedTags);
   };
   
-  // Handle text input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     
-    // NEW: For text inputs, prevent typing beyond character limit
+    // Allow pasting but truncate if too long
     if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
+      setResponse(newValue.substring(0, maxLength));
       return;
     }
     
@@ -428,77 +428,140 @@ export function QuestionCard({
         
       case 'text_input':
         // NEW: Enhanced text input with word counting
-        const textValidation = getTextInputValidation();
+        // const textValidation = getTextInputValidation();
         
-        return (
-          <div className="mb-6">
-            <form onSubmit={handleFormSubmit}>
-              <div className="relative">
-                <textarea
-                  value={response}
-                  onChange={handleInputChange}
-                  placeholder="Be as honest as you want to be for the best analysis"
-                  className={`w-full p-3 border rounded-lg focus:ring-1 transition-all min-h-[100px] resize-y focus:outline-none ${
-                    textValidation?.wordStatus === 'error' 
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
-                      : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
-                  }`}
-                  disabled={!isActive || isAnswered}
-                />
+        // return (
+        //   <div className="mb-6">
+        //     <form onSubmit={handleFormSubmit}>
+        //       <div className="relative">
+        //         <textarea
+        //           value={response}
+        //           onChange={handleInputChange}
+        //           placeholder="Be as honest as you want to be for the best analysis"
+        //           className={`w-full p-3 border rounded-lg focus:ring-1 transition-all min-h-[100px] resize-y focus:outline-none ${
+        //             textValidation?.wordStatus === 'error' 
+        //               ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
+        //               : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
+        //           }`}
+        //           disabled={!isActive || isAnswered}
+        //         />
                 
-                {/* NEW: Counter display */}
-                {textValidation && !textValidation.isEmpty && (
-                  <div className="absolute bottom-2 right-3 text-xs space-y-1 text-right">
-                    {/* Character count */}
-                    <div className={`${
-                      textValidation.characterCount <= maxLength ? 'text-gray-400' : 'text-red-500'
-                    }`}>
-                      {textValidation.characterCount}/{maxLength}
-                    </div>
+        //         {/* NEW: Counter display */}
+        //         {/* {textValidation && !textValidation.isEmpty && (
+        //           <div className="absolute bottom-2 right-3 text-xs space-y-1 text-right">
                     
-                    {/* Word count */}
-                    <div className={`${
-                      textValidation.wordStatus === 'valid' ? 'text-gray-400' :
-                      textValidation.wordStatus === 'warning' ? 'text-amber-500' :
-                      'text-red-500'
-                    }`}>
-                      {textValidation.wordCount}/{maxWords} words
-                    </div>
+        //             <div className={`${
+        //               textValidation.characterCount <= maxLength ? 'text-gray-400' : 'text-red-500'
+        //             }`}>
+        //               {textValidation.characterCount}/{maxLength}
+        //             </div>
+                    
+                  
+        //             <div className={`${
+        //               textValidation.wordStatus === 'valid' ? 'text-gray-400' :
+        //               textValidation.wordStatus === 'warning' ? 'text-amber-500' :
+        //               'text-red-500'
+        //             }`}>
+        //               {textValidation.wordCount}/{maxWords} words
+        //             </div>
+        //           </div>
+        //         )} */}
+        //       </div>
+              
+        //       {/* NEW: Word validation message */}
+        //       {textValidation?.wordMessage && (
+        //         <motion.div
+        //           initial={{ opacity: 0, y: -5 }}
+        //           animate={{ opacity: 1, y: 0 }}
+        //           className={`mt-2 text-xs ${
+        //             textValidation.wordStatus === 'warning' ? 'text-amber-600' : 'text-red-600'
+        //           }`}
+        //         >
+        //           {textValidation.wordMessage}
+        //         </motion.div>
+        //       )}
+              
+        //       {isActive && !isAnswered && (
+        //         <motion.button
+        //           type="submit"
+        //           whileHover={{ scale: 1.02 }}
+        //           whileTap={{ scale: 0.98 }}
+        //           className={`mt-3 px-4 py-2 rounded-lg transition-colors ${
+        //             textValidation?.isValid
+        //               ? 'bg-terracotta text-white hover:bg-terracotta/90'
+        //               : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+        //           }`}
+        //           disabled={!textValidation?.isValid}
+        //         >
+        //           Submit
+        //         </motion.button>
+        //       )}
+        //     </form>
+        //   </div>
+        // );
+          const textValidation = getTextInputValidation();
+  
+          return (
+            <div className="mb-6">
+              <form onSubmit={handleFormSubmit}>
+                <div className="relative">
+                  <textarea
+                    value={response}
+                    onChange={handleInputChange}
+                    placeholder={question.placeholder || "Be as honest as you want to be for the best analysis"}
+                    className={`w-full p-3 border rounded-lg focus:ring-1 transition-all min-h-[100px] resize-y focus:outline-none ${
+                      textValidation?.wordStatus === 'error' 
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
+                        : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
+                    }`}
+                    disabled={!isActive || isAnswered}
+                  />
+                </div>
+                
+                {/* Word validation message */}
+                {textValidation?.wordMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mt-2 text-xs ${
+                      textValidation.wordStatus === 'warning' ? 'text-amber-600' : 'text-red-600'
+                    }`}
+                  >
+                    {textValidation.wordMessage}
+                  </motion.div>
+                )}
+                
+                {question.allowTags && showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
+                  <div className="mt-4 mb-3">
+                    <AuthenticityTags 
+                      selectedTags={selectedTags}
+                      onTagSelect={handleTagSelect}
+                      disabled={isAnswered}
+                    />
+                    <p className="text-xs text-black mt-2">
+                      How would you describe your response?
+                    </p>
                   </div>
                 )}
-              </div>
-              
-              {/* NEW: Word validation message */}
-              {textValidation?.wordMessage && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`mt-2 text-xs ${
-                    textValidation.wordStatus === 'warning' ? 'text-amber-600' : 'text-red-600'
-                  }`}
-                >
-                  {textValidation.wordMessage}
-                </motion.div>
-              )}
-              
-              {isActive && !isAnswered && (
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`mt-3 px-4 py-2 rounded-lg transition-colors ${
-                    textValidation?.isValid
-                      ? 'bg-terracotta text-white hover:bg-terracotta/90'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  }`}
-                  disabled={!textValidation?.isValid}
-                >
-                  Submit
-                </motion.button>
-              )}
-            </form>
-          </div>
-        );
+                
+                {isActive && !isAnswered && (
+                  <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`mt-3 px-4 py-2 rounded-lg transition-colors ${
+                      textValidation?.isValid
+                        ? 'bg-terracotta text-white hover:bg-terracotta/90'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                    disabled={!textValidation?.isValid}
+                  >
+                    Submit
+                  </motion.button>
+                )}
+              </form>
+            </div>
+          );
         
       case 'scale_rating':
         return (
@@ -572,21 +635,17 @@ export function QuestionCard({
       initial="hidden"
       animate={controls}
       className={`question-card bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}
-    >
-      {/* Privacy Reassurance */}
-      {/* <PrivacyIndicator className="mb-4" /> */}
-      
-      
+    >      
       {/* Question Text */}
       <div className="mb-6">
         <h3 className="text-xl text-navy mb-3">{question.text}</h3>
-        {/* <p className="text-sm text-gray-600 italic">
-          Text like you text a friend. Be as honest as you want to be.
-        </p> */}
       </div>
+      
       
       {/* Question Input */}
       {renderQuestionInput()}
+
+      
       
       {/* Flexible Response Options */}
       {question.type === 'text_input' && isActive && !isAnswered && (
@@ -597,6 +656,7 @@ export function QuestionCard({
           >
             {showFlexibleOptions ? 'Hide options' : 'Not sure? Click for options'}
           </button>
+          
           
           {showFlexibleOptions && (
             <motion.div
@@ -627,7 +687,7 @@ export function QuestionCard({
       )}
       
       {/* Self-Awareness Tags */}
-      {showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
+      {/* {showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
         <div className="border-t border-gray-100 pt-4">
           <p className="text-xs text-gray-500 mb-3">
             How would you describe your response? (Optional)
@@ -638,12 +698,7 @@ export function QuestionCard({
             disabled={isAnswered}
           />
         </div>
-      )}
-      
-      {/* Non-judgmental Encouragement */}
-      {/* <div className="mt-4 text-xs text-center text-gray-400 italic">
-        There are no right or wrong answers. We're here to understand you better.
-      </div> */}
+      )} */}
 
       <div className="mt-2 flex justify-end">
         <PrivacyIndicator className="" />

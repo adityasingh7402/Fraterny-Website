@@ -137,12 +137,12 @@ export function TextResponse({
   placeholder = 'Text like you text a friend. Be as honest as you want to be.',
   minLength = 0,
   maxLength = 1000,
-  showCharacterCount = true,
+  showCharacterCount = false,
   autoFocus = true,
   className = '',
   // NEW: Word count props
   maxWords = 100,
-  showWordCount = true,
+  showWordCount = false,
   wordWarningThreshold = 90
 }: TextResponseProps) {
   // Response state
@@ -221,29 +221,7 @@ export function TextResponse({
         />
         
         {/* NEW: Enhanced counter display */}
-        {(showCharacterCount || showWordCount) && !isEmpty && (
-          <div className="absolute bottom-2 right-3 text-xs space-y-1">
-            {/* Character count */}
-            {showCharacterCount && (
-              <div className={`transition-opacity ${
-                isCharacterValid ? 'text-gray-400' : 'text-red-500'
-              }`}>
-                {characterCount}/{maxLength}
-              </div>
-            )}
-            
-            {/* Word count */}
-            {showWordCount && (
-              <div className={`transition-opacity ${
-                wordValidation.status === 'valid' ? 'text-gray-400' :
-                wordValidation.status === 'warning' ? 'text-amber-500' :
-                'text-red-500'
-              }`}>
-                {wordValidation.wordCount}/{maxWords} words
-              </div>
-            )}
-          </div>
-        )}
+        
       </div>
       
       {/* NEW: Word validation message */}

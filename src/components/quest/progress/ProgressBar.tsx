@@ -143,11 +143,16 @@ export function ProgressBar({
   };
   
   const questionIndexInSection = getQuestionIndexInSection();
+  // Count completed responses in current section
+  const getCompletedResponsesInSection = () => {
+    if (!session?.responses || !currentSection) return 0;
+    return currentSection.questions.filter(q => session.responses && session.responses[q.id]).length;
+  };
   
   // Calculate progress percentage within this section
   const sectionProgressPercentage = questionsInSection > 0 
-    ? ((questionIndexInSection + 1) / questionsInSection) * 100 
-    : 0;
+  ? ((getCompletedResponsesInSection()) / questionsInSection) * 100 
+  : 0;
   
   // Generate milestones based on the number of questions in the current section
   const generateMilestones = (): number[] => {
@@ -210,7 +215,7 @@ export function ProgressBar({
       {showMilestones && (
         <div className="relative h-0">
           {milestones.map((milestone, index) => {
-            const isActive = questionIndexInSection >= index;
+            const isActive = getCompletedResponsesInSection() > index;
             
             return (
               <motion.div
