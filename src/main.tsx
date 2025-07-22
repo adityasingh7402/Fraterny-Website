@@ -200,6 +200,7 @@ const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
 
 const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'));
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
+const QuestLandingPage = lazy(() => import('./pages/quest-landing-page'));
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
@@ -279,6 +280,7 @@ const router = createBrowserRouter([
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
       { path: 'quest-result/*', element: createSuspenseWrapper(QuestLoading)(<QuestResultRoute />) },
       { path: 'quest-index', element: createSuspenseWrapper(QuestLoading)(<QuestResultIndex />) },
+      { path: 'quest-landing', element: createSuspenseWrapper(QuestLoading)(<QuestLandingPage />)},
       
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },
