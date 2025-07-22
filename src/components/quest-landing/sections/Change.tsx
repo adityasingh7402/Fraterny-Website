@@ -1,4 +1,5 @@
 import React from 'react'
+import img from '../../../../public/changepic.png'
 
 const Change = () => {
   return (
@@ -13,7 +14,7 @@ const Change = () => {
         </div>
         <div>
             <img
-              src='/public/changepic.png'
+              src={img}
               alt='Change Illustration'
               className='w-full h-auto'
             />
