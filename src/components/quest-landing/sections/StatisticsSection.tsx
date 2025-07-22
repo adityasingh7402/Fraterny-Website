@@ -311,7 +311,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         variants={animationVariants}
         initial="invisible"
         animate="visible"
-        className="absolute bottom-16"
+        className="absolute bottom-32"
         onClick={onContinueClick}
       >
         <div className="relative">

@@ -254,6 +254,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../common';
 import { colors, spacing, responsiveClasses } from '../styles';
+import { ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onAnalyzeClick?: () => void;
@@ -287,7 +288,7 @@ const Hero: React.FC<HeroProps> = ({
 
   return (
     <section 
-      className={`relative w-screen min-h-screen overflow-hidden flex flex-col justify-start bg-[#FFFFFF] pt-10 md:pt-16 lg:pt-20 px-4 md:px-6 lg:px-8 pb-6 ${className}`}
+      className={`relative w-screen min-h-screen overflow-hidden flex flex-col justify-start bg-[#FFFFFF] pt-10 md:pt-16 lg:pt-20 md:px-6 lg:px-8 pb-6 pl-4 ${className}`}
     >
       {/* Background Gradient with layoutId for morphing */}
       {/* <motion.div 
@@ -301,7 +302,7 @@ const Hero: React.FC<HeroProps> = ({
         }}
       /> */}
       {/* Down Arrow for Screen Transition */}
-      <div className="absolute bottom-6 right-6 z-30">
+      {/* <div className="absolute bottom-6 right-6 z-30">
         <motion.button
           onClick={onScreenTransition}
           variants={animationVariants}
@@ -315,7 +316,20 @@ const Hero: React.FC<HeroProps> = ({
             <path d="M7 13l3 3 3-3M7 6l3 3 3-3"/>
           </svg>
         </motion.button>
-      </div>
+      </div> */}
+      <div className="absolute bottom-6 right-6 z-30">
+        <motion.button
+            onClick={onScreenTransition}
+            variants={animationVariants}
+            initial="invisible"
+            animate="visible"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:text-white/80 transition-colors"
+        >
+            <ChevronDown size={16} />
+        </motion.button>
+        </div>
 
       <motion.div 
         layoutId='bg'

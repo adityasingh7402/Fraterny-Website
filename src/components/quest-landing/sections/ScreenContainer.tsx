@@ -185,7 +185,7 @@ const handleBenefitsTransition = () => {
       {current === 0 && (
         <motion.div
           key="screen1"
-          className='p-4 pt-15 relative text-2xl flex flex-col h-full text-black'
+          className=' pt-15 relative text-2xl flex flex-col h-full text-black'
           variants={animationVariants}
           initial="invisible"
           animate="visible"
