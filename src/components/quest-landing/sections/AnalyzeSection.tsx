@@ -45,7 +45,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
                 <img 
                 src="/Vector.svg" 
                 alt="QUEST" 
-                className="h-[32px] w-auto brightness-0 invert"
+                className="h-[36px] w-[89px] brightness-0 invert ml-8"
                 />
             </motion.div>
             </div>
@@ -62,23 +62,26 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
       <div className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
         <div className='gap-8 flex relative flex-col z-20'>
           {/* Main Title */}
-          <div className='w-1/2 text-left border-b-2 border-white'>
+          <div className='w-[140px] text-left'>
             <motion.p 
               variants={animationVariants} 
               initial="invisible" 
               animate="visible"
+              className='pb-[10px]'
               style={{
-                fontFamily: 'Gilroy-Medium',
+                fontFamily: 'Gilroy-medium',
                 fontSize: '40px',
-                lineHeight: '100%',
+                fontWeight: 100,
+                lineHeight: '49px',
               }}
             >
               What I will do?
             </motion.p>
+            <div className='border-b-2 border-white ml-1' />
           </div>
           
           {/* Description */}
-          <p style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
+          <p className='pt-8' style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
             I will decode your hidden...
           </p>
           
@@ -146,7 +149,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
         <motion.div 
           layoutId='bg'
           transition={{ duration: 0.8 }}
-          className='absolute z-10 w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex bottom-0 top-[45px] left-[51px] translate-x-1/2 rounded-full blur-xl'
+          className='absolute z-10 w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex bottom-0 top-[45px] left-[51px] translate-x-1/2 rounded-full blur-[80px]'
           style={{
             background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
             backdropFilter: 'blur(180px)',
