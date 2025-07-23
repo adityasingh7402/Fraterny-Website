@@ -1,0 +1,78 @@
+/* Gilroy Bold */
+@font-face {
+  font-family: 'Gilroy-Bold';
+  src: url('./Gilroy-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Gilroy Bold Italic */
+@font-face {
+  font-family: 'Gilroy-BoldItalic';
+  src: url('./Gilroy-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Gilroy Black (Extra Bold) */
+@font-face {
+  font-family: 'Gilroy-Black';
+  src: url('./Gilroy-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Gilroy Black Italic */
+@font-face {
+  font-family: 'Gilroy-BlackItalic';
+  src: url('./Gilroy-BlackItalic.ttf') format('truetype');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Gilroy Extra Bold */
+@font-face {
+  font-family: 'Gilroy-ExtraBold';
+  src: url('./Gilroy-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Gilroy Extra Bold Italic */
+@font-face {
+  font-family: 'Gilroy-ExtraBoldItalic';
+  src: url('./Gilroy-ExtraBoldItalic.ttf') format('truetype');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* For your components that use these specific font names */
+@font-face {
+  font-family: 'Gilroy-Regular';
+  src: url('./Gilroy-Bold.ttf') format('truetype'); /* Using Bold as Regular since you don't have Regular */
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy-Medium';
+  src: url('./Gilroy-ExtraBold.ttf') format('truetype'); /* Using ExtraBold as Medium */
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy-MediumItalic';
+  src: url('./Gilroy-ExtraBoldItalic.ttf') format('truetype'); /* Using ExtraBoldItalic as MediumItalic */
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
