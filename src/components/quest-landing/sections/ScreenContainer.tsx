@@ -434,6 +434,211 @@
 
 // /src/components/quest-landing/sections/ScreenContainer.tsx
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import { motion, AnimatePresence } from 'framer-motion';
+// import { Hero, StatisticsSection, BenefitsSection, AnalyzeSection } from './index';
+
+// interface ScreenContainerProps {
+//   onAnalyzeClick?: () => void;
+//   className?: string;
+// }
+
+// // Simple animation variants like Code 1
+// const animationVariants = {
+//   invisible: {
+//     opacity: 0,
+//   },
+//   visible: {
+//     opacity: 1,
+//     transition: {
+//       duration: 0.6
+//     }
+//   }
+// };
+
+// const ScreenContainer: React.FC<ScreenContainerProps> = ({
+//   onAnalyzeClick,
+//   className = ''
+// }) => {
+//   // Simple state management like Code 1
+//   const [current, setCurrent] = useState(0);
+//   const [isTransitioning, setIsTransitioning] = useState(false);
+//   const containerRef = useRef<HTMLDivElement>(null);
+
+//   // Handle scroll-based navigation - but not for AnalyzeSection
+//   useEffect(() => {
+//     const handleWheel = (event: WheelEvent) => {
+//       // Don't prevent default scrolling on AnalyzeSection (screen 3)
+//       if (current === 3) {
+//         return; // Allow natural scrolling
+//       }
+      
+//       event.preventDefault();
+      
+//       // Don't trigger during transitions
+//       if (isTransitioning) return;
+
+//       const scrollDown = event.deltaY > 0;
+//       const scrollUp = event.deltaY < 0;
+
+//       // Add minimum scroll threshold to prevent accidental triggers
+//       const scrollThreshold = 50;
+//       if (Math.abs(event.deltaY) < scrollThreshold) return;
+
+//       if (scrollDown && current < 3) {
+//         // Scroll down - go to next screen
+//         setIsTransitioning(true);
+//         setCurrent(current + 1);
+//       } else if (scrollUp && current > 0) {
+//         // Scroll up - go to previous screen
+//         setIsTransitioning(true);
+//         setCurrent(current - 1);
+//       }
+//     };
+
+//     const container = containerRef.current;
+//     if (container) {
+//       container.addEventListener('wheel', handleWheel, { passive: false });
+//     }
+
+//     return () => {
+//       if (container) {
+//         container.removeEventListener('wheel', handleWheel);
+//       }
+//     };
+//   }, [current, isTransitioning]);
+
+//   // Reset transition state after animation completes
+//   useEffect(() => {
+//     if (isTransitioning) {
+//       const timer = setTimeout(() => {
+//         setIsTransitioning(false);
+//       }, 1000); // Increased cooldown time
+
+//       return () => clearTimeout(timer);
+//     }
+//   }, [isTransitioning]);
+
+//   const handleAnalyzeClick = () => {
+//     if (onAnalyzeClick) {
+//       onAnalyzeClick();
+//     }
+//   };
+
+//   // Get dynamic container classes based on current screen
+//   const getContainerClasses = () => {
+//     if (current === 3) {
+//       // AnalyzeSection needs full height and scrollable
+//       return `relative min-h-screen overflow-y-auto overflow-x-hidden`;
+//     }
+//     // Other screens use fixed viewport height
+//     return `relative h-screen overflow-hidden`;
+//   };
+
+//   return (
+//     <div 
+//       ref={containerRef}
+//       className={getContainerClasses()}
+//       style={{ touchAction: current === 3 ? 'auto' : 'none' }} // Allow touch scrolling on AnalyzeSection
+//     >
+      
+//       {/* Screen 1 - Hero */}
+//       {current === 0 && (
+//         <motion.div
+//           key="screen1"
+//           className='h-screen'
+//           variants={animationVariants}
+//           initial="invisible"
+//           animate="visible"
+//           exit="invisible"
+//         >
+//           <Hero
+//             onAnalyzeClick={handleAnalyzeClick}
+//             className="relative z-30"
+//           />
+//         </motion.div>
+//       )}
+
+//       {/* Screen 2 - Statistics */}
+//       {current === 1 && (
+//         <AnimatePresence>
+//           <motion.div
+//             key="screen2"
+//             className='h-screen'
+//             variants={animationVariants}
+//             initial="invisible"
+//             animate="visible"
+//             exit="invisible"
+//           >
+//             <StatisticsSection
+//               animationState="visible"
+//               className="relative z-30"
+//             />
+//           </motion.div>
+//         </AnimatePresence>
+//       )}
+
+//       {/* Screen 3 - Benefits */}
+//       {current === 2 && (
+//         <motion.div
+//           key="screen3"
+//           className='h-screen'
+//           variants={animationVariants}
+//           initial="invisible"
+//           animate="visible"
+//           exit="invisible"
+//         >
+//           <BenefitsSection
+//             animationState="visible"
+//             className="relative z-30"
+//           />
+//         </motion.div>
+//       )}
+
+//       {/* Screen 4 - Analyze (Scrollable) */}
+//       {current === 3 && (
+//         <motion.div
+//           key="screen4"
+//           className='relative w-full' // Remove height constraint
+//           variants={animationVariants}
+//           initial="invisible"
+//           animate="visible"
+//           exit="invisible"
+//         >
+//           <AnalyzeSection
+//             animationState="visible"
+//             className="relative z-30"
+//           />
+//         </motion.div>
+//       )}
+
+//       {/* Navigation indicator (optional) */}
+//       {/* <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+//         {[0, 1, 2, 3].map((index) => (
+//           <button
+//             key={index}
+//             onClick={() => {
+//               if (!isTransitioning) {
+//                 setIsTransitioning(true);
+//                 setCurrent(index);
+//               }
+//             }}
+//             className={`w-3 h-3 rounded-full transition-colors ${
+//               current === index ? 'bg-blue-600' : 'bg-gray-300'
+//             }`}
+//           />
+//         ))}
+//       </div> */}
+      
+//     </div>
+//   );
+// };
+
+// export default ScreenContainer;
+
+
+// /src/components/quest-landing/sections/ScreenContainer.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hero, StatisticsSection, BenefitsSection, AnalyzeSection } from './index';
@@ -465,8 +670,11 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll-based navigation - but not for AnalyzeSection
+  // Handle scroll-based navigation with mobile touch support
   useEffect(() => {
+    let touchStartY = 0;
+    let touchEndY = 0;
+
     const handleWheel = (event: WheelEvent) => {
       // Don't prevent default scrolling on AnalyzeSection (screen 3)
       if (current === 3) {
@@ -496,14 +704,53 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       }
     };
 
+    const handleTouchStart = (event: TouchEvent) => {
+      // Don't handle touch on AnalyzeSection (screen 3)
+      if (current === 3) return;
+      
+      touchStartY = event.changedTouches[0].screenY;
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      // Don't handle touch on AnalyzeSection (screen 3)
+      if (current === 3) return;
+      
+      if (isTransitioning) return;
+      
+      touchEndY = event.changedTouches[0].screenY;
+      const touchDiff = touchStartY - touchEndY;
+      const minSwipeDistance = 50;
+
+      if (Math.abs(touchDiff) > minSwipeDistance) {
+        if (touchDiff > 0 && current < 3) {
+          // Swipe up - go to next screen
+          setIsTransitioning(true);
+          setCurrent(current + 1);
+        } else if (touchDiff < 0 && current > 0) {
+          // Swipe down - go to previous screen
+          setIsTransitioning(true);
+          setCurrent(current - 1);
+        }
+      }
+    };
+
     const container = containerRef.current;
     if (container) {
+      // Add wheel event for desktop
       container.addEventListener('wheel', handleWheel, { passive: false });
+      
+      // Add touch events for mobile - only for non-AnalyzeSection screens
+      if (current !== 3) {
+        container.addEventListener('touchstart', handleTouchStart, { passive: true });
+        container.addEventListener('touchend', handleTouchEnd, { passive: true });
+      }
     }
 
     return () => {
       if (container) {
         container.removeEventListener('wheel', handleWheel);
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchend', handleTouchEnd);
       }
     };
   }, [current, isTransitioning]);
@@ -535,11 +782,26 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     return `relative h-screen overflow-hidden`;
   };
 
+  // Get dynamic styles based on current screen
+  const getContainerStyles = () => {
+    if (current === 3) {
+      return { 
+        touchAction: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
+      };
+    }
+    return { 
+      touchAction: 'none',
+      overscrollBehavior: 'none'
+    };
+  };
+
   return (
     <div 
       ref={containerRef}
       className={getContainerClasses()}
-      style={{ touchAction: current === 3 ? 'auto' : 'none' }} // Allow touch scrolling on AnalyzeSection
+      style={{...getContainerStyles()}}
     >
       
       {/* Screen 1 - Hero */}
@@ -613,7 +875,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       )}
 
       {/* Navigation indicator (optional) */}
-      {/* <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         {[0, 1, 2, 3].map((index) => (
           <button
             key={index}
@@ -628,7 +890,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             }`}
           />
         ))}
-      </div> */}
+      </div>
       
     </div>
   );

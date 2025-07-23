@@ -134,3 +134,26 @@
 .animate-fade-in {
   animation: fade-in 0.5s ease-out;
 }
+
+
+/* Mobile scroll fixes */
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS Safari bounce */
+html, body {
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+/* Only for the scrollable analyze section */
+.mobile-scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  height: 100vh;
+}
