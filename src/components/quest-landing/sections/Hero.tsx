@@ -267,7 +267,7 @@ const Hero: React.FC<HeroProps> = ({
           className="absolute"
           style={{ left: '21px', top: '13.39%' }}
         >
-          <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: '100', wordWrap: 'break-word' }}>
+          <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: '400', wordWrap: 'break-word' }}>
             hi there,
           </div>
         </motion.div>
@@ -285,6 +285,7 @@ const Hero: React.FC<HeroProps> = ({
           }}
         >
           <span style={{ 
+            
             color: '#7C7C7C', 
             fontSize: '72px', 
             fontFamily: 'Gilroy-Bold', 
@@ -302,15 +303,15 @@ const Hero: React.FC<HeroProps> = ({
           className="absolute"
           style={{ 
             width: '176px',   // w-44 = 176px
-            height: '80px',   // h-20 = 80px
+            height: '115px',   // h-20 = 80px
             left: '33.59%',   // 129px / 384px = 33.59%
-            top: '21.28%',    // 186px / 874px = 21.28% 
+            top: '23.5%',    // 186px / 874px = 21.28% 
           }}
         >
           <img 
             src={img} 
             alt="QUEST" 
-            className="w-full h-full object-contain"
+            className="w-[190px] h-[85px] object-contain"
           />
         </motion.div>
 
@@ -321,9 +322,9 @@ const Hero: React.FC<HeroProps> = ({
           className="absolute"
           style={{ left: '22px', top: '323px' }}
         >
-          <div style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: '400', wordWrap: 'break-word' }}>
+          <span style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
             i can
-          </div>
+          </span>
         </motion.div>
 
 
@@ -334,7 +335,7 @@ const Hero: React.FC<HeroProps> = ({
           className="absolute"
           style={{ left: '21px', top: '364px' }}
         >
-          <div style={{ color: '#0A0A0A', fontSize: '40px', fontFamily: 'Gilroy-Bold', fontWeight: '700', wordWrap: 'break-word' }}>
+          <div style={{ color: '#0A0A0A', fontSize: '40px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word' }}>
             Hack Your Brain
           </div>
         </motion.div>
@@ -383,8 +384,10 @@ const Hero: React.FC<HeroProps> = ({
               justifyContent: 'center'
             }}
           >
-            <div style={{ left: '50px', top: '591px', color: '#FEFEFE', fontSize: '24px', fontFamily: 'Gilroy-Bold', fontWeight: 400, wordWrap: 'break-word' }}>
-              Analyse Me
+            <div className="tracking-tighter" style={{ left: '50px', top: '591px', color: '#FEFEFE', fontSize: '24px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word', }}>
+              <span style={{ letterSpacing: '-1.92%' }}>
+                Analyse Me
+              </span>
             </div>
           </motion.button>
         </motion.div>

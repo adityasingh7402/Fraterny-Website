@@ -6,7 +6,7 @@ const Change = () => {
     <div className='p-4 flex flex-col gap-6 py-6'>
        <div>
             <p className='text-gray-500' style={{ fontFamily: 'Gilroy-Regular', fontSize: '36px', fontWeight: 400 }}>Next 15mins</p>
-            <h1 className='' style={{ fontFamily: 'Gilroy-Bold', fontSize: '40px', fontWeight: 400 }}>Might Change You</h1>
+            <h1 className='-mt-5' style={{ fontFamily: 'Gilroy-Bold', fontSize: '40px', fontWeight: 400 }}>Might Change You</h1>
        </div>
         <div>
             <p className='text-gray-500' style={{ fontFamily: 'Gilroy-Regular', fontSize: '24px', fontWeight: 400 }}>Just me and your thoughts!</p>
@@ -21,10 +21,15 @@ const Change = () => {
         </div>
         <div className='w-full h-50 rounded-md bg-gray-400'/>
         <button className='flex py-4 p-2 text-white text-[24px] w-full items-center justify-center rounded-full'
-        style={{ background: 'linear-gradient(91.45deg, #001F60 1%, #1D99DF 101.13%)',
-            border: '2px solid transparent',
+        style={{ 
+          background: 'linear-gradient(91.45deg, #001F60 1%, #1D99DF 101.13%)',
+          border: '2px solid transparent',
          }}
-        >Analyse Me</button>
+        >
+          <span style={{ letterSpacing: '-1.92%' }}>
+            Analyse Me
+          </span>
+        </button>
     </div>
   )
 }

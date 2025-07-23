@@ -507,7 +507,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         <img 
           src={img}
           alt="QUEST" 
-          className="h-8 w-auto brightness-0 invert"
+          className="h-[36px] w-auto brightness-0 invert"
         />
       </motion.div>
 
@@ -519,7 +519,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         className="absolute z-50"
         style={{ right: '20px', top: '30px' }}
       >
-        <Menu size={24} color="#FFFFFF" />
+        <Menu size={36} color="#FFFFFF" />
       </motion.div>
 
       {/* Benefit 1: "Are more effective leaders." */}
@@ -528,7 +528,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         initial="invisible"
         animate="visible"
         className="absolute z-20"
-        style={{ left: '25px', top: '200px' }}
+        style={{ left: '25px', top: '152px' }}
       >
         <div 
           style={{ 
@@ -537,10 +537,11 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '36px',  // text-4xl = 36px
             fontFamily: 'Gilroy-Bold', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-start'
+            justifyContent: 'flex-start',
+            lineHeight: '1',
           }}
         >
           Are more effective leaders.
@@ -553,7 +554,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         initial="invisible"
         animate="visible"
         className="absolute z-20"
-        style={{ right: '25px', top: '220px' }}
+        style={{ right: '25px', top: '198px' }}
       >
         <div 
           style={{ 
@@ -562,7 +563,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '24px',  // text-2xl = 24px
             fontFamily: 'Gilroy-Regular', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-start'
@@ -578,7 +579,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         style={{ 
           left: '25px', 
           right: '25px', 
-          top: '300px',
+          top: '235px',
           height: '1px',
           backgroundColor: '#FFFFFF' 
         }} 
@@ -590,7 +591,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         initial="invisible"
         animate="visible"
         className="absolute z-20"
-        style={{ left: '25px', top: '350px' }}
+        style={{ left: '25px', top: '310px' }}
       >
         <div 
           style={{ 
@@ -599,10 +600,11 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '36px',  // text-4xl = 36px
             fontFamily: 'Gilroy-Bold', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-start'
+            justifyContent: 'flex-start',
+            lineHeight: '1',
           }}
         >
           Perform better at work.
@@ -615,7 +617,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         initial="invisible"
         animate="visible"
         className="absolute z-20"
-        style={{ right: '25px', top: '370px' }}
+        style={{ right: '25px', top: '358px' }}
       >
         <div 
           style={{ 
@@ -624,7 +626,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '24px',  // text-2xl = 24px
             fontFamily: 'Gilroy-Regular', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-start'
@@ -640,7 +642,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         style={{ 
           left: '25px', 
           right: '25px', 
-          top: '450px',
+          top: '395px',
           height: '1px',
           backgroundColor: '#FFFFFF' 
         }} 
@@ -652,7 +654,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         initial="invisible"
         animate="visible"
         className="absolute z-20"
-        style={{ left: '25px', top: '500px' }}
+        style={{ left: '25px', top: '470px' }}
       >
         <div 
           style={{ 
@@ -661,10 +663,11 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '36px',  // text-4xl = 36px
             fontFamily: 'Gilroy-Bold', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-start'
+            justifyContent: 'flex-start',
+            lineHeight: '1',
           }}
         >
           Are more confident.
@@ -686,7 +689,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             color: '#FFFFFF', 
             fontSize: '24px',  // text-2xl = 24px
             fontFamily: 'Gilroy-Regular', 
-            fontWeight: '600',
+            fontWeight: '400',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-start'
@@ -702,7 +705,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         style={{ 
           left: '25px', 
           right: '25px', 
-          top: '600px',
+          top: '555px',
           height: '1px',
           backgroundColor: '#FFFFFF' 
         }} 
