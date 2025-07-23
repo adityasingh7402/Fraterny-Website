@@ -267,7 +267,7 @@ const Hero: React.FC<HeroProps> = ({
           className="absolute"
           style={{ left: '21px', top: '13.39%' }}
         >
-          <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
+          <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: '100', wordWrap: 'break-word' }}>
             hi there,
           </div>
         </motion.div>
