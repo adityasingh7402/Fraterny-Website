@@ -60,10 +60,17 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       });
       
       // If there's no scrollable content, require stronger scroll to change screens
-      const scrollThreshold = hasScrollableContent ? -50 : -100;
+      const scrollThreshold = hasScrollableContent ? 50 : 100;
+      console.log('🔍 Scroll check:', { 
+  deltaY: event.deltaY, 
+  threshold: -scrollThreshold, 
+  isAtTop, 
+  willTrigger: event.deltaY < -scrollThreshold && isAtTop 
+});
+
       
       // Only allow screen transition when at very top and strong upward scroll
-      if (event.deltaY < scrollThreshold && isAtTop && current > 0) {
+      if (event.deltaY < -scrollThreshold && isAtTop && current > 0) {
         console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
         event.preventDefault();
         if (!isTransitioning) {
