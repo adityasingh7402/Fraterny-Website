@@ -6,7 +6,7 @@ const Change = () => {
     <div className='p-4 flex flex-col gap-6 py-6'>
        <div>
             <p className='text-gray-500' style={{ fontFamily: 'Gilroy-Regular', fontSize: '36px', fontWeight: 400 }}>Next 15mins</p>
-            <h1 className='font-bold' style={{ fontFamily: 'Gilroy-Bold', fontSize: '40px', fontWeight: 400 }}>Might Change You</h1>
+            <h1 className='' style={{ fontFamily: 'Gilroy-Bold', fontSize: '40px', fontWeight: 400 }}>Might Change You</h1>
        </div>
         <div>
             <p className='text-gray-500' style={{ fontFamily: 'Gilroy-Regular', fontSize: '24px', fontWeight: 400 }}>Just me and your thoughts!</p>

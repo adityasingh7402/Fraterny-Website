@@ -179,13 +179,13 @@ const handleBenefitsTransition = () => {
 
 
   return (
-    <div className={`relative h-screen overflow-hidden ${className}`}>
+    <div className={`relative h-[874px] overflow-hidden `}>
       
       {/* Screen 1 - Hero */}
       {current === 0 && (
         <motion.div
           key="screen1"
-          className=' pt-15 relative text-2xl flex flex-col h-full text-black'
+          className=''
           variants={animationVariants}
           initial="invisible"
           animate="visible"
