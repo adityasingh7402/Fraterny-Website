@@ -238,7 +238,7 @@ const Hero: React.FC<HeroProps> = ({
         style={{
           background: 'radial-gradient(ellipse 50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 51%, #48B9D8 100%)',
           left: '-70px',    // Changed from -70px to -20px (only 20px cut off)
-  top: '54.46%',
+          top: '54.46%',
           filter: 'blur(30px)',
           boxShadow: '60px 60px 60px rgba(0, 0, 0, 0.1)',
         }}
