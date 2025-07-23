@@ -112,7 +112,7 @@ const Testimonials = () => {
         </h1>
         
         {/* Navigation Arrows */}
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <button
             onClick={prevTestimonial}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
@@ -125,7 +125,7 @@ const Testimonials = () => {
           >
             <ChevronRight size={16} className="text-gray-600" />
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Testimonial Card with Animation */}
@@ -170,7 +170,7 @@ const Testimonials = () => {
       </div>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center gap-2 mt-2">
+      {/* <div className="flex justify-center gap-2 mt-2">
         {testimonials.map((_, index) => (
           <button
             key={index}
@@ -180,7 +180,7 @@ const Testimonials = () => {
             }`}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };
