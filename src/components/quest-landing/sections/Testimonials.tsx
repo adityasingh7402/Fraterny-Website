@@ -12,32 +12,32 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    text: "I did it twice just for the questions. Too hard hitting. I never thought about myself so deeply before.",
+    text: "I did it twice just for the questions. too hard hitting. I never thought about myself so deeply before this",
     tag: "Deep",
     color: "blue"
   },
   {
     id: 2,
-    text: "This test revealed patterns I never noticed. The insights were incredibly accurate and eye-opening.",
-    tag: "Accurate",
+    text: "free result was too crazy… specially the quotes section.",
+    tag: "Unreal",
     color: "purple"
   },
   {
     id: 3,
-    text: "Finally, a test that goes beyond surface-level questions. The results helped me understand my true motivations.",
-    tag: "Insightful",
+    text: "Astrology section made me question everything I was doing",
+    tag: "Introspective",
     color: "green"
   },
   {
     id: 4,
-    text: "I was skeptical at first, but the analysis was spot-on. It's like having a personal psychologist.",
-    tag: "Spot-on",
+    text: "The premium report felt like someone wrote a research report on me. I have never felt so seen",
+    tag: "Brain-map",
     color: "orange"
   },
   {
     id: 5,
-    text: "The questions made me think in ways I never had before. Truly transformative experience.",
-    tag: "Transformative",
+    text: "Made me realize what I should be actually working on.",
+    tag: "Actionable",
     color: "red"
   }
 ];
@@ -74,23 +74,38 @@ const Testimonials = () => {
         <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Medium']">Testimonials.</div>
       </div>
 
-
     <div className='relative overflow-hidden'>
-        <div className="w-full h-96 relative bg-sky-100 rounded-xl outline outline-2 outline-offset-[-2px] outline-blue-300 overflow-hidden">
-        <div className="justify-start pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">“</div>
-        <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular']">I did it twice just for the questions. Too hard hitting. I neverthought about myself so deeply before this.</div>
-        <div className='flex justify-between px-5 pt-12'>
-        <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular']">posted<br/>anonymously</div>
-        <div className="text-end text-sky-800 text-5xl font-normal font-['Gilroy-Bold']">Deep</div>
-        </div>
-        
+      <div 
+        className="flex transition-transform duration-500 ease-in-out"
+        style={{ 
+          transform: `translateX(-${currentIndex * 100}%)`,
+          width: `${testimonials.length * 100}%`
+        }}
+      >
+        {testimonials.map((testimonial) => (
+          <div key={testimonial.id} className="w-full h-96 relative bg-sky-100 rounded-xl outline outline-2 outline-offset-[-2px] outline-blue-300 overflow-hidden mb-4">
+            <div className="justify-start pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">"</div>
+            <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular']">{testimonial.text}</div>
+            <div className='flex justify-between px-5 pt-12 pb-12 xs:pb-8 sm:pb-10 md:pb-12 lg:pb-12 xl:pb-12'>
+              <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular']">posted<br/>anonymously</div>
+              <div className="text-end text-sky-800 text-5xl font-normal font-['Gilroy-Bold']">{testimonial.tag}</div>
+            </div>
+          </div>
+        ))}
+        {/* {testimonials.map((testimonial) => (
+          <div key={testimonial.id} className="w-full h-96 relative bg-sky-100 rounded-xl outline outline-2 outline-offset-[-2px] outline-blue-300 overflow-hidden flex-shrink-0">
+            <div className="justify-start pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">"</div>
+            <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular']">{testimonial.text}</div>
+            <div className='flex justify-between px-5 pt-12'>
+              <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular']">posted<br/>anonymously</div>
+              <div className="text-end text-sky-800 text-5xl font-normal font-['Gilroy-Bold']">{testimonial.tag}</div>
+            </div>
+          </div>
+        ))} */}
+      </div>
     </div>
-
 
 </div>
-
-
-    </div>
   );
 };
 
