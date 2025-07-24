@@ -304,7 +304,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         />
       </motion.div> */}
 
-      <div className='flex w-full items-center justify-center pt-4'>
+      {/* <div className='flex w-full items-center justify-center pt-4'>
           <motion.div
             layoutId='logo'
             transition={{ duration: 1.2 }}
@@ -316,6 +316,24 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               className="h-[36px] w-auto brightness-0"
             />
           </motion.div>
+      </div> */}
+      <div className='flex w-full items-center justify-center pt-4'>
+        <motion.div
+          className="z-50"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ 
+            duration: 0.8,
+            ease: "easeOut",
+            delay: 0.4  
+          }}
+        >
+          <img 
+            src={img}
+            alt="QUEST" 
+            className="h-[36px] w-auto brightness-0"
+          />
+        </motion.div>
       </div>
 
     <div className='relative flex flex-col gap-10 top-[18%] h-screen'>

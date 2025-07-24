@@ -7,6 +7,7 @@ import Change from './Change';
 import Testimonials from './Testimonials';
 import FAQ from '@/pages/FAQ';
 import FaqSection from './FaqSection';
+import img from '../../../../public/Vector.svg';
 
 interface AnalyzeSectionProps {
   animationState: string;
@@ -167,7 +168,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
       {/* Header */}
       <div className='flex justify-between fixed top-0 w-full z-50 p-2 left-0 text-white items-center'>
           <div className='flex-1 items-center justify-center'>
-          <motion.div 
+          {/* <motion.div 
               layoutId='logo'
               transition={{ duration: 1.2 }}
               className='flex text-white mx-auto flex-col gap-0 items-center justify-center w-fit'
@@ -177,7 +178,25 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
               alt="QUEST" 
               className="h-[36px] w-[89px] brightness-0 invert ml-8"
               />
-          </motion.div>
+          </motion.div> */}
+          <div className='flex w-full items-center justify-center pt-4'>
+            <motion.div
+              className="z-50"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ 
+                duration: 0.8,
+                ease: "easeOut",
+                delay: 0.4  // Start after text fades out
+              }}
+            >
+              <img 
+                src={img}
+                alt="QUEST" 
+                className="h-[36px] w-auto brightness-0 invert"
+              />
+            </motion.div>
+          </div>
           </div>
           <motion.span 
           variants={animationVariants} 
