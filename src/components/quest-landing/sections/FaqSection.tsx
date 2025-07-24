@@ -28,11 +28,11 @@ const faqs: FaqItem[] = [
   },
   {
     question: "How to maximize my benefit from this diagnosis?",
-    answer: "Follow these guidelines while answering questions:\n\n1. Give more context - More details you provide, More accurate my analysis will become.\n2. Fill your responses like you are chatting with a close friend - This will give me a better understanding of you\n3. Be honest - People tend to respond like the person they want to become, but not how they truly are. This makes it difficult for me to analyse you properly\n4. Take your time - Don't rush through questions. Try to be accurate but also try to finish it in one sitting."
+    answer: "Follow these guidelines while answering questions:\n\n1. Give more context - More details you provide, More accurate my analysis will become.\n\n2. Fill your responses like you are chatting with a close friend - This will give me a better understanding of you\n\n3. Be honest - People tend to respond like the person they want to become, but not how they truly are. This makes it difficult for me to analyse you properly\n\n4. Take your time - Don't rush through questions. Try to be accurate but also try to finish it in one sitting."
   },
   {
     question: "Is this a personality test?",
-    answer: "I am not a typical personality test. Personality tests restrict you in boxes, compare you with an average statistic, doesn't allow you to give context, give complete details or reasons behind your answers.\n\nYou're not a statistic.\n\nYou're a story.\n\nThat's why I do things differently."
+    answer: "I am not a typical personality test. Personality tests restrict you in boxes, compare you with an average statistic, doesn't allow you to give context, give complete details or reasons behind your answers.\n\nYou're not a statistic.\nYou're a story.\n\nThat's why I do things differently."
   },
   {
     question: "Is my personal information secure?",

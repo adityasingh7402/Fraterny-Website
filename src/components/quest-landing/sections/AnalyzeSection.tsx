@@ -182,7 +182,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
           <div className='flex w-full items-center justify-center pt-4'>
             <motion.div
               className="z-50"
-              initial={{ y: -20, opacity: 0 }}
+              initial={{ y: 0, opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ 
                 duration: 0.8,
@@ -230,8 +230,8 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
           </div>
           
           {/* Description */}
-          <p className='pt-8' style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            I will decode your hidden...
+          <p className='pt-2' style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
+            I will decode your hidden
           </p>
           
           {/* Pills */}
@@ -239,7 +239,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
             variants={animationVariants} 
             initial="invisible" 
             animate="visible"
-            className='flex flex-wrap gap-2'
+            className='flex flex-wrap gap-2 mt-[-5px]'
           >
             {['Motivations', 'Ambitions', 'Patterns', 'Triggers', 'Fears'].map((item, i) => (
               <div 
@@ -254,7 +254,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
           
           {/* Understanding text */}
           <p style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            So you'll finally understand:
+            So you'll finally understand
           </p>
           
           {/* Questions list */}

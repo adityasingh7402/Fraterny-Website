@@ -87,7 +87,7 @@ const Hero: React.FC<HeroProps> = ({
               <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
                 QUEST
               </div>
-              <div className='text-xl font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5'>
+              <div className='text-xl font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
                 BY FRATERNY
               </div>
               </div>
