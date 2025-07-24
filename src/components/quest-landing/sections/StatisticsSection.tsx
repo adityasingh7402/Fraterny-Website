@@ -286,7 +286,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         }}
       />
 
-      <motion.div
+      {/* <motion.div
         layoutId='logo'
         transition={{ duration: 1.2 }}
         className="absolute z-50"
@@ -302,9 +302,23 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           alt="QUEST" 
           className="w-full h-full object-contain"
         />
-      </motion.div>
+      </motion.div> */}
 
-    <div className='relative flex flex-col gap-10 top-[25%] h-screen'>
+      <div className='flex w-full items-center justify-center pt-4'>
+          <motion.div
+            layoutId='logo'
+            transition={{ duration: 1.2 }}
+            className="z-50"
+          >
+            <img 
+              src={img}
+              alt="QUEST" 
+              className="h-[36px] w-auto brightness-0"
+            />
+          </motion.div>
+      </div>
+
+    <div className='relative flex flex-col gap-10 top-[18%] h-screen'>
       <div className=''>
         <motion.div 
           variants={animationVariants} 
