@@ -161,9 +161,9 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
     //    <FaqSection />   
     // </div>
 
-    <section className='relative h-full overflow-y-scroll'>
+    <section className=''>
 
-      <div className='relative h-full overflow-y-scroll'>
+    <div className='relative h-full overflow-y-scroll'>
       {/* Header */}
       <div className='flex justify-between fixed top-0 w-full z-50 p-2 left-0 text-white items-center'>
           <div className='flex-1 items-center justify-center'>
@@ -288,12 +288,10 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
       </div>
 
       <Change />
-      <Testimonials />
-
-
-
-
-      
+      <div className='flex flex-col gap-4 mb-10 '>
+        <Testimonials />
+        <FaqSection />
+      </div>
 
     </div>
     </section>
@@ -303,54 +301,3 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
 
 export default AnalyzeSection;
 
-
-
-
-{/* <div className='flex flex-col h-auto relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
-        <div>
-          <div className='text-left'>
-            <motion.div 
-              variants={animationVariants} 
-              initial="invisible" 
-              animate="visible"
-              className="justify-start text-white text-4xl font-normal font-['Gilroy-Medium']">What I<br/>will do?</motion.div>
-            <motion.div 
-            variants={animationVariants} 
-              initial="invisible" 
-              animate="visible"
-            className='border-b-2 border-white ml-1 mt-3' ></motion.div>
-
-          </div>
-        </div>
-
-        <div>
-          <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="w-96 h-7 justify-start text-white text-xl font-normal font-['Gilroy-Regular']">I will decode your hidden...</motion.div>
-        </div>
-
-        <motion.div
-        variants={animationVariants} 
-        initial="invisible" 
-        animate="visible"
-        className='flex flex-wrap gap-2'
-        >
-        {['Motivations', 'Ambitions', 'Patterns', 'Triggers', 'Fears'].map((item, i) => (
-          <div 
-            key={i}
-            className="px-4 py-2 rounded-full border-2 border-white bg-white/10 text-white"
-            style={{ fontFamily: 'Gilroy-Bold', fontSize: '20px', fontWeight: 400 }}
-          >
-            {item}
-          </div>
-        ))}
-        </motion.div>
-
-        <div>
-
-        </div>
-
-
-      </div> */}
