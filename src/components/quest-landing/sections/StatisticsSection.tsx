@@ -380,7 +380,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
       </div>
       </div>
 
-      <div className='w-full flex justify-center'>
+      <div className='w-full flex justify-center mt-[-5px]'>
         <motion.div
           variants={animationVariants} 
           initial="invisible" 

@@ -64,7 +64,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
         <div className='flex w-full items-center justify-center pt-4'>
         <motion.div
           className="z-50"
-          initial={{ y: -20, opacity: 0 }}
+          initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ 
             duration: 0.8,
@@ -75,7 +75,7 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
           <img 
             src={img}
             alt="QUEST" 
-            className="h-[36px] w-auto brightness-0"
+            className="h-[36px] w-auto brightness-0 invert"
           />
         </motion.div>
       </div>

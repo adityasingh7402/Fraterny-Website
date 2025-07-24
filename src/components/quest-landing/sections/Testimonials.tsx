@@ -84,24 +84,16 @@ const Testimonials = () => {
       >
         {testimonials.map((testimonial) => (
           <div key={testimonial.id} className="w-full h-96 relative bg-sky-100 rounded-xl outline outline-2 outline-offset-[-2px] outline-blue-300 overflow-hidden mb-4">
-            <div className="justify-start pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">"</div>
-            <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular']">{testimonial.text}</div>
+            <div className='flex flex-col'>
+            <p className="pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">"</p>
+            <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular'] absolute top-[15%]">{testimonial.text}</div>
+            </div>
             <div className='flex justify-between px-5 pt-12 pb-12 xs:pb-8 sm:pb-10 md:pb-12 lg:pb-12 xl:pb-12'>
-              <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular']">posted<br/>anonymously</div>
-              <div className="text-end text-sky-800 text-5xl font-normal font-['Gilroy-Bold']">{testimonial.tag}</div>
+              <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular'] absolute bottom-10">posted<br/>anonymously</div>
+              <div className="text-end text-sky-800 text-5xl font-bold font-['Gilroy-Bold'] tracking-[-5px] absolute bottom-10 right-5">{testimonial.tag}</div>
             </div>
           </div>
         ))}
-        {/* {testimonials.map((testimonial) => (
-          <div key={testimonial.id} className="w-full h-96 relative bg-sky-100 rounded-xl outline outline-2 outline-offset-[-2px] outline-blue-300 overflow-hidden flex-shrink-0">
-            <div className="justify-start pl-5 pt-2 text-sky-800 text-7xl font-normal font-['Gilroy-MediumItalic']">"</div>
-            <div className="justify-center text-left pl-5 text-neutral-950 text-3xl font-normal font-['Gilroy-Regular']">{testimonial.text}</div>
-            <div className='flex justify-between px-5 pt-12'>
-              <div className="text-start text-neutral-500 text-base font-normal font-['Gilroy-Regular']">posted<br/>anonymously</div>
-              <div className="text-end text-sky-800 text-5xl font-normal font-['Gilroy-Bold']">{testimonial.tag}</div>
-            </div>
-          </div>
-        ))} */}
       </div>
     </div>
 
