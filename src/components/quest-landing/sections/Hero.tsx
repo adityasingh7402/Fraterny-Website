@@ -394,7 +394,7 @@ const Hero: React.FC<HeroProps> = ({
 
     // </section>
 
-    <section className='w-screen border-2-red-500 h-screen overflow-hidden relative'>
+    <section className='w-screen border-2-red-500 h-full relative'>
 
       <motion.div 
         layoutId='bg'
@@ -409,6 +409,8 @@ const Hero: React.FC<HeroProps> = ({
         }} 
         />
 
+
+
       <div className='h-screen w-screen min-h-screen flex flex-col gap-20 relative top-[8%] pl-5'>
 
         <div className=' flex flex-col'>
@@ -421,23 +423,31 @@ const Hero: React.FC<HeroProps> = ({
             hi there,
           </motion.div>
 
-          <div className='flex gap-2'>
+          <div className='flex gap-2 border-red-500 border-2'>
             <motion.div 
             variants={animationVariants} 
             initial="invisible" 
             animate="visible"
             className=""
             >
-              <span className='justify-start text-neutral-500 text-7xl font-normal font-["Gilroy-Bold"]'>
+              <div className='border-b-2 border-neutral-500 justify-start text-neutral-500 text-7xl font-normal font-["Gilroy-Bold"]'>
                 I'm
-              </span>
+              </div>
             </motion.div>
             <motion.div
               layoutId='logo'
               transition={{ duration: 1.2 }}
               className="flex items-center"
             >
-              <img src={img} alt="Logo" className="h-4/5 mt-3" />
+              {/* <img src={img} alt="Logo" className="mt-3" /> */}
+              <div>
+              <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem] border-b-2 border-neutral-500'>
+                QUEST
+              </div>
+              <div className='text-xl font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5'>
+                BY FRATERNY
+              </div>
+              </div>
             </motion.div>
           </div>
 
