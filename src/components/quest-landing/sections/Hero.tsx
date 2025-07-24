@@ -227,9 +227,174 @@ const Hero: React.FC<HeroProps> = ({
   };
 
   return (
-    <section 
-      className={`w-full min-h-screen relative bg-white z-50`}
-    >
+    // <section 
+    //   className={`w-full min-h-screen relative bg-white z-50`}
+    // >
+
+    //   <motion.div 
+    //     layoutId='bg'
+    //     transition={{ duration: 1.2 }}
+    //     className='absolute z-0 w-[554px] h-[554px] rounded-full'
+    //     style={{
+    //       background: 'radial-gradient(ellipse 50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 51%, #48B9D8 100%)',
+    //       left: '-70px',    // Changed from -70px to -20px (only 20px cut off)
+    //       top: '54.46%',
+    //       filter: 'blur(30px)',
+    //       boxShadow: '60px 60px 60px rgba(0, 0, 0, 0.1)',
+    //     }}
+    //   />
+
+    //   <div className="absolute bottom-6 right-6 z-30">
+    //     <motion.button
+    //         onClick={onScreenTransition}
+    //         variants={animationVariants}
+    //         initial="invisible"
+    //         animate="visible"
+    //         whileHover={{ scale: 1.1 }}
+    //         whileTap={{ scale: 0.9 }}
+    //         className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:text-white/80 transition-colors"
+    //     >
+    //         <ChevronDown size={16} />
+    //     </motion.button>
+    //   </div>
+
+   
+      
+    //     <motion.div 
+    //       variants={animationVariants} 
+    //       initial="invisible" 
+    //       animate="visible"
+    //       className="absolute"
+    //       style={{ left: '21px', top: '13.39%' }}
+    //     >
+    //       <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: '400', wordWrap: 'break-word' }}>
+    //         hi there,
+    //       </div>
+    //     </motion.div>
+
+
+    //     {/* "I'm" text - absolute positioning */}
+        // <motion.div 
+        //   variants={animationVariants} 
+        //   initial="invisible" 
+        //   animate="visible"
+        //   className="absolute"
+        //   style={{ 
+        //     left: '5.21%',    // 20px / 384px = 5.21%
+        //     top: '19.68%'     // 172px / 874px = 19.68%
+        //   }}
+        // >
+        //   <span style={{ 
+            
+        //     color: '#7C7C7C', 
+        //     fontSize: '72px', 
+        //     fontFamily: 'Gilroy-Bold', 
+        //     fontWeight: 400, 
+        //     wordWrap: 'break-word' 
+        //   }}>
+        //     I'm
+        //   </span>
+        // </motion.div>
+
+        // {/* QUEST Logo - absolute positioning */}
+        // <motion.div
+        //   layoutId='logo'
+        //   transition={{ duration: 1.2 }}
+        //   className="absolute"
+        //   style={{ 
+        //     width: '176px',   // w-44 = 176px
+        //     height: '115px',   // h-20 = 80px
+        //     left: '33.59%',   // 129px / 384px = 33.59%
+        //     top: '23.5%',    // 186px / 874px = 21.28% 
+        //   }}
+        // >
+        //   <img 
+        //     src={img} 
+        //     alt="QUEST" 
+        //     className="w-[190px] h-[85px] object-contain"
+        //   />
+        // </motion.div>
+
+    //     <motion.div 
+    //       variants={animationVariants} 
+    //       initial="invisible" 
+    //       animate="visible"
+    //       className="absolute"
+    //       style={{ left: '22px', top: '323px' }}
+    //     >
+    //       <span style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
+    //         i can
+    //       </span>
+    //     </motion.div>
+
+
+    //     <motion.div 
+    //       variants={animationVariants} 
+    //       initial="invisible" 
+    //       animate="visible"
+    //       className="absolute"
+    //       style={{ left: '21px', top: '364px' }}
+    //     >
+    //       <div style={{ color: '#0A0A0A', fontSize: '40px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word' }}>
+    //         Hack Your Brain
+    //       </div>
+    //     </motion.div>
+
+        // <motion.div 
+        //   variants={animationVariants} 
+        //   initial="invisible" 
+        //   animate="visible"
+        //   className="absolute"
+        //   style={{ left: '22px', top: '414px' }}
+        // >
+        //   <div style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
+        //     in 15 minutes.
+        //   </div>
+        // </motion.div>
+
+
+    //     <motion.div 
+    //       variants={animationVariants} 
+    //       initial="invisible" 
+    //       animate="visible"
+    //       className="absolute"
+    //       style={{ 
+    //         width: '160px', 
+    //         height: '60px', 
+    //         left: '25px', 
+    //         top: '576px', 
+    //         mixBlendMode: 'luminosity', 
+    //         background: 'linear-gradient(133deg, rgba(254, 254, 254, 0.15) 0%, rgba(254, 254, 254, 0.15) 100%)', 
+    //         borderRadius: '30px', 
+    //         border: '2px #FEFEFE solid' 
+    //       }}
+    //     >
+    //       <motion.button
+    //         onClick={handleAnalyzeClick}
+    //         whileHover={{ scale: 1.02 }}
+    //         whileTap={{ scale: 0.98 }}
+    //         style={{ 
+    //           width: '100%', 
+    //           height: '100%', 
+    //           background: 'transparent', 
+    //           border: 'none', 
+    //           cursor: 'pointer',
+    //           display: 'flex',
+    //           alignItems: 'center',
+    //           justifyContent: 'center'
+    //         }}
+    //       >
+    //         <div className="tracking-tighter" style={{ left: '50px', top: '591px', color: '#FEFEFE', fontSize: '24px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word', }}>
+    //           <span style={{ letterSpacing: '-1.92%' }}>
+    //             Analyse Me
+    //           </span>
+    //         </div>
+    //       </motion.button>
+    //     </motion.div>
+
+    // </section>
+
+    <section className='w-screen border-2-red-500 h-screen overflow-hidden relative'>
 
       <motion.div 
         layoutId='bg'
@@ -237,160 +402,87 @@ const Hero: React.FC<HeroProps> = ({
         className='absolute z-0 w-[554px] h-[554px] rounded-full'
         style={{
           background: 'radial-gradient(ellipse 50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 51%, #48B9D8 100%)',
-          left: '-70px',    // Changed from -70px to -20px (only 20px cut off)
-          top: '54.46%',
+          left: '-70px',
+          top: '47%',
           filter: 'blur(30px)',
           boxShadow: '60px 60px 60px rgba(0, 0, 0, 0.1)',
-        }}
-      />
+        }} 
+        />
 
-      <div className="absolute bottom-6 right-6 z-30">
-        <motion.button
-            onClick={onScreenTransition}
+      <div className='h-screen w-screen min-h-screen flex flex-col gap-20 relative top-[8%] pl-5'>
+
+        <div className=' flex flex-col'>
+          <motion.div 
+            variants={animationVariants} 
+            initial="invisible" 
+            animate="visible"
+            className='justify-start text-neutral-950 text-5xl font-normal font-["Gilroy-Regular"]'
+          >
+            hi there,
+          </motion.div>
+
+          <div className='flex gap-2'>
+            <motion.div 
+            variants={animationVariants} 
+            initial="invisible" 
+            animate="visible"
+            className=""
+            >
+              <span className='justify-start text-neutral-500 text-7xl font-normal font-["Gilroy-Bold"]'>
+                I'm
+              </span>
+            </motion.div>
+            <motion.div
+              layoutId='logo'
+              transition={{ duration: 1.2 }}
+              className="flex items-center"
+            >
+              <img src={img} alt="Logo" className="h-4/5 mt-3" />
+            </motion.div>
+          </div>
+
+        </div>
+
+        <div className=' flex flex-col gap-0'>
+          <motion.div 
+            variants={animationVariants} 
+            initial="invisible" 
+            animate="visible"
+            className='justify-start text-neutral-950 text-4xl font-normal font-["Gilroy-Regular"]'
+          >
+            i can
+          </motion.div>
+          <motion.div
             variants={animationVariants}
             initial="invisible"
             animate="visible"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:text-white/80 transition-colors"
-        >
-            <ChevronDown size={16} />
-        </motion.button>
-      </div>
+            className=''
+          >
+            <span className='justify-start text-neutral-950 text-4xl font-normal font-["Gilroy-Bold"]'>
+              Hack Your Brain
+            </span>
+          </motion.div>
 
-   
-      
-        <motion.div 
+          <motion.div 
           variants={animationVariants} 
           initial="invisible" 
           animate="visible"
-          className="absolute"
-          style={{ left: '21px', top: '13.39%' }}
         >
-          <div style={{ color: '#0A0A0A', fontSize: '48px', fontFamily: 'Gilroy-Regular', fontWeight: '400', wordWrap: 'break-word' }}>
-            hi there,
-          </div>
-        </motion.div>
-
-
-        {/* "I'm" text - absolute positioning */}
-        <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="absolute"
-          style={{ 
-            left: '5.21%',    // 20px / 384px = 5.21%
-            top: '19.68%'     // 172px / 874px = 19.68%
-          }}
-        >
-          <span style={{ 
-            
-            color: '#7C7C7C', 
-            fontSize: '72px', 
-            fontFamily: 'Gilroy-Bold', 
-            fontWeight: 400, 
-            wordWrap: 'break-word' 
-          }}>
-            I'm
-          </span>
-        </motion.div>
-
-        {/* QUEST Logo - absolute positioning */}
-        <motion.div
-          layoutId='logo'
-          transition={{ duration: 1.2 }}
-          className="absolute"
-          style={{ 
-            width: '176px',   // w-44 = 176px
-            height: '115px',   // h-20 = 80px
-            left: '33.59%',   // 129px / 384px = 33.59%
-            top: '23.5%',    // 186px / 874px = 21.28% 
-          }}
-        >
-          <img 
-            src={img} 
-            alt="QUEST" 
-            className="w-[190px] h-[85px] object-contain"
-          />
-        </motion.div>
-
-        <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="absolute"
-          style={{ left: '22px', top: '323px' }}
-        >
-          <span style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
-            i can
-          </span>
-        </motion.div>
-
-
-        <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="absolute"
-          style={{ left: '21px', top: '364px' }}
-        >
-          <div style={{ color: '#0A0A0A', fontSize: '40px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word' }}>
-            Hack Your Brain
-          </div>
-        </motion.div>
-
-        <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="absolute"
-          style={{ left: '22px', top: '414px' }}
-        >
-          <div style={{ color: '#0A0A0A', fontSize: '36px', fontFamily: 'Gilroy-Regular', fontWeight: 400, wordWrap: 'break-word' }}>
+          <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
             in 15 minutes.
           </div>
         </motion.div>
 
+        </div>
 
-        <motion.div 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          className="absolute"
-          style={{ 
-            width: '160px', 
-            height: '60px', 
-            left: '25px', 
-            top: '576px', 
-            mixBlendMode: 'luminosity', 
-            background: 'linear-gradient(133deg, rgba(254, 254, 254, 0.15) 0%, rgba(254, 254, 254, 0.15) 100%)', 
-            borderRadius: '30px', 
-            border: '2px #FEFEFE solid' 
-          }}
-        >
-          <motion.button
-            onClick={handleAnalyzeClick}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              background: 'transparent', 
-              border: 'none', 
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <div className="tracking-tighter" style={{ left: '50px', top: '591px', color: '#FEFEFE', fontSize: '24px', fontFamily: 'Gilroy-Bold', fontWeight: '400', wordWrap: 'break-word', }}>
-              <span style={{ letterSpacing: '-1.92%' }}>
-                Analyse Me
-              </span>
-            </div>
-          </motion.button>
-        </motion.div>
+        <div className=''>
+          <div className="w-40 h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center" >
+              <div className="justify-center text-white text-2xl font-['Gilroy-Bold']">Analyse Me</div>
+
+          </div>
+
+        </div>
+      </div>
 
     </section>
    
