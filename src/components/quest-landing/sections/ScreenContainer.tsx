@@ -31,15 +31,15 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const analyzeScrollRef = useRef<HTMLDivElement>(null);
 
-  //  const getScreenBackground = (screenIndex: number): string => {
-  //   switch (screenIndex) {
-  //     case 0: return 'quest-background-hero';      // White with potential gradient
-  //     case 1: return 'quest-background-statistics'; // Blue radial gradient
-  //     case 2: return 'quest-background-benefits';   // Different blue gradient
-  //     case 3: return 'quest-background-analyze';    // Solid dark blue
-  //     default: return 'quest-background-hero';
-  //   }
-  // };
+   const getScreenBackground = (screenIndex: number): string => {
+    switch (screenIndex) {
+      // case 0: return 'quest-background-hero';      // White with potential gradient
+      // case 1: return 'quest-background-statistics'; // Blue radial gradient
+      // case 2: return 'quest-background-benefits';   // Different blue gradient
+      case 3: return 'quest-background-analyze';    // Solid dark blue
+      default: return 'quest-background-hero';
+    }
+  };
 
 
 
@@ -55,8 +55,93 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     let touchStartY = 0;
     let touchEndY = 0;
 
+//     const handleWheel = (event: WheelEvent) => {
+//   // console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
+  
+//   // For AnalyzeSection (screen 3), handle scroll differently
+//   if (current === 3) {
+//     const scrollContainer = analyzeScrollRef.current;
+//     if (scrollContainer) {
+//       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+//       const isAtTop = scrollTop <= 5;
+//       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
+//       const hasScrollableContent = scrollHeight > clientHeight; // Check if there's actually content to scroll
+      
+//       // console.log('📊 Screen 4 scroll info:', {
+//       //   scrollTop,
+//       //   scrollHeight,
+//       //   clientHeight,
+//       //   isAtTop,
+//       //   isAtBottom,
+//       //   hasScrollableContent,
+//       //   deltaY: event.deltaY,
+//       //   isTransitioning
+//       // });
+      
+//       // If there's no scrollable content, require stronger scroll to change screens
+//       const scrollThreshold = hasScrollableContent ? 50 : 100;
+//       // console.log('🔍 Scroll check:', { 
+//       //   deltaY: event.deltaY, 
+//       //   threshold: -scrollThreshold, 
+//       //   isAtTop, 
+//       //   willTrigger: event.deltaY < -scrollThreshold && isAtTop 
+//       // });
+
+      
+//       // Only allow screen transition when at very top and strong upward scroll
+//       if (event.deltaY < -scrollThreshold && isAtTop && current > 0) {
+//         // console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
+//         event.preventDefault();
+//         if (!isTransitioning) {
+//           setIsTransitioning(true);
+//           setCurrent(current - 1);
+//         }
+//       } else if (event.deltaY > 0 && isAtBottom && current < 3) {
+//         // console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
+//         event.preventDefault();
+//         if (!isTransitioning) {
+//           setIsTransitioning(true);
+//           setCurrent(current + 1);
+//         }
+//       } else {
+//         // console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
+//         // Allow natural scrolling (even if there's no content to scroll)
+//       }
+//     } else {
+//       console.log('❌ No scroll container found');
+//     }
+//     return;
+//   }
+//   // For other screens, prevent default and handle screen transitions
+//   event.preventDefault();
+  
+//   if (isTransitioning) {
+//     // console.log('⏳ Already transitioning, ignoring');
+//     return;
+//   }
+
+//   const scrollDown = event.deltaY > 0;
+//   const scrollUp = event.deltaY < 0;
+//   const scrollThreshold = 50;
+  
+//   if (Math.abs(event.deltaY) < scrollThreshold) {
+//     // console.log('🔻 Below threshold, ignoring');
+//     return;
+//   }
+
+//   if (scrollDown && current < 3) {
+//     // console.log('⬇️ Going to next screen from', current);
+//     setIsTransitioning(true);
+//     setCurrent(current + 1);
+//   } else if (scrollUp && current > 0) {
+//     // console.log('⬆️ Going to previous screen from', current);
+//     setIsTransitioning(true);
+//     setCurrent(current - 1);
+//   }
+// };
+
     const handleWheel = (event: WheelEvent) => {
-  // console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
+  console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
   
   // For AnalyzeSection (screen 3), handle scroll differently
   if (current === 3) {
@@ -65,58 +150,73 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const isAtTop = scrollTop <= 5;
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-      const hasScrollableContent = scrollHeight > clientHeight; // Check if there's actually content to scroll
+      const hasScrollableContent = scrollHeight > clientHeight;
       
-      // console.log('📊 Screen 4 scroll info:', {
-      //   scrollTop,
-      //   scrollHeight,
-      //   clientHeight,
-      //   isAtTop,
-      //   isAtBottom,
-      //   hasScrollableContent,
-      //   deltaY: event.deltaY,
-      //   isTransitioning
-      // });
+      console.log('📊 Screen 4 scroll info:', {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        isAtTop,
+        isAtBottom,
+        hasScrollableContent,
+        deltaY: event.deltaY,
+        isTransitioning
+      });
       
-      // If there's no scrollable content, require stronger scroll to change screens
       const scrollThreshold = hasScrollableContent ? 50 : 100;
-      // console.log('🔍 Scroll check:', { 
-      //   deltaY: event.deltaY, 
-      //   threshold: -scrollThreshold, 
-      //   isAtTop, 
-      //   willTrigger: event.deltaY < -scrollThreshold && isAtTop 
-      // });
-
       
-      // Only allow screen transition when at very top and strong upward scroll
-      if (event.deltaY < -scrollThreshold && isAtTop && current > 0) {
-        // console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
-        event.preventDefault();
-        if (!isTransitioning) {
-          setIsTransitioning(true);
-          setCurrent(current - 1);
-        }
-      } else if (event.deltaY > 0 && isAtBottom && current < 3) {
-        // console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
+      // Only allow forward navigation from screen 3 (no backward)
+      if (event.deltaY > 0 && isAtBottom && current < 3) {
+        console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
         event.preventDefault();
         if (!isTransitioning) {
           setIsTransitioning(true);
           setCurrent(current + 1);
         }
       } else {
-        // console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
-        // Allow natural scrolling (even if there's no content to scroll)
+        console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
+        // Allow natural scrolling (no backward navigation)
       }
-    } else {
-      console.log('❌ No scroll container found');
     }
     return;
   }
-  // For other screens, prevent default and handle screen transitions
+  
+  // *** NEW LOGIC: Prevent backward scroll from Screen 3 (Benefits) ***
+  if (current === 2) { // Screen 3 (Benefits)
+    console.log('🚫 Screen 3 (Benefits) - Preventing backward scroll');
+    event.preventDefault();
+    
+    if (isTransitioning) {
+      console.log('⏳ Already transitioning, ignoring');
+      return;
+    }
+
+    const scrollDown = event.deltaY > 0;
+    const scrollThreshold = 50;
+    
+    if (Math.abs(event.deltaY) < scrollThreshold) {
+      console.log('🔻 Below threshold, ignoring');
+      return;
+    }
+
+    // Only allow forward navigation from screen 3
+    if (scrollDown && current < 3) {
+      console.log('⬇️ Going to next screen from Benefits (Screen 3)');
+      setIsTransitioning(true);
+      setCurrent(current + 1);
+    } else if (event.deltaY < 0) {
+      console.log('⬆️ Backward scroll blocked from Screen 3 - Use logo to go home');
+      // Optional: Add a visual feedback here (like a bounce animation or toast)
+    }
+    return;
+  }
+  
+  console.log('🔄 Handling other screens (0, 1)');
+  // For screens 0 and 1, allow normal navigation
   event.preventDefault();
   
   if (isTransitioning) {
-    // console.log('⏳ Already transitioning, ignoring');
+    console.log('⏳ Already transitioning, ignoring');
     return;
   }
 
@@ -125,24 +225,20 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const scrollThreshold = 50;
   
   if (Math.abs(event.deltaY) < scrollThreshold) {
-    // console.log('🔻 Below threshold, ignoring');
+    console.log('🔻 Below threshold, ignoring');
     return;
   }
 
   if (scrollDown && current < 3) {
-    // console.log('⬇️ Going to next screen from', current);
+    console.log('⬇️ Going to next screen from', current);
     setIsTransitioning(true);
     setCurrent(current + 1);
   } else if (scrollUp && current > 0) {
-    // console.log('⬆️ Going to previous screen from', current);
+    console.log('⬆️ Going to previous screen from', current);
     setIsTransitioning(true);
     setCurrent(current - 1);
   }
 };
-
-    const handleTouchStart = (event: TouchEvent) => {
-      touchStartY = event.changedTouches[0].screenY;
-    };
 
     const handleTouchEnd = (event: TouchEvent) => {
       if (isTransitioning) return;
@@ -161,20 +257,34 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
           const isAtTop = scrollTop === 0;
           const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
           
-          if (touchDiff < 0 && isAtTop && current > 0) {
-            // Swipe down and at top - go to previous screen
-            setIsTransitioning(true);
-            setCurrent(current - 1);
-          } else if (touchDiff > 0 && isAtBottom && current < 3) {
+          // No backward navigation from screen 3 via touch
+          if (touchDiff > 0 && isAtBottom && current < 3) {
             // Swipe up and at bottom - go to next screen
             setIsTransitioning(true);
             setCurrent(current + 1);
           }
+          // Remove the backward navigation logic for screen 3
         }
         return;
       }
 
-      // For other screens
+      // *** NEW LOGIC: Prevent backward swipe from Screen 3 (Benefits) ***
+      if (current === 2) { // Screen 3 (Benefits)
+        console.log('🚫 Screen 3 (Benefits) - Touch navigation');
+        
+        // Only allow forward swipe from screen 3
+        if (touchDiff > 0 && current < 3) {
+          console.log('⬇️ Forward swipe from Benefits to Analyze');
+          setIsTransitioning(true);
+          setCurrent(current + 1);
+        } else if (touchDiff < 0) {
+          console.log('⬆️ Backward swipe blocked from Screen 3 - Use logo to go home');
+          // Optional: Add haptic feedback or visual indication
+        }
+        return;
+      }
+
+      // For screens 0 and 1, allow normal touch navigation
       if (touchDiff > 0 && current < 3) {
         setIsTransitioning(true);
         setCurrent(current + 1);
@@ -183,6 +293,50 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
         setCurrent(current - 1);
       }
     };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      touchStartY = event.changedTouches[0].screenY;
+    };
+
+    // const handleTouchEnd = (event: TouchEvent) => {
+    //   if (isTransitioning) return;
+      
+    //   touchEndY = event.changedTouches[0].screenY;
+    //   const touchDiff = touchStartY - touchEndY;
+    //   const minSwipeDistance = 50;
+
+    //   if (Math.abs(touchDiff) < minSwipeDistance) return;
+
+    //   // For AnalyzeSection (screen 3), handle touch differently
+    //   if (current === 3) {
+    //     const scrollContainer = analyzeScrollRef.current;
+    //     if (scrollContainer) {
+    //       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+    //       const isAtTop = scrollTop === 0;
+    //       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
+          
+    //       if (touchDiff < 0 && isAtTop && current > 0) {
+    //         // Swipe down and at top - go to previous screen
+    //         setIsTransitioning(true);
+    //         setCurrent(current - 1);
+    //       } else if (touchDiff > 0 && isAtBottom && current < 3) {
+    //         // Swipe up and at bottom - go to next screen
+    //         setIsTransitioning(true);
+    //         setCurrent(current + 1);
+    //       }
+    //     }
+    //     return;
+    //   }
+
+    //   // For other screens
+    //   if (touchDiff > 0 && current < 3) {
+    //     setIsTransitioning(true);
+    //     setCurrent(current + 1);
+    //   } else if (touchDiff < 0 && current > 0) {
+    //     setIsTransitioning(true);
+    //     setCurrent(current - 1);
+    //   }
+    // };
 
     const container = containerRef.current;
     if (container) {
@@ -225,7 +379,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   // Get dynamic container classes based on current screen
   const getContainerClasses = () => {
     const baseClasses = 'relative quest-full-height overflow-hidden';
-    // const backgroundClass = getScreenBackground(current);
+    const backgroundClass = getScreenBackground(current);
     return `${baseClasses}`;
   };
 
@@ -246,7 +400,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={getContainerClasses()}
+      className={`${getContainerClasses()}`}
       style={getContainerStyles()}
     >
       
@@ -254,7 +408,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       {current === 0 && (
         <motion.div
           key="screen1"
-          className='h-screen'
+          className='h-screen quest-background-hero'
           variants={animationVariants}
           initial="invisible"
           animate="visible"
@@ -309,7 +463,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       {current === 3 && (
         <motion.div
           key="screen4"
-          className='h-screen overflow-hidden relative'
+          className='h-screen overflow-hidden relative '
           variants={animationVariants}
           initial="invisible"
           animate="visible"
@@ -342,8 +496,8 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
                 setCurrent(index);
               }
             }}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              current === index ? 'bg-blue-600' : 'bg-gray-300'
+            className={`w-2 h-2 rounded-full transition-colors ${
+              current === index ? 'bg-blue-600' : 'bg-gray-200'
             }`}
           />
         ))}
