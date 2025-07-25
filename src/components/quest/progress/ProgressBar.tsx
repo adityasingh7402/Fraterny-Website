@@ -1,105 +1,3 @@
-// import React from 'react';
-// import { motion } from 'framer-motion';
-// import { useProgressAnimation } from '../animations/useProgressAnimation';
-
-// interface ProgressBarProps {
-//   currentValue: number;
-//   totalValue: number;
-//   showLabel?: boolean;
-//   showMilestones?: boolean;
-//   milestones?: number[];
-//   animated?: boolean;
-//   className?: string;
-// }
-
-// /**
-//  * Progress bar component for tracking quest completion
-//  * Features animated progress and milestone indicators
-//  */
-// export function ProgressBar({
-//   currentValue,
-//   totalValue,
-//   showLabel = true,
-//   showMilestones = true,
-//   milestones = [25, 50, 75, 100],
-//   animated = true,
-//   className = ''
-// }: ProgressBarProps) {
-//   // Calculate progress percentage
-//   const progressPercentage = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
-  
-//   // Use progress animation hook
-//   const { 
-//     progressControls, 
-//     celebrationControls,
-//     isAtMilestone,
-//     currentMilestone
-//   } = useProgressAnimation(currentValue, totalValue, {
-//     animated,
-//     celebrateAtMilestones: true,
-//     milestones
-//   });
-  
-//   // Determine progress bar color based on percentage
-//   const getProgressColor = (): string => {
-//     if (progressPercentage < 33) return 'bg-terracotta';
-//     if (progressPercentage < 66) return 'bg-navy';
-//     return 'bg-gold';
-//   };
-  
-//   const progressColor = getProgressColor();
-  
-//   return (
-//     <div className={`progress-bar w-full ${className}`}>
-//       {/* Labels */}
-//       {showLabel && (
-//         <div className="flex justify-between mb-2 text-sm">
-//           {/* <span className="text-navy font-medium">
-//             Question {currentValue + 1} of {totalValue}
-//           </span> */}
-//           <span className="text-gray-500">
-//             {Math.round(progressPercentage)}% complete
-//           </span>
-//         </div>
-//       )}
-      
-//       {/* Progress bar */}
-//       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-//         <motion.div
-//           className={`h-full rounded-full ${progressColor}`}
-//           animate={progressControls}
-//           initial={{ width: '0%' }}
-//         />
-//       </div>
-      
-//       {/* Milestone indicators */}
-//       {showMilestones && (
-//         <div className="relative h-0">
-//           {milestones.map((milestone) => {
-//             const isActive = progressPercentage >= milestone;
-//             const isCurrent = Math.round(progressPercentage) === milestone;
-            
-//             return (
-//               <motion.div
-//                 key={milestone}
-//                 className={`absolute top-[-8px] h-4 w-4 rounded-full border-2 border-white ${
-//                   isActive ? progressColor : 'bg-gray-200'
-//                 }`}
-//                 style={{ left: `${milestone}%`, marginLeft: '-6px' }}
-//                 animate={isCurrent ? celebrationControls : undefined}
-//               />
-//             );
-//           })}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default ProgressBar;
-
-
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useProgressAnimation } from '../animations/useProgressAnimation';
@@ -162,7 +60,7 @@ export function ProgressBar({
     
     // Create one milestone for each question
     return Array.from({ length: questionsInSection }, (_, index) => 
-      ((index + 1) / questionsInSection) * 100
+      (index / (questionsInSection - 1)) * 100  // This gives 0%, 25%, 50%, 75%, 100%
     );
   };
   
@@ -188,48 +86,52 @@ export function ProgressBar({
   const progressColor = getProgressColor();
   
   return (
-    <div className={`progress-bar w-full ${className}`}>
-      {/* Labels */}
-      {showLabel && (
-        <div className="flex justify-between mb-2 text-sm">
-          <span className="text-navy font-medium">
-            Question {questionIndexInSection + 1} of {questionsInSection}
-          </span>
-          <span className="text-gray-500">
-            {Math.round(sectionProgressPercentage)}% complete
-          </span>
+    <div className='flex flex-col items-center gap-2'>
+      <div className={`w-full ${className}`}>  
+        {/* Progress bar */}
+        <div className="w-full h-0 outline outline-4 outline-offset-[-2px] outline-zinc-400">
+          <motion.div
+            className={`${progressColor}`}
+            animate={progressControls}
+            initial={{ width: '0%' }}
+            style={{ width: `${sectionProgressPercentage}%` }}
+          />
         </div>
-      )}
-      
-      {/* Progress bar */}
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${progressColor}`}
-          animate={progressControls}
-          initial={{ width: '0%' }}
-          style={{ width: `${sectionProgressPercentage}%` }}
-        />
+        
+        {/* Milestone indicators */}
+        {showMilestones && (
+          <div className="relative h-0 p-2">
+            {milestones.map((milestone, index) => {
+              const isActive = getCompletedResponsesInSection() > index;
+              
+              return (
+                <motion.div
+                  key={index}
+                  className={`w-9 h-9 bg-zinc-300 rounded-full absolute top-[-20px] left-[-5px] ${
+                    isActive ? progressColor : 'bg-gray-200'
+                  }`}
+                  style={{ left: `${milestone}%`, marginLeft: '-20px' }}
+                  animate={index === questionIndexInSection ? celebrationControls : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
-      
-      {/* Milestone indicators */}
-      {showMilestones && (
-        <div className="relative h-0">
-          {milestones.map((milestone, index) => {
-            const isActive = getCompletedResponsesInSection() > index;
-            
-            return (
-              <motion.div
-                key={index}
-                className={`absolute top-[-8px] h-4 w-4 rounded-full border-2 border-white ${
-                  isActive ? progressColor : 'bg-gray-200'
-                }`}
-                style={{ left: `${milestone}%`, marginLeft: '-6px' }}
-                animate={index === questionIndexInSection ? celebrationControls : undefined}
-              />
-            );
-          })}
+
+
+      <div className=" w-full pt-5">
+      {showLabel && (
+        <div className=" mb-2 text-sm flex justify-between">
+          <div className="w-28 h-10 bg-white rounded-[50px] border-[1.50px] border-neutral-400 items-center flex justify-center">
+            <div className="text-center justify-start text-sky-800 text-xl font-normal font-['Gilroy-Bold']">Self</div>
+          </div>
+          <div className="text-neutral-500 text-xl font=normal font-['Gilroy-Regular']">
+            {questionIndexInSection + 1} / {questionsInSection}
+          </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

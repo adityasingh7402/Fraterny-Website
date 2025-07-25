@@ -28,10 +28,11 @@ export function QuestLayout({
   const { currentSection, session, isLoading, error } = useQuest();
   
   return (
-    <div className={`quest-layout relative min-h-screen w-full flex flex-col ${className}`}>
+    <div className=''>
+    <div className={`relative min-h-screen w-full flex flex-col ${className}`}>
 
       {/* Background effects */}
-      {showBackground && <CalmingBackground />}
+      {/* {showBackground && <CalmingBackground />} */}
       
       {/* Header with title and progress */}
       {showHeader && (
@@ -42,7 +43,7 @@ export function QuestLayout({
       )}
       
       {/* Main content area */}
-      <main className="flex items-center justify-center p-4 md:p-6">
+      <main className="pb-10">
         <QuestContainer>
           {/* Loading state */}
           {isLoading && (
@@ -76,6 +77,14 @@ export function QuestLayout({
           
           {/* Main content */}
           {!isLoading && !error && children}
+          {showNavigation && session && session.status === 'in_progress' && (
+            <QuestNavigation 
+              showPrevious={true}
+              showNext={true}
+              showSkip={false}
+              showFinish={true}
+            />
+          )}
         </QuestContainer>
       </main>
       
@@ -83,6 +92,7 @@ export function QuestLayout({
       {/* {showNavigation && session && (
         <QuestNavigation />
       )} */}
+    </div>
     </div>
   );
 }

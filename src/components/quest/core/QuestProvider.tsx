@@ -26,6 +26,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  // ✨ NEW STATE - Add these lines after existing useState declarations
+  const [allowSkip, setAllowSkip] = useState(true);
+  const [visitedQuestions, setVisitedQuestions] = useState<string[]>([]);
   
   // Derived state
   const currentQuestionIndex = session?.currentQuestionIndex || 0;
@@ -48,6 +51,39 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const generateSessionId = () => `session_${Date.now()}`;
   
   // Start a new quest session
+  // const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
+      
+  //     // Set section if provided
+  //     if (sectionId) {
+  //       setCurrentSectionId(sectionId);
+  //       setSectionQuestions(getQuestionsBySection(sectionId));
+  //     }
+      
+  //     // Create a new session (will be replaced with API call)
+  //     const newSession: QuestSession = {
+  //       id: generateSessionId(),
+  //       userId: 'current-user', // Will be replaced with actual user ID
+  //       startedAt: new Date().toISOString(),
+  //       status: 'in_progress',
+  //       currentQuestionIndex: 0,
+  //       responses: {},
+  //       sectionId: sectionId || currentSectionId
+  //     };
+      
+  //     setSession(newSession);
+  //     return newSession;
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err : new Error(String(err)));
+  //     return null;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // ✨ UPDATED - Replace the existing startQuest function with this
   const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
     try {
       setIsLoading(true);
@@ -67,10 +103,15 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
         status: 'in_progress',
         currentQuestionIndex: 0,
         responses: {},
-        sectionId: sectionId || currentSectionId
+        sectionId: sectionId || currentSectionId,
+        // NEW PROPERTIES
+        allowSkip: true,
+        visitedQuestions: [],
+        questionProgress: {}
       };
       
       setSession(newSession);
+      setVisitedQuestions([]);
       return newSession;
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -102,6 +143,50 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   };
   
   // Submit a response to the current question
+  // const submitResponse = async (
+  //   questionId: string, 
+  //   response: string, 
+  //   tags?: HonestyTag[]
+  // ): Promise<void> => {
+  //   if (!session) return;
+    
+  //   try {
+  //     setIsSubmitting(true);
+      
+  //     // Create the response object
+  //     const questionResponse: QuestionResponse = {
+  //       questionId,
+  //       response,
+  //       tags,
+  //       timestamp: new Date().toISOString()
+  //     };
+      
+  //     // Update session with the new response
+  //     setSession(prev => {
+  //       if (!prev) return null;
+        
+  //       return {
+  //         ...prev,
+  //         responses: {
+  //           ...(prev.responses || {}),
+  //           [questionId]: questionResponse
+  //         }
+  //       };
+  //     });
+      
+  //     // In a real implementation, this would be an API call to save the response
+  //     // Auto-advance to next question or section
+  //     // setTimeout(() => {
+  //     //   autoAdvance();
+  //     // }, 300); 
+  //     autoAdvance();
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err : new Error(String(err)));
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+  // ✨ UPDATED - Replace the entire existing submitResponse function with this
   const submitResponse = async (
     questionId: string, 
     response: string, 
@@ -129,16 +214,23 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
           responses: {
             ...(prev.responses || {}),
             [questionId]: questionResponse
-          }
+          },
+          // ✨ NEW - Track question progress
+          questionProgress: {
+            ...(prev.questionProgress || {}),
+            [questionId]: 'answered'
+          },
+          // ✨ NEW - Track visited questions
+          visitedQuestions: [
+            ...(prev.visitedQuestions || []),
+            questionId
+          ]
         };
       });
       
-      // In a real implementation, this would be an API call to save the response
-      // Auto-advance to next question or section
-      // setTimeout(() => {
-      //   autoAdvance();
-      // }, 300); 
-      autoAdvance();
+      // ✨ REMOVED - Auto-advance logic removed
+      // User now controls navigation manually
+      
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -147,46 +239,192 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   };
   
   // Move to the next question
+  // const nextQuestion = () => {
+  //   if (!session) return;
+    
+  //   setSession(prev => {
+  //     if (!prev) return null;
+      
+  //     const nextIndex = Math.min(
+  //       (prev.currentQuestionIndex || 0) + 1, 
+  //       sectionQuestions.length - 1
+  //     );
+      
+  //     // If this is the last question in the section and there are more sections
+  //     // if (nextIndex === sectionQuestions.length - 1) {
+  //     //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+  //     //   if (currentSectionIndex < questSections.length - 1) {
+  //     //     // We'll handle section transitions in the UI layer
+  //     //   }
+  //     // }
+      
+  //     return {
+  //       ...prev,
+  //       currentQuestionIndex: nextIndex
+  //     };
+  //   });
+  // };
+  // ✨ UPDATED - Replace the existing nextQuestion function
   const nextQuestion = () => {
     if (!session) return;
+    
+    const currentIndex = session.currentQuestionIndex || 0;
+    const currentQuestion = sectionQuestions[currentIndex];
+    
+    // Don't go past the last question
+    if (currentIndex >= sectionQuestions.length - 1) return;
+    
+    const nextIndex = currentIndex + 1;
     
     setSession(prev => {
       if (!prev) return null;
       
-      const nextIndex = Math.min(
-        (prev.currentQuestionIndex || 0) + 1, 
-        sectionQuestions.length - 1
-      );
-      
-      // If this is the last question in the section and there are more sections
-      // if (nextIndex === sectionQuestions.length - 1) {
-      //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-      //   if (currentSectionIndex < questSections.length - 1) {
-      //     // We'll handle section transitions in the UI layer
-      //   }
-      // }
+      // Mark current question as visited when moving away
+      const updatedVisitedQuestions = currentQuestion && !prev.visitedQuestions?.includes(currentQuestion.id)
+        ? [...(prev.visitedQuestions || []), currentQuestion.id]
+        : prev.visitedQuestions || [];
       
       return {
         ...prev,
-        currentQuestionIndex: nextIndex
+        currentQuestionIndex: nextIndex,
+        visitedQuestions: updatedVisitedQuestions
       };
     });
   };
   
   // Move to the previous question
-  const previousQuestion = () => {
-    if (!session) return;
+  // const previousQuestion = () => {
+  //   if (!session) return;
     
+  //   setSession(prev => {
+  //     if (!prev) return null;
+      
+  //     const prevIndex = Math.max((prev.currentQuestionIndex || 0) - 1, 0);
+      
+  //     return {
+  //       ...prev,
+  //       currentQuestionIndex: prevIndex
+  //     };
+  //   });
+  // };
+
+  // ✨ UPDATED - Replace the existing previousQuestion function
+  // FILE: src/components/quest/core/QuestProvider.tsx
+// REPLACE: The existing previousQuestion function (around line 140)
+const previousQuestion = () => {
+  if (!session) return;
+  
+  const currentIndex = session.currentQuestionIndex || 0;
+  
+  // If we're at the first question of current section, go to previous section
+  if (currentIndex === 0) {
+    const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+    
+    // If there's a previous section, go to its last question
+    if (currentSectionIndex > 0) {
+      const previousSectionId = questSections[currentSectionIndex - 1].id;
+      const previousSectionQuestions = getQuestionsBySection(previousSectionId);
+      
+      // Change to previous section and go to its last question
+      setCurrentSectionId(previousSectionId);
+      
+      setSession(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          currentQuestionIndex: previousSectionQuestions.length - 1,
+          sectionId: previousSectionId
+        };
+      });
+    }
+    // If already in first section, do nothing (already at beginning)
+  } else {
+    // Move to previous question in current section
     setSession(prev => {
       if (!prev) return null;
       
-      const prevIndex = Math.max((prev.currentQuestionIndex || 0) - 1, 0);
+      const prevIndex = currentIndex - 1;
       
       return {
         ...prev,
         currentQuestionIndex: prevIndex
       };
     });
+  }
+};
+
+  // ✨ NEW FUNCTIONS - Add these after the existing previousQuestion function
+  
+  // Skip current question
+  const skipQuestion = () => {
+    if (!session) return;
+    
+    const currentIndex = session.currentQuestionIndex || 0;
+    const currentQuestion = sectionQuestions[currentIndex];
+    
+    if (currentQuestion) {
+      // Mark as skipped in session
+      setSession(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          questionProgress: {
+            ...(prev.questionProgress || {}),
+            [currentQuestion.id]: 'skipped'
+          },
+          visitedQuestions: [
+            ...(prev.visitedQuestions || []),
+            currentQuestion.id
+          ]
+        };
+      });
+      
+      // Move to next question
+      nextQuestion();
+    }
+  };
+  
+  // Navigate directly to a specific question
+  const goToQuestion = (questionIndex: number) => {
+    if (!session) return;
+    
+    const targetIndex = Math.max(0, Math.min(questionIndex, sectionQuestions.length - 1));
+    const currentQuestion = sectionQuestions[session.currentQuestionIndex || 0];
+    
+    // Mark current question as visited if we're moving away from it
+    if (currentQuestion && targetIndex !== (session.currentQuestionIndex || 0)) {
+      setSession(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          currentQuestionIndex: targetIndex,
+          visitedQuestions: [
+            ...(prev.visitedQuestions || []),
+            currentQuestion.id
+          ]
+        };
+      });
+    } else {
+      setSession(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          currentQuestionIndex: targetIndex
+        };
+      });
+    }
+  };
+  
+  // Edit existing response (navigate to question and enable edit mode)
+  const editResponse = (questionId: string) => {
+    const questionIndex = sectionQuestions.findIndex(q => q.id === questionId);
+    if (questionIndex >= 0) {
+      goToQuestion(questionIndex);
+    }
   };
   
   // Change to a specific section
@@ -206,19 +444,32 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   };
   
   // Finish the current section
-  const finishSection = () => {
-    const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+  // const finishSection = () => {
+  //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
     
-    // If there are more sections, move to the next one
-    if (currentSectionIndex < questSections.length - 1) {
-      const nextSectionId = questSections[currentSectionIndex + 1].id;
-      changeSection(nextSectionId);
-      return true;
-    }
+  //   // If there are more sections, move to the next one
+  //   if (currentSectionIndex < questSections.length - 1) {
+  //     const nextSectionId = questSections[currentSectionIndex + 1].id;
+  //     changeSection(nextSectionId);
+  //     return true;
+  //   }
     
-    // If this is the last section, return false
-    return false;
-  };
+  //   // If this is the last section, return false
+  //   return false;
+  // };
+const finishSection = () => {
+  const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+  
+  // If there are more sections, move to the next one seamlessly
+  if (currentSectionIndex < questSections.length - 1) {
+    const nextSectionId = questSections[currentSectionIndex + 1].id;
+    changeSection(nextSectionId);
+    return true;
+  }
+  
+  // If this is the last section, return false (triggers quest finish)
+  return false;
+};
   
   // Finish the quest
   const finishQuest = async (): Promise<QuestResult | null> => {
@@ -283,6 +534,31 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const getCurrentSection = () => {
     return questSections.find(s => s.id === currentSectionId) || questSections[0];
   };
+
+  // FILE: src/components/quest/core/QuestProvider.tsx
+// ADD: New helper function after getCurrentSection function (around line 200)
+
+// Get total questions across all sections
+const getTotalQuestionsInAssessment = () => {
+  return questSections.reduce((total, section) => total + section.questions.length, 0);
+};
+
+// Get current global question index (across all sections)
+const getCurrentGlobalQuestionIndex = () => {
+  const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+  const questionsBefore = questSections
+    .slice(0, currentSectionIndex)
+    .reduce((total, section) => total + section.questions.length, 0);
+  
+  return questionsBefore + (session?.currentQuestionIndex || 0);
+};
+
+// Check if this is the very last question in entire assessment
+const isLastQuestionInEntireAssessment = () => {
+  const totalQuestions = getTotalQuestionsInAssessment();
+  const currentGlobalIndex = getCurrentGlobalQuestionIndex();
+  return currentGlobalIndex === totalQuestions - 1;
+};
   
   // Context value
   const value = useMemo(() => ({
@@ -309,7 +585,14 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     changeSection,
     finishSection,
     finishQuest,
-    resetQuest
+    resetQuest,
+    skipQuestion,
+    goToQuestion,
+    editResponse,
+
+     getTotalQuestionsInAssessment,
+  getCurrentGlobalQuestionIndex,
+  isLastQuestionInEntireAssessment
   }), [
     session,
     currentQuestion,

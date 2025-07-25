@@ -27,22 +27,26 @@ export function AuthenticityTags({
   });
   
   // All available tags with their colors
-  const tags: { label: HonestyTag; color: string }[] = [
+  const tags: { label: HonestyTag; color: string; class: string }[] = [
     { 
       label: 'Honest', 
-      color: 'bg-green-100 text-green-700 border-green-200' 
+      color: 'bg-green-100 text-lime-700 border-stone-400',
+      class: 'px-0 w-20'
     },
     { 
       label: 'Sarcastic', 
-      color: 'bg-orange-100 text-orange-700 border-orange-200' 
+      color: 'bg-sky-100 text-sky-800 border-blue-300',
+      class: 'px-0 w-24'
     },
     { 
       label: 'Unsure', 
-      color: 'bg-blue-100 text-blue-700 border-blue-200' 
+      color: 'bg-violet-100 text-purple-900 border-slate-500',
+      class : 'px-0 w-20'
     },
     { 
       label: 'Avoiding', 
-      color: 'bg-gray-100 text-gray-700 border-gray-200' 
+      color: 'bg-red-100 text-red-800 border-red-400',
+      class: 'px-2 w-24'
     }
   ];
   
@@ -52,7 +56,7 @@ export function AuthenticityTags({
       variants={variants}
       initial="hidden"
       animate={controls}
-      className={`authenticity-tags flex flex-wrap gap-2 ${className}`}
+      className={` flex flex-wrap gap-2 ${className}`}
     >
       {tags.map(tag => (
         <motion.button
@@ -61,10 +65,10 @@ export function AuthenticityTags({
           whileHover={!disabled ? { scale: 1.05 } : undefined}
           whileTap={!disabled ? { scale: 0.95 } : undefined}
           className={`
-            px-3 py-1 rounded-full text-xs border transition-all
+            w-20 h-7 rounded-2xl border text-lg font-normal font-['Gilroy-Medium'] tracking-[-1px] ${tag.color} ${tag.class}
             ${selectedTags.includes(tag.label)
               ? `${tag.color} shadow-sm`
-              : 'bg-gray-50 text-gray-600 border-black hover:border-gray-300'
+              : ''
             }
             ${disabled ? 'cursor-default opacity-80' : ''}
           `}

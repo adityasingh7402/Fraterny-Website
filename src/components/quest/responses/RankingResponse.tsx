@@ -10,7 +10,7 @@ interface RankingResponseProps {
   options: string[];
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onSubmit: (value: string) => void;
+  onResponse: (value: string) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -22,7 +22,7 @@ export function RankingResponse({
   options,
   value,
   onChange,
-  onSubmit,
+  onResponse,
   disabled = false,
   className = ''
 }: RankingResponseProps) {
@@ -74,48 +74,86 @@ export function RankingResponse({
   };
   
   // Handle drag end
-  const handleDragEnd = () => {
-    setDraggedItem(null);
+  // const handleDragEnd = () => {
+  //   setDraggedItem(null);
     
-    // Update the response value
-    const responseValue = JSON.stringify(state);
-    const event = {
-      target: { value: responseValue }
-    } as React.ChangeEvent<HTMLTextAreaElement>;
+  //   // Update the response value
+  //   const responseValue = JSON.stringify(state);
+  //   const event = {
+  //     target: { value: responseValue }
+  //   } as React.ChangeEvent<HTMLTextAreaElement>;
     
-    onChange(event);
+  //   onChange(event);
+  // };
+  // FILE: src/components/quest/responses/RankingResponse.tsx
+// UPDATE: handleDragEnd function (around line 70)
+const handleDragEnd = () => {
+  setDraggedItem(null);
+  
+  // Update the response value
+  const responseValue = JSON.stringify(state);
+  const event = {
+    target: { value: responseValue }
+  } as React.ChangeEvent<HTMLTextAreaElement>;
+  
+  onChange(event);
+  
+  // AUTO-SAVE: Call onResponse immediately
+  onResponse(responseValue);
+};
+
+// UPDATE: handleExplanationChange function (around line 80)
+const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const newState = {
+    ...state,
+    explanation: e.target.value
   };
+  
+  setState(newState);
+  
+  // Update the response value
+  const responseValue = JSON.stringify(newState);
+  
+  const event = {
+    target: { value: responseValue }
+  } as React.ChangeEvent<HTMLTextAreaElement>;
+  
+  onChange(event);
+  
+  // AUTO-SAVE: Call onResponse immediately
+  onResponse(responseValue);
+};
   
   // Handle explanation change
-  const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setState({
-      ...state,
-      explanation: e.target.value
-    });
+  // const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //   setState({
+  //     ...state,
+  //     explanation: e.target.value
+  //   });
     
-    // Update the response value
-    const responseValue = JSON.stringify({
-      ...state,
-      explanation: e.target.value
-    });
+  //   // Update the response value
+  //   const responseValue = JSON.stringify({
+  //     ...state,
+  //     explanation: e.target.value
+  //   });
     
-    const event = {
-      target: { value: responseValue }
-    } as React.ChangeEvent<HTMLTextAreaElement>;
+  //   const event = {
+  //     target: { value: responseValue }
+  //   } as React.ChangeEvent<HTMLTextAreaElement>;
     
-    onChange(event);
-  };
+  //   onChange(event);
+  // };
   
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (state.rankings.length > 0) {
-      onSubmit(JSON.stringify(state));
-    }
-  };
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (state.rankings.length > 0) {
+  //     onSubmit(JSON.stringify(state));
+  //   }
+  // };
   
   return (
-    <form onSubmit={handleSubmit} className={`ranking-response ${className}`}>
+    <div className={`ranking-response ${className}`}>
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-3">
           Drag items to rank them in order of importance to you:
@@ -159,7 +197,7 @@ export function RankingResponse({
         />
       </div>
       
-      {!disabled && (
+      {/* {!disabled && (
         <motion.button
           type="submit"
           whileHover={{ scale: 1.02 }}
@@ -169,8 +207,8 @@ export function RankingResponse({
         >
           Submit
         </motion.button>
-      )}
-    </form>
+      )} */}
+    </div>
   );
 }
 

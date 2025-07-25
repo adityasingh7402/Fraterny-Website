@@ -102,8 +102,8 @@ export function QuestHeader({
   };
   
   return (
-    <header className={`quest-header py-4 px-4 md:px-6 ${className}`}>
-      <div className="max-w-3xl mx-auto">
+    <header className={` ${className}`}>
+      <div className="">
         {/* Progress bar - MOVED ABOVE TITLE */}
         {showProgress && session && (
           <div className="mb-4">
@@ -117,7 +117,7 @@ export function QuestHeader({
         )}
         
         {/* Title and subtitle - MOVED BELOW PROGRESS BAR */}
-        <div>
+        {/* <div>
           <motion.h1 
             className="text-2xl md:text-3xl font-playfair text-navy"
             initial={{ opacity: 0, y: -10 }}
@@ -137,7 +137,7 @@ export function QuestHeader({
               {subtitle}
             </motion.p>
           )}
-        </div>
+        </div> */}
       </div>
     </header>
   );

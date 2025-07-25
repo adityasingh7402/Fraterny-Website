@@ -11,7 +11,7 @@ export function HardQuestionCard(props: DifficultyQuestionCardProps) {
   return (
     <QuestionCard
       {...props}
-      className={`border-l-4 border-l-gold bg-gradient-to-r from-gold/5 to-transparent ${props.className || ''}`}
+      className={`${props.className || ''}`}
     />
   );
 }

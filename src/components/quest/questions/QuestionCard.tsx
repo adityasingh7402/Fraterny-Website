@@ -343,36 +343,61 @@ export function QuestionCard({
     "I'm not sure but...",
     "I don't want to answer this question"
   ];
-  
-  // Handle response submission
-  const handleSubmit = (submittedResponse: string) => {
+
+
+    const handleSubmit = (submittedResponse: string) => {
     if (!isActive) return;
     
-    // NEW: For text inputs, check word count validation
-    if (question.type === 'text_input') {
-      const wordValidation = getWordValidationStatus(submittedResponse, maxWords, wordWarningThreshold);
-      if (!wordValidation.isValid) {
-        return; // Prevent submission if over word limit
-      }
-    }
-    
-    // Call the onResponse callback with the response and tags
+    // Call the onResponse callback with the response and tags (no validation blocking)
     onResponse(submittedResponse, selectedTags);
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
+  // Handle response submission
+  // const handleSubmit = (submittedResponse: string) => {
+  //   if (!isActive) return;
     
-    // Allow pasting but truncate if too long
-    if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
-      setResponse(newValue.substring(0, maxLength));
-      return;
-    }
+  //   // NEW: For text inputs, check word count validation
+  //   if (question.type === 'text_input') {
+  //     const wordValidation = getWordValidationStatus(submittedResponse, maxWords, wordWarningThreshold);
+  //     if (!wordValidation.isValid) {
+  //       return; // Prevent submission if over word limit
+  //     }
+  //   }
     
-    setResponse(newValue);
-  };
+  //   // Call the onResponse callback with the response and tags
+  //   onResponse(submittedResponse, selectedTags);
+  // };
+  
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //   const newValue = e.target.value;
+    
+  //   // Allow pasting but truncate if too long
+  //   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
+  //     setResponse(newValue.substring(0, maxLength));
+  //     return;
+  //   }
+    
+  //   setResponse(newValue);
+  // };
   
   // Handle form submission
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const newValue = e.target.value;
+  
+  // Allow pasting but truncate if too long
+  if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
+    setResponse(newValue.substring(0, maxLength));
+    return;
+  }
+  
+  setResponse(newValue);
+  
+  // AUTO-SAVE: Call onResponse immediately for auto-save
+  onResponse(newValue, selectedTags);
+};
+  
+  
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (response.trim()) {
@@ -500,6 +525,7 @@ export function QuestionCard({
         //   </div>
         // );
           const textValidation = getTextInputValidation();
+          
   
           return (
             <div className="mb-6">
@@ -509,7 +535,8 @@ export function QuestionCard({
                     value={response}
                     onChange={handleInputChange}
                     placeholder={question.placeholder || "Be as honest as you want to be for the best analysis"}
-                    className={`w-full p-3 border rounded-lg focus:ring-1 transition-all min-h-[100px] resize-y focus:outline-none ${
+                    
+                    className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-zinc-400 text-xl font-normal font-['Gilroy-Medium'] ${
                       textValidation?.wordStatus === 'error' 
                         ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
                         : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
@@ -538,13 +565,13 @@ export function QuestionCard({
                       onTagSelect={handleTagSelect}
                       disabled={isAnswered}
                     />
-                    <p className="text-xs text-black mt-2">
+                    {/* <p className="text-xs text-black mt-2">
                       How would you describe your response?
-                    </p>
+                    </p> */}
                   </div>
                 )}
                 
-                {isActive && !isAnswered && (
+                {/* {isActive && !isAnswered && (
                   <motion.button
                     type="submit"
                     whileHover={{ scale: 1.02 }}
@@ -558,7 +585,7 @@ export function QuestionCard({
                   >
                     Submit
                   </motion.button>
-                )}
+                )} */}
               </form>
             </div>
           );
@@ -583,7 +610,7 @@ export function QuestionCard({
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-terracotta"
               disabled={!isActive || isAnswered}
             />
-            {isActive && !isAnswered && (
+            {/* {isActive && !isAnswered && (
               <motion.button
                 onClick={() => handleSubmit(response)}
                 whileHover={{ scale: 1.02 }}
@@ -592,7 +619,7 @@ export function QuestionCard({
               >
                 Submit
               </motion.button>
-            )}
+            )} */}
           </div>
         );
         
@@ -601,7 +628,7 @@ export function QuestionCard({
           <DateResponse
             value={response}
             onChange={handleInputChange}
-            onSubmit={handleSubmit}
+            // onSubmit={handleSubmit}
             disabled={!isActive || isAnswered}
             className="mb-6"
           />
@@ -613,18 +640,18 @@ export function QuestionCard({
             options={question.options || []}
             value={response}
             onChange={handleInputChange}
-            onSubmit={handleSubmit}
+            onResponse={handleSubmit} 
             disabled={!isActive || isAnswered}
             className="mb-6"
           />
         );
       
-        default:
-        return (
-          <div className="mb-6 text-gray-500 italic">
-            This question type is not supported yet.
-          </div>
-        );
+      default:
+      return (
+        <div className="mb-6 text-gray-500 italic">
+          This question type is not supported yet.
+        </div>
+      );
     }
   };
   
@@ -634,11 +661,11 @@ export function QuestionCard({
       variants={variants}
       initial="hidden"
       animate={controls}
-      className={`question-card bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}
+      className={`${className}`}
     >      
       {/* Question Text */}
-      <div className="mb-6">
-        <h3 className="text-xl text-navy mb-3">{question.text}</h3>
+      <div className="mb-4">
+        <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Bold']">{question.text}</div>
       </div>
       
       
@@ -648,11 +675,11 @@ export function QuestionCard({
       
       
       {/* Flexible Response Options */}
-      {question.type === 'text_input' && isActive && !isAnswered && (
+      {/* {question.type === 'text_input' && isActive && !isAnswered && (
         <div className="mb-6">
           <button
             onClick={handleFlexibleResponseToggle}
-            className="text-sm text-gray-500 hover:text-terracotta transition-colors"
+            className="text-sm text-gray-900 hover:text-terracotta transition-colors"
           >
             {showFlexibleOptions ? 'Hide options' : 'Not sure? Click for options'}
           </button>
@@ -684,7 +711,7 @@ export function QuestionCard({
             </motion.div>
           )}
         </div>
-      )}
+      )} */}
       
       {/* Self-Awareness Tags */}
       {/* {showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
@@ -700,9 +727,9 @@ export function QuestionCard({
         </div>
       )} */}
 
-      <div className="mt-2 flex justify-end">
+      {/* <div className="mt-2 flex justify-end">
         <PrivacyIndicator className="" />
-      </div>
+      </div> */}
     </motion.div>
   );
 }

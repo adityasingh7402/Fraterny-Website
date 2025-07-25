@@ -32,8 +32,9 @@ export function ScaleSlider({
   // Handle slider change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isActive || isAnswered) return;
-    
-    setValue(parseInt(e.target.value, 10));
+    const newValue = parseInt(e.target.value, 10);
+    setValue(newValue);
+    onResponse(newValue.toString());
   };
   
   // Handle slider interaction states
@@ -42,9 +43,9 @@ export function ScaleSlider({
     setIsDragging(false);
     
     // Submit value when sliding ends
-    if (isActive && !isAnswered) {
-      onResponse(value.toString());
-    }
+    // if (isActive && !isAnswered) {
+    //   onResponse(value.toString());
+    // }
   };
   
   // Calculate the percentage for the fill
@@ -170,7 +171,7 @@ export function ScaleSlider({
       )}
       
       {/* Submit button */}
-      {isActive && !isAnswered && (
+      {/* {isActive && !isAnswered && (
         <motion.button
           onClick={() => onResponse(value.toString())}
           initial={{ opacity: 0, y: 10 }}
@@ -181,7 +182,7 @@ export function ScaleSlider({
         >
           Submit
         </motion.button>
-      )}
+      )} */}
     </div>
   );
 }
