@@ -10,6 +10,7 @@ interface StatisticsSectionProps {
   animationState: string;
   className?: string;
   onContinueClick?: () => void;
+  onLogoClick?: () => void;
 }
 
 // Simple animation variants
@@ -28,7 +29,8 @@ const animationVariants = {
 const StatisticsSection: React.FC<StatisticsSectionProps> = ({ 
   animationState,
   className = '',
-  onContinueClick
+  onContinueClick,
+  onLogoClick
 }) => {
   const [hasRippled, setHasRippled] = useState(false);
 
@@ -331,7 +333,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           <img 
             src={img}
             alt="QUEST" 
-            className="h-[36px] w-auto brightness-0"
+            className="h-[36px] w-auto brightness-0 cursor-pointer"
+            onClick={onLogoClick}
           />
         </motion.div>
       </div>

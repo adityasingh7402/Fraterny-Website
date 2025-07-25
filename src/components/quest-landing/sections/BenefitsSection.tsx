@@ -10,6 +10,7 @@ interface BenefitsSectionProps {
   animationState: string;
   className?: string;
   onScreenTransition?: () => void;
+  onLogoClick?: () => void;
 }
 
 // Simple animation variants
@@ -26,9 +27,10 @@ const animationVariants = {
 };
 
 const BenefitsSection: React.FC<BenefitsSectionProps> = ({ 
-  // animationState,
-  // className = '',
-  // onScreenTransition
+  animationState: _animationState,
+    className = '',
+  onScreenTransition: _onScreenTransition,
+  onLogoClick: _onLogoClick
 }) => {
   return (
 
@@ -75,7 +77,8 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
           <img 
             src={img}
             alt="QUEST" 
-            className="h-[36px] w-auto brightness-0 invert"
+            className="h-[36px] w-auto brightness-0 invert cursor-pointer"
+            onClick={_onLogoClick} // Call the onLogoClick prop when clicked
           />
         </motion.div>
       </div>

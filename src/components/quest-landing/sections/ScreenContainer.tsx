@@ -31,13 +31,32 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const analyzeScrollRef = useRef<HTMLDivElement>(null);
 
+  //  const getScreenBackground = (screenIndex: number): string => {
+  //   switch (screenIndex) {
+  //     case 0: return 'quest-background-hero';      // White with potential gradient
+  //     case 1: return 'quest-background-statistics'; // Blue radial gradient
+  //     case 2: return 'quest-background-benefits';   // Different blue gradient
+  //     case 3: return 'quest-background-analyze';    // Solid dark blue
+  //     default: return 'quest-background-hero';
+  //   }
+  // };
+
+
+
+  // Logo click handler - navigate to screen 1
+  const handleLogoClick = () => {
+    if (isTransitioning || current === 0) return;
+    setIsTransitioning(true);
+    setCurrent(0);
+  };
+
   // Handle scroll-based navigation with mobile touch support
   useEffect(() => {
     let touchStartY = 0;
     let touchEndY = 0;
 
     const handleWheel = (event: WheelEvent) => {
-  console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
+  // console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
   
   // For AnalyzeSection (screen 3), handle scroll differently
   if (current === 3) {
@@ -48,44 +67,44 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
       const hasScrollableContent = scrollHeight > clientHeight; // Check if there's actually content to scroll
       
-      console.log('📊 Screen 4 scroll info:', {
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-        isAtTop,
-        isAtBottom,
-        hasScrollableContent,
-        deltaY: event.deltaY,
-        isTransitioning
-      });
+      // console.log('📊 Screen 4 scroll info:', {
+      //   scrollTop,
+      //   scrollHeight,
+      //   clientHeight,
+      //   isAtTop,
+      //   isAtBottom,
+      //   hasScrollableContent,
+      //   deltaY: event.deltaY,
+      //   isTransitioning
+      // });
       
       // If there's no scrollable content, require stronger scroll to change screens
       const scrollThreshold = hasScrollableContent ? 50 : 100;
-      console.log('🔍 Scroll check:', { 
-        deltaY: event.deltaY, 
-        threshold: -scrollThreshold, 
-        isAtTop, 
-        willTrigger: event.deltaY < -scrollThreshold && isAtTop 
-      });
+      // console.log('🔍 Scroll check:', { 
+      //   deltaY: event.deltaY, 
+      //   threshold: -scrollThreshold, 
+      //   isAtTop, 
+      //   willTrigger: event.deltaY < -scrollThreshold && isAtTop 
+      // });
 
       
       // Only allow screen transition when at very top and strong upward scroll
       if (event.deltaY < -scrollThreshold && isAtTop && current > 0) {
-        console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
+        // console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
         event.preventDefault();
         if (!isTransitioning) {
           setIsTransitioning(true);
           setCurrent(current - 1);
         }
       } else if (event.deltaY > 0 && isAtBottom && current < 3) {
-        console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
+        // console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
         event.preventDefault();
         if (!isTransitioning) {
           setIsTransitioning(true);
           setCurrent(current + 1);
         }
       } else {
-        console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
+        // console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
         // Allow natural scrolling (even if there's no content to scroll)
       }
     } else {
@@ -93,13 +112,11 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     }
     return;
   }
-  
-  console.log('🔄 Handling other screens');
   // For other screens, prevent default and handle screen transitions
   event.preventDefault();
   
   if (isTransitioning) {
-    console.log('⏳ Already transitioning, ignoring');
+    // console.log('⏳ Already transitioning, ignoring');
     return;
   }
 
@@ -108,16 +125,16 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const scrollThreshold = 50;
   
   if (Math.abs(event.deltaY) < scrollThreshold) {
-    console.log('🔻 Below threshold, ignoring');
+    // console.log('🔻 Below threshold, ignoring');
     return;
   }
 
   if (scrollDown && current < 3) {
-    console.log('⬇️ Going to next screen from', current);
+    // console.log('⬇️ Going to next screen from', current);
     setIsTransitioning(true);
     setCurrent(current + 1);
   } else if (scrollUp && current > 0) {
-    console.log('⬆️ Going to previous screen from', current);
+    // console.log('⬆️ Going to previous screen from', current);
     setIsTransitioning(true);
     setCurrent(current - 1);
   }
@@ -207,10 +224,9 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
 
   // Get dynamic container classes based on current screen
   const getContainerClasses = () => {
-    if (current === 3) {
-      return `relative h-screen overflow-hidden`; // Fixed height for screen 4
-    }
-    return `relative h-screen overflow-hidden`;
+    const baseClasses = 'relative quest-full-height overflow-hidden';
+    // const backgroundClass = getScreenBackground(current);
+    return `${baseClasses}`;
   };
 
   // Get dynamic styles based on current screen - Fixed TypeScript error
@@ -246,7 +262,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
         >
           <Hero
             onAnalyzeClick={handleAnalyzeClick}
-            className="relative z-30"
+            className=" z-30"
           />
         </motion.div>
       )}
@@ -265,6 +281,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             <StatisticsSection
               animationState="visible"
               className="relative z-30"
+              onLogoClick={handleLogoClick}
             />
           </motion.div>
         </AnimatePresence>
@@ -283,6 +300,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
           <BenefitsSection
             animationState="visible"
             className="relative z-30"
+            onLogoClick={handleLogoClick}
           />
         </motion.div>
       )}
@@ -307,6 +325,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             <AnalyzeSection
               animationState="visible"
               className="relative z-30"
+              onLogoClick={handleLogoClick}
             />
           </div>
         </motion.div>
