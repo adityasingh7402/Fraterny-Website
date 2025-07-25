@@ -1,6 +1,5 @@
 // /src/components/quest-landing/sections/AnalyzeSection.tsx
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import Change from './Change';
@@ -8,11 +7,14 @@ import Testimonials from './Testimonials';
 import FAQ from '@/pages/FAQ';
 import FaqSection from './FaqSection';
 import img from '../../../../public/Vector.svg';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 interface AnalyzeSectionProps {
   animationState: string;
   className?: string;
   onScreenTransition?: () => void;
+  onLogoClick?: () => void;
 }
 
 // Simple animation variants
@@ -31,8 +33,39 @@ const animationVariants = {
 const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({ 
    animationState: _animationState,
     className = '',
-  onScreenTransition: _onScreenTransition
+  onScreenTransition: _onScreenTransition,
+  onLogoClick: _onLogoClick
+  
 }) => {
+  const [isInHeroSection, setIsInHeroSection] = useState(true);
+  const heroSectionRef = useRef<HTMLDivElement>(null);
+const containerRef = useRef<HTMLDivElement>(null);
+  // console.log('Current logo state - should be white?', isInHeroSection);
+  useEffect(() => {
+  const container = containerRef.current;
+  if (!container) {
+    // console.log('No container found');
+    return;
+  }
+
+  const handleScroll = () => {
+    const scrollTop = container.scrollTop;
+    // console.log('Container scroll position:', scrollTop);
+    
+    // Simple approach - if scrolled more than 300px, logo should be black
+    const shouldBeInHero = scrollTop < 100;
+    
+    if (shouldBeInHero !== isInHeroSection) {
+      setIsInHeroSection(shouldBeInHero);
+      // console.log('Logo color changed to:', shouldBeInHero ? 'white' : 'black');
+    }
+  };
+
+  container.addEventListener('scroll', handleScroll, { passive: true });
+  handleScroll();
+  return () => container.removeEventListener('scroll', handleScroll);
+}, [isInHeroSection]);
+
   return (
     // <div className='relative h-full overflow-y-scroll'>
     //   {/* Header */}
@@ -163,8 +196,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
     // </div>
 
     <section className=''>
-
-    <div className='relative h-full overflow-y-scroll'>
+    <div ref={containerRef} className='relative h-screen overflow-y-auto'>
       {/* Header */}
       <div className='flex justify-between fixed top-0 w-full z-50 p-2 left-0 text-white items-center'>
           <div className='flex-1 items-center justify-center'>
@@ -180,7 +212,10 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
               />
           </motion.div> */}
           <div className='flex w-full items-center justify-center pt-4'>
+
+          
             <motion.div
+            layoutId='logo'
               className="z-50"
               initial={{ y: 0, opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
@@ -193,9 +228,11 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
               <img 
                 src={img}
                 alt="QUEST" 
-                className="h-[36px] w-auto brightness-0 invert"
+                className={`h-[36px] w-auto transition-all duration-500 ease-out cursor-pointer ${isInHeroSection ? 'brightness-0 invert' : 'opacity-0'}`}
+                onClick={_onLogoClick} // Call the onLogoClick prop when clicked
               />
             </motion.div>
+          
           </div>
           </div>
           <motion.span 
@@ -208,7 +245,7 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
       </div>   
 
       {/* Hero section */}
-      <div className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
+      <div ref={heroSectionRef} className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
         <div className='gap-8 flex relative flex-col z-20'>
           {/* Main Title */}
           <div className='w-[140px] text-left'>

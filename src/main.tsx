@@ -280,7 +280,7 @@ const router = createBrowserRouter([
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
       { path: 'quest-result/*', element: createSuspenseWrapper(QuestLoading)(<QuestResultRoute />) },
       { path: 'quest-index', element: createSuspenseWrapper(QuestLoading)(<QuestResultIndex />) },
-      { path: 'quest-landing', element: createSuspenseWrapper(QuestLoading)(<QuestLandingPage />)},
+      { path: 'quest-landing', element: <QuestLandingPage />},
       
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },
