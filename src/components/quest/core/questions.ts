@@ -100,7 +100,7 @@ export const questSections: QuestionSection[] = [
     questions: [
       {
         id: 'q3_1',
-        text: "What is your highest priority goal for this year/month? Basically what you're looking forward to achieve in a time period you have defined for yourself? You can write more than 1 thing.",
+        text: "What is your highest priority goal for this year/month?",
         difficulty: 'medium',
         type: 'text_input',
         category: 'goals',
@@ -123,7 +123,7 @@ export const questSections: QuestionSection[] = [
       },
       {
         id: 'q3_3',
-        text: "If you could magically get 3 things in life right now, what would you ask for? Think of anything— \"Ability to fly\", \"Meeting with Jeff Bezos\", \"CEO of Google\", \"I have everything I want, I don't need anything\", \"A pet named Jaws\"",
+        text: "If you could magically get 3 things in life right now, what would you ask for? Think of anything",
         difficulty: 'medium',
         type: 'text_input',
         category: 'desires',

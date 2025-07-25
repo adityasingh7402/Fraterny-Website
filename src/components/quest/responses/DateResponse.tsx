@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 interface DateResponseProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (value: string) => void;
+  // onSubmit: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
   className?: string;
@@ -16,21 +16,21 @@ interface DateResponseProps {
 export function DateResponse({
   value,
   onChange,
-  onSubmit,
+  // onSubmit,
   disabled = false,
   placeholder = 'Select your date of birth',
   className = ''
 }: DateResponseProps) {
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (value) {
-      onSubmit(value);
-    }
-  };
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (value) {
+  //     onSubmit(value);
+  //   }
+  // };
   
   return (
-    <form onSubmit={handleSubmit} className={`date-response ${className}`}>
+    <div className={`date-response ${className}`}>
       <div className="relative">
         <input
           type="date"
@@ -41,12 +41,12 @@ export function DateResponse({
           disabled={disabled}
           required
         />
-        <div className="mt-2 text-xs text-gray-500">
+        {/* <div className="mt-2 text-xs text-gray-500">
           Please select your date of birth
-        </div>
+        </div> */}
       </div>
       
-      {!disabled && (
+      {/* {!disabled && (
         <motion.button
           type="submit"
           whileHover={{ scale: 1.02 }}
@@ -56,8 +56,8 @@ export function DateResponse({
         >
           Submit
         </motion.button>
-      )}
-    </form>
+      )} */}
+    </div>
   );
 }
 

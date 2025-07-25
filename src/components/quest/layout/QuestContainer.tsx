@@ -39,12 +39,12 @@ export function QuestContainer({
   const getContainerStyles = (): string => {
     switch (variant) {
       case 'card':
-        return 'bg-white rounded-xl shadow-lg border border-gray-100 p-6 md:p-8';
+        return '';
       case 'transparent':
         return 'bg-transparent';
       case 'default':
       default:
-        return 'bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 p-4 md:p-6';
+        return '';
     }
   };
   
@@ -56,7 +56,7 @@ export function QuestContainer({
       variants={animate ? containerVariants : undefined}
       initial={animate ? 'hidden' : undefined}
       animate={animate ? controls : undefined}
-      className={`quest-container w-full max-w-3xl mx-auto ${containerStyles} ${className}`}
+      className={` ${containerStyles} ${className}`}
     >
       {children}
     </motion.div>

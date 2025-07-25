@@ -53,6 +53,9 @@ export interface QuestSession {
   responses?: Record<string, QuestionResponse>;
   durationMinutes?: number;
   sectionId?: string;
+  allowSkip?: boolean;
+  visitedQuestions?: string[];  // Changed from Set to array for JSON serialization
+  questionProgress?: Record<string, 'skipped' | 'answered'>;
 }
 
 // Quest result
@@ -82,6 +85,9 @@ export interface QuestContextActions {
   previousQuestion: () => void;
   finishQuest: () => Promise<QuestResult | null>;
   resetQuest: () => void;
+  skipQuestion: () => void;
+  goToQuestion: (questionIndex: number) => void;
+  editResponse: (questionId: string) => void;
 }
 
 export interface QuestionSection {

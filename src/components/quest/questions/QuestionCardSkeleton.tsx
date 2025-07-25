@@ -17,7 +17,7 @@ export function QuestionCardSkeleton({
   // Get border color based on difficulty
   const getBorderColor = (): string => {
     switch (difficulty) {
-      case 'easy': return 'border-l-terracotta';
+      case 'easy': return 'border-l-red';
       case 'medium': return 'border-l-navy';
       case 'hard': return 'border-l-gold';
       default: return 'border-l-navy';
@@ -43,10 +43,7 @@ export function QuestionCardSkeleton({
   
   return (
     <div className={`
-      question-card-skeleton
-      bg-white rounded-lg shadow-sm
-      border border-gray-200 border-l-4 ${borderColor}
-      p-6
+      
       ${className}
     `}>
       {/* Privacy indicator */}
