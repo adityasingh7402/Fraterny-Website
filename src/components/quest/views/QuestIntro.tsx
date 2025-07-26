@@ -144,6 +144,7 @@ import { motion } from 'framer-motion';
 import { useQuest } from '../core/useQuest';
 import { QuestLayout } from '../layout/QuestLayout';
 import { QuestionSection } from '../core/types';
+import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 
@@ -374,8 +375,9 @@ const handleTermsChange = (checked: boolean) => {
         <button 
         onClick={handleStart}
         className=" w-full h-10 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
-          <div className='flex gap-1'>
+          <div className='flex gap-0'>
             <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold']">Get Started</div>
+            <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
             
         </div>
         </button>
