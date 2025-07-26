@@ -496,65 +496,169 @@ const isLastQuestionInEntireAssessment = () => {
   return currentGlobalIndex === totalQuestions - 1;
 };
 
-// ENHANCE THE EXISTING changeSection FUNCTION
-const changeSection = (newSectionId: string) => {
-  // Validate that the section exists
-  const targetSection = questSections.find(s => s.id === newSectionId);
-  if (!targetSection) {
-    console.warn(`Section ${newSectionId} not found`);
-    return;
-  }
+// // ENHANCE THE EXISTING changeSection FUNCTION
+// const changeSection = (newSectionId: string) => {
+//   // Validate that the section exists
+//   const targetSection = questSections.find(s => s.id === newSectionId);
+//   if (!targetSection) {
+//     console.warn(`Section ${newSectionId} not found`);
+//     return;
+//   }
 
-  // If already in the target section, do nothing
-  if (currentSectionId === newSectionId) {
-    return;
-  }
+//   // If already in the target section, do nothing
+//   if (currentSectionId === newSectionId) {
+//     return;
+//   }
 
-  // Update current section
-  setCurrentSectionId(newSectionId);
+//   // Update current section
+//   setCurrentSectionId(newSectionId);
   
-  // Reset to first question of the new section
-  setSession(prev => {
-    if (!prev) return null;
+//   // Reset to first question of the new section
+//   setSession(prev => {
+//     if (!prev) return null;
     
-    return {
-      ...prev,
-      currentQuestionIndex: 0, // Always start from first question
-      sectionId: newSectionId
-    };
-  });
+//     return {
+//       ...prev,
+//       currentQuestionIndex: 0, // Always start from first question
+//       sectionId: newSectionId
+//     };
+//   });
   
-  // Clear any errors
-  setError(null);
-};
+//   // Clear any errors
+//   setError(null);
+// };
 
-// ENHANCE THE EXISTING finishSection FUNCTION  
+// // ENHANCE THE EXISTING finishSection FUNCTION  
+// const finishSection = (): boolean => {
+//   if (!session || !getCurrentSection()) return false;
+  
+//   // Check if all questions in current section are answered
+//       const allQuestionsAnswered = getCurrentSection().questions.every(q => 
+//     session.responses && session.responses[q.id]
+//   );
+  
+//   if (!allQuestionsAnswered) {
+//     // Don't automatically move to next section if current isn't complete
+//     return false;
+//   }
+  
+//   // Find next section
+//   const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
+//   const nextSectionIndex = currentIndex + 1;
+  
+//   if (nextSectionIndex < questSections.length) {
+//     // Move to next section
+//     const nextSection = questSections[nextSectionIndex];
+//     changeSection(nextSection.id);
+//     return true;
+//   }
+  
+//   // No more sections - assessment is complete
+//   return false;
+// };
+
 const finishSection = (): boolean => {
-  if (!session || !getCurrentSection()) return false;
+  console.log('🔄 finishSection called');
+  console.log('📍 Session exists:', !!session);
+  console.log('📍 Current section:', getCurrentSection()?.id);
+  
+  if (!session || !getCurrentSection()) {
+    console.log('❌ No session or current section - returning false');
+    return false;
+  }
   
   // Check if all questions in current section are answered
-      const allQuestionsAnswered = getCurrentSection().questions.every(q => 
-    session.responses && session.responses[q.id]
-  );
+  const currentSectionQuestions = getCurrentSection().questions;
+  console.log('📊 Questions in current section:', currentSectionQuestions.length);
+  console.log('📝 Session responses:', Object.keys(session.responses || {}));
+  
+  const allQuestionsAnswered = currentSectionQuestions.every(q => {
+    const hasResponse = session.responses && session.responses[q.id];
+    console.log(`   Question ${q.id}: ${hasResponse ? '✅' : '❌'} answered`);
+    return hasResponse;
+  });
+  
+  console.log('✅ All questions answered:', allQuestionsAnswered);
   
   if (!allQuestionsAnswered) {
+    console.log('❌ Not all questions answered - returning false');
     // Don't automatically move to next section if current isn't complete
     return false;
   }
   
   // Find next section
   const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
+  console.log('📍 Current section index:', currentIndex);
+  console.log('📍 Total sections:', questSections.length);
+  
   const nextSectionIndex = currentIndex + 1;
+  console.log('📍 Next section index:', nextSectionIndex);
   
   if (nextSectionIndex < questSections.length) {
     // Move to next section
     const nextSection = questSections[nextSectionIndex];
+    console.log('➡️ Moving to next section:', nextSection.id, nextSection.title);
     changeSection(nextSection.id);
+    console.log('✅ Section change completed - returning true');
     return true;
   }
   
   // No more sections - assessment is complete
+  console.log('🏁 No more sections - assessment complete - returning false');
   return false;
+};
+
+const changeSection = (newSectionId: string) => {
+  console.log('🔀 changeSection called with:', newSectionId);
+  
+  // Validate that the section exists
+  const targetSection = questSections.find(s => s.id === newSectionId);
+  console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
+  
+  if (!targetSection) {
+    console.warn(`❌ Section ${newSectionId} not found`);
+    return;
+  }
+
+  // If already in the target section, do nothing
+  if (currentSectionId === newSectionId) {
+    console.log('⚠️ Already in target section - no change needed');
+    return;
+  }
+
+  console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
+
+  // Update current section
+  setCurrentSectionId(newSectionId);
+  console.log('✅ Current section ID updated');
+  
+  // Reset to first question of the new section
+  setSession(prev => {
+    if (!prev) {
+      console.log('❌ No previous session state');
+      return null;
+    }
+    
+    console.log('📝 Updating session state:');
+    console.log('   Previous question index:', prev.currentQuestionIndex);
+    console.log('   Previous section ID:', prev.sectionId);
+    console.log('   New question index: 0');
+    console.log('   New section ID:', newSectionId);
+    
+    const newState = {
+      ...prev,
+      currentQuestionIndex: 0, // Always start from first question
+      sectionId: newSectionId
+    };
+    
+    console.log('✅ Session state updated');
+    return newState;
+  });
+  
+  // Clear any errors
+  setError(null);
+  console.log('🧹 Errors cleared');
+  console.log('🏁 changeSection completed');
 };
   
   // Context value
