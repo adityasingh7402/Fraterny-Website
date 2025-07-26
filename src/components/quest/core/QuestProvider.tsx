@@ -238,33 +238,6 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     }
   };
   
-  // Move to the next question
-  // const nextQuestion = () => {
-  //   if (!session) return;
-    
-  //   setSession(prev => {
-  //     if (!prev) return null;
-      
-  //     const nextIndex = Math.min(
-  //       (prev.currentQuestionIndex || 0) + 1, 
-  //       sectionQuestions.length - 1
-  //     );
-      
-  //     // If this is the last question in the section and there are more sections
-  //     // if (nextIndex === sectionQuestions.length - 1) {
-  //     //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-  //     //   if (currentSectionIndex < questSections.length - 1) {
-  //     //     // We'll handle section transitions in the UI layer
-  //     //   }
-  //     // }
-      
-  //     return {
-  //       ...prev,
-  //       currentQuestionIndex: nextIndex
-  //     };
-  //   });
-  // };
-  // ✨ UPDATED - Replace the existing nextQuestion function
   const nextQuestion = () => {
     if (!session) return;
     
@@ -291,26 +264,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       };
     });
   };
-  
-  // Move to the previous question
-  // const previousQuestion = () => {
-  //   if (!session) return;
-    
-  //   setSession(prev => {
-  //     if (!prev) return null;
-      
-  //     const prevIndex = Math.max((prev.currentQuestionIndex || 0) - 1, 0);
-      
-  //     return {
-  //       ...prev,
-  //       currentQuestionIndex: prevIndex
-  //     };
-  //   });
-  // };
 
-  // ✨ UPDATED - Replace the existing previousQuestion function
-  // FILE: src/components/quest/core/QuestProvider.tsx
-// REPLACE: The existing previousQuestion function (around line 140)
 const previousQuestion = () => {
   if (!session) return;
   
@@ -428,48 +382,34 @@ const previousQuestion = () => {
   };
   
   // Change to a specific section
-  const changeSection = (sectionId: string) => {
-    setCurrentSectionId(sectionId);
+//   const changeSection = (sectionId: string) => {
+//     setCurrentSectionId(sectionId);
     
-    // Reset question index when changing sections
-    setSession(prev => {
-      if (!prev) return null;
+//     // Reset question index when changing sections
+//     setSession(prev => {
+//       if (!prev) return null;
       
-      return {
-        ...prev,
-        currentQuestionIndex: 0,
-        sectionId
-      };
-    });
-  };
+//       return {
+//         ...prev,
+//         currentQuestionIndex: 0,
+//         sectionId
+//       };
+//     });
+//   };
   
-  // Finish the current section
-  // const finishSection = () => {
-  //   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-    
-  //   // If there are more sections, move to the next one
-  //   if (currentSectionIndex < questSections.length - 1) {
-  //     const nextSectionId = questSections[currentSectionIndex + 1].id;
-  //     changeSection(nextSectionId);
-  //     return true;
-  //   }
-    
-  //   // If this is the last section, return false
-  //   return false;
-  // };
-const finishSection = () => {
-  const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+// const finishSection = () => {
+//   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
   
-  // If there are more sections, move to the next one seamlessly
-  if (currentSectionIndex < questSections.length - 1) {
-    const nextSectionId = questSections[currentSectionIndex + 1].id;
-    changeSection(nextSectionId);
-    return true;
-  }
+//   // If there are more sections, move to the next one seamlessly
+//   if (currentSectionIndex < questSections.length - 1) {
+//     const nextSectionId = questSections[currentSectionIndex + 1].id;
+//     changeSection(nextSectionId);
+//     return true;
+//   }
   
-  // If this is the last section, return false (triggers quest finish)
-  return false;
-};
+//   // If this is the last section, return false (triggers quest finish)
+//   return false;
+// };
   
   // Finish the quest
   const finishQuest = async (): Promise<QuestResult | null> => {
@@ -535,10 +475,6 @@ const finishSection = () => {
     return questSections.find(s => s.id === currentSectionId) || questSections[0];
   };
 
-  // FILE: src/components/quest/core/QuestProvider.tsx
-// ADD: New helper function after getCurrentSection function (around line 200)
-
-// Get total questions across all sections
 const getTotalQuestionsInAssessment = () => {
   return questSections.reduce((total, section) => total + section.questions.length, 0);
 };
@@ -558,6 +494,67 @@ const isLastQuestionInEntireAssessment = () => {
   const totalQuestions = getTotalQuestionsInAssessment();
   const currentGlobalIndex = getCurrentGlobalQuestionIndex();
   return currentGlobalIndex === totalQuestions - 1;
+};
+
+// ENHANCE THE EXISTING changeSection FUNCTION
+const changeSection = (newSectionId: string) => {
+  // Validate that the section exists
+  const targetSection = questSections.find(s => s.id === newSectionId);
+  if (!targetSection) {
+    console.warn(`Section ${newSectionId} not found`);
+    return;
+  }
+
+  // If already in the target section, do nothing
+  if (currentSectionId === newSectionId) {
+    return;
+  }
+
+  // Update current section
+  setCurrentSectionId(newSectionId);
+  
+  // Reset to first question of the new section
+  setSession(prev => {
+    if (!prev) return null;
+    
+    return {
+      ...prev,
+      currentQuestionIndex: 0, // Always start from first question
+      sectionId: newSectionId
+    };
+  });
+  
+  // Clear any errors
+  setError(null);
+};
+
+// ENHANCE THE EXISTING finishSection FUNCTION  
+const finishSection = (): boolean => {
+  if (!session || !getCurrentSection()) return false;
+  
+  // Check if all questions in current section are answered
+      const allQuestionsAnswered = getCurrentSection().questions.every(q => 
+    session.responses && session.responses[q.id]
+  );
+  
+  if (!allQuestionsAnswered) {
+    // Don't automatically move to next section if current isn't complete
+    return false;
+  }
+  
+  // Find next section
+  const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
+  const nextSectionIndex = currentIndex + 1;
+  
+  if (nextSectionIndex < questSections.length) {
+    // Move to next section
+    const nextSection = questSections[nextSectionIndex];
+    changeSection(nextSection.id);
+    return true;
+  }
+  
+  // No more sections - assessment is complete
+  return false;
 };
   
   // Context value
@@ -589,6 +586,7 @@ const isLastQuestionInEntireAssessment = () => {
     skipQuestion,
     goToQuestion,
     editResponse,
+    
 
      getTotalQuestionsInAssessment,
   getCurrentGlobalQuestionIndex,

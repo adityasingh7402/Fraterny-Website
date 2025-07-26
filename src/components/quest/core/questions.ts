@@ -10,7 +10,7 @@ export interface QuestionSection {
 export const questSections: QuestionSection[] = [
   {
     id: 'section_1',
-    title: 'About You',
+    title: 'Self',
     description: 'We start with some basic information about you',
     questions: [
       {
@@ -59,7 +59,7 @@ export const questSections: QuestionSection[] = [
   },
   {
     id: 'section_2',
-    title: 'Growing Up',
+    title: 'Grow',
     description: 'To know your roots',
     questions: [
       {
@@ -95,7 +95,7 @@ export const questSections: QuestionSection[] = [
   },
   {
     id: 'section_3',
-    title: 'What You Value and Want',
+    title: 'Values',
     description: 'Understanding your priorities and aspirations',
     questions: [
       {
@@ -166,7 +166,7 @@ export const questSections: QuestionSection[] = [
   },
   {
     id: 'section_4',
-    title: 'Patterns and Behavior',
+    title: 'Behavior',
     description: 'Understanding your habits and emotional responses',
     questions: [
       {
@@ -210,7 +210,7 @@ export const questSections: QuestionSection[] = [
   },
   {
     id: 'section_5',
-    title: 'Self & Identity',
+    title: 'Identity',
     description: 'Understanding how you see yourself and how others see you',
     questions: [
       {
