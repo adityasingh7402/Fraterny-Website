@@ -11,13 +11,13 @@ import Navigation from '@/components/Navigation';
 export function QuestRoute() {
   return (
    <>
-    <div className='mx-auto px-6 relative z-10'>
-      <div className='mb-20'>
+    <div className='relative z-10'>
+      {/* <div className='mb-20'>
       <Navigation />
-      </div>
+      </div> */}
       <QuestPage />
     </div>
-    <Footer />
+    {/* <Footer /> */}
    </>
   )
 }
