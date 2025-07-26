@@ -121,7 +121,7 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
   onChange(event);
   
   // AUTO-SAVE: Call onResponse immediately
-  onResponse(responseValue);
+  // onResponse(responseValue);
 };
   
   // Handle explanation change

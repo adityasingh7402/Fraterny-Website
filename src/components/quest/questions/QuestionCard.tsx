@@ -394,13 +394,14 @@ export function QuestionCard({
   setResponse(newValue);
   
   // AUTO-SAVE: Call onResponse immediately for auto-save
-  onResponse(newValue, selectedTags);
+  // onResponse(newValue, selectedTags);
 };
   
   
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (response.trim()) {
+      
       handleSubmit(response);
     }
   };

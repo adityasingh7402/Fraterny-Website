@@ -33,7 +33,8 @@ export function QuestNavigation({
     nextQuestion,
     skipQuestion,
     previousQuestion,
-    finishSection,
+    submitResponse,
+    changeSection,
     finishQuest,
     sections,           // ADD this
   currentSectionId,
@@ -100,11 +101,104 @@ const isFirstQuestion = isFirstQuestionInEntireAssessment();
   //   }
   // };
 
-  // FILE: src/components/quest/layout/QuestNavigation.tsx
-// REPLACE: The existing handleNext function (around line 40)
-  // FILE: src/components/quest/layout/QuestNavigation.tsx
-// REPLACE: The entire handleNext function
+// const handleNext = () => {
+//   // Check validation for text questions before proceeding
+//   if (currentQuestion?.type === 'text_input') {
+//     const currentTextarea = document.querySelector('textarea');
+//     if (currentTextarea && currentTextarea.value) {
+//       // Save the current response
+//       submitResponse(currentQuestion.id, currentTextarea.value, []);
+//     }
+//   }
+
+//   if (currentQuestion?.type === 'text_input' && session?.responses?.[currentQuestion.id]) {
+//     const response = session.responses[currentQuestion.id].response;
+//     const wordValidation = getWordValidationStatus(response, 100, 90);
+//     console.log('🔍 Word validation check:', wordValidation);
+    
+    
+//     if (!wordValidation.isValid) {
+//       return;
+//     }
+//   }
+  
+//   // Check if this is the last question in current section
+//   if (isLastQuestionInSection) {
+//     // SIMPLE FIX: Always move to next section, ignore validation
+//     const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+//     const nextSectionIndex = currentSectionIndex + 1;
+    
+//     if (nextSectionIndex < sections.length) {
+//       // Move to next section directly
+//       const nextSection = sections[nextSectionIndex];
+//       changeSection(nextSection.id);
+//     } else if (showFinish) {
+//       // Last section, finish quest
+//       if (onFinish) {
+//         onFinish();
+//       } else {
+//         finishQuest();
+//       }
+//     }
+//   } else {
+//     // Move to next question in current section
+//     nextQuestion();
+//   }
+// };
+
 const handleNext = () => {
+  // Save current response before navigating
+  if (currentQuestion) {
+    if (currentQuestion.type === 'text_input') {
+      const currentTextarea = document.querySelector('textarea');
+      if (currentTextarea && currentTextarea.value) {
+        submitResponse(currentQuestion.id, currentTextarea.value, []);
+      }
+    } else if (currentQuestion.type === 'ranking') {
+      // Handle ranking questions - SIMPLE APPROACH
+      // Ranking order is already saved on drag, we just need to save explanation
+      const rankingContainer = document.querySelector('.ranking-response');
+      if (rankingContainer) {
+        const explanationTextarea = rankingContainer.querySelector('textarea');
+        const explanation = explanationTextarea ? explanationTextarea.value : '';
+        
+        // Get existing response (which has the ranking order from drag events)
+        const existingResponse = session?.responses?.[currentQuestion.id]?.response;
+        
+        if (existingResponse) {
+          try {
+            // Parse existing response and update explanation
+            const existingData = JSON.parse(existingResponse);
+            existingData.explanation = explanation;
+            
+            // Save updated response with new explanation
+            submitResponse(currentQuestion.id, JSON.stringify(existingData), []);
+          } catch (e) {
+            // Fallback: create new response if parsing fails
+            const fallbackData = JSON.stringify({
+              rankings: (currentQuestion.options || []).map((text, index) => ({
+                id: `option-${index}`,
+                text: text
+              })),
+              explanation: explanation
+            });
+            submitResponse(currentQuestion.id, fallbackData, []);
+          }
+        } else if (explanation) {
+          // No existing response but has explanation - save basic structure
+          const basicData = JSON.stringify({
+            rankings: (currentQuestion.options || []).map((text, index) => ({
+              id: `option-${index}`,
+              text: text
+            })),
+            explanation: explanation
+          });
+          submitResponse(currentQuestion.id, basicData, []);
+        }
+      }
+    }
+  }
+
   // Check validation for text questions before proceeding
   if (currentQuestion?.type === 'text_input' && session?.responses?.[currentQuestion.id]) {
     const response = session.responses[currentQuestion.id].response;
@@ -117,18 +211,22 @@ const handleNext = () => {
   
   // Check if this is the last question in current section
   if (isLastQuestionInSection) {
-    // Try to move to next section
-    const hasMoreSections = finishSection();
+    // Always move to next section, ignore validation
+    const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+    const nextSectionIndex = currentSectionIndex + 1;
     
-    // If no more sections AND this is the last question in entire assessment, finish quest
-    if (!hasMoreSections && isLastQuestion && showFinish) {
+    if (nextSectionIndex < sections.length) {
+      // Move to next section directly
+      const nextSection = sections[nextSectionIndex];
+      changeSection(nextSection.id);
+    } else if (showFinish) {
+      // Last section, finish quest
       if (onFinish) {
         onFinish();
       } else {
         finishQuest();
       }
     }
-    // If there are more sections, finishSection() already handled the transition
   } else {
     // Move to next question in current section
     nextQuestion();

@@ -46,7 +46,7 @@ export function TextResponse({
     if (maxLength && newValue.length > maxLength) return;
     
     setResponse(newValue);
-    onResponse(newValue);
+    // onResponse(newValue);
   };
 
   

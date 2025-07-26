@@ -273,13 +273,13 @@ const router = createBrowserRouter([
         path: 'assessment',
         element: <ProtectedRoute />,
         children: [
-          { index: true, element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
+          { index: true, element: createSuspenseWrapper()(<QuestRoute />) },
         ],
       },
       
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
-      { path: 'quest-result/*', element: createSuspenseWrapper(QuestLoading)(<QuestResultRoute />) },
-      { path: 'quest-index', element: createSuspenseWrapper(QuestLoading)(<QuestResultIndex />) },
+      { path: 'quest-result/*', element: createSuspenseWrapper()(<QuestResultRoute />) },
+      { path: 'quest-index', element: createSuspenseWrapper()(<QuestResultIndex />) },
       { path: 'quest-landing', element: <QuestLandingPage />},
       
       // LEGAL PAGES - Lazy loaded with minimal loading
