@@ -97,8 +97,6 @@ const handleDragEnd = () => {
   } as React.ChangeEvent<HTMLTextAreaElement>;
   
   onChange(event);
-  
-  // AUTO-SAVE: Call onResponse immediately
   onResponse(responseValue);
 };
 
@@ -124,38 +122,10 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
   // onResponse(responseValue);
 };
   
-  // Handle explanation change
-  // const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //   setState({
-  //     ...state,
-  //     explanation: e.target.value
-  //   });
-    
-  //   // Update the response value
-  //   const responseValue = JSON.stringify({
-  //     ...state,
-  //     explanation: e.target.value
-  //   });
-    
-  //   const event = {
-  //     target: { value: responseValue }
-  //   } as React.ChangeEvent<HTMLTextAreaElement>;
-    
-  //   onChange(event);
-  // };
-  
-  // Handle form submission
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (state.rankings.length > 0) {
-  //     onSubmit(JSON.stringify(state));
-  //   }
-  // };
-  
   return (
     <div className={`ranking-response ${className}`}>
       <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-[18px] text-[#A1A1AA] font-normal font-['Gilroy-Medium'] mb-3">
           Drag items to rank them in order of importance to you:
         </p>
         
@@ -167,16 +137,14 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
               onDragStart={() => handleDragStart(item)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDragEnd={handleDragEnd}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
               className={`
-                flex items-center p-3 rounded-lg border cursor-grab active:cursor-grabbing
-                ${index === 0 ? 'border-gold bg-gold/5' : 'border-gray-200'}
+                flex items-center rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border
+                ${index === 0 ? '' : 'bg-[#FFFFFF]'}
                 ${draggedItem?.id === item.id ? 'opacity-50' : 'opacity-100'}
               `}
             >
               <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-3">
-                <span className="font-medium">{index + 1}</span>
+                <span className="font-['Gilroy-Medium']">{index + 1}</span>
               </div>
               <span>{item.text}</span>
             </motion.div>
@@ -185,14 +153,14 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       </div>
       
       <div className="mt-6">
-        <label className="block text-sm text-gray-600 mb-2">
+        {/* <label className="block text-[18px] text-[#A1A1AA] font-normal font-['Gilroy-Medium'] mb-2">
           Explain why your top choice is most important to you:
-        </label>
+        </label> */}
         <textarea
           value={state.explanation}
           onChange={handleExplanationChange}
           placeholder="Write one sentence explaining why..."
-          className="w-full p-3 border border-gray-200 rounded-lg focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 transition-all min-h-[80px] resize-y"
+          className="w-full p-3 border border-gray-200 rounded-lg justify-start text-zinc-400 text-xl font-normal font-['Gilroy-Medium'] resize-y"
           disabled={disabled}
         />
       </div>
