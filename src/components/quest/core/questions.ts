@@ -42,7 +42,7 @@ export const questSections: QuestionSection[] = [
         text: "What's your gender?",
         difficulty: 'easy',
         type: 'multiple_choice',
-        options: ['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other'],
+        options: ['Male', 'Female', 'Non-binary', 'Other'],
         category: 'personal_info',
         sectionId: 'section_1'
       },
@@ -69,6 +69,7 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'family',
         sectionId: 'section_2',
+        allowTags: true,
         placeholder: '“Parents and an older brother”, “Single parent and one dog”, “Grandparents”, “At a Hostel with friends” Siblings, “Alone with a caretaker as my parents were always travelling”, “With Friends in an orphanage”.'
       },
       {

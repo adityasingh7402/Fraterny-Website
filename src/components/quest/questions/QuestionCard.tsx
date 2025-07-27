@@ -308,6 +308,7 @@ export function QuestionCard({
   const [response, setResponse] = useState<string>(previousResponse?.response || '');
   const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
+  const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
   
   // Animation
   const { ref, controls, variants } = useQuestAnimation({
@@ -347,7 +348,8 @@ export function QuestionCard({
 
     const handleSubmit = (submittedResponse: string) => {
     if (!isActive) return;
-    
+    console.log('Submitting response:', submittedResponse);
+      
     // Call the onResponse callback with the response and tags (no validation blocking)
     onResponse(submittedResponse, selectedTags);
   };
@@ -432,102 +434,50 @@ export function QuestionCard({
     switch (question.type) {
       case 'multiple_choice':
         return (
-          <div className="space-y-3 mb-6">
-            {question.options?.map((option: any, index: any) => (
-              <motion.button
-                key={index}
-                onClick={() => handleSubmit(option)}
-                whileHover={{ scale: 1.02, backgroundColor: 'rgba(224, 122, 95, 0.03)' }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full p-3 text-left border rounded-lg transition-all ${
-                  previousResponse?.response === option
-                    ? 'border-terracotta bg-terracotta/5'
-                    : 'border-gray-200 hover:border-terracotta/50'
-                }`}
-                disabled={!isActive || isAnswered}
-              >
-                {option}
-              </motion.button>
-            ))}
-          </div>
+          <div className="grid grid-cols-2 gap-1 mb-6">
+            {question.options?.map((option, index) => {
+              const isSelected = currentSelection === option;
+              return (
+                <motion.button
+                  key={index}
+                  onClick={() => {
+                    setCurrentSelection(option);
+                    handleSubmit(option);
+                  }}
+                  whileHover={{ backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F' }}
+                  className="rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border"
+                  style={{
+                    backgroundColor: isSelected ? '#E2EFFF' : '#FFFFFF',
+                    borderColor: isSelected ? '#84ADDF' : '#A1A1AA',
+                    color: isSelected ? '#004A7F' : '#A1A1AA'
+                  }}
+                  disabled={!isActive || isAnswered}
+                >
+                  {option}
+                </motion.button>
+              );
+            })}
+
+            <motion.button
+              onClick={() => {
+                handleSubmit("Prefer not to say");
+              }}
+              whileHover={{backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F'}}
+              className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border col-span-2`}
+              style={{
+                backgroundColor: currentSelection === "Prefer not to say" ? '#E2EFFF' : '#FFFFFF',
+                borderColor: currentSelection === "Prefer not to say" ? '#84ADDF' : '#A1A1AA',
+                color: currentSelection === "Prefer not to say" ? '#004A7F' : '#A1A1AA'
+              }}
+              disabled={!isActive || isAnswered}
+            >
+              Prefer not to say
+            </motion.button>
+            </div>
         );
         
       case 'text_input':
-        // NEW: Enhanced text input with word counting
-        // const textValidation = getTextInputValidation();
-        
-        // return (
-        //   <div className="mb-6">
-        //     <form onSubmit={handleFormSubmit}>
-        //       <div className="relative">
-        //         <textarea
-        //           value={response}
-        //           onChange={handleInputChange}
-        //           placeholder="Be as honest as you want to be for the best analysis"
-        //           className={`w-full p-3 border rounded-lg focus:ring-1 transition-all min-h-[100px] resize-y focus:outline-none ${
-        //             textValidation?.wordStatus === 'error' 
-        //               ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
-        //               : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
-        //           }`}
-        //           disabled={!isActive || isAnswered}
-        //         />
-                
-        //         {/* NEW: Counter display */}
-        //         {/* {textValidation && !textValidation.isEmpty && (
-        //           <div className="absolute bottom-2 right-3 text-xs space-y-1 text-right">
-                    
-        //             <div className={`${
-        //               textValidation.characterCount <= maxLength ? 'text-gray-400' : 'text-red-500'
-        //             }`}>
-        //               {textValidation.characterCount}/{maxLength}
-        //             </div>
-                    
-                  
-        //             <div className={`${
-        //               textValidation.wordStatus === 'valid' ? 'text-gray-400' :
-        //               textValidation.wordStatus === 'warning' ? 'text-amber-500' :
-        //               'text-red-500'
-        //             }`}>
-        //               {textValidation.wordCount}/{maxWords} words
-        //             </div>
-        //           </div>
-        //         )} */}
-        //       </div>
-              
-        //       {/* NEW: Word validation message */}
-        //       {textValidation?.wordMessage && (
-        //         <motion.div
-        //           initial={{ opacity: 0, y: -5 }}
-        //           animate={{ opacity: 1, y: 0 }}
-        //           className={`mt-2 text-xs ${
-        //             textValidation.wordStatus === 'warning' ? 'text-amber-600' : 'text-red-600'
-        //           }`}
-        //         >
-        //           {textValidation.wordMessage}
-        //         </motion.div>
-        //       )}
-              
-        //       {isActive && !isAnswered && (
-        //         <motion.button
-        //           type="submit"
-        //           whileHover={{ scale: 1.02 }}
-        //           whileTap={{ scale: 0.98 }}
-        //           className={`mt-3 px-4 py-2 rounded-lg transition-colors ${
-        //             textValidation?.isValid
-        //               ? 'bg-terracotta text-white hover:bg-terracotta/90'
-        //               : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-        //           }`}
-        //           disabled={!textValidation?.isValid}
-        //         >
-        //           Submit
-        //         </motion.button>
-        //       )}
-        //     </form>
-        //   </div>
-        // );
           const textValidation = getTextInputValidation();
-          
-  
           return (
             <div className="mb-6">
               <form onSubmit={handleFormSubmit}>
@@ -539,8 +489,8 @@ export function QuestionCard({
                     
                     className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-zinc-400 text-xl font-normal font-['Gilroy-Medium'] ${
                       textValidation?.wordStatus === 'error' 
-                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-terracotta focus:ring-terracotta/20'
+                        ? '' 
+                        : 'border-gray-200'
                     }`}
                     disabled={!isActive || isAnswered}
                   />
@@ -608,7 +558,7 @@ export function QuestionCard({
               max={question.maxScale || 10}
               value={response || (question.minScale || 1)}
               onChange={handleInputChange}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-terracotta"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
               disabled={!isActive || isAnswered}
             />
             {/* {isActive && !isAnswered && (

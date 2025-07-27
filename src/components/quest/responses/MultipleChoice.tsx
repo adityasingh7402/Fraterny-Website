@@ -14,7 +14,7 @@ export function MultipleChoice({
   isActive = true,
   isAnswered = false,
   previousResponse,
-  layout = 'vertical',
+  layout = 'grid',
   className = ''
 }: MultipleChoiceProps) {
   // Selected option state
@@ -39,7 +39,10 @@ export function MultipleChoice({
   
   // Handle option selection
   const handleOptionSelect = (option: string) => {
+     console.log('handleOptionSelect called with:', option); // DEBUG
+  console.log('isActive:', isActive, 'isAnswered:', isAnswered); // DEBUG
     if (!isActive || isAnswered) return;
+    console.log('Setting selectedOption to:', option); // DEBUG
     
     setSelectedOption(option);
     onResponse(option);
@@ -49,10 +52,10 @@ export function MultipleChoice({
   const getLayoutClass = (): string => {
     switch (layout) {
       case 'grid':
-        return 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+        return 'grid grid-cols-2 sm:grid-cols-2 gap-3';
       case 'vertical':
       default:
-        return 'space-y-3';
+        return 'grid grid-cols-2 sm:grid-cols-2 gap-3';
     }
   };
   
@@ -65,6 +68,11 @@ export function MultipleChoice({
     >
       {options.map((option, index) => {
         const isSelected = option === selectedOption;
+      console.log('Option:', option);
+    console.log('selectedOption:', selectedOption);
+    console.log('previousResponse:', previousResponse);
+    console.log('isSelected:', isSelected);
+    console.log('---');
         
         // Use the choice animation hook
         const { 
@@ -96,8 +104,8 @@ export function MultipleChoice({
             className={`
               w-full p-3 text-left border rounded-lg transition-all
               ${isSelected 
-                ? 'border-terracotta bg-terracotta/5 shadow-sm' 
-                : 'border-gray-200 hover:border-terracotta/30'
+                ? 'bg-[#E2EFFF] border-[#84ADDF] text-[#004A7F]' 
+                : ''
               }
               ${!isActive || isAnswered ? 'opacity-80 cursor-default' : 'cursor-pointer'}
             `}

@@ -53,11 +53,6 @@ export function QuestAssessment({ onComplete, className = '' }: QuestAssessmentP
 
   // Handle response submission
 const handleResponse = async (response: string, tags?: HonestyTag[]) => {
-  console.log('🎯 handleResponse called:', { 
-    questionId: currentQuestion?.id, 
-    responseLength: response.length,
-    tags 
-  });
   
   if (!currentQuestion) {
     console.log('❌ No current question - cannot handle response');
@@ -67,28 +62,28 @@ const handleResponse = async (response: string, tags?: HonestyTag[]) => {
   setIsSubmitting(true);
   
   try {
-    console.log('💾 About to call submitResponse...');
+    // console.log('💾 About to call submitResponse...');
     
     // Submit the response and wait for completion
     await submitResponse(currentQuestion.id, response, tags);
     
-    console.log('✅ submitResponse completed successfully');
+    // console.log('✅ submitResponse completed successfully');
     
     // Small delay to ensure state update completes
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    console.log('➡️ About to call nextQuestion...');
+    // console.log('➡️ About to call nextQuestion...');
     
     // Move to next question
     // nextQuestion();
     
-    console.log('✅ nextQuestion completed');
+    // console.log('✅ nextQuestion completed');
     
   } catch (error) {
     console.error('❌ Error in handleResponse:', error);
   } finally {
     setIsSubmitting(false);
-    console.log('🏁 handleResponse completed');
+    // console.log('🏁 handleResponse completed');
   }
 };
   
