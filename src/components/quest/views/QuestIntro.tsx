@@ -146,6 +146,8 @@ import { QuestLayout } from '../layout/QuestLayout';
 import { QuestionSection } from '../core/types';
 import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { BouncingWord } from './questbouncing/BouncingWord';
+import {useIsMobile} from './questbouncing/use-mobile';
 
 
 interface QuestIntroProps {
@@ -167,15 +169,8 @@ export function QuestIntro({
   // const estimatedTimeInMinutes = Math.ceil(allQuestions.length * 0.7); // Roughly 40 seconds per question
   // const timeRange = `${estimatedTimeInMinutes}-${estimatedTimeInMinutes + 5} mins`;
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const isMobile = useIsMobile();
   
-  // Start the quest when the button is clicked
-  // const handleStart = async () => {
-  //   await startQuest();
-  //   if (onStart) onStart();
-  // };
-
-
-// Modified click handler
 const handleStart = async () => {
   if (!isTermsAccepted) {
      toast.error("Hey, You'll have to accept the terms and conditions to start the test", {
@@ -207,71 +202,141 @@ const handleTermsChange = (checked: boolean) => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  // if (isMobile) {
+  //   return (
+  //     <section className='bg-sky-800 flex flex-col gap-1 h-screen'>
+  //       <div className=''>
+  //         <BouncingWord />
+  //       </div>
+
+  //       <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0'>
+  //         <div className="justify-start text-white text-4xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you</div>
+  //         <div className="justify-start text-white text-6xl font-normal font-['Gilroy-Bold'] mb-3">Analysed.</div>
+  //         <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">I am designed to deeply understand your personality through simple yet thought provoking questions.</div>
+  //         <label className='flex gap-2 mb-3 cursor-pointer'>
+  //           {/* checkbox code from above */}
+  //           <label className="relative inline-block w-5 h-5 cursor-pointer mt-1">
+  //             <input
+  //               type="checkbox"
+  //               checked={isTermsAccepted}
+  //               onChange={(e) => handleTermsChange(e.target.checked)}
+  //               className="sr-only"
+  //             />
+  //             <motion.div
+  //               initial={false}
+  //               animate={{
+  //                 backgroundColor: isTermsAccepted ? 'white' : 'rgb(7 89 133)', // sky-800
+  //                 scale: isTermsAccepted ? 1.1 : 1
+  //               }}
+  //               transition={{ duration: 0.2 }}
+  //               className="w-5 h-5 rounded-[3px] border-[1.50px] border-white flex items-center justify-center"
+  //             >
+  //               {isTermsAccepted && (
+  //                 <motion.svg
+  //                   initial={{ scale: 0 }}
+  //                   animate={{ scale: 1 }}
+  //                   transition={{ duration: 0.2 }}
+  //                   className="w-3 h-3 text-sky-800"
+  //                   fill="currentColor"
+  //                   viewBox="0 0 20 20"
+  //                 >
+  //                   <path
+  //                     fillRule="evenodd"
+  //                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+  //                     clipRule="evenodd"
+  //                   />
+  //                 </motion.svg>
+  //               )}
+  //             </motion.div>
+  //           </label>
+  //           <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"] pr-1'>
+  //             I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</span>
+  //           </div>
+  //         </label>
+  //         <div className='w-full pr-3'>
+  //         <button 
+  //         onClick={handleStart}
+  //         className=" w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
+  //           <div className='flex gap-0'>
+  //             <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">Get Started</div>
+  //             <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
+              
+  //         </div>
+  //         </button>
+  //         </div>
+
+  //       </div>
+
+  //     </section>
+  //   );
+  // }
   
   return (
-    <section className='bg-sky-800 overflow-hidden h-screen flex flex-col gap-5'>
-      <div className='h-[600px]'>
-
-      </div>
-
-      <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0 pr-5'>
-        <div className="justify-start text-white text-4xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you</div>
-        <div className="justify-start text-white text-6xl font-normal font-['Gilroy-Bold'] mb-3">Analysed.</div>
-        <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">I am designed to deeply understand your personality through simple yet thought provoking questions.</div>
-        <label className='flex gap-2 mb-3 cursor-pointer'>
-          {/* checkbox code from above */}
-          <label className="relative inline-block w-5 h-5 cursor-pointer mt-1">
-            <input
-              type="checkbox"
-              checked={isTermsAccepted}
-              onChange={(e) => handleTermsChange(e.target.checked)}
-              className="sr-only"
-            />
-            <motion.div
-              initial={false}
-              animate={{
-                backgroundColor: isTermsAccepted ? 'white' : 'rgb(7 89 133)', // sky-800
-                scale: isTermsAccepted ? 1.1 : 1
-              }}
-              transition={{ duration: 0.2 }}
-              className="w-5 h-5 rounded-[3px] border-[1.50px] border-white flex items-center justify-center"
-            >
-              {isTermsAccepted && (
-                <motion.svg
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="w-3 h-3 text-sky-800"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </motion.svg>
-              )}
-            </motion.div>
-          </label>
-          <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"]'>
-            I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</span>
-          </div>
-        </label>
-        <button 
-        onClick={handleStart}
-        className=" w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
-          <div className='flex gap-0'>
-            <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">Get Started</div>
-            <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
-            
+    <section className='bg-sky-800 flex flex-col gap-1 h-screen'>
+        <div className=''>
+          <BouncingWord />
         </div>
-        </button>
 
+        <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0'>
+          <div className="justify-start text-white text-4xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you</div>
+          <div className="justify-start text-white text-6xl font-normal font-['Gilroy-Bold'] mb-3">Analysed.</div>
+          <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">I am designed to deeply understand your personality through simple yet thought provoking questions.</div>
+          <label className='flex gap-2 mb-3 cursor-pointer'>
+            {/* checkbox code from above */}
+            <label className="relative inline-block w-5 h-5 cursor-pointer mt-1">
+              <input
+                type="checkbox"
+                checked={isTermsAccepted}
+                onChange={(e) => handleTermsChange(e.target.checked)}
+                className="sr-only"
+              />
+              <motion.div
+                initial={false}
+                animate={{
+                  backgroundColor: isTermsAccepted ? 'white' : 'rgb(7 89 133)', // sky-800
+                  scale: isTermsAccepted ? 1.1 : 1
+                }}
+                transition={{ duration: 0.2 }}
+                className="w-5 h-5 rounded-[3px] border-[1.50px] border-white flex items-center justify-center"
+              >
+                {isTermsAccepted && (
+                  <motion.svg
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="w-3 h-3 text-sky-800"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </motion.svg>
+                )}
+              </motion.div>
+            </label>
+            <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"] pr-1'>
+              I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</span>
+            </div>
+          </label>
+          <div className='w-full pr-3'>
+          <button 
+          onClick={handleStart}
+          className=" w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
+            <div className='flex gap-0'>
+              <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">Get Started</div>
+              <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
+              
+          </div>
+          </button>
+          </div>
 
-      </div>
+        </div>
 
-    </section>
+      </section>
   );
 }
 
