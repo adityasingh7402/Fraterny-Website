@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hero, StatisticsSection, BenefitsSection, AnalyzeSection } from './index';
+import {useIsMobile} from '../../quest/views/questbouncing/use-mobile';
 
 interface ScreenContainerProps {
   onAnalyzeClick?: () => void;
@@ -41,7 +42,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     }
   };
 
-
+  const isMobile = useIsMobile();
 
   // Logo click handler - navigate to screen 1
   const handleLogoClick = () => {
@@ -54,91 +55,6 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   useEffect(() => {
     let touchStartY = 0;
     let touchEndY = 0;
-
-//     const handleWheel = (event: WheelEvent) => {
-//   // console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
-  
-//   // For AnalyzeSection (screen 3), handle scroll differently
-//   if (current === 3) {
-//     const scrollContainer = analyzeScrollRef.current;
-//     if (scrollContainer) {
-//       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-//       const isAtTop = scrollTop <= 5;
-//       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-//       const hasScrollableContent = scrollHeight > clientHeight; // Check if there's actually content to scroll
-      
-//       // console.log('📊 Screen 4 scroll info:', {
-//       //   scrollTop,
-//       //   scrollHeight,
-//       //   clientHeight,
-//       //   isAtTop,
-//       //   isAtBottom,
-//       //   hasScrollableContent,
-//       //   deltaY: event.deltaY,
-//       //   isTransitioning
-//       // });
-      
-//       // If there's no scrollable content, require stronger scroll to change screens
-//       const scrollThreshold = hasScrollableContent ? 50 : 100;
-//       // console.log('🔍 Scroll check:', { 
-//       //   deltaY: event.deltaY, 
-//       //   threshold: -scrollThreshold, 
-//       //   isAtTop, 
-//       //   willTrigger: event.deltaY < -scrollThreshold && isAtTop 
-//       // });
-
-      
-//       // Only allow screen transition when at very top and strong upward scroll
-//       if (event.deltaY < -scrollThreshold && isAtTop && current > 0) {
-//         // console.log('⬆️ TRIGGERING SCREEN TRANSITION - Going to previous screen');
-//         event.preventDefault();
-//         if (!isTransitioning) {
-//           setIsTransitioning(true);
-//           setCurrent(current - 1);
-//         }
-//       } else if (event.deltaY > 0 && isAtBottom && current < 3) {
-//         // console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
-//         event.preventDefault();
-//         if (!isTransitioning) {
-//           setIsTransitioning(true);
-//           setCurrent(current + 1);
-//         }
-//       } else {
-//         // console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
-//         // Allow natural scrolling (even if there's no content to scroll)
-//       }
-//     } else {
-//       console.log('❌ No scroll container found');
-//     }
-//     return;
-//   }
-//   // For other screens, prevent default and handle screen transitions
-//   event.preventDefault();
-  
-//   if (isTransitioning) {
-//     // console.log('⏳ Already transitioning, ignoring');
-//     return;
-//   }
-
-//   const scrollDown = event.deltaY > 0;
-//   const scrollUp = event.deltaY < 0;
-//   const scrollThreshold = 50;
-  
-//   if (Math.abs(event.deltaY) < scrollThreshold) {
-//     // console.log('🔻 Below threshold, ignoring');
-//     return;
-//   }
-
-//   if (scrollDown && current < 3) {
-//     // console.log('⬇️ Going to next screen from', current);
-//     setIsTransitioning(true);
-//     setCurrent(current + 1);
-//   } else if (scrollUp && current > 0) {
-//     // console.log('⬆️ Going to previous screen from', current);
-//     setIsTransitioning(true);
-//     setCurrent(current - 1);
-//   }
-// };
 
     const handleWheel = (event: WheelEvent) => {
   console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
@@ -298,46 +214,6 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       touchStartY = event.changedTouches[0].screenY;
     };
 
-    // const handleTouchEnd = (event: TouchEvent) => {
-    //   if (isTransitioning) return;
-      
-    //   touchEndY = event.changedTouches[0].screenY;
-    //   const touchDiff = touchStartY - touchEndY;
-    //   const minSwipeDistance = 50;
-
-    //   if (Math.abs(touchDiff) < minSwipeDistance) return;
-
-    //   // For AnalyzeSection (screen 3), handle touch differently
-    //   if (current === 3) {
-    //     const scrollContainer = analyzeScrollRef.current;
-    //     if (scrollContainer) {
-    //       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-    //       const isAtTop = scrollTop === 0;
-    //       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-          
-    //       if (touchDiff < 0 && isAtTop && current > 0) {
-    //         // Swipe down and at top - go to previous screen
-    //         setIsTransitioning(true);
-    //         setCurrent(current - 1);
-    //       } else if (touchDiff > 0 && isAtBottom && current < 3) {
-    //         // Swipe up and at bottom - go to next screen
-    //         setIsTransitioning(true);
-    //         setCurrent(current + 1);
-    //       }
-    //     }
-    //     return;
-    //   }
-
-    //   // For other screens
-    //   if (touchDiff > 0 && current < 3) {
-    //     setIsTransitioning(true);
-    //     setCurrent(current + 1);
-    //   } else if (touchDiff < 0 && current > 0) {
-    //     setIsTransitioning(true);
-    //     setCurrent(current - 1);
-    //   }
-    // };
-
     const container = containerRef.current;
     if (container) {
       container.addEventListener('wheel', handleWheel, { passive: false });
@@ -486,7 +362,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       )}
 
       {/* Navigation indicator */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div className={`fixed bottom-4 right-4 z-50 flex flex-col gap-2 ${isMobile ? '' : 'hidden'}`}>
         {[0, 1, 2, 3].map((index) => (
           <button
             key={index}

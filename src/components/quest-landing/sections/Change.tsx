@@ -1,5 +1,6 @@
 import React from 'react'
 import img from '../../../../public/changepic.png'
+import { Link } from 'react-router-dom';
 
 const Change = () => {
   return (
@@ -20,16 +21,18 @@ const Change = () => {
             />
         </div>
         <div className='w-full h-50 rounded-md bg-gray-400'/>
-        <button className='flex py-4 p-2 text-white text-[24px] w-full items-center justify-center rounded-full'
-        style={{ 
-          background: 'linear-gradient(91.45deg, #001F60 1%, #1D99DF 101.13%)',
-          border: '2px solid transparent',
-         }}
-        >
-          <span  className= 'font-["Gilroy-Bold"]' style={{ letterSpacing: '-8%' }}>
-            Analyse Me
-          </span>
-        </button>
+        <Link to="/assessment">
+          <button className='flex py-4 p-2 text-white text-[24px] w-full items-center justify-center rounded-full'
+          style={{ 
+            background: 'linear-gradient(91.45deg, #001F60 1%, #1D99DF 101.13%)',
+            border: '2px solid transparent',
+          }}
+          >
+            <span  className= 'font-["Gilroy-Bold"]' style={{ letterSpacing: '-8%' }}>
+              Analyse Me
+            </span>
+          </button>
+        </Link>
     </div>
   )
 }
