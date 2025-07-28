@@ -68,11 +68,6 @@ export function MultipleChoice({
     >
       {options.map((option, index) => {
         const isSelected = option === selectedOption;
-      console.log('Option:', option);
-    console.log('selectedOption:', selectedOption);
-    console.log('previousResponse:', previousResponse);
-    console.log('isSelected:', isSelected);
-    console.log('---');
         
         // Use the choice animation hook
         const { 

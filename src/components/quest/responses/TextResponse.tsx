@@ -95,7 +95,7 @@ export function TextResponse({
           animate={{ opacity: 1, y: 0 }}
           className={`
             w-full p-4 border rounded-lg transition-all resize-y min-h-[120px]
-            ${isFocused ? 'border-terracotta ring-1 ring-terracotta/20' : 'border-gray-200'}
+            ${isFocused ? '' : 'border-gray-200'}
             ${!isActive || isAnswered ? 'bg-gray-50 opacity-90 cursor-default' : ''}
             ${wordValidation.status === 'error' ? 'border-red-300 ring-1 ring-red-200' : ''}
             focus:outline-none

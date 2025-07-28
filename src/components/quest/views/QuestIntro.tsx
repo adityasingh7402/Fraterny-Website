@@ -178,10 +178,11 @@ export function QuestIntro({
 // Modified click handler
 const handleStart = async () => {
   if (!isTermsAccepted) {
-    toast.error("Please accept the terms and conditions to continue");
+     toast.error("Hey, You'll have to accept the terms and conditions to start the test", {
+      position: "top-right"
+    });
     return;
   }
-  
   await startQuest();
   if (onStart) onStart();
 };
@@ -208,121 +209,6 @@ const handleTermsChange = (checked: boolean) => {
   };
   
   return (
-    // <QuestLayout showHeader={false} showNavigation={false} className={className}>
-    //   <motion.div
-    //     variants={containerVariants}
-    //     initial="hidden"
-    //     animate="visible"
-    //     className="max-w-3xl mx-auto px-4 py-8 text-center md:text-left"
-    //   >
-    //     {/* Header */}
-    //     <motion.h1 
-    //       variants={itemVariants}
-    //       className="text-3xl md:text-4xl font-playfair text-navy mb-2"
-    //     >
-    //       Psychology Assessment
-    //     </motion.h1>
-        
-    //     <motion.p 
-    //       variants={itemVariants}
-    //       className="text-gray-600 mb-8"
-    //     >
-    //       Understanding your personality, mindset, emotions, and inner drivers.
-    //     </motion.p>
-        
-    //     {/* Key info */}
-    //     <motion.div
-    //       variants={itemVariants}
-    //       className="bg-gray-50 rounded-lg p-4 md:p-6 mb-6 grid grid-cols-3 gap-4 text-center"
-    //     >
-    //       <div>
-    //         <div className="text-sm text-gray-500">Estimated Time</div>
-    //         <div className="font-medium">{timeRange}</div>
-    //       </div>
-    //       <div>
-    //         <div className="text-sm text-gray-500">Total Questions</div>
-    //         <div className="font-medium">{allQuestions.length}</div>
-    //       </div>
-    //       <div>
-    //         <div className="text-sm text-gray-500">Sections</div>
-    //         <div className="font-medium">{sections.length}</div>
-    //       </div>
-    //     </motion.div>
-        
-    //     {/* Description */}
-    //     <motion.p
-    //       variants={itemVariants}
-    //       className="mb-6 text-gray-700"
-    //     >
-    //       This assessment is designed to deeply understand your personality through
-    //       simple yet thought-provoking questions.
-    //     </motion.p>
-        
-    //     {/* Sections overview */}
-    //     <motion.div variants={itemVariants} className="mb-8">
-    //       <h2 className="text-xl font-medium text-navy mb-4">What You'll Explore</h2>
-          
-    //       <div className="space-y-4">
-    //         {sections.map((section, index) => (
-    //           <div 
-    //             key={section.id}
-    //             className="bg-white rounded-lg border border-gray-200 p-4 flex gap-4 items-center"
-    //           >
-    //             <div 
-    //               className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-medium ${
-    //                 index % 3 === 0 ? 'bg-terracotta/10 text-terracotta' :
-    //                 index % 3 === 1 ? 'bg-navy/10 text-navy' :
-    //                 'bg-gold/10 text-gold'
-    //               }`}
-    //             >
-    //               {index + 1}
-    //             </div>
-    //             <div className="flex-1">
-    //               <h3 className="font-medium text-navy">{section.title}</h3>
-    //               <p className="text-sm text-gray-600">{section.description}</p>
-    //             </div>
-    //             <div className="text-sm text-gray-500">
-    //               {section.questions.length} questions
-    //             </div>
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </motion.div>
-        
-    //     {/* Instructions */}
-    //     <motion.div variants={itemVariants} className="mb-8">
-    //       <ul className="space-y-2 text-gray-700">
-    //         <li className="flex items-start">
-    //           <span className="text-terracotta mr-2">•</span> 
-    //           Answer however you feel like. Try to be honest to improve accuracy.
-    //         </li>
-    //         <li className="flex items-start">
-    //           <span className="text-terracotta mr-2">•</span> 
-    //           You can choose to answer "I don't know" or "I'm not sure" if you prefer.
-    //         </li>
-    //         <li className="flex items-start">
-    //           <span className="text-terracotta mr-2">•</span> 
-    //           Your data is safe and secure. We respect your privacy.
-    //         </li>
-    //       </ul>
-    //     </motion.div>
-        
-    //     {/* Start button */}
-    //     <motion.div
-    //       variants={itemVariants}
-    //       className="flex justify-center md:justify-start"
-    //     >
-    //       <motion.button
-    //         onClick={handleStart}  // Changed to use handleStart instead of onStart directly
-    //         whileHover={{ scale: 1.05 }}
-    //         whileTap={{ scale: 0.98 }}
-    //         className="px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors font-medium text-lg"
-    //       >
-    //         Start Assessment
-    //       </motion.button>
-    //     </motion.div>
-    //   </motion.div>
-    // </QuestLayout>
     <section className='bg-sky-800 overflow-hidden h-screen flex flex-col gap-5'>
       <div className='h-[600px]'>
 
@@ -369,14 +255,14 @@ const handleTermsChange = (checked: boolean) => {
             </motion.div>
           </label>
           <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"]'>
-            I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">terms and conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">privacy policy.</span>
+            I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</span>
           </div>
         </label>
         <button 
         onClick={handleStart}
-        className=" w-full h-10 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
+        className=" w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
           <div className='flex gap-0'>
-            <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold']">Get Started</div>
+            <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">Get Started</div>
             <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
             
         </div>
