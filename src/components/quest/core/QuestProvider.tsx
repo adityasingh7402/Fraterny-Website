@@ -496,67 +496,6 @@ const isLastQuestionInEntireAssessment = () => {
   return currentGlobalIndex === totalQuestions - 1;
 };
 
-// // ENHANCE THE EXISTING changeSection FUNCTION
-// const changeSection = (newSectionId: string) => {
-//   // Validate that the section exists
-//   const targetSection = questSections.find(s => s.id === newSectionId);
-//   if (!targetSection) {
-//     console.warn(`Section ${newSectionId} not found`);
-//     return;
-//   }
-
-//   // If already in the target section, do nothing
-//   if (currentSectionId === newSectionId) {
-//     return;
-//   }
-
-//   // Update current section
-//   setCurrentSectionId(newSectionId);
-  
-//   // Reset to first question of the new section
-//   setSession(prev => {
-//     if (!prev) return null;
-    
-//     return {
-//       ...prev,
-//       currentQuestionIndex: 0, // Always start from first question
-//       sectionId: newSectionId
-//     };
-//   });
-  
-//   // Clear any errors
-//   setError(null);
-// };
-
-// // ENHANCE THE EXISTING finishSection FUNCTION  
-// const finishSection = (): boolean => {
-//   if (!session || !getCurrentSection()) return false;
-  
-//   // Check if all questions in current section are answered
-//       const allQuestionsAnswered = getCurrentSection().questions.every(q => 
-//     session.responses && session.responses[q.id]
-//   );
-  
-//   if (!allQuestionsAnswered) {
-//     // Don't automatically move to next section if current isn't complete
-//     return false;
-//   }
-  
-//   // Find next section
-//   const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
-//   const nextSectionIndex = currentIndex + 1;
-  
-//   if (nextSectionIndex < questSections.length) {
-//     // Move to next section
-//     const nextSection = questSections[nextSectionIndex];
-//     changeSection(nextSection.id);
-//     return true;
-//   }
-  
-//   // No more sections - assessment is complete
-//   return false;
-// };
-
 const finishSection = (): boolean => {
   console.log('🔄 finishSection called');
   console.log('📍 Session exists:', !!session);
