@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuest } from '../core/useQuest';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getWordValidationStatus } from '../utils/questValidation';
+import { HonestyTag } from '../core/types';
 
 interface QuestNavigationProps {
   showPrevious?: boolean;
@@ -81,41 +82,65 @@ const isLastQuestion = isLastQuestionInEntireAssessment();
 };
 
 const isFirstQuestion = isFirstQuestionInEntireAssessment();
-  
-  //   const handleNext = () => {
-  //   if (isLastQuestion) {
-  //     // If this is the last question, finish the section
-  //     const hasMoreSections = finishSection();
-      
-  //     // If there are no more sections, finish the quest
-  //     if (!hasMoreSections && showFinish) {
-  //       if (onFinish) {
-  //         onFinish();
-  //       } else {
-  //         finishQuest();
-  //       }
-  //     }
-  //   } else {
-  //     // Otherwise, go to the next question
-  //     nextQuestion();
-  //   }
-  // };
+
 
 // const handleNext = () => {
-//   // Check validation for text questions before proceeding
-//   if (currentQuestion?.type === 'text_input') {
-//     const currentTextarea = document.querySelector('textarea');
-//     if (currentTextarea && currentTextarea.value) {
-//       // Save the current response
-//       submitResponse(currentQuestion.id, currentTextarea.value, []);
+//   // Save current response before navigating
+//   if (currentQuestion) {
+//     if (currentQuestion.type === 'text_input') {
+//       const currentTextarea = document.querySelector('textarea');
+//       if (currentTextarea && currentTextarea.value) {
+//         submitResponse(currentQuestion.id, currentTextarea.value, []);
+//       }
+//     } else if (currentQuestion.type === 'ranking') {
+//       // Handle ranking questions - SIMPLE APPROACH
+//       // Ranking order is already saved on drag, we just need to save explanation
+//       const rankingContainer = document.querySelector('.ranking-response');
+//       if (rankingContainer) {
+//         const explanationTextarea = rankingContainer.querySelector('textarea');
+//         const explanation = explanationTextarea ? explanationTextarea.value : '';
+        
+//         // Get existing response (which has the ranking order from drag events)
+//         const existingResponse = session?.responses?.[currentQuestion.id]?.response;
+        
+//         if (existingResponse) {
+//           try {
+//             // Parse existing response and update explanation
+//             const existingData = JSON.parse(existingResponse);
+//             existingData.explanation = explanation;
+            
+//             // Save updated response with new explanation
+//             submitResponse(currentQuestion.id, JSON.stringify(existingData), []);
+//           } catch (e) {
+//             // Fallback: create new response if parsing fails
+//             const fallbackData = JSON.stringify({
+//               rankings: (currentQuestion.options || []).map((text, index) => ({
+//                 id: `option-${index}`,
+//                 text: text
+//               })),
+//               explanation: explanation
+//             });
+//             submitResponse(currentQuestion.id, fallbackData, []);
+//           }
+//         } else if (explanation) {
+//           // No existing response but has explanation - save basic structure
+//           const basicData = JSON.stringify({
+//             rankings: (currentQuestion.options || []).map((text, index) => ({
+//               id: `option-${index}`,
+//               text: text
+//             })),
+//             explanation: explanation
+//           });
+//           submitResponse(currentQuestion.id, basicData, []);
+//         }
+//       }
 //     }
 //   }
 
+//   // Check validation for text questions before proceeding
 //   if (currentQuestion?.type === 'text_input' && session?.responses?.[currentQuestion.id]) {
 //     const response = session.responses[currentQuestion.id].response;
 //     const wordValidation = getWordValidationStatus(response, 100, 90);
-//     console.log('🔍 Word validation check:', wordValidation);
-    
     
 //     if (!wordValidation.isValid) {
 //       return;
@@ -124,7 +149,7 @@ const isFirstQuestion = isFirstQuestionInEntireAssessment();
   
 //   // Check if this is the last question in current section
 //   if (isLastQuestionInSection) {
-//     // SIMPLE FIX: Always move to next section, ignore validation
+//     // Always move to next section, ignore validation
 //     const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
 //     const nextSectionIndex = currentSectionIndex + 1;
     
@@ -146,15 +171,73 @@ const isFirstQuestion = isFirstQuestionInEntireAssessment();
 //   }
 // };
 
+// Replace the handleNext function in your QuestNavigation.tsx with this updated version:
+
 const handleNext = () => {
-  // Save current response before navigating
+  // Save current response AND TAGS before navigating
   if (currentQuestion) {
+    
+    // 🔧 NEW: Function to get selected tags from the QuestionCard's local state
+    const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
+      // Try to get tags from the local storage that QuestionCard saves to
+      try {
+        const saved = localStorage.getItem(`quest_tags_${currentQuestion.id}`);
+        if (saved) {
+          const tags = JSON.parse(saved);
+          console.log('🏷️ Navigation found saved tags in localStorage:', { questionId: currentQuestion.id, tags });
+          return tags;
+        }
+      } catch (error) {
+        console.error('Failed to load tags from localStorage:', error);
+      }
+      
+      // Fallback: Try to read from DOM if localStorage approach doesn't work
+      const tagButtons = document.querySelectorAll('[data-tag-selected="true"]');
+      const selectedTags: HonestyTag[] = [];
+      
+      tagButtons.forEach(button => {
+        const tagValue = button.getAttribute('data-tag-value') as HonestyTag;
+        if (tagValue) {
+          selectedTags.push(tagValue);
+        }
+      });
+      
+      console.log('🏷️ Navigation found tags from DOM:', { questionId: currentQuestion.id, selectedTags });
+      return selectedTags;
+    };
+
     if (currentQuestion.type === 'text_input') {
       const currentTextarea = document.querySelector('textarea');
       if (currentTextarea && currentTextarea.value) {
-        submitResponse(currentQuestion.id, currentTextarea.value, []);
+        // Get the selected tags
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        
+        console.log('💾 Navigation saving text response with tags:', {
+          questionId: currentQuestion.id,
+          response: currentTextarea.value,
+          tags: selectedTags
+        });
+        
+        // Submit response with tags
+        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
       }
-    } else if (currentQuestion.type === 'ranking') {
+    } 
+    else if (currentQuestion.type === 'multiple_choice') {
+      // Handle multiple choice questions
+      const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
+      if (selectedRadio) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        
+        console.log('💾 Navigation saving multiple choice response with tags:', {
+          questionId: currentQuestion.id,
+          response: selectedRadio.value,
+          tags: selectedTags
+        });
+        
+        submitResponse(currentQuestion.id, selectedRadio.value, selectedTags);
+      }
+    }
+    else if (currentQuestion.type === 'ranking') {
       // Handle ranking questions - SIMPLE APPROACH
       // Ranking order is already saved on drag, we just need to save explanation
       const rankingContainer = document.querySelector('.ranking-response');
@@ -171,8 +254,17 @@ const handleNext = () => {
             const existingData = JSON.parse(existingResponse);
             existingData.explanation = explanation;
             
-            // Save updated response with new explanation
-            submitResponse(currentQuestion.id, JSON.stringify(existingData), []);
+            // Get selected tags
+            const selectedTags = getSelectedTagsFromQuestionCard();
+            
+            console.log('💾 Navigation saving ranking response with tags:', {
+              questionId: currentQuestion.id,
+              data: existingData,
+              tags: selectedTags
+            });
+            
+            // Save updated response with new explanation and tags
+            submitResponse(currentQuestion.id, JSON.stringify(existingData), selectedTags);
           } catch (e) {
             // Fallback: create new response if parsing fails
             const fallbackData = JSON.stringify({
@@ -182,7 +274,9 @@ const handleNext = () => {
               })),
               explanation: explanation
             });
-            submitResponse(currentQuestion.id, fallbackData, []);
+            
+            const selectedTags = getSelectedTagsFromQuestionCard();
+            submitResponse(currentQuestion.id, fallbackData, selectedTags);
           }
         } else if (explanation) {
           // No existing response but has explanation - save basic structure
@@ -193,8 +287,36 @@ const handleNext = () => {
             })),
             explanation: explanation
           });
-          submitResponse(currentQuestion.id, basicData, []);
+          
+          const selectedTags = getSelectedTagsFromQuestionCard();
+          submitResponse(currentQuestion.id, basicData, selectedTags);
         }
+      }
+    }
+    else if (currentQuestion.type === 'date_input') {
+      const currentDateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+      if (currentDateInput && currentDateInput.value) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        console.log('💾 Navigation saving date response with tags:', {
+          questionId: currentQuestion.id,
+          response: currentDateInput.value,
+          tags: selectedTags
+        });
+        submitResponse(currentQuestion.id, currentDateInput.value, selectedTags);
+      }
+    }
+    else {
+      // For any other question type, still try to save tags if they exist
+      const selectedTags = getSelectedTagsFromQuestionCard();
+      if (selectedTags.length > 0) {
+        console.log('💾 Navigation saving tags for other question type:', {
+          questionId: currentQuestion.id,
+          type: currentQuestion.type,
+          tags: selectedTags
+        });
+        
+        // Save with empty response but include tags
+        submitResponse(currentQuestion.id, '', selectedTags);
       }
     }
   }

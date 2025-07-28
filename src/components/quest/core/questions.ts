@@ -42,7 +42,7 @@ export const questSections: QuestionSection[] = [
         text: "What's your gender?",
         difficulty: 'easy',
         type: 'multiple_choice',
-        options: ['Male', 'Female', 'Non-binary', 'Other'],
+        options: ['Male', 'Female', 'Non-binary', 'LGBTQ', 'Prefer not to say'],
         category: 'personal_info',
         sectionId: 'section_1'
       },

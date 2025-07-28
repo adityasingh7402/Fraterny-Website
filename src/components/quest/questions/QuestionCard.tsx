@@ -1,286 +1,4 @@
-// import React, { useState } from 'react';
-// import { motion } from 'framer-motion';
-// import { useQuestAnimation } from '../animations/useQuestAnimation';
-// import { QuestionCardProps } from './types';
-// import { HonestyTag } from '../core/types';
-// import { PrivacyIndicator } from '../trust-elements/PrivacyIndicator';
-// import { AuthenticityTags } from '../trust-elements/AuthenticityTags';
-// import { DateResponse } from '../responses/DateResponse';
-// import { RankingResponse } from '../responses/RankingResponse';
-
-// /**
-//  * Base question card component
-//  * Renders a question with appropriate input type and honesty tags
-//  */
-// export function QuestionCard({
-//   question,
-//   onResponse,
-//   isActive = true,
-//   isAnswered = false,
-//   previousResponse,
-//   showTags = true,
-//   className = ''
-// }: QuestionCardProps) {
-//   // State for the current response
-//   const [response, setResponse] = useState<string>(previousResponse?.response || '');
-//   const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
-//   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
-  
-//   // Animation
-//   const { ref, controls, variants } = useQuestAnimation({
-//     variant: 'questionCard',
-//     triggerOnce: true
-//   });
-  
-//   // Handle tag selection
-//   const handleTagSelect = (tag: HonestyTag) => {
-//     setSelectedTags(prev => {
-//       // If tag is already selected, remove it
-//       if (prev.includes(tag)) {
-//         return prev.filter(t => t !== tag);
-//       }
-//       // Otherwise, add it
-//       return [...prev, tag];
-//     });
-//   };
-  
-//   // Handle flexible response toggle
-//   const handleFlexibleResponseToggle = () => {
-//     setShowFlexibleOptions(!showFlexibleOptions);
-//   };
-  
-//   // Flexible response options
-//   const flexibleResponses = [
-//     "I don't know",
-//     "I'm not sure but...",
-//     "I don't want to answer this question"
-//   ];
-  
-//   // Handle response submission
-//   const handleSubmit = (submittedResponse: string) => {
-//     if (!isActive) return;
-    
-//     // Call the onResponse callback with the response and tags
-//     onResponse(submittedResponse, selectedTags);
-//   };
-  
-//   // Handle text input change
-//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-//     setResponse(e.target.value);
-//   };
-  
-//   // Handle form submission
-//   const handleFormSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (response.trim()) {
-//       handleSubmit(response);
-//     }
-//   };
-  
-//   // Render different input types based on question type
-//   const renderQuestionInput = () => {
-//     switch (question.type) {
-//       case 'multiple_choice':
-//         return (
-//           <div className="space-y-3 mb-6">
-//             {question.options?.map((option: any, index: any) => (
-//               <motion.button
-//                 key={index}
-//                 onClick={() => handleSubmit(option)}
-//                 whileHover={{ scale: 1.02, backgroundColor: 'rgba(224, 122, 95, 0.03)' }}
-//                 whileTap={{ scale: 0.98 }}
-//                 className={`w-full p-3 text-left border rounded-lg transition-all ${
-//                   previousResponse?.response === option
-//                     ? 'border-terracotta bg-terracotta/5'
-//                     : 'border-gray-200 hover:border-terracotta/50'
-//                 }`}
-//                 disabled={!isActive || isAnswered}
-//               >
-//                 {option}
-//               </motion.button>
-//             ))}
-//           </div>
-//         );
-        
-//       case 'text_input':
-//         return (
-//           <form onSubmit={handleFormSubmit} className="mb-6">
-//             <textarea
-//               value={response}
-//               onChange={handleInputChange}
-//               placeholder="Be as honest as you want to be for the best analysis"
-//               className="w-full p-3 border border-gray-200 rounded-lg focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 transition-all min-h-[100px] resize-y"
-//               disabled={!isActive || isAnswered}
-//             />
-//             {isActive && !isAnswered && (
-//               <motion.button
-//                 type="submit"
-//                 whileHover={{ scale: 1.02 }}
-//                 whileTap={{ scale: 0.98 }}
-//                 className="mt-3 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors"
-//                 disabled={!response.trim()}
-//               >
-//                 Submit
-//               </motion.button>
-//             )}
-//           </form>
-//         );
-        
-//       case 'scale_rating':
-//         return (
-//           <div className="mb-6">
-//             <div className="flex justify-between mb-2">
-//               <span className="text-sm text-gray-500">
-//                 {question.minScale || 1}
-//               </span>
-//               <span className="text-sm text-gray-500">
-//                 {question.maxScale || 10}
-//               </span>
-//             </div>
-//             <input
-//               type="range"
-//               min={question.minScale || 1}
-//               max={question.maxScale || 10}
-//               value={response || (question.minScale || 1)}
-//               onChange={handleInputChange}
-//               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-terracotta"
-//               disabled={!isActive || isAnswered}
-//             />
-//             {isActive && !isAnswered && (
-//               <motion.button
-//                 onClick={() => handleSubmit(response)}
-//                 whileHover={{ scale: 1.02 }}
-//                 whileTap={{ scale: 0.98 }}
-//                 className="mt-3 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors"
-//               >
-//                 Submit
-//               </motion.button>
-//             )}
-//           </div>
-//         );
-        
-//       case 'date_input':
-//         return (
-//           <DateResponse
-//             value={response}
-//             onChange={handleInputChange}
-//             onSubmit={handleSubmit}
-//             disabled={!isActive || isAnswered}
-//             className="mb-6"
-//           />
-//         );
-      
-//       case 'ranking':
-//         return (
-//           <RankingResponse
-//             options={question.options || []}
-//             value={response}
-//             onChange={handleInputChange}
-//             onSubmit={handleSubmit}
-//             disabled={!isActive || isAnswered}
-//             className="mb-6"
-//           />
-//         );
-      
-//         default:
-//         return (
-//           <div className="mb-6 text-gray-500 italic">
-//             This question type is not supported yet.
-//           </div>
-//         );
-//     }
-//   };
-  
-//   return (
-//     <motion.div
-//       ref={ref}
-//       variants={variants}
-//       initial="hidden"
-//       animate={controls}
-//       className={`question-card bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}
-//     >
-//       {/* Privacy Reassurance */}
-//       {/* <PrivacyIndicator className="mb-4" /> */}
-      
-      
-//       {/* Question Text */}
-//       <div className="mb-6">
-//         <h3 className="text-xl text-navy mb-3">{question.text}</h3>
-//         {/* <p className="text-sm text-gray-600 italic">
-//           Text like you text a friend. Be as honest as you want to be.
-//         </p> */}
-//       </div>
-      
-//       {/* Question Input */}
-//       {renderQuestionInput()}
-      
-//       {/* Flexible Response Options */}
-//       {question.type === 'text_input' && isActive && !isAnswered && (
-//         <div className="mb-6">
-//           <button
-//             onClick={handleFlexibleResponseToggle}
-//             className="text-sm text-gray-500 hover:text-terracotta transition-colors"
-//           >
-//             {showFlexibleOptions ? 'Hide options' : 'Not sure? Click for options'}
-//           </button>
-          
-//           {showFlexibleOptions && (
-//             <motion.div
-//               initial={{ height: 0, opacity: 0 }}
-//               animate={{ 
-//                 height: 'auto', 
-//                 opacity: 1,
-//                 transition: { duration: 0.3 }
-//               }}
-//               className="mt-3 space-y-2 overflow-hidden"
-//             >
-//               {flexibleResponses.map((flexResponse, index) => (
-//                 <motion.button
-//                   key={index}
-//                   onClick={() => handleSubmit(flexResponse)}
-//                   whileHover={{
-//                     scale: 1.01,
-//                     backgroundColor: 'rgba(156, 163, 175, 0.1)'
-//                   }}
-//                   className="block w-full p-2 text-left text-sm text-gray-600 border border-gray-100 rounded hover:border-gray-300 transition-all"
-//                 >
-//                   {flexResponse}
-//                 </motion.button>
-//               ))}
-//             </motion.div>
-//           )}
-//         </div>
-//       )}
-      
-//       {/* Self-Awareness Tags */}
-//       {showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
-//         <div className="border-t border-gray-100 pt-4">
-//           <p className="text-xs text-gray-500 mb-3">
-//             How would you describe your response? (Optional)
-//           </p>
-//           <AuthenticityTags 
-//             selectedTags={selectedTags}
-//             onTagSelect={handleTagSelect}
-//             disabled={isAnswered}
-//           />
-//         </div>
-//       )}
-      
-//       {/* Non-judgmental Encouragement */}
-//       {/* <div className="mt-4 text-xs text-center text-gray-400 italic">
-//         There are no right or wrong answers. We're here to understand you better.
-//       </div> */}
-
-//       <div className="mt-2 flex justify-end">
-//         <PrivacyIndicator className="" />
-//       </div>
-//     </motion.div>
-//   );
-// }
-
-// export default QuestionCard;
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useQuestAnimation } from '../animations/useQuestAnimation';
 import { QuestionCardProps } from './types';
@@ -295,6 +13,14 @@ import { getWordValidationStatus, getWordValidationMessage } from '../utils/ques
  * Base question card component
  * Renders a question with appropriate input type and honesty tags
  */
+const colorConfigs = [
+  { index: 1, bg: 'bg-green-100', text: 'text-lime-700', border: 'border-stone-400' },   // Male
+  { index: 1, bg: 'bg-sky-100', text: 'text-sky-800', border: 'border-blue-300' },       // Female
+  { index: 1, bg: 'bg-violet-100', text: 'text-purple-900', border: 'border-slate-500' },// Non-binary
+  { index: 1, bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-400' },        // Other
+  { index: 1, bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-400' }      // Prefer not to say
+];
+
 export function QuestionCard({
   question,
   onResponse,
@@ -305,84 +31,83 @@ export function QuestionCard({
   className = ''
 }: QuestionCardProps) {
   // State for the current response
+  
   const [response, setResponse] = useState<string>(previousResponse?.response || '');
-  const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
+  // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
+  // Replace your current selectedTags state with this:
+  
+
+    // First, create a memoized initial value outside of useState
+    const getInitialTags = useMemo(() => {
+      if (question?.id) {
+        try {
+          const savedTags = localStorage.getItem(`quest_tags_${question.id}`);
+          if (savedTags) {
+            // console.log('📂 Loading from localStorage (memoized):', JSON.parse(savedTags));
+            return JSON.parse(savedTags);
+          }
+        } catch (error) {
+          console.error('Failed to load tags from localStorage:', error);
+        }
+      }
+      return previousResponse?.tags || [];
+    }, [question?.id, previousResponse?.tags]);
+
+    // Then use simple useState with the memoized value
+    const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(getInitialTags);
+
+    useEffect(() => {
+    console.log('🔍 Date Response Debug:', {
+      questionId: question?.id,
+      questionType: question?.type,
+      responseValue: response,
+      previousResponseValue: previousResponse?.response,
+      isDateInput: question?.type === 'date_input'
+    });
+  }, [question?.id, response, previousResponse]);
   
   // Animation
   const { ref, controls, variants } = useQuestAnimation({
     variant: 'questionCard',
     triggerOnce: true
   });
-  
+
+
+
   // NEW: Word count configuration for text inputs
   const maxWords = 100;
   const wordWarningThreshold = 90;
   const maxLength = 1000; // Character limit
-  
-  // Handle tag selection
+
   const handleTagSelect = (tag: HonestyTag) => {
-    setSelectedTags(prev => {
-      // If tag is already selected, remove it
-      if (prev.includes(tag)) {
-        return prev.filter(t => t !== tag);
-      }
-      // Otherwise, add it
-      return [...prev, tag];
-    });
-  };
+  setSelectedTags(prev => {
+    const newTags = prev.includes(tag) 
+      ? prev.filter(t => t !== tag)
+      : [...prev, tag];
+
+    if (question?.id) {
+      localStorage.setItem(`quest_tags_${question.id}`, JSON.stringify(newTags));
+      // console.log('💾 QuestionCard saved tags to localStorage:', {
+      //   questionId: question.id,
+      //   tags: newTags
+      // });
+    }
+    
+    return newTags;
+  });
+};
   
-  // Handle flexible response toggle
-  const handleFlexibleResponseToggle = () => {
-    setShowFlexibleOptions(!showFlexibleOptions);
-  };
-  
-  // Flexible response options
-  const flexibleResponses = [
-    "I don't know",
-    "I'm not sure but...",
-    "I don't want to answer this question"
-  ];
 
 
     const handleSubmit = (submittedResponse: string) => {
     if (!isActive) return;
-    console.log('Submitting response:', submittedResponse);
+    // console.log('Submitting response:', submittedResponse);
       
     // Call the onResponse callback with the response and tags (no validation blocking)
     onResponse(submittedResponse, selectedTags);
   };
-  
-  // Handle response submission
-  // const handleSubmit = (submittedResponse: string) => {
-  //   if (!isActive) return;
-    
-  //   // NEW: For text inputs, check word count validation
-  //   if (question.type === 'text_input') {
-  //     const wordValidation = getWordValidationStatus(submittedResponse, maxWords, wordWarningThreshold);
-  //     if (!wordValidation.isValid) {
-  //       return; // Prevent submission if over word limit
-  //     }
-  //   }
-    
-  //   // Call the onResponse callback with the response and tags
-  //   onResponse(submittedResponse, selectedTags);
-  // };
-  
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-  //   const newValue = e.target.value;
-    
-  //   // Allow pasting but truncate if too long
-  //   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
-  //     setResponse(newValue.substring(0, maxLength));
-  //     return;
-  //   }
-    
-  //   setResponse(newValue);
-  // };
-  
-  // Handle form submission
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   const newValue = e.target.value;
@@ -408,7 +133,7 @@ export function QuestionCard({
     }
   };
   
-  // NEW: Calculate validation status for text inputs
+
   const getTextInputValidation = () => {
     if (question.type !== 'text_input') return null;
     
@@ -435,7 +160,7 @@ export function QuestionCard({
       case 'multiple_choice':
         return (
           <div className="grid grid-cols-2 gap-1 mb-6">
-            {question.options?.map((option, index) => {
+            {/* {question.options?.map((option, index) => {
               const isSelected = currentSelection === option;
               return (
                 <motion.button
@@ -444,35 +169,46 @@ export function QuestionCard({
                     setCurrentSelection(option);
                     handleSubmit(option);
                   }}
-                  whileHover={{ backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F' }}
-                  className="rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border"
+                  // whileHover={{ backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F' }}
+                  className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index===4 ? 'col-span-2' : ''}`}
                   style={{
-                    backgroundColor: isSelected ? '#E2EFFF' : '#FFFFFF',
-                    borderColor: isSelected ? '#84ADDF' : '#A1A1AA',
-                    color: isSelected ? '#004A7F' : '#A1A1AA'
+                      backgroundColor: isSelected ? (index === 0 ? '#D1F2D1' : (index === 1 ? '#BAE6FD' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#FECACA' : '#E5E7EB')))) : (index === 0 ? '#E8F5E8' : (index === 1 ? '#E0F2FE' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#FEE2E2' : '#F3F4F6')))),
+                      borderColor: isSelected ? (index === 0 ? '#65A30D' : (index === 1 ? '#0284C7' : (index === 2 ? '#7C3AED' : (index === 3 ? '#DC2626' : '#6B7280')))) : (index === 0 ? '#9CA3AF' : (index === 1 ? '#93C5FD' : (index === 2 ? '#6B7280' : (index === 3 ? '#F87171' : '#9CA3AF')))),
+                      color: index === 0 ? '#2A7F00' : (index === 1 ? '#004A7F' : (index === 2 ? '#50007F' : (index === 3 ? '#A4080B' : '#374151')))
                   }}
                   disabled={!isActive || isAnswered}
                 >
                   {option}
                 </motion.button>
               );
-            })}
-
+            })} */}
+            {question.options?.map((option, index) => {
+          const isSelected = currentSelection === option;
+          
+          return (
             <motion.button
+              key={index}
               onClick={() => {
-                handleSubmit("Prefer not to say");
+                setCurrentSelection(option);
+                handleSubmit(option);
               }}
-              whileHover={{backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F'}}
-              className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border col-span-2`}
+              whileHover={{ 
+                backgroundColor: index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB'))), 
+                borderColor: index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280'))), 
+                color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
+              }}
+              className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index === 4 ? 'col-span-2' : ''}`}
               style={{
-                backgroundColor: currentSelection === "Prefer not to say" ? '#E2EFFF' : '#FFFFFF',
-                borderColor: currentSelection === "Prefer not to say" ? '#84ADDF' : '#A1A1AA',
-                color: currentSelection === "Prefer not to say" ? '#004A7F' : '#A1A1AA'
-              }}
+               backgroundColor: isSelected ? (index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB')))) : (index === 0 ? '#E8F5E8' : (index === 1 ? '#FEE2E2' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#E0F2FE' : '#F3F4F6')))),
+               borderColor: isSelected ? (index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280')))) : (index === 0 ? '#9CA3AF' : (index === 1 ? '#F87171' : (index === 2 ? '#6B7280' : (index === 3 ? '#93C5FD' : '#9CA3AF')))),
+               color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
+             }}
               disabled={!isActive || isAnswered}
             >
-              Prefer not to say
+              {option}
             </motion.button>
+          );
+        })}
             </div>
         );
         
@@ -487,7 +223,7 @@ export function QuestionCard({
                     onChange={handleInputChange}
                     placeholder={question.placeholder || "Be as honest as you want to be for the best analysis"}
                     
-                    className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-zinc-400 text-xl font-normal font-['Gilroy-Medium'] ${
+                    className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-black text-xl font-normal font-['Gilroy-Medium'] ${
                       textValidation?.wordStatus === 'error' 
                         ? '' 
                         : 'border-gray-200'
@@ -509,16 +245,23 @@ export function QuestionCard({
                   </motion.div>
                 )}
                 
-                {question.allowTags && showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
+                {/* {question.allowTags && showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
                   <div className="mt-4 mb-3">
                     <AuthenticityTags 
                       selectedTags={selectedTags}
                       onTagSelect={handleTagSelect}
                       disabled={isAnswered}
                     />
-                    {/* <p className="text-xs text-black mt-2">
-                      How would you describe your response?
-                    </p> */}
+                  </div>
+                )} */}
+
+                {question.allowTags && showTags && (
+                  <div className="mt-4 mb-3">
+                    <AuthenticityTags 
+                      selectedTags={selectedTags}
+                      onTagSelect={handleTagSelect}
+                      disabled={isAnswered}
+                    />
                   </div>
                 )}
                 
@@ -580,6 +323,7 @@ export function QuestionCard({
             value={response}
             onChange={handleInputChange}
             // onSubmit={handleSubmit}
+            placeholder='Select your date of birth'
             disabled={!isActive || isAnswered}
             className="mb-6"
           />
@@ -622,65 +366,6 @@ export function QuestionCard({
       
       {/* Question Input */}
       {renderQuestionInput()}
-
-      
-      
-      {/* Flexible Response Options */}
-      {/* {question.type === 'text_input' && isActive && !isAnswered && (
-        <div className="mb-6">
-          <button
-            onClick={handleFlexibleResponseToggle}
-            className="text-sm text-gray-900 hover:text-terracotta transition-colors"
-          >
-            {showFlexibleOptions ? 'Hide options' : 'Not sure? Click for options'}
-          </button>
-          
-          
-          {showFlexibleOptions && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ 
-                height: 'auto', 
-                opacity: 1,
-                transition: { duration: 0.3 }
-              }}
-              className="mt-3 space-y-2 overflow-hidden"
-            >
-              {flexibleResponses.map((flexResponse, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => handleSubmit(flexResponse)}
-                  whileHover={{
-                    scale: 1.01,
-                    backgroundColor: 'rgba(156, 163, 175, 0.1)'
-                  }}
-                  className="block w-full p-2 text-left text-sm text-gray-600 border border-gray-100 rounded hover:border-gray-300 transition-all"
-                >
-                  {flexResponse}
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      )} */}
-      
-      {/* Self-Awareness Tags */}
-      {/* {showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-xs text-gray-500 mb-3">
-            How would you describe your response? (Optional)
-          </p>
-          <AuthenticityTags 
-            selectedTags={selectedTags}
-            onTagSelect={handleTagSelect}
-            disabled={isAnswered}
-          />
-        </div>
-      )} */}
-
-      {/* <div className="mt-2 flex justify-end">
-        <PrivacyIndicator className="" />
-      </div> */}
     </motion.div>
   );
 }
