@@ -1,10 +1,9 @@
-// // src/components/quest/views/QuestProcessing.tsx
-
 // import React, { useState, useEffect } from 'react';
 // import { useNavigate, useParams } from 'react-router-dom';
 // import { motion, AnimatePresence } from 'framer-motion';
 // import QuestLayout from '../layout/QuestLayout';
 // import { useQuest } from '../core/useQuest';
+// import { useAuth } from '../../../contexts/AuthContext';
 
 // // Psychological facts to display during processing
 // const psychologicalFacts = [
@@ -30,46 +29,56 @@
 
 // export interface QuestProcessingProps {
 //   className?: string;
-//   sessionId?: string;
 // }
 
 // export function QuestProcessing({ className = '' }: QuestProcessingProps) {
 //   const navigate = useNavigate();
-//   const params = useParams<{ sessionId?: string }>();
+//   const { user } = useAuth();
 //   const { session } = useQuest();
+  
+//   // Get all parameters from URL
+//   const params = useParams<{ 
+//     sessionId?: string; 
+//     userId?: string; 
+//     testid?: string; 
+//   }>();
+  
 //   const [factIndex, setFactIndex] = useState(0);
 //   const [elapsedTime, setElapsedTime] = useState(0);
 //   const [isTimedOut, setIsTimedOut] = useState(false);
-//   const [hasFixedUrl, setHasFixedUrl] = useState(false);
-//   const { sessionId } = useParams<{ sessionId?: string }>();
 
-// useEffect(() => {
-//   if (sessionId && sessionId !== 'undefined') {
-//     // Store in localStorage for consistency
-//     localStorage.setItem('questSessionId', sessionId);
-    
-//     // Set timer for auto-navigation to results
-//     const redirectTimer = setTimeout(() => {
-//       navigate(`/quest-result/result/${sessionId}`);
-//     }, 15000);
-    
-//     return () => clearTimeout(redirectTimer);
-//   }
-// }, [sessionId, navigate]);
+//   // Get sessionId, userId, and testid from various sources
+//   const sessionId = params.sessionId || session?.id || localStorage.getItem('questSessionId');
+//   const userId = params.userId || user?.id;
+//   const testid = params.testid || localStorage.getItem('testid');
 
-//   // useEffect(() => {
-//   //   if (params.sessionId && !localStorage.getItem('questSessionId')) {
-//   //     console.log('Setting sessionId from URL params to localStorage:', params.sessionId);
-//   //     localStorage.setItem('questSessionId', params.sessionId);
-//   //   }
-//   // }, [params.sessionId]);
+//   console.log('🎯 QuestProcessing params:', params);
+//   console.log('📊 Current sessionId:', sessionId);
+//   console.log('👤 Current userId:', userId);
+//   console.log('🔑 Current testid:', testid);
 
-//   // Use the provided sessionId, URL param, or localStorage
-//   const currentSessionId = 
-//     sessionId || 
-//     params.sessionId || 
-//     session?.id || 
-//     localStorage.getItem('questSessionId');
+//   // Store parameters in localStorage for consistency
+//   useEffect(() => {
+//     if (sessionId) localStorage.setItem('questSessionId', sessionId);
+//     if (testid) localStorage.setItem('testid', testid);
+//   }, [sessionId, testid]);
+
+//   // Main redirect timer - navigate to results after processing
+//   useEffect(() => {
+//     if (sessionId && userId && testid) {
+//       console.log('⏰ Setting redirect timer for results page');
+      
+//       const redirectTimer = setTimeout(() => {
+//         const resultUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
+//         console.log('🚀 Redirecting to results:', resultUrl);
+//         navigate(resultUrl);
+//       }, 15000); // 15 seconds processing time
+      
+//       return () => clearTimeout(redirectTimer);
+//     } else {
+//       console.warn('⚠️ Missing parameters for redirect:', { sessionId, userId, testid });
+//     }
+//   }, [sessionId, userId, testid, navigate]);
 
 //   // Rotate through facts every 8 seconds
 //   useEffect(() => {
@@ -96,23 +105,16 @@
 //     return () => clearInterval(timeInterval);
 //   }, []);
 
-//   useEffect(() => {
-//     const redirectTimer = setTimeout(() => {
-//       if (currentSessionId) {
-//         localStorage.setItem('questSessionId', currentSessionId);
-//         navigate(`/quest-result/processing/${sessionId}`);
-//       } else {
-//         console.error('No session ID available for results');
-//       }
-//     }, 1000);
-
-//     return () => clearTimeout(redirectTimer);
-//   }, [currentSessionId, navigate]);
-
 //   // Handle manual continue button
 //   const handleManualContinue = () => {
-//     if (sessionId && sessionId !== 'undefined') {
-//       navigate(`/quest-result/result/${sessionId}`);
+//     if (sessionId && userId && testid) {
+//       const resultUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
+//       console.log('👆 Manual continue to:', resultUrl);
+//       navigate(resultUrl);
+//     } else {
+//       console.error('❌ Cannot continue: missing parameters', { sessionId, userId, testid });
+//       // Fallback to basic result page if parameters are missing
+//       navigate('/quest-result/result');
 //     }
 //   };
 
@@ -167,8 +169,8 @@
 //           </AnimatePresence>
 //         </div>
 
-//         {/* Manual continue button (shows after timeout) */}
-//         {isTimedOut && (
+//         {/* Manual continue button (shows after timeout or if missing params) */}
+//         {(isTimedOut || !sessionId || !userId || !testid) && (
 //           <motion.button
 //             initial={{ opacity: 0, y: 20 }}
 //             animate={{ opacity: 1, y: 0 }}
@@ -191,6 +193,17 @@
 //           Our AI is analyzing your responses to provide personalized insights.
 //           This typically takes less than a minute.
 //         </motion.p>
+
+//         {/* Debug info (remove in production) */}
+//         {/* {process.env.NODE_ENV === 'development' && (
+//           <div className="mt-8 p-4 bg-gray-100 rounded text-xs text-left">
+//             <p><strong>Debug Info:</strong></p>
+//             <p>SessionId: {sessionId || 'Missing'}</p>
+//             <p>UserId: {userId || 'Missing'}</p>
+//             <p>TestId: {testid || 'Missing'}</p>
+//             <p>URL Params: {JSON.stringify(params)}</p>
+//           </div>
+//         )} */}
 //       </motion.div>
 //     </QuestLayout>
 //   );
@@ -198,11 +211,12 @@
 
 // export default QuestProcessing;
 
-// src/components/quest/views/QuestProcessing.tsx
+
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import QuestLayout from '../layout/QuestLayout';
 import { useQuest } from '../core/useQuest';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -248,6 +262,11 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
   const [factIndex, setFactIndex] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimedOut, setIsTimedOut] = useState(false);
+  
+  // New states for result polling
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
+  const [resultStatus, setResultStatus] = useState<'processing' | 'ready' | 'error'>('processing');
 
   // Get sessionId, userId, and testid from various sources
   const sessionId = params.sessionId || session?.id || localStorage.getItem('questSessionId');
@@ -265,22 +284,74 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
     if (testid) localStorage.setItem('testid', testid);
   }, [sessionId, testid]);
 
-  // Main redirect timer - navigate to results after processing
+  // Function to check result status via API
+  const checkResultStatus = async () => {
+    if (!sessionId || !testid) return;
+
+    try {
+      console.log(`🔍 Polling attempt ${pollCount + 1} for results...`);
+      
+      // Replace with your actual API endpoint for checking result status
+      const response = await axios.get(`https://api.fraterny.in/api/check-status/${sessionId}/${testid}`, {
+        timeout: 10000 // 10 second timeout
+      });
+
+      console.log('📊 API Response:', response.data);
+
+      if (response.data.status === 'ready' || response.data.ready === true) {
+        console.log('✅ Results are ready!');
+        setResultStatus('ready');
+        setIsPolling(false);
+        
+        // Navigate to results page
+        const resultUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
+        console.log('🚀 Navigating to results:', resultUrl);
+        navigate(resultUrl);
+      } else {
+        console.log('⏳ Results still processing...');
+        setPollCount(prev => prev + 1);
+      }
+    } catch (error: any) {
+      console.error('❌ Error checking result status:', error.message);
+      
+      // If API fails after many attempts, allow manual continue
+      if (pollCount >= 20) { // After ~2 minutes of polling
+        console.log('⚠️ Too many failed attempts, enabling manual continue');
+        setResultStatus('error');
+        setIsPolling(false);
+        setIsTimedOut(true);
+      }
+    }
+  };
+
+  // Start polling when component mounts
   useEffect(() => {
     if (sessionId && userId && testid) {
-      console.log('⏰ Setting redirect timer for results page');
+      console.log('🚀 Starting result polling...');
+      setIsPolling(true);
       
-      const redirectTimer = setTimeout(() => {
-        const resultUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
-        console.log('🚀 Redirecting to results:', resultUrl);
-        navigate(resultUrl);
-      }, 15000); // 15 seconds processing time
-      
-      return () => clearTimeout(redirectTimer);
+      // Initial check after 2 seconds
+      const initialDelay = setTimeout(() => {
+        checkResultStatus();
+      }, 2000);
+
+      return () => clearTimeout(initialDelay);
     } else {
-      console.warn('⚠️ Missing parameters for redirect:', { sessionId, userId, testid });
+      console.warn('⚠️ Missing parameters for polling:', { sessionId, userId, testid });
+      setIsTimedOut(true);
     }
-  }, [sessionId, userId, testid, navigate]);
+  }, [sessionId, userId, testid]);
+
+  // Polling interval - check every 5 seconds
+  useEffect(() => {
+    if (isPolling && resultStatus === 'processing') {
+      const pollInterval = setInterval(() => {
+        checkResultStatus();
+      }, 5000); // Poll every 5 seconds
+
+      return () => clearInterval(pollInterval);
+    }
+  }, [isPolling, resultStatus, pollCount]);
 
   // Rotate through facts every 8 seconds
   useEffect(() => {
@@ -296,9 +367,11 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
     const timeInterval = setInterval(() => {
       setElapsedTime(prev => {
         const newTime = prev + 1;
-        // If processing takes too long (60 seconds), show timeout message
-        if (newTime >= 60) {
+        // If processing takes too long (120 seconds), show timeout message
+        if (newTime >= 120) {
           setIsTimedOut(true);
+          setIsPolling(false);
+          setResultStatus('error');
         }
         return newTime;
       });
@@ -347,12 +420,21 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
             className="w-16 h-16 rounded-full border-4 border-terracotta border-t-transparent mb-4"
           />
           <p className="text-gray-600">
-            {!isTimedOut ? (
+            {resultStatus === 'processing' && !isTimedOut ? (
               `Processing your assessment... (${elapsedTime}s)`
-            ) : (
+            ) : isTimedOut ? (
               "This is taking longer than expected."
+            ) : (
+              "Analysis complete! Redirecting..."
             )}
           </p>
+          
+          {/* Polling status */}
+          {isPolling && (
+            <p className="text-xs text-gray-400 mt-2">
+              Checking for results... (attempt {pollCount})
+            </p>
+          )}
         </div>
 
         {/* Rotating facts */}
@@ -372,7 +454,7 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
         </div>
 
         {/* Manual continue button (shows after timeout or if missing params) */}
-        {(isTimedOut || !sessionId || !userId || !testid) && (
+        {(isTimedOut || resultStatus === 'error' || !sessionId || !userId || !testid) && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -393,7 +475,7 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
           className="text-sm text-gray-500 mt-8 max-w-md"
         >
           Our AI is analyzing your responses to provide personalized insights.
-          This typically takes less than a minute.
+          {isPolling ? ' Please wait while we prepare your results.' : ' This typically takes less than a minute.'}
         </motion.p>
 
         {/* Debug info (remove in production) */}
@@ -403,6 +485,9 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
             <p>SessionId: {sessionId || 'Missing'}</p>
             <p>UserId: {userId || 'Missing'}</p>
             <p>TestId: {testid || 'Missing'}</p>
+            <p>Poll Count: {pollCount}</p>
+            <p>Result Status: {resultStatus}</p>
+            <p>Is Polling: {isPolling ? 'Yes' : 'No'}</p>
             <p>URL Params: {JSON.stringify(params)}</p>
           </div>
         )}
