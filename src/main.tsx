@@ -271,7 +271,7 @@ const router = createBrowserRouter([
       // PROTECTED QUEST ROUTE - Authentication required
       {
         path: 'assessment',
-        element: <ProtectedRoute />,
+        // element: <ProtectedRoute />,
         children: [
           { index: true, element: createSuspenseWrapper()(<QuestRoute />) },
         ],

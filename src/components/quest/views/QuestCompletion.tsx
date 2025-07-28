@@ -954,7 +954,6 @@ export function QuestCompletion({
   // Function to store session history in database
   const storeSessionHistory = async (sessionId: string, testid: string) => {
     if (!auth.user?.id) {
-      console.warn('You are not authenticated. Please Sign in first');
       return;
     }
     
@@ -979,28 +978,62 @@ export function QuestCompletion({
   };
   
   const formatSubmissionData = () => {
-    if (!session) return null;
+    // if (!session) return null;
+    // Create a working session object (either real or fallback)
+    let workingSession = session;
+    if (!session) {
+      const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+      workingSession = { 
+        id: fallbackSessionId, 
+        userId: 'anonymous', 
+        startedAt: new Date().toISOString(), 
+        responses: {},
+        status: 'completed'
+      };
+    }
+
     const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
-    const userData = {
-      user_id: auth.user?.id || session.userId,
-      name: auth.user?.user_metadata?.first_name 
-        ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
-        : 'User',
-      email: auth.user?.email || 'user@example.com',
-      "mobile no": auth.user?.user_metadata?.phone || "",
-      city: auth.user?.user_metadata?.city || "",
-      DOB: auth.user?.user_metadata?.dob || undefined,
-      "testid": testid
-    };
+    // const userData = {
+    //   user_id: auth.user?.id || session.userId,
+    //   name: auth.user?.user_metadata?.first_name 
+    //     ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
+    //     : 'User',
+    //   email: auth.user?.email || 'user@example.com',
+    //   "mobile no": auth.user?.user_metadata?.phone || "",
+    //   city: auth.user?.user_metadata?.city || "",
+    //   DOB: auth.user?.user_metadata?.dob || undefined,
+    //   "testid": testid
+    // };
+
+    const userData = auth.user?.id ? {
+        user_id: auth.user.id,
+        name: auth.user.user_metadata?.first_name 
+          ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
+          : 'User',
+        email: auth.user.email || 'user@example.com',
+        "mobile no": auth.user.user_metadata?.phone || "",
+        city: auth.user.user_metadata?.city || "",
+        DOB: auth.user.user_metadata?.dob || undefined,
+        "testid": testid
+      } : {
+        user_id: `${workingSession?.userId || 'unknown'}`,
+        name: 'Anonymous User',
+        email: '',
+        "mobile no": '',
+        city: '',
+        DOB: undefined,
+        "testid": testid
+      };
     
-    const startTime = session.startedAt;
+    const startTime = workingSession?.startedAt;
     const completionTime = new Date().toISOString();
-    const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
+    const startTimeValue = startTime || new Date().toISOString();
+    const durationMinutes = (new Date().getTime() - new Date(startTimeValue).getTime()) / (1000 * 60);
     
     let previousTimestamp: string | null = null;
     const responses = allQuestions?.map((question, index) => {
-      const response = session.responses?.[question.id];
+      const response = workingSession?.responses?.[question.id];
       const sectionId = question?.sectionId || '';
       const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
       
@@ -1060,21 +1093,29 @@ export function QuestCompletion({
       response: responses,
       user_data: userData,
       assessment_metadata: {
-        session_id: session.id,
+        session_id: workingSession?.id || '',
         start_time: startTime,
         completion_time: completionTime,
         duration_minutes: Number(durationMinutes.toFixed(1)),
-        completion_percentage: Math.round((Object.keys(session.responses || {}).length / (allQuestions?.length || 1)) * 100),
+        completion_percentage: Math.round((Object.keys(workingSession?.responses || {}).length / (allQuestions?.length || 1)) * 100),
         device_info: {
           type: detectDeviceType(),
           browser: detectBrowser(),
           operating_system: detectOS()
-        }
-      },
-      analytics: {
-        response_patterns: {
-          tag_distribution: tagCounts
-        }
+        },
+        // assessment_metadata: {
+        //   session_id: workingSession?.id || '',
+        //   start_time: startTime,
+        //   completion_time: completionTime,
+        //   duration_minutes: Number(durationMinutes.toFixed(1)),
+        //   completion_percentage: Math.round((Object.keys(workingSession?.responses || {}).length / (
+        //     allQuestions?.length || 1)) * 100),
+        //   device_info: {  
+        //     type: detectDeviceType(),
+        //     browser: detectBrowser(),
+        //     operating_system: detectOS()
+        //   }
+        // }
       }
     };
   };
@@ -1119,7 +1160,8 @@ export function QuestCompletion({
       }
       
       // Navigate to processing page immediately
-      const targetUrl = `/quest-result/processing/${sessionId}/${auth.user?.id}/${testid}`;
+      const userId = auth.user?.id || 'anonymous';
+      const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
       console.log('🚀 Navigating to processing:', targetUrl);
       navigate(targetUrl);
       

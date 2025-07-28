@@ -270,7 +270,7 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
 
   // Get sessionId, userId, and testid from various sources
   const sessionId = params.sessionId || session?.id || localStorage.getItem('questSessionId');
-  const userId = params.userId || user?.id;
+  const userId = params.userId || user?.id || 'anonymous';
   const testid = params.testid || localStorage.getItem('testid');
 
   console.log('🎯 QuestProcessing params:', params);
@@ -326,18 +326,20 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
 
   // Start polling when component mounts
   useEffect(() => {
-    if (sessionId && userId && testid) {
-      console.log('🚀 Starting result polling...');
-      setIsPolling(true);
-      
-      // Initial check after 2 seconds
-      const initialDelay = setTimeout(() => {
-        checkResultStatus();
-      }, 2000);
+  if (sessionId && userId && testid) {
+    console.log('🚀 Starting result polling...');
+    setIsPolling(true);
+    
+    // Initial check after 2 seconds
+    const initialDelay = setTimeout(() => {
+      checkResultStatus();
+    }, 2000);
 
-      return () => clearTimeout(initialDelay);
+    return () => clearTimeout(initialDelay);
     } else {
       console.warn('⚠️ Missing parameters for polling:', { sessionId, userId, testid });
+      setResultStatus('error');
+      setIsPolling(false);
       setIsTimedOut(true);
     }
   }, [sessionId, userId, testid]);
