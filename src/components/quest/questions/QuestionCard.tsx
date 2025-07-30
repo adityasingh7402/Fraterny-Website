@@ -58,15 +58,15 @@ export function QuestionCard({
     // Then use simple useState with the memoized value
     const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(getInitialTags);
 
-    useEffect(() => {
-    console.log('🔍 Date Response Debug:', {
-      questionId: question?.id,
-      questionType: question?.type,
-      responseValue: response,
-      previousResponseValue: previousResponse?.response,
-      isDateInput: question?.type === 'date_input'
-    });
-  }, [question?.id, response, previousResponse]);
+  //   useEffect(() => {
+  //   console.log('🔍 Date Response Debug:', {
+  //     questionId: question?.id,
+  //     questionType: question?.type,
+  //     responseValue: response,
+  //     previousResponseValue: previousResponse?.response,
+  //     isDateInput: question?.type === 'date_input'
+  //   });
+  // }, [question?.id, response, previousResponse]);
   
   // Animation
   const { ref, controls, variants } = useQuestAnimation({

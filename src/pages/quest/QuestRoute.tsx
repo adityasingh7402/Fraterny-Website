@@ -1,5 +1,4 @@
 import React from 'react';
-import { QuestTestPage } from './QuestTestPage';
 import QuestPage from './QuestPage';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';

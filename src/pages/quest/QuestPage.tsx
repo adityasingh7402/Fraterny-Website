@@ -55,9 +55,9 @@ export function QuestPage() {
           <QuestIntro onStart={handleStartAssessment} />
         )}
         
-        {/* {questState === QuestState.LOADING && (
+        {questState === QuestState.LOADING && (
           <QuestLoading message="Preparing your assessment..." />
-        )} */}
+        )}
         
         {questState === QuestState.ASSESSMENT && (
           <QuestAssessment onComplete={handleCompleteAssessment} />

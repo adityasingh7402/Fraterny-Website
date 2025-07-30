@@ -1,918 +1,34 @@
-// // // src/components/quest/views/QuestCompletion.tsx
-
-// // import React, { useState, useEffect } from 'react';
-// // import { useNavigate } from 'react-router-dom';
-// // import { motion } from 'framer-motion';
-// // import QuestLayout from '../layout/QuestLayout';
-// // import CompletionEffects from '../effects/CompletionEffects';
-// // import CompletionCelebration from '../progress/CompletionCelebration';
-// // import QuestSummary from './QuestSummary'; // Assuming this component exists
-// // import { useQuest } from '../core/useQuest';
-// // import { useAuth } from '../../../contexts/AuthContext'; // Adjust path as needed
-// // import { supabase } from '../../../integrations/supabase/client'; // Adjust path as needed
-// // import axios from 'axios'
-
-// // export interface QuestCompletionProps {
-// //   onRestart?: () => void;
-// //   onComplete?: () => void;
-// //   className?: string;
-// // }
-
-// // export function QuestCompletion({
-// //   onRestart,
-// //   onComplete,
-// //   className = ''
-// // }: QuestCompletionProps) {
-// //   const navigate = useNavigate();
-// //   const { 
-// //     session, 
-// //     finishQuest, 
-// //     resetQuest,
-// //     changeSection,
-// //     currentSectionId,
-// //     isSubmitting,
-// //     allQuestions,
-// //     sections
-// //   } = useQuest();
-  
-// //   // Add auth context to get user data
-// //   const auth = useAuth();
-  
-// //   const [showSummary, setShowSummary] = useState(false);
-// //   const [submitted, setSubmitted] = useState(false);
-// //   const [result, setResult] = useState<any>(null);
-// //   const [showThankYou, setShowThankYou] = useState(false);
-  
-// //   // Function to store session history in database
-// //   const storeSessionHistory = async (sessionId: string) => {
-// //     // Check if user is authenticated
-// //     if (!auth.user?.id) {
-// //       console.warn('Cannot store session history: No user ID available');
-// //       return;
-// //     }
-    
-// //     try {
-// //       // Perform insert operation
-// //       const { data, error } = await supabase
-// //         .from('user_session_history')
-// //         .insert({
-// //           user_id: auth.user.id,
-// //           session_id: sessionId,
-// //           created_at: new Date().toISOString()
-// //         });
-      
-// //       // Handle errors
-// //       if (error) {
-// //         console.error('Failed to store session history:', error);
-// //         // Note: We don't throw here to avoid blocking the main flow
-// //       } else {
-// //         console.log('Session history stored successfully');
-// //       }
-// //     } catch (err) {
-// //       console.error('Error storing session history:', err);
-// //       // Note: We don't re-throw to avoid blocking the main flow
-// //     }
-// //   };
-  
-// //   // Handle going back to the assessment
-// //   const handleBack = () => {
-// //     setShowSummary(false);
-// //   };
-  
-// //   // Format session data for submission
-// //   const formatSubmissionData = () => {
-// //     if (!session) return null;
-    
-// //     // Get user information from auth context
-// //     const userData = {
-// //       user_id: auth.user?.id || session.userId,
-// //       name: auth.user?.user_metadata?.first_name 
-// //         ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
-// //         : 'User',
-// //       email: auth.user?.email || 'user@example.com',
-// //       // Add these new fields
-// //       "mobile no": auth.user?.user_metadata?.phone || "",
-// //       city: auth.user?.user_metadata?.city || "",
-// //       DOB: auth.user?.user_metadata?.dob || undefined // Optional field
-// //     };
-    
-// //     // Calculate completion time and duration
-// //     const startTime = session.startedAt;
-// //     const completionTime = new Date().toISOString();
-// //     const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
-    
-// //     // Format responses array with time_taken calculations
-// //     let previousTimestamp: string | null = null;
-// //     const responses = Object.entries(session.responses || {}).map(([questionId, response], index) => {
-// //       // Find question details
-// //       const question = allQuestions?.find(q => q.id === questionId);
-// //       const sectionId = question?.sectionId || '';
-// //       const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
-      
-// //       // Calculate time taken (if previous timestamp exists)
-// //       let timeTaken = null;
-// //       if (previousTimestamp) {
-// //         const currentTime = new Date(response.timestamp).getTime();
-// //         const prevTime = new Date(previousTimestamp).getTime();
-// //         const diffSeconds = Math.round((currentTime - prevTime) / 1000);
-// //         timeTaken = `${diffSeconds}s`;
-// //       }
-// //       previousTimestamp = response.timestamp;
-      
-// //       return {
-// //         qno: index + 1,
-// //         question_id: questionId,
-// //         question_text: question?.text || '',
-// //         answer: response.response,
-// //         section_id: sectionId,
-// //         section_name: sectionName,
-// //         // difficulty: question?.difficulty || 'medium',
-// //         metadata: {
-// //           tags: response.tags || [],
-// //           // timestamp: response.timestamp,
-// //           ...(timeTaken && { time_taken: timeTaken })
-// //         }
-// //       };
-// //     });
-    
-// //     // Calculate tag distribution for simplified analytics
-// //     const tagCounts: Record<string, number> = {};
-// //     responses.forEach(response => {
-// //       if (response.metadata.tags) {
-// //         response.metadata.tags.forEach((tag: string) => {
-// //           tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-// //         });
-// //       }
-// //     });
-    
-// //     // Ensure all possible tags have counts
-// //     const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
-// //     allTags.forEach(tag => {
-// //       if (!tagCounts[tag]) tagCounts[tag] = 0;
-// //     });
-    
-// //     // Create the full submission data object with simplified structure
-// //     return {
-// //       response: responses,
-// //       user_data: userData,
-// //       assessment_metadata: {
-// //         session_id: session.id,
-// //         start_time: startTime,
-// //         completion_time: completionTime,
-// //         duration_minutes: Number(durationMinutes.toFixed(1)),
-// //         completion_percentage: Math.round((responses.length / (allQuestions?.length || 1)) * 100),
-// //         device_info: {
-// //           type: detectDeviceType(),
-// //           browser: detectBrowser(),
-// //           operating_system: detectOS()
-// //         }
-// //       },
-// //       analytics: {
-// //         response_patterns: {
-// //           tag_distribution: tagCounts
-// //         }
-// //       }
-// //     };
-// //   };
-  
-// //   // Handle final submission
-// //   const handleSubmit = async () => {
-// //     try {
-// //       // Format the submission data (which contains the session.id)
-// //       const submissionData = formatSubmissionData();
-// //       console.log(submissionData);
-      
-// //       if (!submissionData) {
-// //         console.error('No submission data available');
-// //         return null;
-// //       }
-      
-// //       // Extract the sessionId directly from submissionData
-// //       const sessionId = submissionData.assessment_metadata.session_id;
-// //       // console.log('Using sessionId from submissionData:', sessionId);
-      
-// //       // Call the finishQuest method from context
-// //       const result = await finishQuest();
-      
-// //       // Set the result and mark as submitted
-// //       setResult(result);
-// //       setSubmitted(true);
-      
-// //       // Store the sessionId in localStorage
-// //       localStorage.setItem('questSessionId', sessionId);
-// //       // console.log('Stored sessionId in localStorage:', sessionId);
-      
-// //       // Store session history in database
-// //       await storeSessionHistory(sessionId);
-      
-// //       // Call the onComplete callback if provided
-// //       if (onComplete) {
-// //         onComplete();
-// //       }
-      
-// //       // Show the Thank You message
-// //       setShowThankYou(true);
-      
-// //       // After a delay, navigate to the processing page with the sessionId
-// //       setTimeout(() => {
-// //         navigate(`/quest-result/processing/${sessionId}`);
-// //       }, 4000); // Show Thank You for 4 seconds
-      
-// //       return result;
-// //     } catch (error) {
-// //       console.error('Error submitting quest:', error);
-// //       throw error;
-// //     }
-// //   };
-
-// //   // const handleSubmit = async () => {
-// //   //   try {
-// //   //     // setSubmissionStatus('submitting');
-      
-// //   //     // Format the submission data (existing code)
-// //   //     const submissionData = formatSubmissionData();
-      
-// //   //     if (!submissionData) {
-// //   //       console.log('No submission data available');
-// //   //       // setSubmissionStatus('error');
-// //   //       // setSubmissionError('No submission data available');
-// //   //       return null;
-// //   //     }
-      
-// //   //     // Submit to backend API
-// //   //     const response = await axios.post('YOUR_API_ENDPOINT_HERE', submissionData, {
-// //   //       headers: {
-// //   //         'Content-Type': 'application/json',
-// //   //         'Authorization': `Bearer ${auth.session?.access_token || auth.user?.access_token}`
-// //   //       },
-// //   //       timeout: 30000 // 30 second timeout
-// //   //     });
-      
-// //   //     // setSubmissionStatus('submitted');
-      
-// //   //     // Extract the sessionId from submissionData
-// //   //     const sessionId = submissionData.assessment_metadata.session_id;
-      
-// //   //     // Set the result from API response
-// //   //     setResult(response.data);
-// //   //     setSubmitted(true);
-      
-// //   //     // Store the sessionId in localStorage
-// //   //     localStorage.setItem('questSessionId', sessionId);
-      
-// //   //     // Store session history in database (existing code)
-// //   //     await storeSessionHistory(sessionId);
-      
-// //   //     // Call the onComplete callback if provided
-// //   //     if (onComplete) {
-// //   //       onComplete();
-// //   //     }
-      
-// //   //     // Show the Thank You message
-// //   //     setShowThankYou(true);
-      
-// //   //     // After a delay, navigate to the processing page with the sessionId
-// //   //     setTimeout(() => {
-// //   //       navigate(`/quest-result/processing/${sessionId}`);
-// //   //     }, 4000); // Show Thank You for 4 seconds
-      
-// //   //     return response.data;
-      
-// //   //   } catch (error) {
-// //   //     console.error('Error submitting quest:', error);
-// //   //     // setSubmissionStatus('error');
-// //   //     // setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
-// //   //     throw error;
-// //   //   }
-// //   // };
-  
-// //   // Helper functions for device detection
-  
-  
-// //   const detectDeviceType = (): string => {
-// //     const userAgent = navigator.userAgent;
-// //     if (/mobile|android|iphone|ipad|ipod/i.test(userAgent.toLowerCase())) {
-// //       return /ipad/i.test(userAgent.toLowerCase()) ? 'tablet' : 'mobile';
-// //     }
-// //     return 'desktop';
-// //   };
-  
-// //   const detectBrowser = (): string => {
-// //     const userAgent = navigator.userAgent;
-// //     if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
-// //     if (userAgent.indexOf('Safari') > -1) return 'Safari';
-// //     if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
-// //     if (userAgent.indexOf('MSIE') > -1 || userAgent.indexOf('Trident') > -1) return 'Internet Explorer';
-// //     if (userAgent.indexOf('Edge') > -1) return 'Edge';
-// //     return 'Unknown';
-// //   };
-  
-// //   const detectOS = (): string => {
-// //     const userAgent = navigator.userAgent;
-// //     if (userAgent.indexOf('Windows') > -1) return 'Windows';
-// //     if (userAgent.indexOf('Mac') > -1) return 'Mac';
-// //     if (userAgent.indexOf('Linux') > -1) return 'Linux';
-// //     if (userAgent.indexOf('Android') > -1) return 'Android';
-// //     if (userAgent.indexOf('iOS') > -1) return 'iOS';
-// //     return 'Unknown';
-// //   };
-  
-// //   // Show celebratory content before summary
-// //   if (!showSummary && !submitted) {
-// //     return (
-// //       <QuestLayout showHeader={false} showNavigation={false} className={className}>
-// //         <motion.div
-// //           initial={{ opacity: 0 }}
-// //           animate={{ opacity: 1 }}
-// //           transition={{ duration: 0.8 }}
-// //           className="text-center p-4"
-// //         >
-// //           {/* Celebration effects */}
-// //           <CompletionEffects />
-          
-// //           {/* Celebration animation */}
-// //           <CompletionCelebration />
-          
-// //           {/* Congratulation message */}
-// //           <motion.h2
-// //             initial={{ opacity: 0, y: 20 }}
-// //             animate={{ opacity: 1, y: 0 }}
-// //             transition={{ delay: 0.5, duration: 0.8 }}
-// //             className="text-3xl font-playfair text-navy mt-8 mb-4"
-// //           >
-// //             Congratulations!
-// //           </motion.h2>
-          
-// //           <motion.p
-// //             initial={{ opacity: 0 }}
-// //             animate={{ opacity: 1 }}
-// //             transition={{ delay: 0.8, duration: 0.8 }}
-// //             className="text-gray-600 mb-8 max-w-md mx-auto"
-// //           >
-// //             You've completed the assessment. Your responses have been recorded.
-// //           </motion.p>
-          
-// //           {/* Action buttons */}
-// //           <motion.div
-// //             initial={{ opacity: 0, y: 20 }}
-// //             animate={{ opacity: 1, y: 0 }}
-// //             transition={{ delay: 1.2, duration: 0.8 }}
-// //             className="flex flex-col sm:flex-row justify-center gap-4 mt-6"
-// //           >
-// //             <motion.button
-// //               onClick={() => setShowSummary(true)}
-// //               whileHover={{ scale: 1.05 }}
-// //               whileTap={{ scale: 0.98 }}
-// //               className="px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors"
-// //             >
-// //               View Summary
-// //             </motion.button>
-// //           </motion.div>
-// //         </motion.div>
-// //       </QuestLayout>
-// //     );
-// //   }
-  
-// //   // Show summary before submission
-// //   if (showSummary && !submitted) {
-// //     return (
-// //       <QuestLayout showHeader={false} showNavigation={false} className={className}>
-// //         <QuestSummary 
-// //           onSubmit={handleSubmit}
-// //           onBack={handleBack}
-// //         />
-// //       </QuestLayout>
-// //     );
-// //   }
-  
-// //   // Show Thank You message after submission
-// //   if (showThankYou) {
-// //     return (
-// //       <QuestLayout showHeader={false} showNavigation={false} className={className}>
-// //         <motion.div
-// //           initial={{ opacity: 0 }}
-// //           animate={{ opacity: 1 }}
-// //           transition={{ duration: 0.8 }}
-// //           className="text-center p-4"
-// //         >
-// //           <motion.h2
-// //             initial={{ opacity: 0, y: 20 }}
-// //             animate={{ opacity: 1, y: 0 }}
-// //             transition={{ delay: 0.3, duration: 0.8 }}
-// //             className="text-3xl font-playfair text-navy mb-4"
-// //           >
-// //             Thank You!
-// //           </motion.h2>
-          
-// //           <motion.p
-// //             initial={{ opacity: 0 }}
-// //             animate={{ opacity: 1 }}
-// //             transition={{ delay: 0.6, duration: 0.8 }}
-// //             className="text-gray-600 mb-8 max-w-md mx-auto"
-// //           >
-// //             Your assessment has been successfully submitted.
-// //             We're analyzing your responses to provide you with personalized insights.
-// //           </motion.p>
-          
-// //           {/* Success message */}
-// //           <motion.div
-// //             initial={{ opacity: 0, scale: 0.9 }}
-// //             animate={{ opacity: 1, scale: 1 }}
-// //             transition={{ delay: 0.9, duration: 0.8 }}
-// //             className="bg-green-50 text-green-800 p-4 rounded-lg border border-green-200 mb-6 inline-block"
-// //           >
-// //             <svg 
-// //               xmlns="http://www.w3.org/2000/svg" 
-// //               className="h-6 w-6 inline-block mr-2" 
-// //               fill="none" 
-// //               viewBox="0 0 24 24" 
-// //               stroke="currentColor"
-// //             >
-// //               <path 
-// //                 strokeLinecap="round" 
-// //                 strokeLinejoin="round" 
-// //                 strokeWidth={2} 
-// //                 d="M5 13l4 4L19 7" 
-// //               />
-// //             </svg>
-// //             Successfully submitted! Redirecting to analysis...
-// //           </motion.div>
-// //         </motion.div>
-// //       </QuestLayout>
-// //     );
-// //   }
-  
-// //   // This shouldn't be reached normally, but handle just in case
-// //   return null;
-// // }
-
-// // export default QuestCompletion;
-
-// // ------------------------------------------------------------- //
-
-// // src/components/quest/views/QuestCompletion.tsx
-
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { motion } from 'framer-motion';
-// import axios from 'axios';
-// import QuestLayout from '../layout/QuestLayout';
-// import CompletionEffects from '../effects/CompletionEffects';
-// import CompletionCelebration from '../progress/CompletionCelebration';
-// import QuestSummary from './QuestSummary'; // Assuming this component exists
-// import { useQuest } from '../core/useQuest';
-// import { useAuth } from '../../../contexts/AuthContext'; // Adjust path as needed
-// import { supabase } from '../../../integrations/supabase/client'; // Adjust path as needed
-
-// export interface QuestCompletionProps {
-//   onRestart?: () => void;
-//   onComplete?: () => void;
-//   className?: string;
-// }
-
-// type SubmissionStatus = 'idle' | 'submitting' | 'submitted' | 'error';
-
-// export function QuestCompletion({
-//   onRestart,
-//   onComplete,
-//   className = ''
-// }: QuestCompletionProps) {
-//   const navigate = useNavigate();
-//   const { 
-//     session, 
-//     finishQuest, 
-//     resetQuest,
-//     changeSection,
-//     currentSectionId,
-//     isSubmitting,
-//     allQuestions,
-//     sections
-//   } = useQuest();
-  
-//   // Add auth context to get user data
-//   const auth = useAuth();
-  
-//   const [showSummary, setShowSummary] = useState(false);
-//   const [submitted, setSubmitted] = useState(false);
-//   const [result, setResult] = useState<any>(null);
-//   // const [showThankYou, setShowThankYou] = useState(false);
-  
-//   // New state variables for backend integration
-//   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
-//   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  
-//   // Function to store session history in database
-//   const storeSessionHistory = async (sessionId: string, testid: string) => {
-//     // Check if user is authenticated
-//     if (!auth.user?.id) {
-//       console.warn('You are not authenticated. Please Sign in first');
-//       return;
-//     }
-    
-//     try {
-//       // Perform insert operation
-//       const { data, error } = await supabase
-//         .from('user_session_history')
-//         .insert({
-//           user_id: auth.user.id,
-//           session_id: sessionId,
-//           testid: testid || null,
-//           created_at: new Date().toISOString()
-//         });
-      
-//       // Handle errors
-//       if (error) {
-//         console.error('Failed to store session history:', error);
-//         // Note: We don't throw here to avoid blocking the main flow
-//       } else {
-//         console.log('Session history stored successfully');
-//       }
-//     } catch (err) {
-//       console.error('Error storing session history:', err);
-//       // Note: We don't re-throw to avoid blocking the main flow
-//     }
-//   };
-  
-//   // Handle going back to the assessment
-//   const handleBack = () => {
-//     setShowSummary(false);
-//     setSubmissionStatus('idle');
-//     setSubmissionError(null);
-//   };
-  
-//   const formatSubmissionData = () => {
-//   if (!session) return null;
-//   const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
-  
-//   // Get user information from auth context
-//   const userData = {
-//     user_id: auth.user?.id || session.userId,
-//     name: auth.user?.user_metadata?.first_name 
-//       ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
-//       : 'User',
-//     email: auth.user?.email || 'user@example.com',
-//     "mobile no": auth.user?.user_metadata?.phone || "",
-//     city: auth.user?.user_metadata?.city || "",
-//     DOB: auth.user?.user_metadata?.dob || undefined,
-//     "testid": testid
-//   };
-  
-//   // Calculate completion time and duration
-//   const startTime = session.startedAt;
-//   const completionTime = new Date().toISOString();
-//   const durationMinutes = (new Date().getTime() - new Date(startTime).getTime()) / (1000 * 60);
-  
-//   // Format responses array - NOW INCLUDES ALL QUESTIONS
-//   let previousTimestamp: string | null = null;
-//   const responses = allQuestions?.map((question, index) => {
-//     const response = session.responses?.[question.id];
-//     const sectionId = question?.sectionId || '';
-//     const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
-    
-//     // Handle answered questions
-//     if (response) {
-//       // Calculate time taken (if previous timestamp exists)
-//       let timeTaken = null;
-//       if (previousTimestamp) {
-//         const currentTime = new Date(response.timestamp).getTime();
-//         const prevTime = new Date(previousTimestamp).getTime();
-//         const diffSeconds = Math.round((currentTime - prevTime) / 1000);
-//         timeTaken = `${diffSeconds}s`;
-//       }
-//       previousTimestamp = response.timestamp;
-      
-//       return {
-//         qno: index + 1,
-//         question_id: question.id,
-//         question_text: question?.text || '',
-//         answer: response.response,
-//         section_id: sectionId,
-//         section_name: sectionName,
-//         metadata: {
-//           tags: response.tags || [],
-//           ...(timeTaken && { time_taken: timeTaken })
-//         }
-//       };
-//     } 
-//     // Handle skipped questions
-//     else {
-//       return {
-//         qno: index + 1,
-//         question_id: question.id,
-//         question_text: question?.text || '',
-//         answer: "I preferred not to response for this question",
-//         section_id: sectionId,
-//         section_name: sectionName,
-//         metadata: {
-//           tags: [],
-//           time_taken: "not answered"
-//         }
-//       };
-//     }
-//   }) || [];
-  
-//   // Calculate tag distribution for simplified analytics (UNCHANGED)
-//   const tagCounts: Record<string, number> = {};
-//   responses.forEach(response => {
-//     if (response.metadata.tags) {
-//       response.metadata.tags.forEach((tag: string) => {
-//         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-//       });
-//     }
-//   });
-  
-//   // Ensure all possible tags have counts
-//   const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
-//   allTags.forEach(tag => {
-//     if (!tagCounts[tag]) tagCounts[tag] = 0;
-//   });
-  
-//   // Create the full submission data object with simplified structure
-//   return {
-//     response: responses,
-//     user_data: userData,
-//     assessment_metadata: {
-//       session_id: session.id,
-//       start_time: startTime,
-//       completion_time: completionTime,
-//       duration_minutes: Number(durationMinutes.toFixed(1)),
-//       completion_percentage: Math.round((Object.keys(session.responses || {}).length / (allQuestions?.length || 1)) * 100),
-//       device_info: {
-//         type: detectDeviceType(),
-//         browser: detectBrowser(),
-//         operating_system: detectOS()
-//       }
-//     },
-//     analytics: {
-//       response_patterns: {
-//         tag_distribution: tagCounts
-//       }
-//     }
-//   };
-//   };
-
-//   const handleSubmit = async () => {
-//     try {
-//       setSubmissionStatus('submitting');
-      
-//       // Format the submission data (existing code)
-//       const submissionData = formatSubmissionData();
-//       console.log(submissionData);
-      
-      
-//       if (!submissionData) {
-//         console.error('No submission data available');
-//         setSubmissionStatus('error');
-//         setSubmissionError('No submission data available');
-//         return null;
-//       }
-//       // console.log(auth.session?.access_token);
-//         const sessionId = submissionData.assessment_metadata.session_id;
-//         const testid = submissionData?.user_data?.testid || ''
-      
-//       // Submit to backend API
-//       const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-//         headers: {
-//           'Content-Type': 'application/json',  
-//         },
-//         // timeout: 30000 // 30 second timeout
-//       });
-
-//       setSubmissionStatus('submitted');
-//       setResult(response.data);
-//       setSubmitted(true);
-      
-//       // Store the sessionId in localStorage
-//       localStorage.setItem('questSessionId', sessionId);
-//       localStorage.setItem('testid', testid)
-      
-//       // Store session history in database (existing code)
-//       await storeSessionHistory(sessionId, testid);
-      
-//       // Call the onComplete callback if provided
-//       if (onComplete) {
-//         onComplete();
-//       }
-      
-//       // // Show the Thank You message
-//       // setShowThankYou(true);
-      
-//       // After a delay, navigate to the processing page with the sessionId
-//       // setTimeout(() => {
-//       //   const targetUrl = `/quest-result/processing/${sessionId}/${auth.user?.id}/${testid}`;
-//       //   console.log('🚀 NAVIGATING TO:', targetUrl);
-//       //   console.log('📊 sessionId:', sessionId);
-//       //   console.log('👤 userId:', auth.user?.id);
-//       //   console.log('🔑 testid:', testid);
-//       //   navigate(targetUrl);
-//       // }, 4000); 
-
-//       const targetUrl = `/quest-result/processing/${sessionId}/${auth.user?.id}/${testid}`;
-//       navigate(targetUrl);
-      
-//       return response.data;
-      
-//     } catch (error: any) {
-//       console.error('Error submitting quest:', error.response?.data?.message || error.message);
-//       setSubmissionStatus('error');
-//       setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
-//       throw error;
-//     }
-//   };
-  
-//   // Helper functions for device detection
-//   const detectDeviceType = (): string => {
-//     const userAgent = navigator.userAgent;
-//     if (/mobile|android|iphone|ipad|ipod/i.test(userAgent.toLowerCase())) {
-//       return /ipad/i.test(userAgent.toLowerCase()) ? 'tablet' : 'mobile';
-//     }
-//     return 'desktop';
-//   };
-  
-//   const detectBrowser = (): string => {
-//     const userAgent = navigator.userAgent;
-//     if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
-//     if (userAgent.indexOf('Safari') > -1) return 'Safari';
-//     if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
-//     if (userAgent.indexOf('MSIE') > -1 || userAgent.indexOf('Trident') > -1) return 'Internet Explorer';
-//     if (userAgent.indexOf('Edge') > -1) return 'Edge';
-//     return 'Unknown';
-//   };
-  
-//   const detectOS = (): string => {
-//     const userAgent = navigator.userAgent;
-//     if (userAgent.indexOf('Windows') > -1) return 'Windows';
-//     if (userAgent.indexOf('Mac') > -1) return 'Mac';
-//     if (userAgent.indexOf('Linux') > -1) return 'Linux';
-//     if (userAgent.indexOf('Android') > -1) return 'Android';
-//     if (userAgent.indexOf('iOS') > -1) return 'iOS';
-//     return 'Unknown';
-//   };
-  
-//   // Show celebratory content before summary
-//   if (!showSummary && !submitted) {
-//     return (
-//       <QuestLayout showHeader={false} showNavigation={false} className={className}>
-//         <motion.div
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//           transition={{ duration: 0.8 }}
-//           className="text-center p-4"
-//         >
-//           {/* Celebration effects */}
-//           <CompletionEffects />
-          
-//           {/* Celebration animation */}
-//           <CompletionCelebration />
-          
-//           {/* Congratulation message */}
-//           <motion.h2
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             transition={{ delay: 0.5, duration: 0.8 }}
-//             className="text-3xl font-playfair text-navy mt-8 mb-4"
-//           >
-//             Congratulations!
-//           </motion.h2>
-          
-//           <motion.p
-//             initial={{ opacity: 0 }}
-//             animate={{ opacity: 1 }}
-//             transition={{ delay: 0.8, duration: 0.8 }}
-//             className="text-gray-600 mb-8 max-w-md mx-auto"
-//           >
-//             You've completed the assessment. Your responses have been recorded.
-//           </motion.p>
-          
-//           {/* Action buttons */}
-//           <motion.div
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             transition={{ delay: 1.2, duration: 0.8 }}
-//             className="flex flex-col sm:flex-row justify-center gap-4 mt-6"
-//           >
-//             <motion.button
-//               onClick={() => setShowSummary(true)}
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.98 }}
-//               className="px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors"
-//             >
-//               View Summary
-//             </motion.button>
-//           </motion.div>
-//         </motion.div>
-//       </QuestLayout>
-//     );
-//   }
-  
-//   // Show summary before submission
-//   if (showSummary && !submitted) {
-//     return (
-//       <QuestLayout showHeader={false} showNavigation={false} className={className}>
-//         {/* Error display */}
-//         {submissionStatus === 'error' && (
-//           <motion.div
-//             initial={{ opacity: 0, y: -20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             className="bg-red-50 text-red-800 p-4 rounded-lg border border-red-200 mb-6 mx-4"
-//           >
-//             <p className="font-medium">Submission Error:</p>
-//             <p className="text-sm">{submissionError}</p>
-//             <button 
-//               onClick={() => {
-//                 setSubmissionStatus('idle');
-//                 setSubmissionError(null);
-//               }}
-//               className="mt-2 text-sm underline hover:no-underline"
-//             >
-//               Try Again
-//             </button>
-//           </motion.div>
-//         )}
-        
-//         <QuestSummary 
-//           onSubmit={handleSubmit}
-//           onBack={handleBack}
-//         />
-//       </QuestLayout>
-//     );
-//   }
-  
-//   // Show Thank You message after submission
-//   // if (showThankYou) {
-//   //   return (
-//   //     <QuestLayout showHeader={false} showNavigation={false} className={className}>
-//   //       <motion.div
-//   //         initial={{ opacity: 0 }}
-//   //         animate={{ opacity: 1 }}
-//   //         transition={{ duration: 0.8 }}
-//   //         className="text-center p-4"
-//   //       >
-//   //         <motion.h2
-//   //           initial={{ opacity: 0, y: 20 }}
-//   //           animate={{ opacity: 1, y: 0 }}
-//   //           transition={{ delay: 0.3, duration: 0.8 }}
-//   //           className="text-3xl font-playfair text-navy mb-4"
-//   //         >
-//   //           Thank You!
-//   //         </motion.h2>
-          
-//   //         <motion.p
-//   //           initial={{ opacity: 0 }}
-//   //           animate={{ opacity: 1 }}
-//   //           transition={{ delay: 0.6, duration: 0.8 }}
-//   //           className="text-gray-600 mb-8 max-w-md mx-auto"
-//   //         >
-//   //           Your assessment has been successfully submitted.
-//   //           We're analyzing your responses to provide you with personalized insights.
-//   //         </motion.p>
-          
-//   //         {/* Success message */}
-//   //         <motion.div
-//   //           initial={{ opacity: 0, scale: 0.9 }}
-//   //           animate={{ opacity: 1, scale: 1 }}
-//   //           transition={{ delay: 0.9, duration: 0.8 }}
-//   //           className="bg-green-50 text-green-800 p-4 rounded-lg border border-green-200 mb-6 inline-block"
-//   //         >
-//   //           <svg 
-//   //             xmlns="http://www.w3.org/2000/svg" 
-//   //             className="h-6 w-6 inline-block mr-2" 
-//   //             fill="none" 
-//   //             viewBox="0 0 24 24" 
-//   //             stroke="currentColor"
-//   //           >
-//   //             <path 
-//   //               strokeLinecap="round" 
-//   //               strokeLinejoin="round" 
-//   //               strokeWidth={2} 
-//   //               d="M5 13l4 4L19 7" 
-//   //             />
-//   //           </svg>
-//   //           Successfully submitted! Redirecting to analysis...
-//   //         </motion.div>
-//   //       </motion.div>
-//   //     </QuestLayout>
-//   //   );
-//   // }
-  
-//   // This shouldn't be reached normally, but handle just in case
-//   return null;
-// }
-
-// export default QuestCompletion;
-
-
-
 // src/components/quest/views/QuestCompletion.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import QuestLayout from '../layout/QuestLayout';
 import { useQuest } from '../core/useQuest';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
+
+const psychologicalFacts = [
+  "The average person has 12,000 to 60,000 thoughts per day, and many of them are repetitive.",
+  "Your brain uses about 20% of your body's total energy, despite being only 2% of your body weight.",
+  "The brain continues to create new neural connections throughout your life, a property known as neuroplasticity.",
+  "The 'Dunning-Kruger effect' describes how people with limited knowledge in a field overestimate their expertise.",
+  "Smell is the sense most closely linked to memory, which is why certain scents can trigger vivid recollections.",
+  "The 'spotlight effect' is the tendency to overestimate how much others notice about you.",
+  "Decision fatigue describes how the quality of decisions tends to deteriorate after making many decisions.",
+  "Social connection is as important to physical health as exercise and good nutrition.",
+  "Most people can recognize about 5,000 faces, a skill that develops from early childhood.",
+  "Your brain activity is as unique as your fingerprint, creating patterns that are distinctly yours.",
+  "Altruism activates pleasure centers in the brain, which is why helping others feels good.",
+  "Studies show that expressing gratitude increases happiness and reduces depression.",
+  "The 'confirmation bias' leads us to favor information that confirms our existing beliefs.",
+  "The 'halo effect' causes one positive trait to influence our perception of other traits.",
+  "The brain can't actually multitask—it switches rapidly between tasks, reducing efficiency.",
+  "Eye contact activates the same brain regions as falling in love and feeling connected.",
+  "Your emotional state affects your perception—happiness broadens your visual field.",
+  "The 'psychological immune system' helps you rationalize and recover from negative events.",
+];
 
 export interface QuestCompletionProps {
   onRestart?: () => void;
@@ -943,13 +59,37 @@ export function QuestCompletion({
   
   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [factIndex, setFactIndex] = useState(0);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    const factInterval = setInterval(() => {
+      setFactIndex(prevIndex => (prevIndex + 1) % psychologicalFacts.length);
+    }, 8000);
+
+    return () => clearInterval(factInterval);
+  }, []);
   
   // Auto-submit when component mounts
   useEffect(() => {
-    if (submissionStatus === 'idle') {
-      handleAutoSubmit();
-    }
-  }, []);
+  console.log('🔍 useEffect triggered - hasInitialized:', hasInitialized.current, 'hasSubmitted:', hasSubmitted, 'submissionStatus:', submissionStatus);
+  
+  // Prevent double execution in React Strict Mode
+  if (hasInitialized.current) {
+    console.log('❌ Already initialized - skipping');
+    return;
+  }
+  
+  hasInitialized.current = true;
+  
+  if (submissionStatus === 'idle' && !hasSubmitted) {
+    console.log('✅ Conditions met - triggering handleAutoSubmit');
+    handleAutoSubmit();
+  } else {
+    console.log('❌ Conditions not met - skipping submission');
+  }
+}, []);
 
   // Function to store session history in database
   const storeSessionHistory = async (sessionId: string, testid: string) => {
@@ -980,17 +120,26 @@ export function QuestCompletion({
   const formatSubmissionData = () => {
     // if (!session) return null;
     // Create a working session object (either real or fallback)
-    let workingSession = session;
-    if (!session) {
-      const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    let workingSession: any ;
+    // if (!session) {
+    //   const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    //   workingSession = { 
+    //     id: fallbackSessionId, 
+    //     userId: 'anonymous', 
+    //     startedAt: new Date().toISOString(), 
+    //     responses: {},
+    //     status: 'completed'
+    //   };
+    // }
+
+    const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
       workingSession = { 
         id: fallbackSessionId, 
         userId: 'anonymous', 
         startedAt: new Date().toISOString(), 
-        responses: {},
+        responses: session?.responses || {},
         status: 'completed'
       };
-    }
 
     const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
@@ -1069,7 +218,7 @@ export function QuestCompletion({
           section_name: sectionName,
           metadata: {
             tags: [],
-            time_taken: "not answered"
+            time_taken: '1s'
           }
         };
       }
@@ -1122,6 +271,12 @@ export function QuestCompletion({
 
   // Auto-submit function that runs when component loads
   const handleAutoSubmit = async () => {
+    // Prevent duplicate submissions
+    if (hasSubmitted || submissionStatus === 'submitting' || submissionStatus === 'submitted') {
+      console.log('🛡️ Submission already in progress or completed, skipping...');
+      return;
+    }
+    setHasSubmitted(true); // Mark as submitted immediately
     try {
       console.log('🚀 Auto-submitting quest data...');
       setSubmissionStatus('submitting');
@@ -1140,37 +295,91 @@ export function QuestCompletion({
       const testid = submissionData?.user_data?.testid || '';
       
       console.log('📤 Submitting to API...');
-      const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-        headers: {
-          'Content-Type': 'application/json',  
-        },
-      });
+      // const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+      //   headers: {
+      //     'Content-Type': 'application/json',  
+      //   },
+      // });
 
-      console.log('✅ Submission successful:', response.data);
+      // ------------------------------------------------
+      // MOCK: Simulating API submission
+      // console.log('🧪 MOCK SUBMISSION - Data that would be sent:', submissionData);
+      // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      // const response = { data: { success: true, mock: 'data' } };
+
+      // console.log('✅ MOCK: Submission successful:', response.data);
+
+      // ------------------------------------------------// 
+
+      // console.log('✅ Submission successful:', response.data);
+      // setSubmissionStatus('submitted');
+      
+      // // Store data in localStorage and database
+      // localStorage.setItem('questSessionId', sessionId);
+      // localStorage.setItem('testid', testid);
+      // await storeSessionHistory(sessionId, testid);
+      
+      // // Call completion callback
+      // if (onComplete) {
+      //   onComplete();
+      // }
+      
+      // // Navigate to processing page immediately
+      // const userId = auth.user?.id || 'anonymous';
+      // const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
+      // console.log('🚀 Navigating to processing:', targetUrl);
+      // navigate(targetUrl);
+
+      // Call finishQuest from context with submission data
+      const result = await finishQuest(submissionData);
+
+      console.log('✅ Quest finished successfully:', result);
       setSubmissionStatus('submitted');
-      
-      // Store data in localStorage and database
-      localStorage.setItem('questSessionId', sessionId);
-      localStorage.setItem('testid', testid);
-      await storeSessionHistory(sessionId, testid);
-      
-      // Call completion callback
-      if (onComplete) {
-        onComplete();
-      }
-      
-      // Navigate to processing page immediately
-      const userId = auth.user?.id || 'anonymous';
-      const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
-      console.log('🚀 Navigating to processing:', targetUrl);
-      navigate(targetUrl);
+      // Note: Navigation and storage are now handled in finishQuest()
       
     } catch (error: any) {
       console.error('❌ Submission failed:', error.response?.data?.message || error.message);
       setSubmissionStatus('error');
       setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
+      setHasSubmitted(false); // Reset on error to allow retry
     }
+    
   };
+
+//   const handleAutoSubmit = async () => {
+//   try {
+//     console.log('🚀 Preparing quest data for processing...');
+    
+//     const submissionData = formatSubmissionData();
+//     console.log('📊 Submission data:', submissionData);
+    
+//     if (!submissionData) {
+//       console.error('No submission data available');
+//       setSubmissionStatus('error');
+//       setSubmissionError('No submission data available');
+//       return;
+//     }
+
+//     const sessionId = submissionData.assessment_metadata.session_id;
+//     const testid = submissionData?.user_data?.testid || '';
+//     const userId = auth.user?.id || 'anonymous';
+    
+//     // Store submission data in localStorage for processing page to use
+//     localStorage.setItem('questSubmissionData', JSON.stringify(submissionData));
+//     localStorage.setItem('questSessionId', sessionId);
+//     localStorage.setItem('testid', testid);
+    
+//     // Navigate directly to processing page
+//     const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
+//     console.log('🚀 Navigating to processing page:', targetUrl);
+//     navigate(targetUrl);
+    
+//   } catch (error: any) {
+//     console.error('❌ Error preparing quest data:', error.message);
+//     setSubmissionStatus('error');
+//     setSubmissionError(error.message || 'Failed to prepare quest data');
+//   }
+// };
 
   // Helper functions for device detection
   const detectDeviceType = (): string => {
@@ -1203,6 +412,7 @@ export function QuestCompletion({
 
   // Retry function for failed submissions
   const handleRetry = () => {
+    setHasSubmitted(false); // Reset the submission flag
     setSubmissionStatus('idle');
     setSubmissionError(null);
     handleAutoSubmit();
@@ -1211,34 +421,98 @@ export function QuestCompletion({
   // Show loading state while submitting
   if (submissionStatus === 'submitting') {
     return (
-      <QuestLayout showHeader={false} showNavigation={false} className={className}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center px-4 py-12 max-w-3xl mx-auto text-center"
-        >
-          {/* <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="w-12 h-12 rounded-full border-4 border-terracotta border-t-transparent mb-6"
-          /> */}
+      // <QuestLayout showHeader={false} showNavigation={false} className={className} >
+      //   <motion.div
+      //     initial={{ opacity: 0 }}
+      //     animate={{ opacity: 1 }}
+      //     className="flex flex-col items-center justify-center text-center bg-[#004A7F] h-screen overflow-hidden"
+      //   >
+      //     <h2 className="text-2xl font-['Gilroy-Bold'] text-white mb-4">
+      //       Analysing Your Assessment
+      //     </h2>
+
+      //     <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-8 border border-gray-100">
+      //     <AnimatePresence mode="wait">
+      //       <motion.p
+      //         key={factIndex}
+      //         initial={{ opacity: 0, y: 20 }}
+      //         animate={{ opacity: 1, y: 0 }}
+      //         exit={{ opacity: 0, y: -20 }}
+      //         transition={{ duration: 0.5 }}
+      //         className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
+      //       >
+      //         "{psychologicalFacts[factIndex]}"
+      //       </motion.p>
+      //     </AnimatePresence>
+      //   </div>
           
-          <h2 className="text-2xl font-['Gilroy-Bold'] text-navy mb-4">
-            Submitting Your Assessment
-          </h2>
-          
-          <p className="text-gray-600 font-['Gilroy-Bold']">
-            Please wait while we process your responses...
-          </p>
-        </motion.div>
-      </QuestLayout>
+      //     <p className="text-white font-['Gilroy-Bold']">
+      //       Please wait while we process your responses...
+      //     </p>
+      //   </motion.div>
+
+      //   <motion.div
+      //     layoutId='bg'
+      //     initial={{ opacity: 0, scale: 0.8 }}
+      //     animate={{ opacity: 1, scale: 1 }}
+      //     transition={{ duration: 0.8 }}
+      //     className='w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex bottom-0 top-[45px] right-[51px] translate-x-1/2 rounded-full blur-[80px]'
+      //     style={{
+      //       background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
+      //       backdropFilter: 'blur(180px)',
+      //     }}
+      //   />
+      // </QuestLayout> 
+      <div className='h-dvh bg-[#004A7F] overflow-hidden'>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center text-center h-full relative z-20"
+            >
+              {/* <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
+                Analysing Your Assessment
+              </h2> */}
+              <div className='absolute flex flex-col items-center justify-center w-full top-14'>
+                <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
+                  QUEST
+                </div>
+                <div className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
+                  BY FRATERNY
+                </div>
+              </div>
+      
+              <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={factIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
+                >
+                  "{psychologicalFacts[factIndex]}"
+                </motion.p>
+              </AnimatePresence>
+              </div>
+              
+              <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter">
+                Please wait while we process your responses...
+              </p>
+            </motion.div>
+      
+            <motion.div
+              layoutId='bg'
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              className='absolute z-10 w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
+              style={{
+                background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
+                backdropFilter: 'blur(180px)',
+              }}
+            />
+      </div> 
     );
   }
 

@@ -50,14 +50,14 @@ export function QuestLoading({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="w-full h-full border-4 border-gray-200 border-t-terracotta rounded-full animate-spin"></div>
+            <div className="w-full h-full border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin"></div>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-navy mb-2"
+            className="text-lg text-navy mb-2 font-['Gilroy-Bold']"
           >
             {message}
           </motion.div>
@@ -72,7 +72,7 @@ export function QuestLoading({
               <motion.span
                 key={i}
                 variants={dotVariants}
-                className="w-2 h-2 bg-terracotta rounded-full"
+                className="w-2 h-2 bg-blue-600 rounded-full"
                 style={{ animationDelay: `${i * 0.2}s` }}
               />
             ))}

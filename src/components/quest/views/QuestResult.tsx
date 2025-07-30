@@ -4,7 +4,7 @@
  * Component for displaying psychology assessment results with JSON-based data structure
  * Updated to work directly with structured JSON data instead of parsing text
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -126,6 +126,7 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resultData, setResultData] = useState<ResultData | null>(null);
+  const hasInitialized = useRef(false);
   
   // Get session ID from URL params or localStorage
   const currentSessionId = sessionId || localStorage.getItem('questSessionId');
@@ -136,6 +137,14 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   
   
   useEffect(() => {
+    // Prevent double execution in React Strict Mode
+    if (hasInitialized.current) {
+      console.log('❌ Already initialized - skipping API call');
+      return;
+    }
+
+    hasInitialized.current = true;
+    console.log('✅ First execution - proceeding with API call');
     // If no session ID is available, redirect to homepage or error page
     if (!currentSessionId) {
       setError('No session ID found. Please complete an assessment first.');
@@ -151,176 +160,23 @@ export function QuestResult({ className = '' }: QuestResultProps) {
       try {
         setIsLoading(true);
         
-        // For now, use mock JSON data
-        // setTimeout(() => {
-        //   // Enhanced mock result data structure in JSON format
-        //   const mockResultData = {
-        //     session_id: currentSessionId,
-        //     user_id: auth?.user?.id,
-        //     completion_date: new Date().toISOString(),
-        //     results: {
-        //       "section 1": "You carry ambition quietly, working tirelessly but yearning for the playful freedom you missed as a child.",
-        //       "Mind Card": {
-        //         personality: "#Game-Styled Mindcard",
-        //         attribute: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
-        //         score: ["65/100", "75/100", "90/100", "85/100"],
-        //         insight: [
-        //           "Your self-awareness is growing; you know strengths but underplay emotional needs.",
-        //           "You collaborate respectfully, valuing others' input while driving your own projects.",
-        //           "You resolve conflicts playfully and quickly, maintaining strong familial bonds.",
-        //           "You embrace ambitious risks, juggling research, business, and sporting dreams fearlessly."
-        //         ]
-        //       },
-        //       findings: [
-        //         "Your childhood's disciplined push shaped an unquenchable ambition that fuels both research and entrepreneurship.",
-        //         "You harbor a silent altruism: you dream of wealth not for yourself but to uplift underprivileged students.",
-        //         "Your emotional reserve around anger reveals a gentle core, cautious of hurting others even when constrained.",
-        //         "Balancing PhD rigor and cricket aspirations, you forge a unique identity bridging science and sport.",
-        //         "Your rapid learning skill acts as a secret superpower, accelerating your growth in any domain."
-        //       ],
-        //       quotes: [
-        //         "Ambition is the path, but satisfaction is the journey.",
-        //         "The mind, once stretched by new ideas, never returns to its original dimensions.",
-        //         "True generosity is giving without remembering; self-care without hesitation.",
-        //         "Strength lies in gentleness; power in self-awareness.",
-        //         "To dare is to lose one's footing momentarily; not to dare is to lose oneself."
-        //       ],
-        //       films: [
-        //         {
-        //           title: "The Theory of Everything",
-        //           description: "brilliance meets heartache"
-        //         },
-        //         {
-        //           title: "Lagaan",
-        //           description: "ambition and teamwork under pressure"
-        //         },
-        //         {
-        //           title: "Good Will Hunting",
-        //           description: "hidden genius, quiet resilience"
-        //         },
-        //         {
-        //           title: "Chak De! India",
-        //           description: "passion for sport and pride"
-        //         },
-        //         {
-        //           title: "The Social Network",
-        //           description: "innovation driven by obsession"
-        //         }
-        //       ],
-        //       subjects: [
-        //         {
-        //           title: "Neuroeconomics",
-        //           description: "merging decision, emotion, and risk",
-        //           matchPercentage: 87
-        //         },
-        //         {
-        //           title: "Sports psychology",
-        //           description: "decoding focus in athletes",
-        //           matchPercentage: 92
-        //         },
-        //         {
-        //           title: "Philosophy of education",
-        //           description: "shaping future learners",
-        //           matchPercentage: 81
-        //         }
-        //       ],
-        //       astrology: {
-        //         actualSign: "Aries",
-        //         behavioralSign: "Virgo",
-        //         description: "Based on behavioral psychology, your personality aligns more with Virgo's discipline than your Aries flair.",
-        //         predictions: [
-        //           {
-        //             title: "You'll excel in multidisciplinary projects",
-        //             likelihood: 82,
-        //             reason: "Your rapid learning and diverse goals"
-        //           },
-        //           {
-        //             title: "You'll struggle to express anger openly",
-        //             likelihood: 76,
-        //             reason: "You avoid conflict to preserve harmony"
-        //           },
-        //           {
-        //             title: "A philanthropic milestone emerges in two years",
-        //             likelihood: 68,
-        //             reason: "Your altruistic financial goals"
-        //           },
-        //           {
-        //             title: "You'll pivot career paths within five years",
-        //             likelihood: 71,
-        //             reason: "Your blend of science and sport passions"
-        //           },
-        //           {
-        //             title: "Strong mentorship bonds will redefine your confidence",
-        //             likelihood: 64,
-        //             reason: "You seek guidance but rarely ask"
-        //           }
-        //         ]
-        //       },
-        //       books: [
-        //         {
-        //           title: "Atomic Habits",
-        //           author: "James Clear"
-        //         },
-        //         {
-        //           title: "Mindset",
-        //           author: "Carol Dweck"
-        //         },
-        //         {
-        //           title: "Flow",
-        //           author: "Mihaly Csikszentmihalyi"
-        //         }
-        //       ],
-        //       actionItem: "Practice expressing your needs: voice one honest concern daily for a week."
-        //     }
-        //   };
-          
-        //   // Validate and set the data
-        //   const validatedData = validateResultData(mockResultData);
-          
-        //   // Check if the result belongs to the current user
-        //   if (auth?.user?.id && validatedData.user_id !== auth?.user?.id) {
-        //     setError('You are not authorized to view these results.');
-        //     setIsLoading(false);
-        //     return;
-        //   }
-          
-        //   setResultData(validatedData);
-        //   setIsLoading(false);
-        // }, 1500);
-        
-        // COMMENTED OUT: Real implementation for fetching data from backend
-        
         try {
-          // 1. First verify this session belongs to the current user
-          // const { data: sessionHistory, error: sessionError } = await supabase
-          //   .from('user_session_history')
-          //   .select('*')
-          //   .eq('session_id', currentSessionId)
-          //   .eq('user_id', auth.user?.id || '')
-          //   .eq('testid', currenttestid)
-          //   .single();
-          
-          // if (sessionError || !sessionHistory) {
-          //   throw new Error('Session not found or not authorized');
+          // if (auth.user?.id) {
+          //   const { data: sessionHistory, error: sessionError } = await supabase
+          //     .from('user_session_history')
+          //     .select('*')
+          //     .eq('session_id', currentSessionId)
+          //     .eq('user_id', auth.user.id)
+          //     .eq('testid', currenttestid)
+          //     .single();
+
+          //   if (sessionError || !sessionHistory) {
+          //     console.warn('Session not found in database, but continuing for authenticated user');
+          //     // Don't throw error - continue with API call
+          //   }
+          // } else {
+          //   console.log('Anonymous user - skipping session history verification');
           // }
-
-          // 1. First verify this session (skip for anonymous users)
-          if (auth.user?.id) {
-            const { data: sessionHistory, error: sessionError } = await supabase
-              .from('user_session_history')
-              .select('*')
-              .eq('session_id', currentSessionId)
-              .eq('user_id', auth.user.id)
-              .eq('testid', currenttestid)
-              .single();
-
-            if (sessionError || !sessionHistory) {
-              console.warn('Session not found in database, but continuing for authenticated user');
-              // Don't throw error - continue with API call
-            }
-          } else {
-            console.log('Anonymous user - skipping session history verification');
-          }
           
           // 2. Fetch the analysis result from your AI backend using axios
           const userId = auth.user?.id || 'anonymous';
@@ -333,20 +189,20 @@ export function QuestResult({ className = '' }: QuestResultProps) {
           if (!response) {
             console.log('Something went wrong');
           } else {
-            console.log(`response`, response.data.results);
+            // console.log(`response:`, response.data.results);
             
             const analysisData = response.data;
             if (typeof analysisData.results === 'string') {
               analysisData.results = JSON.parse(analysisData.results);
             }
-            console.log(`analysis data`, analysisData);
-            console.log(`response data`, response);
+            // console.log(`analysis data`, analysisData);
+            // console.log(`response data`, response);
           }
           
           const analysisData = response.data;
           // 3. Validate and format the data
           const validatedData = validateResultData(analysisData);
-          console.log(`validated data ${validatedData}`);
+          // console.log(`validated data ${validatedData}`);
           setResultData(validatedData);
           setIsLoading(false);
           
@@ -403,27 +259,26 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   };
   
   // Loading state
-  if (isLoading) {
-    return (
-      <QuestLayout showHeader={true} showNavigation={false} className={className}>
-        <div className="flex flex-col items-center justify-center py-12 min-h-[60vh]">
-          <motion.div
-            animate={{
-              rotate: 360,
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
-              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-            }}
-            className="w-16 h-16 border-4 border-navy border-t-transparent rounded-full mb-6"
-          />
-          <p className="text-gray-600 text-lg">Loading your assessment results...</p>
-          <p className="text-gray-400 text-sm mt-2">Analyzing your psychological profile...</p>
-        </div>
-      </QuestLayout>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <QuestLayout showHeader={true} showNavigation={false} className={className}>
+  //       <div className="flex flex-col items-center justify-center py-12 min-h-[60vh]">
+  //         <motion.div
+  //           animate={{
+  //             rotate: 360,
+  //             scale: [1, 1.1, 1],
+  //           }}
+  //           transition={{
+  //             rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
+  //             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+  //           }}
+  //           className="w-16 h-16 border-4 border-navy border-t-transparent rounded-full mb-6"
+  //         />
+  //         <p className="text-gray-600 text-lg font-['Gilroy-Bold']">Your assessment result is finally ready.</p>
+  //       </div>
+  //     </QuestLayout>
+  //   );
+  // }
   
   // Error state
   if (error) {

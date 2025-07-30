@@ -184,7 +184,7 @@ const handleNext = () => {
         const saved = localStorage.getItem(`quest_tags_${currentQuestion.id}`);
         if (saved) {
           const tags = JSON.parse(saved);
-          console.log('🏷️ Navigation found saved tags in localStorage:', { questionId: currentQuestion.id, tags });
+          // console.log('🏷️ Navigation found saved tags in localStorage:', { questionId: currentQuestion.id, tags });
           return tags;
         }
       } catch (error) {
@@ -202,7 +202,7 @@ const handleNext = () => {
         }
       });
       
-      console.log('🏷️ Navigation found tags from DOM:', { questionId: currentQuestion.id, selectedTags });
+      // console.log('🏷️ Navigation found tags from DOM:', { questionId: currentQuestion.id, selectedTags });
       return selectedTags;
     };
 
@@ -212,11 +212,11 @@ const handleNext = () => {
         // Get the selected tags
         const selectedTags = getSelectedTagsFromQuestionCard();
         
-        console.log('💾 Navigation saving text response with tags:', {
-          questionId: currentQuestion.id,
-          response: currentTextarea.value,
-          tags: selectedTags
-        });
+        // console.log('💾 Navigation saving text response with tags:', {
+        //   questionId: currentQuestion.id,
+        //   response: currentTextarea.value,
+        //   tags: selectedTags
+        // });
         
         // Submit response with tags
         submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
@@ -346,7 +346,8 @@ const handleNext = () => {
       if (onFinish) {
         onFinish();
       } else {
-        finishQuest();
+        // finishQuest();
+        console.warn('No onFinish callback provided - cannot finish quest without submission data');
       }
     }
   } else {
