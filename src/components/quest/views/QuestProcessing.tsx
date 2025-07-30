@@ -823,16 +823,13 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
     }, []);
 
   return (
-    <div className='h-dvh bg-[#004A7F] overflow-hidden'>
+    <div className='h-screen bg-[#004A7F]'>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center text-center h-full relative z-20"
+        className="flex flex-col items-center justify-center text-center h-screen relative z-20"
       >
-        {/* <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
-          Analysing Your Assessment
-        </h2> */}
-        <div className='absolute flex flex-col items-center justify-center w-full top-14'>
+        <div className='absolute flex flex-col items-center justify-center w-full top-[5%]'>
           <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
             QUEST
           </div>
@@ -841,7 +838,7 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
           </div>
         </div>
 
-        <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100">
+        <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100 shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.p
             key={factIndex}
@@ -856,13 +853,12 @@ export function QuestProcessing({ className = '' }: QuestProcessingProps) {
         </AnimatePresence>
         </div>
         
-        <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter">
+        <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter px-2">
           Please wait while we process your responses...
         </p>
       </motion.div>
 
       <motion.div
-        layoutId='bg'
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}

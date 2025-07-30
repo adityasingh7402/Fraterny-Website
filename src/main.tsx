@@ -298,7 +298,7 @@ const router = createBrowserRouter([
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
       { path: 'quest-result/*', element: createSuspenseWrapper(QuestassessmentLoading)(<QuestResultRoute />) },
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
-      { path: 'quest-landing', element: <QuestLandingPage />},
+      { path: 'start-your-psychological-quest', element: <QuestLandingPage />},
       
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: createSuspenseWrapper()(<PrivacyPolicy />) },
