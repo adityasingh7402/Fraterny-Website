@@ -14,25 +14,25 @@ const QuestProcessing = lazy(() => import('../../components/quest/views/QuestPro
 const QuestResult = lazy(() => import('../../components/quest/views/QuestResult'));
 
 // Create a simple loading component for quest routes
-const QuestLoading = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
-      <p className="text-gray-700 font-medium">Loading Assessment...</p>
-    </div>
-  </div>
-);
+// const QuestLoading = () => (
+//   <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//     <div className="flex flex-col items-center gap-4">
+//       <div className="w-10 h-10 rounded-full border-4 border-terracotta border-t-transparent animate-spin"></div>
+//       <p className="text-gray-700 font-medium">Loading Assessment...</p>
+//     </div>
+//   </div>
+// );
 
 const QuestResultRoute: React.FC = () => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
   // DEBUG: Log current location and user info
-  console.log('🔍 QuestResultRoute DEBUG:');
-  console.log('📍 Current pathname:', location.pathname);
-  console.log('🔗 Full location:', location);
-  console.log('👤 User:', user?.id);
-  console.log('⏳ IsLoading:', isLoading);
+  // console.log('🔍 QuestResultRoute DEBUG:');
+  // console.log('📍 Current pathname:', location.pathname);
+  // console.log('🔗 Full location:', location);
+  // console.log('👤 User:', user?.id);
+  // console.log('⏳ IsLoading:', isLoading);
 
   // We'll only require authentication for viewing results, not for taking the assessment
   // const requiresAuth = 
@@ -41,11 +41,11 @@ const QuestResultRoute: React.FC = () => {
 
   const requiresAuth = false; // For now, we don't require auth for quest results
 
-  console.log('🔐 RequiresAuth:', requiresAuth);
+  // console.log('🔐 RequiresAuth:', requiresAuth);
 
   // Check authentication if needed
   if (requiresAuth && !isLoading && !user) {
-  console.log('❌ Auth required but user not found, redirecting to /auth');
+  // console.log('❌ Auth required but user not found, redirecting to /auth');
   return <Navigate to="/auth" state={{ from: location }} replace />;
 }
 
@@ -58,10 +58,8 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="processing/:sessionId/:userId/:testid" 
         element={
-          <Suspense fallback={<QuestLoading />}>
-            <Navigation />
+          <Suspense fallback={null}>
             <QuestProcessing />
-            <Footer />
           </Suspense>
         } 
       />
@@ -70,10 +68,8 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="result/:sessionId/:userId/:testid" 
         element={
-          <Suspense fallback={<QuestLoading />}>
-            <Navigation />
+          <Suspense fallback={null}>
             <QuestResult />
-            <Footer />
           </Suspense>
         } 
       />
@@ -82,7 +78,7 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="processing/:sessionId" 
         element={
-          <Suspense fallback={<QuestLoading />}>
+          <Suspense fallback={null}>
             <Navigation />
             <QuestProcessing />
             <Footer />
@@ -93,7 +89,7 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="result/:sessionId" 
         element={
-          <Suspense fallback={<QuestLoading />}>
+          <Suspense fallback={null}>
             <Navigation />
             <QuestResult />
             <Footer />
@@ -105,7 +101,7 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="processing" 
         element={
-          <Suspense fallback={<QuestLoading />}>
+          <Suspense fallback={null}>
             <Navigation />
             <QuestProcessing />
             <Footer />
@@ -116,7 +112,7 @@ const QuestResultRoute: React.FC = () => {
       <Route 
         path="result" 
         element={
-          <Suspense fallback={<QuestLoading />}>
+          <Suspense fallback={null}>
             <Navigation />
             <QuestResult />
             <Footer />

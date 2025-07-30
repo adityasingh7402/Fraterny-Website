@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
+import { supabase } from '../../../integrations/supabase/client';
+import axios from 'axios';
 import { QuestContext } from './QuestContext';
 import { 
   Question, 
@@ -29,6 +33,12 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   // ✨ NEW STATE - Add these lines after existing useState declarations
   const [allowSkip, setAllowSkip] = useState(true);
   const [visitedQuestions, setVisitedQuestions] = useState<string[]>([]);
+
+  // submit quest
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+
   
   // Derived state
   const currentQuestionIndex = session?.currentQuestionIndex || 0;
@@ -50,38 +60,6 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   // Generate a session ID (temporary - will be from backend)
   const generateSessionId = () => `session_${Date.now()}`;
   
-  // Start a new quest session
-  // const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
-  //   try {
-  //     setIsLoading(true);
-  //     setError(null);
-      
-  //     // Set section if provided
-  //     if (sectionId) {
-  //       setCurrentSectionId(sectionId);
-  //       setSectionQuestions(getQuestionsBySection(sectionId));
-  //     }
-      
-  //     // Create a new session (will be replaced with API call)
-  //     const newSession: QuestSession = {
-  //       id: generateSessionId(),
-  //       userId: 'current-user', // Will be replaced with actual user ID
-  //       startedAt: new Date().toISOString(),
-  //       status: 'in_progress',
-  //       currentQuestionIndex: 0,
-  //       responses: {},
-  //       sectionId: sectionId || currentSectionId
-  //     };
-      
-  //     setSession(newSession);
-  //     return newSession;
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err : new Error(String(err)));
-  //     return null;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   // ✨ UPDATED - Replace the existing startQuest function with this
   const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
@@ -98,7 +76,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       // Create a new session (will be replaced with API call)
       const newSession: QuestSession = {
         id: generateSessionId(),
-        userId: 'current-user', // Will be replaced with actual user ID
+        userId: auth.user?.id || 'anonymous', // Will be replaced with actual user ID
         startedAt: new Date().toISOString(),
         status: 'in_progress',
         currentQuestionIndex: 0,
@@ -122,70 +100,26 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   };
 
   // Auto-advance logic after response submission
-  const autoAdvance = () => {
-    if (!session) return;
-    
-    const currentIndex = session.currentQuestionIndex || 0;
-    const isLastQuestionInSection = currentIndex === sectionQuestions.length - 1;
-    
-    if (isLastQuestionInSection) {
-      // Try to move to next section
-      const hasMoreSections = finishSection();
-      
-      // If no more sections, finish quest
-      if (!hasMoreSections) {
-        finishQuest();
-      }
-    } else {
-      // Move to next question in current section
-      nextQuestion();
-    }
-  };
-  
-  // Submit a response to the current question
-  // const submitResponse = async (
-  //   questionId: string, 
-  //   response: string, 
-  //   tags?: HonestyTag[]
-  // ): Promise<void> => {
+  // const autoAdvance = () => {
   //   if (!session) return;
     
-  //   try {
-  //     setIsSubmitting(true);
+  //   const currentIndex = session.currentQuestionIndex || 0;
+  //   const isLastQuestionInSection = currentIndex === sectionQuestions.length - 1;
+    
+  //   if (isLastQuestionInSection) {
+  //     // Try to move to next section
+  //     const hasMoreSections = finishSection();
       
-  //     // Create the response object
-  //     const questionResponse: QuestionResponse = {
-  //       questionId,
-  //       response,
-  //       tags,
-  //       timestamp: new Date().toISOString()
-  //     };
-      
-  //     // Update session with the new response
-  //     setSession(prev => {
-  //       if (!prev) return null;
-        
-  //       return {
-  //         ...prev,
-  //         responses: {
-  //           ...(prev.responses || {}),
-  //           [questionId]: questionResponse
-  //         }
-  //       };
-  //     });
-      
-  //     // In a real implementation, this would be an API call to save the response
-  //     // Auto-advance to next question or section
-  //     // setTimeout(() => {
-  //     //   autoAdvance();
-  //     // }, 300); 
-  //     autoAdvance();
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err : new Error(String(err)));
-  //   } finally {
-  //     setIsSubmitting(false);
+  //     // If no more sections, finish quest
+  //     if (!hasMoreSections) {
+  //       finishQuest();
+  //     }
+  //   } else {
+  //     // Move to next question in current section
+  //     nextQuestion();
   //   }
   // };
+  
   // ✨ UPDATED - Replace the entire existing submitResponse function with this
   const submitResponse = async (
     questionId: string, 
@@ -381,87 +315,156 @@ const previousQuestion = () => {
     }
   };
   
-  // Change to a specific section
-//   const changeSection = (sectionId: string) => {
-//     setCurrentSectionId(sectionId);
-    
-//     // Reset question index when changing sections
-//     setSession(prev => {
-//       if (!prev) return null;
-      
-//       return {
-//         ...prev,
-//         currentQuestionIndex: 0,
-//         sectionId
-//       };
-//     });
-//   };
-  
-// const finishSection = () => {
-//   const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-  
-//   // If there are more sections, move to the next one seamlessly
-//   if (currentSectionIndex < questSections.length - 1) {
-//     const nextSectionId = questSections[currentSectionIndex + 1].id;
-//     changeSection(nextSectionId);
-//     return true;
-//   }
-  
-//   // If this is the last section, return false (triggers quest finish)
-//   return false;
-// };
-  
   // Finish the quest
-  const finishQuest = async (): Promise<QuestResult | null> => {
-    if (!session) return null;
+  // const finishQuest = async (): Promise<QuestResult | null> => {
+  //   if (!session) return null;
     
-    try {
-      setIsSubmitting(true);
+  //   try {
+  //     setIsSubmitting(true);
       
-      // Update session status
-      setSession(prev => {
-        if (!prev) return null;
+  //     // Update session status
+  //     setSession(prev => {
+  //       if (!prev) return null;
         
-        return {
-          ...prev,
-          status: 'completed',
-          completedAt: new Date().toISOString(),
-          durationMinutes: prev.startedAt 
-            ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
-            : undefined
-        };
-      });
+  //       return {
+  //         ...prev,
+  //         status: 'completed',
+  //         completedAt: new Date().toISOString(),
+  //         durationMinutes: prev.startedAt 
+  //           ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
+  //           : undefined
+  //       };
+  //     });
       
-      // Generate a mock result (will be replaced with API call)
-      const result: QuestResult = {
-        sessionId: session.id,
-        userId: session.userId,
-        analysisData: {
-          summary: "This is a placeholder for AI-generated analysis results.",
-          sections: questSections.map(section => ({
-            sectionId: section.id,
-            sectionTitle: section.title,
-            responses: section.questions
-              .filter(q => session.responses && session.responses[q.id])
-              .map(q => ({
-                questionId: q.id,
-                questionText: q.text,
-                response: session.responses?.[q.id]?.response || '',
-                tags: session.responses?.[q.id]?.tags || []
-              }))
-          }))
-        },
-        generatedAt: new Date().toISOString()
+  //     // Generate a mock result (will be replaced with API call)
+  //     const result: QuestResult = {
+  //       sessionId: session.id,
+  //       userId: session.userId,
+  //       analysisData: {
+  //         summary: "This is a placeholder for AI-generated analysis results.",
+  //         sections: questSections.map(section => ({
+  //           sectionId: section.id,
+  //           sectionTitle: section.title,
+  //           responses: section.questions
+  //             .filter(q => session.responses && session.responses[q.id])
+  //             .map(q => ({
+  //               questionId: q.id,
+  //               questionText: q.text,
+  //               response: session.responses?.[q.id]?.response || '',
+  //               tags: session.responses?.[q.id]?.tags || []
+  //             }))
+  //         }))
+  //       },
+  //       generatedAt: new Date().toISOString()
+  //     };
+      
+  //     return result;
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err : new Error(String(err)));
+  //     return null;
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+  // Updated finishQuest function for QuestProvider.tsx
+const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
+  // if (!session) return null;
+  console.log(`submission data from finish quest ${submissionData}`);
+  
+  try {
+    setIsSubmitting(true);
+    console.log('🚀 Starting quest submission...');
+    
+    // Extract IDs from submission data
+    const sessionId = submissionData.assessment_metadata.session_id;
+    const testid = submissionData.user_data.testid;
+    const userId = submissionData.user_data.user_id;
+    
+    console.log('📊 Extracted IDs:');
+    console.log('   SessionId:', sessionId);
+    console.log('   TestId:', testid);
+    console.log('   UserId:', userId);
+    
+    // Update session status to completed
+    setSession(prev => {
+      if (!prev) return null;
+      
+      return {
+        ...prev,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        durationMinutes: prev.startedAt 
+          ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
+          : undefined
       };
-      
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-      return null;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    });
+    
+    // Submit to backend API
+    console.log('📤 Submitting to backend API...');
+    const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+      headers: {
+        'Content-Type': 'application/json',  
+      },
+    });
+    
+    console.log('✅ API submission successful:', response.data);
+    
+    // Store data in localStorage
+    console.log('💾 Storing data in localStorage...');
+    localStorage.setItem('questSessionId', sessionId);
+    localStorage.setItem('testid', testid);
+    
+    // Store session history in database (if user is authenticated)
+    // if (auth.user?.id) {
+    //   console.log('🗄️ Storing session history in database...');
+    //   try {
+    //     const { data, error } = await supabase
+    //       .from('user_session_history')
+    //       .insert({
+    //         user_id: auth.user.id,
+    //         session_id: sessionId,
+    //         testid: testid || null,
+    //         created_at: new Date().toISOString()
+    //       });
+        
+    //     if (error) {
+    //       console.error('Failed to store session history:', error);
+    //     } else {
+    //       console.log('✅ Session history stored successfully');
+    //     }
+    //   } catch (dbError) {
+    //     console.error('Database error:', dbError);
+    //     // Don't throw - this shouldn't block the main flow
+    //   }
+    // }
+    
+    // Navigate to processing page
+    // const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
+    const targetUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
+    console.log('🚀 Navigating to processing page:', targetUrl);
+    navigate(targetUrl);
+    
+    // Create result object for return (optional - mainly for consistency)
+    const result: QuestResult = {
+      sessionId: sessionId,
+      userId: userId,
+      analysisData: {
+        summary: "Quest submitted successfully - processing started.",
+        sections: []
+      },
+      generatedAt: new Date().toISOString()
+    };
+    
+    return result;
+    
+  } catch (error: any) {
+    console.error('❌ Quest submission failed:', error.response?.data?.message || error.message);
+    setError(error instanceof Error ? error : new Error(error.message || 'Submission failed'));
+    throw error; // Re-throw so QuestCompletion can handle the error state
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   // Reset the quest state
   const resetQuest = () => {
@@ -548,11 +551,11 @@ const finishSection = (): boolean => {
 };
 
 const changeSection = (newSectionId: string) => {
-  console.log('🔀 changeSection called with:', newSectionId);
+  // console.log('🔀 changeSection called with:', newSectionId);
   
   // Validate that the section exists
   const targetSection = questSections.find(s => s.id === newSectionId);
-  console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
+  // console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
   
   if (!targetSection) {
     console.warn(`❌ Section ${newSectionId} not found`);
@@ -561,15 +564,15 @@ const changeSection = (newSectionId: string) => {
 
   // If already in the target section, do nothing
   if (currentSectionId === newSectionId) {
-    console.log('⚠️ Already in target section - no change needed');
+    // console.log('⚠️ Already in target section - no change needed');
     return;
   }
 
-  console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
+  // console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
 
   // Update current section
   setCurrentSectionId(newSectionId);
-  console.log('✅ Current section ID updated');
+  // console.log('✅ Current section ID updated');
   
   // Reset to first question of the new section
   setSession(prev => {
@@ -578,11 +581,11 @@ const changeSection = (newSectionId: string) => {
       return null;
     }
     
-    console.log('📝 Updating session state:');
-    console.log('   Previous question index:', prev.currentQuestionIndex);
-    console.log('   Previous section ID:', prev.sectionId);
-    console.log('   New question index: 0');
-    console.log('   New section ID:', newSectionId);
+    // console.log('📝 Updating session state:');
+    // console.log('   Previous question index:', prev.currentQuestionIndex);
+    // console.log('   Previous section ID:', prev.sectionId);
+    // console.log('   New question index: 0');
+    // console.log('   New section ID:', newSectionId);
     
     const newState = {
       ...prev,
@@ -590,14 +593,14 @@ const changeSection = (newSectionId: string) => {
       sectionId: newSectionId
     };
     
-    console.log('✅ Session state updated');
+    // console.log('✅ Session state updated');
     return newState;
   });
   
   // Clear any errors
   setError(null);
-  console.log('🧹 Errors cleared');
-  console.log('🏁 changeSection completed');
+  // console.log('🧹 Errors cleared');
+  // console.log('🏁 changeSection completed');
 };
   
   // Context value

@@ -88,11 +88,20 @@ const handleResponse = async (response: string, tags?: HonestyTag[]) => {
 };
   
   // Handle completion of the assessment
-  useEffect(() => {
-    if (session && session.status === 'completed' && onComplete) {
+  // useEffect(() => {
+  //   if (session && session.status === 'completed' && onComplete) {
+  //     onComplete();
+  //   }
+  // }, [session, onComplete]);
+  // Handle quest completion when finish button is clicked
+  const handleQuestCompletion = () => {
+    console.log('🏁 Quest completion triggered from navigation');
+    
+    // This will trigger QuestCompletion component with our fixed duplicate prevention
+    if (onComplete) {
       onComplete();
     }
-  }, [session, onComplete]);
+  };
   
   // Render the appropriate question card based on difficulty
   const renderQuestionCard = () => {
@@ -145,7 +154,7 @@ const handleResponse = async (response: string, tags?: HonestyTag[]) => {
   };
   
   return (
-    <QuestLayout className={className}>
+    <QuestLayout className={className} onFinish={handleQuestCompletion} >
       <AnimatePresence mode="wait">
         {isLoading && (
           <motion.div

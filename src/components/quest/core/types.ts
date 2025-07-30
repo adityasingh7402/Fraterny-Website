@@ -83,7 +83,7 @@ export interface QuestContextActions {
   submitResponse: (questionId: string, response: string, tags?: HonestyTag[]) => Promise<void>;
   nextQuestion: () => void;
   previousQuestion: () => void;
-  finishQuest: () => Promise<QuestResult | null>;
+  finishQuest: (submissionData: any) => Promise<QuestResult | null>;
   resetQuest: () => void;
   skipQuestion: () => void;
   goToQuestion: (questionIndex: number) => void;

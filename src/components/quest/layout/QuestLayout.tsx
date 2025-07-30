@@ -12,6 +12,7 @@ interface QuestLayoutProps {
   showNavigation?: boolean;
   showBackground?: boolean;
   className?: string;
+  onFinish?: () => void;
 }
 
 /**
@@ -23,7 +24,8 @@ export function QuestLayout({
   showHeader = true,
   showNavigation = true,
   showBackground = true,
-  className = ''
+  className = '',
+  onFinish 
 }: QuestLayoutProps) {
   const { currentSection, session, isLoading, error } = useQuest();
   
@@ -84,6 +86,7 @@ export function QuestLayout({
                 showNext={true}
                 showSkip={false}
                 showFinish={true}
+                onFinish={onFinish}
               />
             )}
           </QuestContainer>
