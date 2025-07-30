@@ -463,15 +463,12 @@ export function QuestCompletion({
       //     }}
       //   />
       // </QuestLayout> 
-      <div className='h-dvh bg-[#004A7F] overflow-hidden'>
+      <div className='h-screen bg-[#004A7F]'>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center text-center h-full relative z-20"
+              className="flex flex-col items-center justify-center text-center h-screen relative z-20"
             >
-              {/* <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
-                Analysing Your Assessment
-              </h2> */}
               <div className='absolute flex flex-col items-center justify-center w-full top-14'>
                 <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
                   QUEST
@@ -502,7 +499,6 @@ export function QuestCompletion({
             </motion.div>
       
             <motion.div
-              layoutId='bg'
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
