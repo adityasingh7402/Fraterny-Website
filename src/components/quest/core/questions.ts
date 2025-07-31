@@ -19,7 +19,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'easy',
         type: 'text_input',
         category: 'personal_info',
-        sectionId: 'section_1'
+        sectionId: 'section_1',
+        placeholder: 'Your Name'
       },
       {
         id: 'q1_2',
@@ -27,7 +28,8 @@ export const questSections: QuestionSection[] = [
         difficulty: 'easy',
         type: 'text_input',
         category: 'personal_info',
-        sectionId: 'section_1'
+        sectionId: 'section_1',
+        placeholder: 'To share a copy of the report'
       },
       {
         id: 'q1_3',
@@ -42,18 +44,18 @@ export const questSections: QuestionSection[] = [
         text: "What's your gender?",
         difficulty: 'easy',
         type: 'multiple_choice',
-        options: ['Male', 'Female', 'Non-binary', 'LGBTQ', 'Prefer not to say'],
+        options: ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'],
         category: 'personal_info',
         sectionId: 'section_1'
       },
       {
         id: 'q1_5',
-        text: "Where have you lived the most in your life? (City & Country)",
+        text: "Where have you lived the most in your life?",
         difficulty: 'easy',
         type: 'text_input',
         category: 'personal_info',
         sectionId: 'section_1',
-        placeholder: 'improve accuracy by  giving context. You can write multiple places as well  if you like. ',
+        placeholder: 'Improve accuracy by giving more details.  You can write multiple locations and timelines.',
       }
     ]
   },
@@ -70,7 +72,7 @@ export const questSections: QuestionSection[] = [
         category: 'family',
         sectionId: 'section_2',
         allowTags: true,
-        placeholder: '“Parents and an older brother”, “Single parent and one dog”, “Grandparents”, “At a Hostel with friends” Siblings, “Alone with a caretaker as my parents were always travelling”, “With Friends in an orphanage”.'
+        placeholder: 'Just like you text a friend. You can write about multiple life stages if needed.'
       },
       {
         id: 'q2_2',
@@ -80,7 +82,7 @@ export const questSections: QuestionSection[] = [
         category: 'family',
         sectionId: 'section_2',
         allowTags: true,
-        placeholder: 'Be honest. Even a small change you’d have liked is helpful. “I wish my parents did not fight so much”, “I would have to spend more time with my grandparents”, “Nothing as such", "I am very happy with my childhood”, “I wish I had more friends”'
+        placeholder: 'You can write more than 1 thing if you want. Even a small change you would have liked is helpful.'
       },
       {
         id: 'q2_3',
@@ -90,7 +92,7 @@ export const questSections: QuestionSection[] = [
         category: 'family',
         sectionId: 'section_2',
         allowTags: true,
-        placeholder: 'No need for big stories, just a quick example is enough. You can write “This is a very personal question. I cannot answer it.”, ”My brother, he used to cry a lot, I bullied him, but I regret it” “My father, he was very strict and did not allow me to go out”'
+        placeholder: 'More context will increase the accuracy of my analysis.'
       }
     ]
   },
@@ -106,11 +108,12 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'goals',
         sectionId: 'section_3',
-        allowTags: true
+        allowTags: true,
+        placeholder: 'Basically what you are looking forward to achieve. You can write more than 1 thing.'
       },
       {
         id: 'q3_2',
-        text: "Which of these matters the most to you? And write one sentence explaining why your top choice is most important.",
+        text: "What matters the most to you? Write one sentence explaining why your top choice is most important.",
         difficulty: 'hard',
         type: 'ranking',
         options: ['Being Known/Respected', 'Family', 'Money', 'Peace'],
@@ -124,7 +127,7 @@ export const questSections: QuestionSection[] = [
       },
       {
         id: 'q3_3',
-        text: "If you could magically get 3 things in life right now, what would you ask for? Think of anything",
+        text: "If you could magically get 3 things in life right now, what would you ask for?",
         difficulty: 'medium',
         type: 'text_input',
         category: 'desires',
@@ -134,7 +137,7 @@ export const questSections: QuestionSection[] = [
       },
       {
         id: 'q3_4',
-        text: "What's something you feel you understand better than most people around you? It can be more than one thing. Try to be honest, not impressive.",
+        text: "What's something you feel you understand better than most people around you?",
         difficulty: 'medium',
         type: 'text_input',
         category: 'self_perception',
@@ -150,8 +153,7 @@ export const questSections: QuestionSection[] = [
         category: 'ambition',
         sectionId: 'section_3',
         allowTags: true,
-        placeholder: 'you can think of. “I wanna be best at Sales”, “Best Chess Player”,  “I wanna be the best Astrologer so I could  predict the future”, “Equity analyst so I can make money in the stock market”, “I don’t want to be best at anything”'
-
+        placeholder: 'Again, Anything you can think of.'
       },
       {
         id: 'q3_6',
@@ -186,7 +188,7 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'habits',
         sectionId: 'section_4',
-        placeholder: 'Be honest. It can be small or big.'
+        placeholder: 'Be honest to yourself. It can be small or big.'
       },
       {
         id: 'q4_3',
@@ -199,13 +201,13 @@ export const questSections: QuestionSection[] = [
       },
       {
         id: 'q4_4',
-        text: "Are you proud of yourself as a person right now? If yes, what makes you proud? If no, what's missing?",
+        text: "Are you proud of yourself as a person right now?",
         difficulty: 'hard',
         type: 'text_input',
         category: 'self_perception',
         sectionId: 'section_4',
         allowTags: true,
-        placeholder: 'Be honest'
+        placeholder: 'If yes, what makes you proud? If no, what’s missing?'
       }
     ]
   },
@@ -222,7 +224,7 @@ export const questSections: QuestionSection[] = [
         category: 'self_perception',
         sectionId: 'section_5',
         allowTags: true,
-        placeholder: 'Try to guess as honestly as possible. “He is a playboy, he just likes to play with women’s emotions”, “She is the most reserved person I have ever met.”,” She is so joyful and carefree, she makes me feel like I am a celebrity”'
+        placeholder: 'Try to guess as honestly as possible.'
       },
       {
         id: 'q5_2',
@@ -242,7 +244,7 @@ export const questSections: QuestionSection[] = [
         category: 'self_perception',
         sectionId: 'section_5',
         allowTags: true,
-        placeholder: 'Be honest'
+        placeholder: 'Detailed answer will improve the analysis.'
       }
     ]
   }

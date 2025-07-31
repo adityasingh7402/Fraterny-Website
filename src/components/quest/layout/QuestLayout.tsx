@@ -30,7 +30,7 @@ export function QuestLayout({
   const { currentSection, session, isLoading, error } = useQuest();
   
   return (
-    <div className='pt-20'>
+    <div className='pt-0'>
       <div className={`relative min-h-screen w-full flex flex-col ${className}`}>
 
         {/* Background effects */}
@@ -41,7 +41,7 @@ export function QuestLayout({
           <QuestHeader 
             title={currentSection?.title || 'Psychology Assessment'} 
             subtitle={currentSection?.description}
-            className='py-4 px-6'
+            className=''
           />
         )}
         

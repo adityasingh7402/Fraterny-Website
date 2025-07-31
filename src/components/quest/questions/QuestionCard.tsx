@@ -192,17 +192,28 @@ export function QuestionCard({
                 setCurrentSelection(option);
                 handleSubmit(option);
               }}
-              whileHover={{ 
-                backgroundColor: index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB'))), 
-                borderColor: index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280'))), 
-                color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
-              }}
+              // whileHover={{ 
+              //   backgroundColor: index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB'))), 
+              //   borderColor: index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280'))), 
+              //   color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
+              // }}
               className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index === 4 ? 'col-span-2' : ''}`}
               style={{
-               backgroundColor: isSelected ? (index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB')))) : (index === 0 ? '#E8F5E8' : (index === 1 ? '#FEE2E2' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#E0F2FE' : '#F3F4F6')))),
-               borderColor: isSelected ? (index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280')))) : (index === 0 ? '#9CA3AF' : (index === 1 ? '#F87171' : (index === 2 ? '#6B7280' : (index === 3 ? '#93C5FD' : '#9CA3AF')))),
-               color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
-             }}
+                // Background Color Logic
+                backgroundColor: isSelected 
+                  ? (index === 0 ? '#E8F5E8' : (index === 1 ? '#FEE2E2' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#E0F2FE' : '#F3F4F6'))))
+                  : '#F3F4F6', // Always gray when not selected
+                
+                // Border Color Logic  
+                borderColor: isSelected 
+                  ? (index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#9CA3AF'))))
+                  : '#9CA3AF', // Always gray when not selected
+                
+                // Text Color Logic
+                color: isSelected 
+                  ? (index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151'))))
+                  : '#374151' // Always dark gray when not selected
+              }}
               disabled={!isActive || isAnswered}
             >
               {option}
@@ -217,7 +228,7 @@ export function QuestionCard({
           return (
             <div className="mb-6">
               <form onSubmit={handleFormSubmit}>
-                <div className="relative">
+                <div className="relative mb-[-15px]">
                   <textarea
                     value={response}
                     onChange={handleInputChange}
@@ -257,6 +268,7 @@ export function QuestionCard({
 
                 {question.allowTags && showTags && (
                   <div className="mt-4 mb-3">
+                    <p className="font-normal font-['Gilroy-Medium'] text-gray-600 pb-2"> Want to tag your answer? </p>
                     <AuthenticityTags 
                       selectedTags={selectedTags}
                       onTagSelect={handleTagSelect}
@@ -329,6 +341,17 @@ export function QuestionCard({
           />
         );
       
+      // case 'ranking':
+      //   return (
+      //     <RankingResponse
+      //       options={question.options || []}
+      //       value={response}
+      //       onChange={handleInputChange}
+      //       onResponse={handleSubmit} 
+      //       disabled={!isActive || isAnswered}
+      //       className="mb-6"
+      //     />
+      //   );
       case 'ranking':
         return (
           <RankingResponse
@@ -338,6 +361,11 @@ export function QuestionCard({
             onResponse={handleSubmit} 
             disabled={!isActive || isAnswered}
             className="mb-6"
+            // ← ADD these new props:
+            selectedTags={selectedTags}
+            onTagSelect={handleTagSelect}
+            allowTags={question.allowTags}
+            showTags={showTags}
           />
         );
       

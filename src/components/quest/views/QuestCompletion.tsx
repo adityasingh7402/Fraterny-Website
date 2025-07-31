@@ -134,12 +134,14 @@ export function QuestCompletion({
 
     const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
       workingSession = { 
-        id: fallbackSessionId, 
-        userId: 'anonymous', 
+        id: session?.id || fallbackSessionId, 
+        userId: auth.user?.id || 'anonymous', 
         startedAt: new Date().toISOString(), 
         responses: session?.responses || {},
         status: 'completed'
       };
+
+      // console.log('📝 Working session:', workingSession);
 
     const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
@@ -252,19 +254,6 @@ export function QuestCompletion({
           browser: detectBrowser(),
           operating_system: detectOS()
         },
-        // assessment_metadata: {
-        //   session_id: workingSession?.id || '',
-        //   start_time: startTime,
-        //   completion_time: completionTime,
-        //   duration_minutes: Number(durationMinutes.toFixed(1)),
-        //   completion_percentage: Math.round((Object.keys(workingSession?.responses || {}).length / (
-        //     allQuestions?.length || 1)) * 100),
-        //   device_info: {  
-        //     type: detectDeviceType(),
-        //     browser: detectBrowser(),
-        //     operating_system: detectOS()
-        //   }
-        // }
       }
     };
   };
@@ -345,43 +334,6 @@ export function QuestCompletion({
     }
     
   };
-
-//   const handleAutoSubmit = async () => {
-//   try {
-//     console.log('🚀 Preparing quest data for processing...');
-    
-//     const submissionData = formatSubmissionData();
-//     console.log('📊 Submission data:', submissionData);
-    
-//     if (!submissionData) {
-//       console.error('No submission data available');
-//       setSubmissionStatus('error');
-//       setSubmissionError('No submission data available');
-//       return;
-//     }
-
-//     const sessionId = submissionData.assessment_metadata.session_id;
-//     const testid = submissionData?.user_data?.testid || '';
-//     const userId = auth.user?.id || 'anonymous';
-    
-//     // Store submission data in localStorage for processing page to use
-//     localStorage.setItem('questSubmissionData', JSON.stringify(submissionData));
-//     localStorage.setItem('questSessionId', sessionId);
-//     localStorage.setItem('testid', testid);
-    
-//     // Navigate directly to processing page
-//     const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
-//     console.log('🚀 Navigating to processing page:', targetUrl);
-//     navigate(targetUrl);
-    
-//   } catch (error: any) {
-//     console.error('❌ Error preparing quest data:', error.message);
-//     setSubmissionStatus('error');
-//     setSubmissionError(error.message || 'Failed to prepare quest data');
-//   }
-// };
-
-  // Helper functions for device detection
   const detectDeviceType = (): string => {
     const userAgent = navigator.userAgent;
     if (/mobile|android|iphone|ipad|ipod/i.test(userAgent.toLowerCase())) {
@@ -421,48 +373,6 @@ export function QuestCompletion({
   // Show loading state while submitting
   if (submissionStatus === 'submitting') {
     return (
-      // <QuestLayout showHeader={false} showNavigation={false} className={className} >
-      //   <motion.div
-      //     initial={{ opacity: 0 }}
-      //     animate={{ opacity: 1 }}
-      //     className="flex flex-col items-center justify-center text-center bg-[#004A7F] h-screen overflow-hidden"
-      //   >
-      //     <h2 className="text-2xl font-['Gilroy-Bold'] text-white mb-4">
-      //       Analysing Your Assessment
-      //     </h2>
-
-      //     <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-8 border border-gray-100">
-      //     <AnimatePresence mode="wait">
-      //       <motion.p
-      //         key={factIndex}
-      //         initial={{ opacity: 0, y: 20 }}
-      //         animate={{ opacity: 1, y: 0 }}
-      //         exit={{ opacity: 0, y: -20 }}
-      //         transition={{ duration: 0.5 }}
-      //         className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
-      //       >
-      //         "{psychologicalFacts[factIndex]}"
-      //       </motion.p>
-      //     </AnimatePresence>
-      //   </div>
-          
-      //     <p className="text-white font-['Gilroy-Bold']">
-      //       Please wait while we process your responses...
-      //     </p>
-      //   </motion.div>
-
-      //   <motion.div
-      //     layoutId='bg'
-      //     initial={{ opacity: 0, scale: 0.8 }}
-      //     animate={{ opacity: 1, scale: 1 }}
-      //     transition={{ duration: 0.8 }}
-      //     className='w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex bottom-0 top-[45px] right-[51px] translate-x-1/2 rounded-full blur-[80px]'
-      //     style={{
-      //       background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
-      //       backdropFilter: 'blur(180px)',
-      //     }}
-      //   />
-      // </QuestLayout> 
       <div className='h-screen bg-[#004A7F]'>
             <motion.div
               initial={{ opacity: 0 }}
