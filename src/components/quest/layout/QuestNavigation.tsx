@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { motion } from 'framer-motion';
 import { useQuest } from '../core/useQuest';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getWordValidationStatus } from '../utils/questValidation';
 import { HonestyTag } from '../core/types';
+import { toast } from 'sonner';
 
 interface QuestNavigationProps {
   showPrevious?: boolean;
@@ -30,13 +31,12 @@ export function QuestNavigation({
     session, 
     currentQuestion,
     questions,
+    allQuestions,
     currentSection,
     nextQuestion,
-    skipQuestion,
     previousQuestion,
     submitResponse,
     changeSection,
-    finishQuest,
     sections,           // ADD this
   currentSectionId,
   } = useQuest();
@@ -45,6 +45,9 @@ export function QuestNavigation({
   // const isLastQuestion = session && 
   //   questions.length > 0 && 
   //   session.currentQuestionIndex === questions.length - 1;
+
+  const [showConfirmation, setShowConfirmation] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLastQuestionInSection = session && 
   questions.length > 0 && 
@@ -64,9 +67,6 @@ export function QuestNavigation({
 };
 
 const isLastQuestion = isLastQuestionInEntireAssessment();
-  
-  // Determine if this is the first question in the section
-  // const isFirstQuestion = !session || session.currentQuestionIndex === 0;
 
   const isFirstQuestionInEntireAssessment = () => {
   if (!session) return true;
@@ -83,103 +83,36 @@ const isLastQuestion = isLastQuestionInEntireAssessment();
 
 const isFirstQuestion = isFirstQuestionInEntireAssessment();
 
-
-// const handleNext = () => {
-//   // Save current response before navigating
-//   if (currentQuestion) {
-//     if (currentQuestion.type === 'text_input') {
-//       const currentTextarea = document.querySelector('textarea');
-//       if (currentTextarea && currentTextarea.value) {
-//         submitResponse(currentQuestion.id, currentTextarea.value, []);
-//       }
-//     } else if (currentQuestion.type === 'ranking') {
-//       // Handle ranking questions - SIMPLE APPROACH
-//       // Ranking order is already saved on drag, we just need to save explanation
-//       const rankingContainer = document.querySelector('.ranking-response');
-//       if (rankingContainer) {
-//         const explanationTextarea = rankingContainer.querySelector('textarea');
-//         const explanation = explanationTextarea ? explanationTextarea.value : '';
-        
-//         // Get existing response (which has the ranking order from drag events)
-//         const existingResponse = session?.responses?.[currentQuestion.id]?.response;
-        
-//         if (existingResponse) {
-//           try {
-//             // Parse existing response and update explanation
-//             const existingData = JSON.parse(existingResponse);
-//             existingData.explanation = explanation;
-            
-//             // Save updated response with new explanation
-//             submitResponse(currentQuestion.id, JSON.stringify(existingData), []);
-//           } catch (e) {
-//             // Fallback: create new response if parsing fails
-//             const fallbackData = JSON.stringify({
-//               rankings: (currentQuestion.options || []).map((text, index) => ({
-//                 id: `option-${index}`,
-//                 text: text
-//               })),
-//               explanation: explanation
-//             });
-//             submitResponse(currentQuestion.id, fallbackData, []);
-//           }
-//         } else if (explanation) {
-//           // No existing response but has explanation - save basic structure
-//           const basicData = JSON.stringify({
-//             rankings: (currentQuestion.options || []).map((text, index) => ({
-//               id: `option-${index}`,
-//               text: text
-//             })),
-//             explanation: explanation
-//           });
-//           submitResponse(currentQuestion.id, basicData, []);
-//         }
-//       }
-//     }
-//   }
-
-//   // Check validation for text questions before proceeding
-//   if (currentQuestion?.type === 'text_input' && session?.responses?.[currentQuestion.id]) {
-//     const response = session.responses[currentQuestion.id].response;
-//     const wordValidation = getWordValidationStatus(response, 100, 90);
-    
-//     if (!wordValidation.isValid) {
-//       return;
-//     }
-//   }
+const checkForUnfinishedQuestions = () => {
   
-//   // Check if this is the last question in current section
-//   if (isLastQuestionInSection) {
-//     // Always move to next section, ignore validation
-//     const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
-//     const nextSectionIndex = currentSectionIndex + 1;
+  // console.log(`Questions:`, allQuestions);
+  // console.log(`Session responses:`, session?.responses);
+  // console.log(`Current section:`, currentSection);
+  // console.log(`Sections:`, sections);
+  const unfinishedQuestions = allQuestions?.filter(question => {
+    const response = session?.responses?.[question.id];
+    return !response; // No response = unfinished
+  }) || [];
+  
+  if (unfinishedQuestions.length > 0) {
+    const firstUnfinishedQuestion = unfinishedQuestions[0];
+    const sectionId = firstUnfinishedQuestion?.sectionId;
+    const sectionName = sections?.find(s => s.id === sectionId)?.title || 'Unknown Section';
     
-//     if (nextSectionIndex < sections.length) {
-//       // Move to next section directly
-//       const nextSection = sections[nextSectionIndex];
-//       changeSection(nextSection.id);
-//     } else if (showFinish) {
-//       // Last section, finish quest
-//       if (onFinish) {
-//         onFinish();
-//       } else {
-//         finishQuest();
-//       }
-//     }
-//   } else {
-//     // Move to next question in current section
-//     nextQuestion();
-//   }
-// };
-
-// Replace the handleNext function in your QuestNavigation.tsx with this updated version:
+    return {
+      hasUnfinished: true,
+      sectionName: sectionName,
+      count: unfinishedQuestions.length
+    };
+  }
+  
+  return { hasUnfinished: false };
+};
 
 const handleNext = () => {
-  // Save current response AND TAGS before navigating
   if (currentQuestion) {
     
-    // 🔧 NEW: Function to get selected tags from the QuestionCard's local state
     const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
-      // Try to get tags from the local storage that QuestionCard saves to
       try {
         const saved = localStorage.getItem(`quest_tags_${currentQuestion.id}`);
         if (saved) {
@@ -331,7 +264,7 @@ const handleNext = () => {
     }
   }
   
-  // Check if this is the last question in current section
+  // without checking of all questions answered
   if (isLastQuestionInSection) {
     // Always move to next section, ignore validation
     const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
@@ -342,23 +275,92 @@ const handleNext = () => {
       const nextSection = sections[nextSectionIndex];
       changeSection(nextSection.id);
     } else if (showFinish) {
-      // Last section, finish quest
       if (onFinish) {
-        onFinish();
-      } else {
+        // onFinish();
+        setShowConfirmation(true);
+      } else if (showFinish) {
+        if (onFinish) {
+          const unfinishedCheck = checkForUnfinishedQuestions();
+          console.log('🔍 Unfinished questions check:', unfinishedCheck);
+             
+          if (unfinishedCheck.hasUnfinished) {
+            toast.error(`Please complete all questions in the section "${unfinishedCheck.sectionName}" before finishing. Unfinished questions: ${unfinishedCheck.count}`
+              ,{
+                position: 'top-center',
+              }
+            );
+            return; // Don't proceed
+          }
+          
+          setShowConfirmation(true);
+        }
+      } 
+      else {
         // finishQuest();
         console.warn('No onFinish callback provided - cannot finish quest without submission data');
       }
     }
   } else {
-    // Move to next question in current section
     nextQuestion();
+  }
+
+  // check if user has answered all questions in the section
+
+  //   if (isLastQuestionInSection) {
+  //  // Always move to next section, ignore validation
+  //   const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+  //   const nextSectionIndex = currentSectionIndex + 1;
+    
+  //   if (nextSectionIndex < sections.length) {
+  //     // Move to next section directly
+  //     const nextSection = sections[nextSectionIndex];
+  //     changeSection(nextSection.id);
+  //   } else if (showFinish) {
+  //     // Last section, check for unfinished questions first
+  //     if (onFinish) {
+  //       const unfinishedCheck = checkForUnfinishedQuestions();
+  //       console.log('🔍 Unfinished questions check:', unfinishedCheck);
+            
+  //       if (unfinishedCheck.hasUnfinished) {
+  //         toast.error(`Please complete all questions in the section before finishing for best assessment.`
+  //           ,{
+  //             position: 'top-right',
+  //           }
+  //         );
+  //         return; // Don't proceed
+  //       }
+        
+  //       setShowConfirmation(true);
+  //     } else {
+  //       // finishQuest();
+  //       console.warn('No onFinish callback provided - cannot finish quest without submission data');
+  //     }
+  //   }
+  //   } else {
+  //   // Move to next question in current section
+  //   nextQuestion();
+  //   }
+};
+
+const handleConfirmSubmission = async () => {
+  setIsSubmitting(true);
+  try {
+    if (onFinish) {  // ← Add null check
+       onFinish();
+    }
+    setShowConfirmation(false);
+  } catch (error) {
+    console.error('Submission failed:', error);
+  } finally {
+    setIsSubmitting(false);
   }
 };
 
-  const handleSkip = () => {
-    skipQuestion();
-  };
+
+
+const handleCancelSubmission = () => {
+  setShowConfirmation(false);
+};
   
   // Button variants
   const buttonVariants = {
@@ -368,51 +370,12 @@ const handleNext = () => {
   };
   
   return (
-    // <nav className={`quest-navigation py-4 px-6 ${className}`}>
-    //   <div className="max-w-2xl mx-auto flex justify-between">
-    //     {/* Previous button */}
-    //     {showPrevious && (
-    //       <motion.button
-    //         variants={buttonVariants}
-    //         initial="initial"
-    //         animate="animate"
-    //         whileTap="tap"
-    //         onClick={previousQuestion}
-    //         disabled={isFirstQuestion}
-    //         className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-    //           isFirstQuestion
-    //             ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-    //             : 'border-navy text-navy hover:bg-navy hover:text-white'
-    //         }`}
-    //       >
-    //         Previous
-    //       </motion.button>
-    //     )}
-        
-    //     {/* Next/Finish button */}
-    //     {showNext && (
-    //       <motion.button
-    //         variants={buttonVariants}
-    //         initial="initial"
-    //         animate="animate"
-    //         whileTap="tap"
-    //         onClick={handleNext}
-    //         className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors ${
-    //           isLastQuestion && showFinish
-    //             ? 'bg-gold hover:bg-gold/90'
-    //             : 'bg-terracotta hover:bg-terracotta/90'
-    //         }`}
-    //       >
-    //         {isLastQuestion && showFinish ? 'Finish' : 'Next'}
-    //       </motion.button>
-    //     )}
-    //   </div>
-    // </nav>
-    <nav className={`${className}`}>
-      <div className="flex gap-1">
-        {/* Previous button - ✨ UPDATED: Always enabled except on first question */}
-        {/* {showPrevious && (
-          <motion.button
+    <>
+      <nav className={`${className}`}>
+        <div className="flex gap-1">
+          {/* Previous button - ✨ UPDATED: Always enabled except on first question */}
+          {/* {showPrevious && (
+            <motion.button
             variants={buttonVariants}
             initial="initial"
             animate="animate"
@@ -505,7 +468,43 @@ const handleNext = () => {
         )}
       </div>
     </nav>
+
+    {showConfirmation && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
+        >
+          <h3 className="text-xl font-medium text-navy mb-2">
+            Submit Assessment
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Do you want to confirm it for final submission? You won't be able to change your answers after submission.
+          </p>
+          
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={handleCancelSubmission}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            
+            <button
+              onClick={handleConfirmSubmission}
+              className="px-4 py-2 bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Confirm Submission'}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )}
+    </>
   );
-}
+  };
 
 export default QuestNavigation;

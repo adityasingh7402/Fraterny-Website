@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+// ADD these imports:
+import { HonestyTag } from '../core/types';
+import { AuthenticityTags } from '../trust-elements/AuthenticityTags';
 
 interface RankingOption {
   id: string;
   text: string;
+  selectedTags?: HonestyTag[];
+  onTagSelect?: (tag: HonestyTag) => void;
+  allowTags?: boolean;
+  showTags?: boolean;
 }
 
 interface RankingResponseProps {
@@ -13,6 +20,11 @@ interface RankingResponseProps {
   onResponse: (value: string) => void;
   disabled?: boolean;
   className?: string;
+    selectedTags?: HonestyTag[];
+  onTagSelect?: (tag: HonestyTag) => void;
+  allowTags?: boolean;
+  showTags?: boolean;
+  
 }
 
 /**
@@ -24,7 +36,11 @@ export function RankingResponse({
   onChange,
   onResponse,
   disabled = false,
-  className = ''
+  className = '',
+  selectedTags = [],
+  onTagSelect,
+  allowTags = false,
+  showTags = true,
 }: RankingResponseProps) {
   // Parse existing response if available
   const parseResponse = (): { rankings: RankingOption[]; explanation: string } => {
@@ -73,20 +89,6 @@ export function RankingResponse({
     });
   };
   
-  // Handle drag end
-  // const handleDragEnd = () => {
-  //   setDraggedItem(null);
-    
-  //   // Update the response value
-  //   const responseValue = JSON.stringify(state);
-  //   const event = {
-  //     target: { value: responseValue }
-  //   } as React.ChangeEvent<HTMLTextAreaElement>;
-    
-  //   onChange(event);
-  // };
-  // FILE: src/components/quest/responses/RankingResponse.tsx
-// UPDATE: handleDragEnd function (around line 70)
 const handleDragEnd = () => {
   setDraggedItem(null);
   
@@ -96,6 +98,24 @@ const handleDragEnd = () => {
     target: { value: responseValue }
   } as React.ChangeEvent<HTMLTextAreaElement>;
   
+  onChange(event);
+  onResponse(responseValue);
+};
+
+// ADD this new function:
+const moveItemUp = (index: number) => {
+  if (index === 0 || disabled) return; // Can't move first item up
+  
+  const newRankings = [...state.rankings];
+  // Swap with item above
+  [newRankings[index], newRankings[index - 1]] = [newRankings[index - 1], newRankings[index]];
+  
+  const newState = { ...state, rankings: newRankings };
+  setState(newState);
+  
+  // Update response
+  const responseValue = JSON.stringify(newState);
+  const event = { target: { value: responseValue } } as React.ChangeEvent<HTMLTextAreaElement>;
   onChange(event);
   onResponse(responseValue);
 };
@@ -131,21 +151,50 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         
         <div className="space-y-2">
           {state.rankings.map((item, index) => (
+            // <motion.div
+            //   key={item.id}
+            //   draggable={!disabled}
+            //   onDragStart={() => handleDragStart(item)}
+            //   onDragOver={(e) => handleDragOver(e, index)}
+            //   onDragEnd={handleDragEnd}
+            //   className={`
+            //     flex items-center rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border
+            //     ${index === 0 ? '' : 'bg-[#FFFFFF]'}
+            //     ${draggedItem?.id === item.id ? 'opacity-50' : 'opacity-100'}
+            //   `}
+            // >
+            //   <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-3">
+            //     <span className="font-['Gilroy-Medium']">{index + 1}</span>
+            //   </div>
+            //   <span>{item.text}</span>
+            // </motion.div>
+            // REPLACE the entire motion.div with:
             <motion.div
-              key={item.id}
-              draggable={!disabled}
-              onDragStart={() => handleDragStart(item)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`
-                flex items-center rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border
-                ${index === 0 ? '' : 'bg-[#FFFFFF]'}
-                ${draggedItem?.id === item.id ? 'opacity-50' : 'opacity-100'}
-              `}
-            >
+                key={item.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  layout: { duration: 0.3, ease: "easeInOut" },
+                  opacity: { duration: 0.2 }
+                }}
+                className="flex items-center rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border bg-[#FFFFFF]"
+              >
+              {/* Up Arrow Button */}
+              <button
+                onClick={() => moveItemUp(index)}
+                disabled={index === 0 || disabled}
+                className={`mr-2 p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`}
+              >
+                ↑
+              </button>
+              
+              {/* Number Circle */}
               <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-3">
                 <span className="font-['Gilroy-Medium']">{index + 1}</span>
               </div>
+              
+              {/* Item Text */}
               <span>{item.text}</span>
             </motion.div>
           ))}
@@ -160,10 +209,21 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           value={state.explanation}
           onChange={handleExplanationChange}
           placeholder="Write one sentence explaining why..."
-          className="w-full p-3 border border-gray-200 rounded-lg justify-start text-zinc-400 text-xl font-normal font-['Gilroy-Medium'] resize-y"
+          className="w-full p-3 border border-gray-200 rounded-lg justify-start text-black text-xl font-normal font-['Gilroy-Medium'] resize-y"
           disabled={disabled}
         />
       </div>
+
+      {allowTags && showTags && onTagSelect && (
+        <div className="mt-4 mb-3">
+          <p className="font-normal font-['Gilroy-Medium'] text-gray-600 pb-2"> Want to tag your answer? </p>
+          <AuthenticityTags 
+            selectedTags={selectedTags}
+            onTagSelect={onTagSelect}
+            disabled={disabled}
+          />
+        </div>
+      )}
       
       {/* {!disabled && (
         <motion.button
