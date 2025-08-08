@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 import img from '../../../../public/Vector.svg';
+import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 interface StatisticsSectionProps {
   animationState: string;
@@ -39,242 +40,15 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
       setHasRippled(true);
     }
   }
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
+    const handleMenuClick = () => {
+      setIsSidebarOpen(true);
+    };
 
 
   return (
-    // <section 
-    //   className="w-full min-h-screen relative bg-white"
-    // >
-    //   {/* Background Gradient - exact Figma positioning */}
-      // <motion.div 
-      //   layoutId='bg'
-      //   transition={{ duration: 1.2 }}
-      //   className='absolute z-0 w-[554px] h-[554px] rounded-full'
-      //   style={{
-      //     background: 'radial-gradient(ellipse 50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 51%, #48B9D8 100%)',
-      //     left: '-70px',
-      //     top: '100px',
-      //     filter: 'blur(30px)',
-      //   }}
-      // />
-
-    //   {/* Logo - exact Figma positioning */}
-      // <motion.div
-      //   layoutId='logo'
-      //   transition={{ duration: 1.2 }}
-      //   className="absolute z-50"
-      //   style={{ 
-      //     width: '96px',   // w-24 = 96px
-      //     height: '36px',  // h-9 = 36px
-      //     left: '157px', 
-      //     top: '20px'
-      //   }}
-      // >
-      //   <img 
-      //     src='/Vector.svg'
-      //     alt="QUEST" 
-      //     className="w-full h-full object-contain"
-      //   />
-      // </motion.div>
-
-    //   {/* Header Text: "You'd be shocked to know, Harvard researchers suggest that" */}
-    //   <motion.div 
-        // variants={animationVariants} 
-        // initial="invisible" 
-        // animate="visible"
-    //     className="absolute"
-    //     style={{ 
-    //       width: '384px',  // w-96 = 384px
-    //       height: '48px',  // h-12 = 48px
-    //       left: '15px', 
-    //       top: '150px' 
-    //     }}
-    //   >
-    //     <div 
-    //       className="text-center"
-    //       style={{ 
-    //         color: '#FFFFFF', 
-    //         fontSize: '20px',  // text-xl = 20px
-    //         fontFamily: 'Gilroy-Regular', 
-    //         fontWeight: 400, 
-    //         wordWrap: 'break-word',
-    //         lineHeight: '1.3',
-    //       }}
-    //     >
-    //       You'd be shocked to know,<br/>Harvard researchers suggest that
-    //     </div>
-    //   </motion.div>
-
-    //   {/* "95%" - exact Figma positioning */}
-    //   <motion.div 
-    //     variants={animationVariants} 
-    //     initial="invisible" 
-    //     animate="visible"
-    //     className="absolute"
-    //     style={{ 
-    //       width: '96px',   // w-24 = 96px
-    //       height: '48px',  // h-12 = 48px
-    //       left: '156px', 
-    //       top: '250px' 
-    //     }}
-    //   >
-    //     <div 
-    //       className="text-center"
-    //       style={{ 
-    //         color: '#FFFFFF', 
-    //         fontSize: '52px',  // text-5xl = 48px
-    //         fontFamily: 'Gilroy-semiBold', 
-    //         fontWeight: '400', 
-    //         wordWrap: 'break-word' 
-    //       }}
-    //     >
-    //       95%
-    //     </div>
-    //   </motion.div>
-
-    //   <motion.div 
-    //     variants={animationVariants} 
-    //     initial="invisible" 
-    //     animate="visible"
-    //     className="absolute pt-3"
-    //     style={{ 
-    //       width: '224px',
-    //       height: '80px',
-    //       left: '90px', 
-    //       top: '300px',
-    //       lineHeight: '1',  // Set once on container
-    //       textAlign: 'center'
-    //     }}
-    //   >
-    //     <span style={{ 
-    //       color: '#FFFFFF', 
-    //       fontSize: '24px',
-    //       fontFamily: 'Gilroy-Regular', 
-    //       fontWeight: 400
-    //     }}>
-    //       of people believe<br/>they are 
-    //     </span>
-    //     <span style={{ 
-    //       color: '#FFFFFF', 
-    //       fontSize: '24px', 
-    //       fontFamily: 'Gilroy-Bold', 
-    //       fontWeight: 700,
-    //       padding: '0 5px'
-    //     }}>
-    //       self-aware<br/>
-    //     </span>
-    //     <span style={{ 
-    //       color: '#FFFFFF', 
-    //       fontSize: '24px', 
-    //       fontFamily: 'Gilroy-Regular', 
-    //       fontWeight: 400
-    //     }}>
-    //       but only
-    //     </span>
-    //   </motion.div>
-
-    //   {/* "10-15%" - exact Figma positioning */}
-    //   <motion.div 
-    //     variants={animationVariants} 
-    //     initial="invisible" 
-    //     animate="visible"
-    //     className="absolute"
-    //     style={{ 
-    //       width: '160px',  // w-40 = 160px
-    //       height: '48px',  // h-12 = 48px
-    //       left: '122px', 
-    //       top: '430px' 
-    //     }}
-    //   >
-    //     <div 
-    //       className="text-center"
-    //       style={{ 
-    //         color: '#FFFFFF', 
-    //         fontSize: '49px',  // text-5xl = 48px
-    //         fontFamily: 'Gilroy-Bold', 
-    //         fontWeight: '400', 
-    //         wordWrap: 'break-word' 
-    //       }}
-    //     >
-    //       10-15%
-    //     </div>
-    //   </motion.div>
-
-    //   {/* "actually are" - exact Figma positioning */}
-    //   <motion.div 
-    //     variants={animationVariants} 
-    //     initial="invisible" 
-    //     animate="visible"
-    //     className="absolute"
-    //     style={{ 
-    //       width: '144px',  // w-36 = 144px
-    //       height: '28px',  // h-7 = 28px
-    //       left: '129px', 
-    //       top: '480px' 
-    //     }}
-    //   >
-    //     <div 
-    //       className="text-center"
-    //       style={{ 
-    //         color: '#FFFFFF', 
-    //         fontSize: '24px',  // text-2xl = 24px
-    //         fontFamily: 'Gilroy-Regular', 
-    //         fontWeight: 400, 
-    //         wordWrap: 'break-word' 
-    //       }}
-    //     >
-    //       actually are
-    //     </div>
-    //   </motion.div>
-
-      // {/* Down Arrow Icon - exact Figma positioning */}
-      // <motion.div 
-      //   variants={animationVariants} 
-      //   initial="invisible" 
-      //   animate="visible"
-      //   className="absolute"
-      //   style={{ 
-      //     width: '80px',   // Increased for circular text
-      //     height: '80px',  // Increased for circular text
-      //     left: '160px',    // Adjusted to center the larger element
-      //     top: '550px'      // Adjusted to center the larger element
-      //   }}
-      // >
-      //   <motion.button
-      //     onClick={onContinueClick}
-      //     whileHover={{ scale: 1.1 }}
-      //     whileTap={{ scale: 0.9 }}
-      //     className="w-full h-full relative"
-      //     style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
-      //   >
-      //     {/* Circular spinning text */}
-      //     <motion.div 
-      //       className="absolute inset-0"
-      //       animate={{ rotate: 360 }}
-      //       transition={{
-      //         duration: 10,
-      //         repeat: Infinity,
-      //         ease: "linear"
-      //       }}
-      //     >
-      //       <img 
-      //         src="/text.svg" 
-      //         alt="Those who are" 
-      //         className="w-full h-full"
-      //       />
-      //     </motion.div>
-          
-      //     {/* Central arrow */}
-      //     <div className="absolute inset-0 flex items-center justify-center">
-      //       <img 
-      //         src="/arrow-down.svg" 
-      //         alt="arrow down" 
-      //         className="w-6 h-6"
-      //       />
-      //     </div>
-      //   </motion.button>
-      // </motion.div>
-    // </section>
+    
     <section className={`w-screen h-full relative  ${className}`}>
       <motion.div 
         layoutId='bg'
@@ -288,38 +62,10 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         }}
       />
 
-      {/* <motion.div
-        layoutId='logo'
-        transition={{ duration: 1.2 }}
-        className="absolute z-50"
-        style={{ 
-          width: '96px',   // w-24 = 96px
-          height: '36px',  // h-9 = 36px
-          left: '157px', 
-          top: '20px'
-        }}
-      >
-        <img 
-          src='/Vector.svg'
-          alt="QUEST" 
-          className="w-full h-full object-contain"
-        />
-      </motion.div> */}
-
-      {/* <div className='flex w-full items-center justify-center pt-4'>
-          <motion.div
-            layoutId='logo'
-            transition={{ duration: 1.2 }}
-            className="z-50"
-          >
-            <img 
-              src={img}
-              alt="QUEST" 
-              className="h-[36px] w-auto brightness-0"
-            />
-          </motion.div>
-      </div> */}
       <div className='flex w-full items-center justify-center pt-4'>
+        {/* <motion.div>
+        </motion.div> */}
+
         <motion.div
           className="z-50"
           initial={{ y: -20, opacity: 0 }}
@@ -337,7 +83,23 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             onClick={onLogoClick}
           />
         </motion.div>
+
+        {/* <motion.span 
+          variants={animationVariants} 
+          initial="invisible" 
+          animate="visible"
+          onClick={handleMenuClick}
+          className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
+          whileTap={{ scale: 0.95 }}
+        >
+          <Menu className="w-6 h-6 text-black" />
+        </motion.span> */}
       </div>
+      <AnalyzeSidebar
+      isOpen={isSidebarOpen}
+      onClose={() => setIsSidebarOpen(false)}
+      theme="blue"
+      />
 
     <div className='relative flex flex-col gap-10 top-[18%] h-screen'>
       <div className=''>
@@ -360,7 +122,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         variants={animationVariants} 
         initial="invisible" 
         animate="visible"
-        className="text-center justify-start"><span className="text-white text-2xl font-normal font-['Gilroy-Regular']">of people believe<br/>they are </span><span className="text-white text-2xl font-normal font-['Gilroy-Bold']">self-aware<br/></span><span className="text-white text-2xl font-normal font-['Gilroy-Regular']">but only</span>
+        className="text-center justify-start"><span className="text-white text-2xl font-normal font-['Gilroy-Regular']">of people believe<br/>they are </span><span className="text-white text-2xl font-['Gilroy-Bold'] font-bold">self-aware<br/></span><span className="text-white text-2xl font-normal font-['Gilroy-Regular']">but only</span>
         </motion.div>
       </div>
 

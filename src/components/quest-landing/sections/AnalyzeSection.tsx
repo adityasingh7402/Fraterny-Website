@@ -9,6 +9,7 @@ import FaqSection from './FaqSection';
 import img from '../../../../public/Vector.svg';
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 interface AnalyzeSectionProps {
   animationState: string;
@@ -66,6 +67,12 @@ const containerRef = useRef<HTMLDivElement>(null);
   return () => container.removeEventListener('scroll', handleScroll);
 }, [isInHeroSection]);
 
+const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  const handleMenuClick = () => {
+    setIsSidebarOpen(true);
+  };
+
   return (
 
 
@@ -96,14 +103,31 @@ const containerRef = useRef<HTMLDivElement>(null);
           
           </div>
           </div>
-          <motion.span 
+          {/* <motion.span 
           variants={animationVariants} 
           initial="invisible" 
           animate="visible"
           >
           <Menu/>
+          </motion.span> */}
+          <motion.span 
+            variants={animationVariants} 
+            initial="invisible" 
+            animate="visible"
+            onClick={handleMenuClick}
+            className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+            whileTap={{ scale: 0.95 }}
+          >
+            <Menu className="w-6 h-6" />
           </motion.span>
       </div>   
+
+      {/* Sidebar */}
+      <AnalyzeSidebar
+      isOpen={isSidebarOpen}
+      onClose={() => setIsSidebarOpen(false)}
+      theme="blue"
+      />
 
       {/* Hero section */}
       <div ref={heroSectionRef} className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
@@ -142,8 +166,8 @@ const containerRef = useRef<HTMLDivElement>(null);
             {['Motivations', 'Ambitions', 'Patterns', 'Triggers', 'Fears'].map((item, i) => (
               <div 
                 key={i}
-                className="px-4 py-2 rounded-full border-2 border-white bg-white/10 text-white"
-                style={{ fontFamily: 'Gilroy-Bold', fontSize: '20px', fontWeight: 400 }}
+                className="px-4 py-2 font-normal font-['Gilroy-Bold'] rounded-full border-2 border-white bg-white/10 text-white tracking-[-1.5px]"
+                style={{ fontSize: '20px', fontWeight: 400 }}
               >
                 {item}
               </div>

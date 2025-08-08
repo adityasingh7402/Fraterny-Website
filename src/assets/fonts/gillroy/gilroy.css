@@ -3,21 +3,20 @@
 /* ===== Gilroy-Regular Family ===== */
 @font-face {
   font-family: 'Gilroy-Regular';
-  src: url('./Gilroy-Thin.ttf') format('truetype');
-  font-weight: 100;
+  src: url('./Gilroy-Regular.ttf') format('truetype');
   font-style: normal;
   font-display: swap;
 }
 
-@font-face {
+/* @font-face {
   font-family: 'Gilroy-Regular';
   src: url('./Gilroy-UltraLight.ttf') format('truetype');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'Gilroy-Regular';
   src: url('./Gilroy-Light.ttf') format('truetype');
   font-weight: 300;
@@ -71,18 +70,18 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 /* ===== Gilroy-Bold Family ===== */
 @font-face {
   font-family: 'Gilroy-Bold';
-  src: url('./Gilroy-Thin.ttf') format('truetype');
-  font-weight: 100;
+  src: url('./Gilroy-Bold.ttf') format('truetype');
   font-style: normal;
   font-display: swap;
 }
 
-@font-face {
+
+/* @font-face {
   font-family: 'Gilroy-Bold';
   src: url('./Gilroy-UltraLight.ttf') format('truetype');
   font-weight: 200;
@@ -120,12 +119,11 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 @font-face {
   font-family: 'Gilroy-semiBold';
   src: url('./Gilroy-SemiBold.ttf') format('truetype');
-  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -133,62 +131,55 @@
 @font-face {
   font-family: 'Gilroy-medium';
   src: url('./Gilroy-Medium.ttf') format('truetype');
-  font-weight: 200;
 }
 
-@font-face {
+/* @font-face {
   font-family: 'Gilroy-Bold';
   src: url('./Gilroy-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 @font-face {
-  font-family: 'Gilroy-Bold';
+  font-family: 'Gilroy-ExtraBold';
   src: url('./Gilroy-ExtraBold.ttf') format('truetype');
-  font-weight: 800;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gilroy-Bold';
+  font-family: 'Gilroy-Black';
   src: url('./Gilroy-Black.ttf') format('truetype');
-  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 /* ===== Italic Variants ===== */
 @font-face {
-  font-family: 'Gilroy-Regular';
+  font-family: 'Gilroy-ThinItalic';
   src: url('./Gilroy-ThinItalic.ttf') format('truetype');
-  font-weight: 100;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gilroy-Regular';
+  font-family: 'Gilroy-UltraLightItalic';
   src: url('./Gilroy-UltraLightItalic.ttf') format('truetype');
-  font-weight: 200;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gilroy-Regular';
+  font-family: 'Gilroy-LightItalic';
   src: url('./Gilroy-LightItalic.ttf') format('truetype');
-  font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gilroy-Regular';
+  font-family: 'Gilroy-RegularItalic';
   src: url('./Gilroy-RegularItalic.ttf') format('truetype');
-  font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
@@ -196,39 +187,13 @@
 @font-face {
   font-family: 'Gilroy-MediumItalic';
   src: url('./Gilroy-MediumItalic.ttf') format('truetype');
-  font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gilroy-Regular';
+  font-family: 'Gilroy-SemiBoldItalic';
   src: url('./Gilroy-SemiBoldItalic.ttf') format('truetype');
-  font-weight: 600;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Gilroy-Regular';
-  src: url('./Gilroy-BoldItalic.ttf') format('truetype');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Gilroy-Regular';
-  src: url('./Gilroy-ExtraBoldItalic.ttf') format('truetype');
-  font-weight: 800;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Gilroy-Regular';
-  src: url('./Gilroy-BlackItalic.ttf') format('truetype');
-  font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
@@ -236,7 +201,7 @@
 /* ===== Utility Classes ===== */
 
 /* Gilroy-Regular family classes */
-.gilroy-regular-thin {
+/* .gilroy-regular-thin {
   font-family: 'Gilroy-Regular';
   font-weight: 100;
 }
@@ -279,10 +244,10 @@
 .gilroy-regular-black {
   font-family: 'Gilroy-Regular';
   font-weight: 900;
-}
+} */
 
 /* Gilroy-Bold family classes */
-.gilroy-bold-thin {
+/* .gilroy-bold-thin {
   font-family: 'Gilroy-Bold';
   font-weight: 100;
 }
@@ -325,10 +290,10 @@
 .gilroy-bold-black {
   font-family: 'Gilroy-Bold';
   font-weight: 900;
-}
+} */
 
 /* Italic variants */
-.gilroy-regular-thin-italic {
+/* .gilroy-regular-thin-italic {
   font-family: 'Gilroy-Regular';
   font-weight: 100;
   font-style: italic;
@@ -350,10 +315,10 @@
   font-family: 'Gilroy-Regular';
   font-weight: 700;
   font-style: italic;
-}
+} */
 
 /* Heavy variant for extra emphasis */
-.gilroy-heavy {
+/* .gilroy-heavy {
   font-family: 'Gilroy-Heavy';
   font-weight: 900;
 }
@@ -362,4 +327,4 @@
   font-family: 'Gilroy-Heavy';
   font-weight: 900;
   font-style: italic;
-}
+} */

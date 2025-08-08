@@ -456,11 +456,11 @@ const handleCancelSubmission = () => {
                 : 'w-full h-14 bg-gradient-to-br from-sky-800 to-sky-400 rounded-[36px] border-2 border-blue-950'
             }`}
           >
-            <div className='flex gap-2 justify-center items-center'>
-              <div className="w-12 justify-center text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-[-8%]">
+            <div className='flex gap-1 justify-center items-center'>
+              <div className="w-auto justify-center text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-[-2px]">
               {isLastQuestion && showFinish ? 'Finish' : 'Next'}
               </div>
-              <div className=''>
+              <div className='h-full flex items-center justify-center pt-1'>
                 <ChevronRight className='w-[1.5] h-[3]'/>
               </div>
             </div>

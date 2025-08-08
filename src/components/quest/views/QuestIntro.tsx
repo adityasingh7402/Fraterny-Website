@@ -148,6 +148,7 @@ import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { BouncingWord } from './questbouncing/BouncingWord';
 import {useIsMobile} from './questbouncing/use-mobile';
+import { Link } from 'react-router-dom';
 
 
 interface QuestIntroProps {
@@ -273,14 +274,14 @@ const handleTermsChange = (checked: boolean) => {
   // }
   
   return (
-    <section className='bg-sky-800 flex flex-col gap-1 h-screen'>
+    <section className='bg-sky-800 flex flex-col justify-between min-h-screen'>
         <div className=''>
           <BouncingWord />
         </div>
 
-        <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0'>
+        <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0 pb-5'>
           <div className="justify-start text-white text-4xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you</div>
-          <div className="justify-start text-white text-6xl font-normal font-['Gilroy-Bold'] mb-3">Analysed.</div>
+          <div className="justify-start text-white text-6xl font-bold font-['Gilroy-Bold'] mb-3">Analysed.</div>
           <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">I am designed to deeply understand your personality through simple yet thought provoking questions.</div>
           <label className='flex gap-2 mb-3 cursor-pointer'>
             {/* checkbox code from above */}
@@ -319,7 +320,7 @@ const handleTermsChange = (checked: boolean) => {
               </motion.div>
             </label>
             <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"] pr-1'>
-              I agree to the <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Conditions</span> and <span className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</span>
+              I agree to the <Link to="/terms-of-use" className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Use</Link> and <Link to="/privacy-policy" className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</Link>
             </div>
           </label>
           <div className='w-full pr-3'>
