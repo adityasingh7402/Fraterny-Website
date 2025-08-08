@@ -131,8 +131,8 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   // Get session ID from URL params or localStorage
   const currentSessionId = sessionId || localStorage.getItem('questSessionId');
   const currenttestid = testid || localStorage.getItem('testid');
-  console.log(`current session id ${currentSessionId}`);
-  console.log(`current test id ${currenttestid}`);
+  // console.log(`current session id ${currentSessionId}`);
+  // console.log(`current test id ${currenttestid}`);
   
   
   

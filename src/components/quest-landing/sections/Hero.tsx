@@ -78,7 +78,7 @@ const Hero: React.FC<HeroProps> = ({
             animate="visible"
             className=""
             >
-              <div className='justify-start text-neutral-500 text-7xl font-normal font-["Gilroy-Bold"]'>
+              <div className='justify-start text-neutral-500 text-7xl font-bold font-["Gilroy-Bold"]'>
                 I'm
               </div>
             </motion.div>

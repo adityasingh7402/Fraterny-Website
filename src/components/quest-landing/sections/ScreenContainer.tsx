@@ -362,7 +362,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       )}
 
       {/* Navigation indicator */}
-      <div className={`fixed bottom-4 right-4 z-50 flex flex-col gap-2 ${isMobile ? '' : 'hidden'}`}>
+      {/* <div className={`fixed bottom-4 right-4 z-50 flex flex-col gap-2 ${isMobile ? '' : 'hidden'}`}>
         {[0, 1, 2, 3].map((index) => (
           <button
             key={index}
@@ -377,7 +377,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             }`}
           />
         ))}
-      </div>
+      </div> */}
       
     </div>
   );

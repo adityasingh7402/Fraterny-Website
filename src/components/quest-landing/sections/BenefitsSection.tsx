@@ -1,10 +1,11 @@
 // /src/components/quest-landing/sections/BenefitsSection.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 import img from '../../../../public/Vector.svg';
+import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 interface BenefitsSectionProps {
   animationState: string;
@@ -32,6 +33,12 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
   onScreenTransition: _onScreenTransition,
   onLogoClick: _onLogoClick
 }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
+    const handleMenuClick = () => {
+      setIsSidebarOpen(true);
+    };
+    
   return (
 
     <section className='w-screen h-full relative'>
@@ -63,7 +70,9 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
           </motion.div>
         </div> */}
 
-        <div className='flex w-full items-center justify-center pt-4'>
+        <div className='flex w-full items-center justify-between pt-4'>
+        <motion.div>
+        </motion.div>
         <motion.div
           className="z-50"
           initial={{ y: 0, opacity: 1 }}
@@ -81,7 +90,22 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
             onClick={_onLogoClick} // Call the onLogoClick prop when clicked
           />
         </motion.div>
+        <motion.span 
+          variants={animationVariants} 
+          initial="invisible" 
+          animate="visible"
+          onClick={handleMenuClick}
+          className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
+          whileTap={{ scale: 0.95 }}
+        >
+          <Menu className="w-6 h-6 text-white" />
+        </motion.span>
       </div>
+      <AnalyzeSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        theme="blue"
+        />
 
         <div className='z-50 pl-5 flex flex-col gap-10 absolute w-full top-[25%]'>
 

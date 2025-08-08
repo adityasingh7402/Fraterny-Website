@@ -101,12 +101,6 @@ const totalProgressPercentage = getTotalQuestionsCount() > 0
   ? ((getCurrentGlobalQuestionIndex() + 1) / getTotalQuestionsCount()) * 100 
   : 0;
   
-  console.log('🔍 Debug Progress Bar:');
-console.log('   Current Global Index:', getCurrentGlobalQuestionIndex());
-console.log('   Total Questions:', getTotalQuestionsCount());
-console.log('   Total Progress Percentage:', totalProgressPercentage);
-console.log('   Current Section:', currentSectionId);
-console.log('   Current Question:', currentQuestion?.id);
 
   const questionIndexInSection = getQuestionIndexInSection();
   
@@ -133,11 +127,42 @@ console.log('   Current Question:', currentQuestion?.id);
     animated,
     // milestones
   });
+
+  // Get section color by index
+const getSectionColor = (sectionIndex: number): string => {
+  const colors = ['#004A7F', '#CA7D7D', '#84ADDF', '#96C486', '#CECECE'];
+  return colors[sectionIndex] || '#004A7F';
+};
+
+// Calculate how many sections are completed
+const getCompletedSectionsCount = () => {
+  const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+  return currentSectionIndex;
+};
+
+// Calculate progress within current section
+const getCurrentSectionProgress = () => {
+  if (!currentSection) return 0;
+  const questionsInCurrentSection = currentSection.questions.length;
+  const answeredInCurrentSection = questionIndexInSection;
+  return (answeredInCurrentSection / questionsInCurrentSection) * 100;
+};
   
   // Determine progress bar color based on percentage
+  // const getProgressColor = (): string => {
+  //   return 'bg-gradient-to-br from-sky-800 to-sky-400'; // Always blue color
+  // };
+
   const getProgressColor = (): string => {
-    return 'bg-gradient-to-br from-sky-800 to-sky-400'; // Always blue color
-  };
+  switch(currentSectionId) {
+    case 'section_1': return '#004A7F';
+    case 'section_2': return '#CA7D7D'; 
+    case 'section_3': return '#84ADDF';
+    case 'section_4': return '#96C486';
+    case 'section_5': return '#CECECE';
+    default: return '#004A7F';
+  }
+};
   
   const progressColor = getProgressColor();
   // console.log('🎨 Progress Color:', progressColor);
@@ -158,13 +183,51 @@ console.log('   Current Question:', currentQuestion?.id);
       <div className='flex flex-col items-center gap-2'>
         <div className={`w-full ${className}`}>  
           {/* Progress bar */}
-          <div className="w-full h-2">
+          {/* <div className="w-full h-2">
             <motion.div
-              className={`${progressColor} h-full`}
+              className={` h-full`}
               animate={progressControls}
               initial={{ width: '0%' }}
-              style={{ width: `${totalProgressPercentage}%` }}
+              style={{ width: `${totalProgressPercentage}%`, backgroundColor: progressColor }}
             />
+          </div> */}
+          <div className="w-full h-2 flex items-center">
+            {sections.map((section, index) => {
+              const isCompleted = index < getCompletedSectionsCount();
+              const isCurrent = index === getCompletedSectionsCount();
+              const segmentWidth = 100 / sections.length;
+              
+              let fillWidth = 0;
+              if (isCompleted) {
+                fillWidth = 100;
+              } else if (isCurrent) {
+                fillWidth = getCurrentSectionProgress();
+              }
+              
+              return (
+                <React.Fragment key={section.id}>
+                  <div style={{ width: `${segmentWidth}%` }} className="h-full">
+                    <motion.div
+                      className="h-full"
+                      style={{ 
+                        width: `${fillWidth}%`,
+                        backgroundColor: getSectionColor(index)
+                      }}
+                      animate={{ width: `${fillWidth}%` }}
+                      initial={{ width: '0%' }}
+                    />
+                  </div>
+                  
+                  {/* Add separator after each segment except the last one */}
+                  {/* {index < sections.length - 1 && (
+                    <div className="w-2.5 h-2.5 bg-zinc-300" />
+                  )} */}
+                  {index < getCompletedSectionsCount() && (
+                    <div className="w-2.5 h-2.5 bg-zinc-300" />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
           
           {/* Milestone indicators */}

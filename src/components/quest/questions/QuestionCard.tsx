@@ -202,17 +202,17 @@ export function QuestionCard({
                 // Background Color Logic
                 backgroundColor: isSelected 
                   ? (index === 0 ? '#E8F5E8' : (index === 1 ? '#FEE2E2' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#E0F2FE' : '#F3F4F6'))))
-                  : '#F3F4F6', // Always gray when not selected
+                  : '#FEFEFE', // Always gray when not selected
                 
                 // Border Color Logic  
                 borderColor: isSelected 
                   ? (index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#9CA3AF'))))
-                  : '#9CA3AF', // Always gray when not selected
+                  : '#B1B1B1', // Always gray when not selected
                 
                 // Text Color Logic
                 color: isSelected 
                   ? (index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151'))))
-                  : '#374151' // Always dark gray when not selected
+                  : '#B1B1B1' // Always dark gray when not selected
               }}
               disabled={!isActive || isAnswered}
             >

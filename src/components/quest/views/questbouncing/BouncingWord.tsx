@@ -27,6 +27,10 @@ const COLOR_POOL = [
   'hsl(320 50% 85%)'     // pink
 ];
 
+// const COLOR_POOL = [
+//   '#2A7F00', '#004A7F', '#50007F', '#A4090B'
+// ];
+
 const SPEED = 100; // pixels per second
 const FPS = 60;
 
@@ -172,7 +176,7 @@ export const BouncingWord = () => {
   }, [dimensions]);
 
   return (
-    <div className="flex items-center justify-center p-5">
+    <div className="flex items-center justify-center pb-5 pt-5">
       <div
         ref={containerRef}
         className="bouncing-container w-full"

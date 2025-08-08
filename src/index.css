@@ -320,7 +320,7 @@ html, body {
 
 @layer components {
   .bouncing-container {
-    @apply relative border-2 border-white/90 bg-transparent;
+    @apply relative border-t-2 border-b-2 border-white/90 bg-transparent;
     aspect-ratio: 4/3;
   }
 
