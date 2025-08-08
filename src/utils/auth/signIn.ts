@@ -26,14 +26,40 @@ export const signIn = async (email: string, password: string): Promise<{user: Us
   }
 };
 
+// export const signInWithGoogle = async () => {
+//   const { data, error } = await supabase.auth.signInWithOAuth({
+//     provider: 'google',
+//     options: {
+//       redirectTo: `${window.location.origin}/auth`
+//     }
+//   });
+  
+//   if (error) {
+//     console.error('Error signing in with Google:', error);
+//     throw error;
+//   }
+  
+//   return data;
+// };
+
 export const signInWithGoogle = async () => {
+  const currentUrl = window.location.href;
+  const currentOrigin = window.location.origin;
+  
+  // If current URL contains 'quest' or 'quest-result', redirect back to the same page
+  // Otherwise, redirect to the origin
+  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') ? currentUrl : currentOrigin;
+
+  console.log('Current URL:', currentUrl);
+  console.log('Using redirect URL:', redirectUrl);
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth`
+      redirectTo: redirectUrl
     }
   });
-  
+
   if (error) {
     console.error('Error signing in with Google:', error);
     throw error;
