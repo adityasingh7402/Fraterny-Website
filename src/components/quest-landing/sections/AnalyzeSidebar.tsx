@@ -6,6 +6,7 @@ import { NotepadText  } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {useIsMobile} from '../../../components/quest/views/questbouncing/use-mobile';
+import { signInWithGoogle } from '@/utils/auth';
 
 
 interface AnalyzeSidebarProps {
@@ -106,13 +107,20 @@ const getMenuItems = (isAuthenticated: boolean, user: any): MenuItemConfig[] => 
         action: () => {}, // Will be replaced in component
         variant: 'primary'
       },
+      // {
+      //   id: 'signin',
+      //   label: 'Sign In',
+      //   icon: <User className="w-5 h-5" />,
+      //   action: () => {}, // Will be replaced in component
+      //   variant: 'primary'
+      // },
       {
         id: 'signin',
-        label: 'Sign In',
-        icon: <User className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
+        label: 'Sign in', // Changed label
+        icon: <User className="w-5 h-5" />, // Google icon instead of User icon
+        action: () => {}, // Changed action
         variant: 'primary'
-      },
+      }
       
     ];
   }
@@ -149,9 +157,17 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
     onClose();
   };
   
-  const handleSignIn = () => {
-    navigate('/auth');
-    onClose();
+  // const handleSignIn = () => {
+  //   navigate('/auth');
+  //   onClose();
+  // };
+    const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle(); // Your existing function
+      onClose();
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+    }
   };
 
   const baseMenuItems = getMenuItems(isAuthenticated, user);
@@ -161,7 +177,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
             item.id === 'test' ? () => navigate('/assessment') :
             item.id === 'dashboard' ? handleDashboard :
             item.id === 'logout' ? handleLogout :
-            item.id === 'signin' ? handleSignIn :
+            item.id === 'signin' ? handleGoogleSignIn :
             () => {}
     }));
   
