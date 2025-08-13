@@ -10,6 +10,7 @@ import img from '../../../../public/Vector.svg';
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AnalyzeSidebar } from './AnalyzeSidebar';
+import QuestFooter from './QuestFooter';
 
 interface AnalyzeSectionProps {
   animationState: string;
@@ -100,26 +101,18 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
                 onClick={_onLogoClick} // Call the onLogoClick prop when clicked
               />
             </motion.div>
-          
           </div>
           </div>
-          {/* <motion.span 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          >
-          <Menu/>
-          </motion.span> */}
-          <motion.span 
+          <motion.div 
             variants={animationVariants} 
             initial="invisible" 
             animate="visible"
             onClick={handleMenuClick}
-            className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
             whileTap={{ scale: 0.95 }}
           >
             <Menu className="w-6 h-6" />
-          </motion.span>
+          </motion.div>
       </div>   
 
       {/* Sidebar */}
@@ -229,9 +222,10 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       </div>
 
       <Change />
-      <div className='flex flex-col gap-4 mb-10 '>
+      <div className='flex flex-col'>
         <Testimonials />
         <FaqSection />
+        <QuestFooter />
       </div>
 
     </div>

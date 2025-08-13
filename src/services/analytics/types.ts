@@ -2,7 +2,7 @@
 // Base interface for all analytics data points
 export interface BaseDataPoint {
   name: string;
-  [key: string]: string | number;
+  [key: string]: string | number | undefined;
 }
 
 // Data point for distribution charts (pie charts)
@@ -59,3 +59,4 @@ export const analyticsPeriods: AnalyticsPeriod[] = [
 export const ANALYTICS_STORAGE_KEY = 'website_analytics_data';
 export const ANALYTICS_SESSION_KEY = 'website_analytics_session';
 export const ANALYTICS_LAST_VISIT_KEY = 'website_analytics_last_visit';
+

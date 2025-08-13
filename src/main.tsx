@@ -1,9 +1,19 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import ModernLoading from './components/ui/ModernLoading';
+import { detectPlatform, storePlatformInfo } from '@/utils/platformTracking';
+import { initializeUserJourney } from '@/services/userJourneyManager';
+import ResultsDemo from './components/quest/views/ResultsDemo';
+
+
+initializeUserJourney();
+
+// Initialize platform detection immediately when the app loads
+// const platformInfo = detectPlatform();
+// storePlatformInfo(platformInfo);
 
 // CRITICAL ROUTES - Load immediately (no lazy loading for better performance)
 import Index from './pages/Index';
@@ -128,7 +138,10 @@ const router = createBrowserRouter([
       { path: 'faq', element: createSuspenseWrapper(LightLoading)(<FAQ />) },
       { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
-      
+
+      // RESULTS DEMO
+      { path: 'results-demo/:sessionId/:userId/:testid', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
+
       // PROTECTED QUEST ROUTE - Authentication required
       {
         path: 'assessment',

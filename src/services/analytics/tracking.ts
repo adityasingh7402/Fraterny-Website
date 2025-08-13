@@ -1,6 +1,8 @@
 
 import { getAnalyticsFromStorage, saveAnalyticsToStorage } from './storage';
 import { ANALYTICS_SESSION_KEY, ANALYTICS_LAST_VISIT_KEY } from './types';
+// Add these imports at the top of the file
+import { detectPlatform, storePlatformInfo, getPlatformInfo, PlatformInfo } from '@/utils/platformTracking';
 
 // Track a page view
 export const trackPageView = (path: string): void => {
@@ -97,6 +99,27 @@ export const trackPageView = (path: string): void => {
 };
 
 // Track a user signup
+// export const trackSignup = (): void => {
+//   try {
+//     const analytics = getAnalyticsFromStorage();
+//     const today = new Date().toISOString().split('T')[0];
+    
+//     if (!analytics.dailyTraffic[today]) {
+//       analytics.dailyTraffic[today] = {
+//         pageViews: 0,
+//         uniqueVisitors: 0,
+//         signups: 0,
+//         paths: {}
+//       };
+//     }
+    
+//     analytics.dailyTraffic[today].signups++;
+//     saveAnalyticsToStorage(analytics);
+//   } catch (error) {
+//     console.error('Error tracking signup:', error);
+//   }
+// };
+// Replace the existing trackSignup function with this:
 export const trackSignup = (): void => {
   try {
     const analytics = getAnalyticsFromStorage();
@@ -112,6 +135,18 @@ export const trackSignup = (): void => {
     }
     
     analytics.dailyTraffic[today].signups++;
+    
+    // Track signups by platform
+    const platformInfo = getPlatformInfo();
+    if (platformInfo) {
+      if (!analytics.dailyTraffic[today].signupsByPlatform) {
+        analytics.dailyTraffic[today].signupsByPlatform = {};
+      }
+      const platform = platformInfo.platform;
+      analytics.dailyTraffic[today].signupsByPlatform[platform] = 
+        (analytics.dailyTraffic[today].signupsByPlatform[platform] || 0) + 1;
+    }
+    
     saveAnalyticsToStorage(analytics);
   } catch (error) {
     console.error('Error tracking signup:', error);
@@ -119,6 +154,52 @@ export const trackSignup = (): void => {
 };
 
 // Track user sessions
+// export const trackSession = (analytics: any, today: string): void => {
+//   const sessionId = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
+//   const lastVisit = localStorage.getItem(ANALYTICS_LAST_VISIT_KEY);
+  
+//   // If no session or last visit was more than 30 minutes ago, consider it a new session
+//   const isNewSession = !sessionId || 
+//     (lastVisit && (Date.now() - parseInt(lastVisit, 10)) > 30 * 60 * 1000);
+  
+//   if (isNewSession) {
+//     // Generate new session ID
+//     const newSessionId = Date.now().toString();
+//     sessionStorage.setItem(ANALYTICS_SESSION_KEY, newSessionId);
+    
+//     // Track unique visitor
+//     analytics.dailyTraffic[today].uniqueVisitors++;
+    
+//     // Track device info
+//     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+//     const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+//     const deviceType = isTablet ? 'tablet' : (isMobile ? 'mobile' : 'desktop');
+    
+//     // Initialize device tracking if needed
+//     if (!analytics.devices) {
+//       analytics.devices = { desktop: 0, mobile: 0, tablet: 0 };
+//     }
+//     analytics.devices[deviceType]++;
+    
+//     // Track source (simplified - would normally use referrer or utm parameters)
+//     const source = document.referrer 
+//       ? (new URL(document.referrer).hostname || 'direct') 
+//       : 'direct';
+    
+//     // Initialize sources tracking if needed
+//     if (!analytics.sources) {
+//       analytics.sources = {};
+//     }
+//     if (!analytics.sources[source]) {
+//       analytics.sources[source] = 0;
+//     }
+//     analytics.sources[source]++;
+//   }
+  
+//   // Update last visit time
+//   localStorage.setItem(ANALYTICS_LAST_VISIT_KEY, Date.now().toString());
+// };
+
 export const trackSession = (analytics: any, today: string): void => {
   const sessionId = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
   const lastVisit = localStorage.getItem(ANALYTICS_LAST_VISIT_KEY);
@@ -128,6 +209,10 @@ export const trackSession = (analytics: any, today: string): void => {
     (lastVisit && (Date.now() - parseInt(lastVisit, 10)) > 30 * 60 * 1000);
   
   if (isNewSession) {
+    // Detect and store platform information
+    const platformInfo = detectPlatform();
+    storePlatformInfo(platformInfo);
+    
     // Generate new session ID
     const newSessionId = Date.now().toString();
     sessionStorage.setItem(ANALYTICS_SESSION_KEY, newSessionId);
@@ -146,19 +231,30 @@ export const trackSession = (analytics: any, today: string): void => {
     }
     analytics.devices[deviceType]++;
     
-    // Track source (simplified - would normally use referrer or utm parameters)
-    const source = document.referrer 
-      ? (new URL(document.referrer).hostname || 'direct') 
-      : 'direct';
+    // Enhanced source tracking with platform detection
+    const sourceKey = `${platformInfo.platform}${platformInfo.medium ? `_${platformInfo.medium}` : ''}`;
     
     // Initialize sources tracking if needed
     if (!analytics.sources) {
       analytics.sources = {};
     }
-    if (!analytics.sources[source]) {
-      analytics.sources[source] = 0;
+    if (!analytics.platformSources) {
+      analytics.platformSources = {};
     }
-    analytics.sources[source]++;
+    
+    // Track both legacy and new platform sources
+    analytics.sources[sourceKey] = (analytics.sources[sourceKey] || 0) + 1;
+    analytics.platformSources[platformInfo.platform] = (analytics.platformSources[platformInfo.platform] || 0) + 1;
+    
+    // Track detailed platform info
+    if (!analytics.detailedSources) {
+      analytics.detailedSources = [];
+    }
+    analytics.detailedSources.push({
+      ...platformInfo,
+      sessionId: newSessionId,
+      date: today
+    });
   }
   
   // Update last visit time
@@ -220,4 +316,23 @@ const startHeartbeatTracking = (path: string): void => {
       updateTimeOnCurrentPage(path);
     }
   });
+};
+
+// Add this new function for platform analytics
+export const getPlatformAnalytics = () => {
+  const analytics = getAnalyticsFromStorage();
+  
+  return {
+    platformSources: analytics.platformSources || {},
+    detailedSources: analytics.detailedSources || [],
+    signupsByPlatform: Object.values(analytics.dailyTraffic || {})
+      .reduce((acc: Record<string, number>, day: any) => {
+        if (day.signupsByPlatform) {
+          Object.entries(day.signupsByPlatform).forEach(([platform, count]) => {
+            acc[platform] = (acc[platform] || 0) + (count as number);
+          });
+        }
+        return acc;
+      }, {})
+  };
 };
