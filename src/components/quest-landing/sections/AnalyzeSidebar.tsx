@@ -1,7 +1,7 @@
 // AnalyzeSidebar.tsx
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, LayoutDashboard, LogOut, User, X } from 'lucide-react';
+import { Home, LayoutDashboard, LogOut, User, X, Luggage} from 'lucide-react';
 import { NotepadText  } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -91,6 +91,13 @@ const getMenuItems = (isAuthenticated: boolean, user: any): MenuItemConfig[] => 
         variant: 'primary'
       },
       {
+        id: 'book',
+        label: 'Book our Villa',
+        icon: <Luggage className="w-5 h-5" />,
+        action: () => {}, // Will be replaced in component
+        variant: 'primary'
+      },
+      {
         id: 'logout',
         label: 'Logout',
         icon: <LogOut className="w-5 h-5" />,
@@ -107,13 +114,13 @@ const getMenuItems = (isAuthenticated: boolean, user: any): MenuItemConfig[] => 
         action: () => {}, // Will be replaced in component
         variant: 'primary'
       },
-      // {
-      //   id: 'signin',
-      //   label: 'Sign In',
-      //   icon: <User className="w-5 h-5" />,
-      //   action: () => {}, // Will be replaced in component
-      //   variant: 'primary'
-      // },
+      {
+        id: 'book',
+        label: 'Book our Villa',
+        icon: <Luggage className="w-5 h-5" />,
+        action: () => {}, // Will be replaced in component
+        variant: 'primary'
+      },
       {
         id: 'signin',
         label: 'Sign in', // Changed label
@@ -156,12 +163,8 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
     }
     onClose();
   };
-  
-  // const handleSignIn = () => {
-  //   navigate('/auth');
-  //   onClose();
-  // };
-    const handleGoogleSignIn = async () => {
+
+  const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle(); // Your existing function
       onClose();
@@ -170,11 +173,17 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
     }
   };
 
+  const handleHome = () => {
+    navigate('https://fraterny.com/');
+    onClose();
+  };
+
   const baseMenuItems = getMenuItems(isAuthenticated, user);
     const menuItems = baseMenuItems.map(item => ({
     ...item,
     action: item.id === 'home' ? () => navigate('/quest') :
             item.id === 'test' ? () => navigate('/assessment') :
+            item.id === 'book' ? handleHome :
             item.id === 'dashboard' ? handleDashboard :
             item.id === 'logout' ? handleLogout :
             item.id === 'signin' ? handleGoogleSignIn :
@@ -196,7 +205,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
           
           {/* Sidebar Panel */}
           <motion.div
-            className={`fixed right-0 top-0 h-full w-72 z-[70] ${
+            className={`fixed right-0 top-0 h-full w-60 z-[70] ${
               theme === 'blue' ? 'bg-[#004A7F]' : 'bg-white'
             } shadow-2xl ${className}`}
             variants={sidebarVariants}
@@ -209,7 +218,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
               <h3 className={`font-['Gilroy-medium'] font-medium ${
                 theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
-                Your Profile
+                Explore Fraterny
               </h3>
               <button
                 onClick={onClose}

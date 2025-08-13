@@ -52,11 +52,12 @@ export const signInWithGoogle = async () => {
 
   console.log('Current URL:', currentUrl);
   console.log('Using redirect URL:', redirectUrl);
+  const cleanUrl = window.location.origin + window.location.pathname;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: redirectUrl
+      redirectTo: cleanUrl
     }
   });
 

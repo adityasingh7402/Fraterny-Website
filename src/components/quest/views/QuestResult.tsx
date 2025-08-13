@@ -10,7 +10,8 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Download, Share2, Home, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../../integrations/supabase/client';
-// import axios from 'axios'; // For future backend integration
+import { useAuth } from '../../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 // Import card components
 import { MindCard, FindingsCard, QuotesCard } from './questresultcards';
@@ -25,10 +26,8 @@ import { headerVariants, sectionVariants, buttonVariants } from './questresultca
 
 // Import layout components
 import QuestLayout from '../layout/QuestLayout';
-
-// Import context
-import { useAuth } from '../../../contexts/AuthContext';
 import axios from 'axios'
+import { PaymentService } from '@/services/payments';
 
 export interface QuestResultProps {
   className?: string;
@@ -127,6 +126,8 @@ export function QuestResult({ className = '' }: QuestResultProps) {
   const [error, setError] = useState<string | null>(null);
   const [resultData, setResultData] = useState<ResultData | null>(null);
   const hasInitialized = useRef(false);
+  const { user, signInWithGoogle } = useAuth();
+  const [paymentLoading, setPaymentLoading] = useState(false);
   
   // Get session ID from URL params or localStorage
   const currentSessionId = sessionId || localStorage.getItem('questSessionId');
@@ -161,22 +162,6 @@ export function QuestResult({ className = '' }: QuestResultProps) {
         setIsLoading(true);
         
         try {
-          // if (auth.user?.id) {
-          //   const { data: sessionHistory, error: sessionError } = await supabase
-          //     .from('user_session_history')
-          //     .select('*')
-          //     .eq('session_id', currentSessionId)
-          //     .eq('user_id', auth.user.id)
-          //     .eq('testid', currenttestid)
-          //     .single();
-
-          //   if (sessionError || !sessionHistory) {
-          //     console.warn('Session not found in database, but continuing for authenticated user');
-          //     // Don't throw error - continue with API call
-          //   }
-          // } else {
-          //   console.log('Anonymous user - skipping session history verification');
-          // }
           
           // 2. Fetch the analysis result from your AI backend using axios
           const userId = auth.user?.id || 'anonymous';
@@ -195,8 +180,6 @@ export function QuestResult({ className = '' }: QuestResultProps) {
             if (typeof analysisData.results === 'string') {
               analysisData.results = JSON.parse(analysisData.results);
             }
-            // console.log(`analysis data`, analysisData);
-            // console.log(`response data`, response);
           }
           
           const analysisData = response.data;
@@ -205,13 +188,7 @@ export function QuestResult({ className = '' }: QuestResultProps) {
           // console.log(`validated data ${validatedData}`);
           setResultData(validatedData);
           setIsLoading(false);
-          
-          // // 4. Update the session history to mark as viewed
-          // await supabase
-          //   .from('user_session_history')
-          //   .update({ is_viewed: true })
-          //   .eq('session_id', currentSessionId)
-          //   .eq('user_id', auth?.user?.id || '');
+
             
         } catch (axiosError: any) {
           if (axiosError.code === 'ECONNABORTED') {
@@ -235,6 +212,14 @@ export function QuestResult({ className = '' }: QuestResultProps) {
     
     fetchResultData();
   }, [currentSessionId, auth?.user?.id]);
+
+  // useEffect(() => {
+  // // Clean up messy OAuth hash
+  //   if (window.location.hash.includes('access_token')) {
+  //     const cleanUrl = window.location.origin + window.location.pathname;
+  //     window.history.replaceState({}, document.title, cleanUrl);
+  //   }
+  // }, []);
   
   // Handle downloading results as PDF (placeholder)
   const handleDownloadResults = () => {
@@ -252,33 +237,49 @@ export function QuestResult({ className = '' }: QuestResultProps) {
     setError(null);
     window.location.reload();
   };
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      toast.success('Successfully signed in!');
+    } catch (error) {
+      toast.error('Sign-in failed. Please try again.');
+    }
+  };
+
+  const handlePayment = async () => {
+  if (!user?.id) {
+    toast.error('Please sign in first');
+    return;
+  }
+  
+  setPaymentLoading(true);
+  try {
+    // Use the payment service we created
+    const paymentResult = await PaymentService.startPayment(
+      currentSessionId!, 
+      currenttestid!
+    );
+    
+    if (paymentResult.success) {
+      toast.success('Payment successful! You now have access to the full report.');
+      // Optionally refresh the page or update UI to show paid content
+    } else {
+      toast.error(paymentResult.error || 'Payment failed. Please try again.');
+    }
+  } catch (error: any) {
+    console.error('Payment error:', error);
+    toast.error('Payment failed. Please try again.');
+  } finally {
+    setPaymentLoading(false);
+  }
+};
   
   // Return to dashboard/homepage
   const handleReturnHome = () => {
     navigate('/');
   };
   
-  // Loading state
-  // if (isLoading) {
-  //   return (
-  //     <QuestLayout showHeader={true} showNavigation={false} className={className}>
-  //       <div className="flex flex-col items-center justify-center py-12 min-h-[60vh]">
-  //         <motion.div
-  //           animate={{
-  //             rotate: 360,
-  //             scale: [1, 1.1, 1],
-  //           }}
-  //           transition={{
-  //             rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
-  //             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-  //           }}
-  //           className="w-16 h-16 border-4 border-navy border-t-transparent rounded-full mb-6"
-  //         />
-  //         <p className="text-gray-600 text-lg font-['Gilroy-Bold']">Your assessment result is finally ready.</p>
-  //       </div>
-  //     </QuestLayout>
-  //   );
-  // }
   
   // Error state
   if (error) {
@@ -349,224 +350,273 @@ export function QuestResult({ className = '' }: QuestResultProps) {
 
   // Success state - display results
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Hero Section */}
-      <section className="pb-12 pt-24 bg-navy text-white">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.2
-                }
-              }
-            }}
-          >
-            {/* Header section */}
-            <div className="mb-12">
-              <motion.h1 
-                variants={headerVariants}
-                className="text-4xl font-playfair text-white mb-4"
-              >
-                Your Assessment Results
-              </motion.h1>
-              <motion.p 
-                variants={headerVariants}
-                className="text-gray-300 text-lg"
-              >
-                Completed on {new Date(resultData?.completion_date || '').toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </motion.p>
+    // <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    //   {/* Hero Section */}
+    //   <section className="pb-12 pt-24 bg-navy text-white">
+    //     <div className="container mx-auto px-6">
+    //       <motion.div
+    //         initial="hidden"
+    //         animate="visible"
+    //         variants={{
+    //           hidden: { opacity: 0 },
+    //           visible: {
+    //             opacity: 1,
+    //             transition: {
+    //               staggerChildren: 0.2
+    //             }
+    //           }
+    //         }}
+    //       >
+    //         {/* Header section */}
+    //         <div className="mb-12">
+    //           <motion.h1 
+    //             variants={headerVariants}
+    //             className="text-4xl font-playfair text-white mb-4"
+    //           >
+    //             Your Assessment Results
+    //           </motion.h1>
+    //           <motion.p 
+    //             variants={headerVariants}
+    //             className="text-gray-300 text-lg"
+    //           >
+    //             Completed on {new Date(resultData?.completion_date || '').toLocaleDateString('en-US', {
+    //               weekday: 'long',
+    //               year: 'numeric',
+    //               month: 'long',
+    //               day: 'numeric'
+    //             })}
+    //           </motion.p>
               
-              {/* Action buttons */}
-              <motion.div 
-                variants={buttonVariants}
-                className="flex flex-wrap gap-3 mt-8 justify-start"
-              >
-                <button
-                  onClick={handleDownloadResults}
-                  className="px-6 py-3 bg-white text-navy rounded-xl hover:bg-gray-100 transition-all duration-300 text-sm flex items-center shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </button>
-                <button
-                  onClick={handleShareResults}
-                  className="px-6 py-3 bg-terracotta text-white rounded-xl hover:bg-terracotta/90 transition-all duration-300 text-sm flex items-center shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share Results
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+    //           {/* Action buttons */}
+    //           <motion.div 
+    //             variants={buttonVariants}
+    //             className="flex flex-wrap gap-3 mt-8 justify-start"
+    //           >
+    //             <button
+    //               onClick={handleDownloadResults}
+    //               className="px-6 py-3 bg-white text-navy rounded-xl hover:bg-gray-100 transition-all duration-300 text-sm flex items-center shadow-lg hover:shadow-xl hover:scale-105"
+    //             >
+    //               <Download className="h-4 w-4 mr-2" />
+    //               Download PDF
+    //             </button>
+    //             <button
+    //               onClick={handleShareResults}
+    //               className="px-6 py-3 bg-terracotta text-white rounded-xl hover:bg-terracotta/90 transition-all duration-300 text-sm flex items-center shadow-lg hover:shadow-xl hover:scale-105"
+    //             >
+    //               <Share2 className="h-4 w-4 mr-2" />
+    //               Share Results
+    //             </button>
+    //           </motion.div>
+    //         </div>
+    //       </motion.div>
+    //     </div>
+    //   </section>
             
-      {/* Content Section */}
-      <div className="container mx-auto px-6 py-12">
-        {/* Section 1 - Core Essence */}
-        {resultData?.results["section 1"] && (
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-            transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl p-8 mb-8 md:mb-10 lg:mb-12 border border-slate-200/50"
-          >
-            <div className="flex items-center mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-navy to-terracotta rounded-full mr-4" />
-              <h3 className="text-2xl font-bold text-navy">Your Core Essence</h3>
-            </div>
-            <div className="relative">
-              <div className="absolute -left-2 -top-2 text-6xl text-terracotta/20 font-serif">"</div>
-              <p className="text-gray-700 text-xl italic font-light leading-relaxed pl-8">
-                {resultData.results["section 1"]}
-              </p>
-              <div className="absolute -right-2 -bottom-6 text-6xl text-terracotta/20 font-serif">"</div>
-            </div>
-          </motion.div>
-        )}
+    //   {/* Content Section */}
+    //   <div className="container mx-auto px-6 py-12">
+    //     {/* Section 1 - Core Essence */}
+    //     {resultData?.results["section 1"] && (
+    //       <motion.div 
+    //         initial="hidden"
+    //         animate="visible"
+    //         variants={cardVariants}
+    //         transition={{ delay: 0.2 }}
+    //         className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl p-8 mb-8 md:mb-10 lg:mb-12 border border-slate-200/50"
+    //       >
+    //         <div className="flex items-center mb-6">
+    //           <div className="w-1 h-8 bg-gradient-to-b from-navy to-terracotta rounded-full mr-4" />
+    //           <h3 className="text-2xl font-bold text-navy">Your Core Essence</h3>
+    //         </div>
+    //         <div className="relative">
+    //           <div className="absolute -left-2 -top-2 text-6xl text-terracotta/20 font-serif">"</div>
+    //           <p className="text-gray-700 text-xl italic font-light leading-relaxed pl-8">
+    //             {resultData.results["section 1"]}
+    //           </p>
+    //           <div className="absolute -right-2 -bottom-6 text-6xl text-terracotta/20 font-serif">"</div>
+    //         </div>
+    //       </motion.div>
+    //     )}
         
-        {/* MindCard - Center column */}
-        <motion.div 
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-          transition={{ delay: 0.4 }}
-          className="mb-8 md:mb-10 lg:mb-12"
-        >
-          {resultData?.results["Mind Card"] && (
-            <MindCard data={resultData.results["Mind Card"]} />
-          )}
-        </motion.div>
+    //     {/* MindCard - Center column */}
+    //     <motion.div 
+    //       initial="hidden"
+    //       animate="visible"
+    //       variants={cardVariants}
+    //       transition={{ delay: 0.4 }}
+    //       className="mb-8 md:mb-10 lg:mb-12"
+    //     >
+    //       {resultData?.results["Mind Card"] && (
+    //         <MindCard data={resultData.results["Mind Card"]} />
+    //       )}
+    //     </motion.div>
         
-        {/* Findings and Quotes - Two column layout on desktop, stack on mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12">
-          {/* QuotesCard - Left column */}
-          {quotes.length > 0 && (
-            <motion.div 
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              transition={{ delay: 0.6 }}
-              className="w-full"
-            >
-              <QuotesCard quotes={quotes} />
-            </motion.div>
-          )}
+    //     {/* Findings and Quotes - Two column layout on desktop, stack on mobile */}
+    //     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12">
+    //       {/* QuotesCard - Left column */}
+    //       {quotes.length > 0 && (
+    //         <motion.div 
+    //           initial="hidden"
+    //           animate="visible"
+    //           variants={cardVariants}
+    //           transition={{ delay: 0.6 }}
+    //           className="w-full"
+    //         >
+    //           <QuotesCard quotes={quotes} />
+    //         </motion.div>
+    //       )}
           
-          {/* FindingsCard - Right column */}
-          {findings.length > 0 && (
-            <motion.div 
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              transition={{ delay: 0.8 }}
-              className="w-full"
-            >
-              <FindingsCard findings={findings} />
-            </motion.div>
-          )}
-        </div>
+    //       {/* FindingsCard - Right column */}
+    //       {findings.length > 0 && (
+    //         <motion.div 
+    //           initial="hidden"
+    //           animate="visible"
+    //           variants={cardVariants}
+    //           transition={{ delay: 0.8 }}
+    //           className="w-full"
+    //         >
+    //           <FindingsCard findings={findings} />
+    //         </motion.div>
+    //       )}
+    //     </div>
         
-        {/* FilmsCard - Full width */}
-        {films.length > 0 && (
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-            transition={{ delay: 1.0 }}
-            className="mb-8 md:mb-10 lg:mb-12"
-          >
-            <FilmsCard films={films} />
-          </motion.div>
-        )}
+    //     {/* FilmsCard - Full width */}
+    //     {films.length > 0 && (
+    //       <motion.div 
+    //         initial="hidden"
+    //         animate="visible"
+    //         variants={cardVariants}
+    //         transition={{ delay: 1.0 }}
+    //         className="mb-8 md:mb-10 lg:mb-12"
+    //       >
+    //         <FilmsCard films={films} />
+    //       </motion.div>
+    //     )}
         
-        {/* Three-column grid for Subjects/Astrology/Books on desktop, responsive on smaller screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12">
-          {/* SubjectsCard */}
-          {subjects.length > 0 && (
-            <motion.div 
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              transition={{ delay: 1.2 }}
-              className="w-full md:col-span-1"
-            >
-              <SubjectsCard subjects={subjects} />
-            </motion.div>
-          )}
+    //     {/* Three-column grid for Subjects/Astrology/Books on desktop, responsive on smaller screens */}
+    //     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12">
+    //       {/* SubjectsCard */}
+    //       {subjects.length > 0 && (
+    //         <motion.div 
+    //           initial="hidden"
+    //           animate="visible"
+    //           variants={cardVariants}
+    //           transition={{ delay: 1.2 }}
+    //           className="w-full md:col-span-1"
+    //         >
+    //           <SubjectsCard subjects={subjects} />
+    //         </motion.div>
+    //       )}
           
-          {/* BooksCard */}
-          {books.length > 0 && (
-            <motion.div 
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              transition={{ delay: 1.6 }}
-              className="w-full md:col-span-2 lg:col-span-1"
-            >
-              <BooksCard books={books} />
-            </motion.div>
-          )}
-        </div>
+    //       {/* BooksCard */}
+    //       {books.length > 0 && (
+    //         <motion.div 
+    //           initial="hidden"
+    //           animate="visible"
+    //           variants={cardVariants}
+    //           transition={{ delay: 1.6 }}
+    //           className="w-full md:col-span-2 lg:col-span-1"
+    //         >
+    //           <BooksCard books={books} />
+    //         </motion.div>
+    //       )}
+    //     </div>
 
-        {/* AstrologyCard */}
-        <div className='grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12'> 
-          {astrology && (
-            <motion.div 
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              transition={{ delay: 1.4 }}
-              className="w-full md:col-span-1"
-            >
-              <AstrologyCard astrologyData={astrology} />
-            </motion.div>
+    //     {/* AstrologyCard */}
+    //     <div className='grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 md:gap-8 mb-8 md:mb-10 lg:mb-12'> 
+    //       {astrology && (
+    //         <motion.div 
+    //           initial="hidden"
+    //           animate="visible"
+    //           variants={cardVariants}
+    //           transition={{ delay: 1.4 }}
+    //           className="w-full md:col-span-1"
+    //         >
+    //           <AstrologyCard astrologyData={astrology} />
+    //         </motion.div>
+    //       )}
+    //       </div>
+        
+    //     {/* ActionCard - Full width, prominent */}
+    //     {actionItem && (
+    //       <motion.div 
+    //         initial="hidden"
+    //         animate="visible"
+    //         variants={cardVariants}
+    //         transition={{ delay: 1.8 }}
+    //         className="mb-8 md:mb-10 lg:mb-12"
+    //       >
+    //         <ActionCard 
+    //           actionText={actionItem}
+    //           explanation="Building consistent habits creates lasting positive change and accelerates your personal growth journey."
+    //         />
+    //       </motion.div>
+    //     )}
+        
+    //     {/* Return home button */}
+    //     <motion.div 
+    //       initial="hidden"
+    //       animate="visible"
+    //       variants={buttonVariants}
+    //       transition={{ delay: 2.2 }}
+    //       className="mt-16 text-center"
+    //     >
+    //       <button
+    //         onClick={handleReturnHome}
+    //         className="px-8 py-4 bg-gradient-to-r from-navy to-terracotta text-white rounded-xl hover:shadow-xl transition-all duration-300 flex items-center mx-auto hover:scale-105 focus:outline-none focus:ring-2 focus:ring-navy/50"
+    //       >
+    //         <Home className="h-5 w-5 mr-2" />
+    //         Return to Homepage
+    //       </button>
+    //     </motion.div>
+    //   </div>
+    // </div>
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Your Quest Results</h2>
+      <p className="text-lg text-gray-700">Here are the results of your recent quests:</p>
+      {/* Authentication and Payment Section */}
+      <div className="mb-12 bg-white rounded-xl shadow-lg p-6 border">
+        <h3 className="text-xl font-semibold mb-6 text-gray-800">Get Your Complete Analysis</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Button 1: Sign In */}
+          {!user?.id ? (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-3">You are not signed in yet. Please sign in for saving your report and paid analysis.</p>
+              <button
+                onClick={handleSignIn}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Sign In with Google
+              </button>
+            </div>
+          ) : (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-green-700 mb-3">✓ Signed in as {user.email}</p>
+              <div className="text-sm text-gray-600">Your report is saved and ready!</div>
+            </div>
           )}
+
+          {/* Button 2: Payment */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600 mb-3">
+              {!user?.id 
+                ? "Please sign in first before proceeding" 
+                : "Now you can make the payment to get the paid report"
+              }
+            </p>
+            <button
+              onClick={handlePayment}
+              disabled={!user?.id || paymentLoading}
+              className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                !user?.id 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              {paymentLoading ? 'Processing...' : 'Get Paid Report'}
+            </button>
           </div>
-        
-        {/* ActionCard - Full width, prominent */}
-        {actionItem && (
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-            transition={{ delay: 1.8 }}
-            className="mb-8 md:mb-10 lg:mb-12"
-          >
-            <ActionCard 
-              actionText={actionItem}
-              explanation="Building consistent habits creates lasting positive change and accelerates your personal growth journey."
-            />
-          </motion.div>
-        )}
-        
-        {/* Return home button */}
-        <motion.div 
-          initial="hidden"
-          animate="visible"
-          variants={buttonVariants}
-          transition={{ delay: 2.2 }}
-          className="mt-16 text-center"
-        >
-          <button
-            onClick={handleReturnHome}
-            className="px-8 py-4 bg-gradient-to-r from-navy to-terracotta text-white rounded-xl hover:shadow-xl transition-all duration-300 flex items-center mx-auto hover:scale-105 focus:outline-none focus:ring-2 focus:ring-navy/50"
-          >
-            <Home className="h-5 w-5 mr-2" />
-            Return to Homepage
-          </button>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
