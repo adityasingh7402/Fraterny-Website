@@ -274,9 +274,9 @@ const handleTermsChange = (checked: boolean) => {
   // }
   
   return (
-    <section className='bg-sky-800 flex flex-col justify-between min-h-screen'>
-        <div className=''>
-          <BouncingWord />
+    <section className='bg-sky-800 flex flex-col justify-center h-screen'>
+        <div className='h-4/5'>
+          {/* <BouncingWord /> */}
         </div>
 
         <div className='flex flex-col items-start justify-start h-full pl-5 xs:pr-0 pb-5'>
@@ -299,7 +299,7 @@ const handleTermsChange = (checked: boolean) => {
                   scale: isTermsAccepted ? 1.1 : 1
                 }}
                 transition={{ duration: 0.2 }}
-                className="w-5 h-5 rounded-[3px] border-[1.50px] border-white flex items-center justify-center"
+                className="w-5 h-5 rounded-[3px] border-[1.50px] border-white flex items-center justify-center mt-5"
               >
                 {isTermsAccepted && (
                   <motion.svg
@@ -319,7 +319,7 @@ const handleTermsChange = (checked: boolean) => {
                 )}
               </motion.div>
             </label>
-            <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"] pr-1'>
+            <div className='justify-start text-white text-xl font-normal font-["Gilroy-Regular"] pr-1 pt-5 pb-2'>
               I agree to the <Link to="/terms-of-use" className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Terms and Use</Link> and <Link to="/privacy-policy" className="text-white text-xl font-normal font-['Gilroy-Medium'] underline">Privacy Policy</Link>
             </div>
           </label>

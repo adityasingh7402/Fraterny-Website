@@ -1001,10 +1001,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const sendReportEmail = async (testData: DashboardTest): Promise<EmailApiResponse> => {
     try {
       const response = await axios.post<EmailApiResponse>(
-        'https://api.fraterny.in/api/send-report-email', // Your backend endpoint
+        'https://api.fraterny.in/send-report-email', // Your backend endpoint
         {
           user_name: user?.user_metadata?.first_name || 'User',
-          user_email: user?.email || '',
+          user_email: user?.email || 'one@gmail.com',
           test_date: formatDate(testData.testtaken),
           session_id: testData.sessionid,
           pdf_link: testData.pdflink,
@@ -1018,7 +1018,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           timeout: 15000, // 15 second timeout for email sending
         }
       );
-
+      console.log(`Email response from backend:`, response);
       return response.data;
     } catch (error: any) {
       console.error('Email API error:', error);
@@ -1153,6 +1153,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         });
         
         const emailResult = await sendReportEmail(testData);
+        console.log('Email result:', emailResult);
 
         if (emailResult.success) {
           toast.success('Professional email sent successfully with your report link!', {

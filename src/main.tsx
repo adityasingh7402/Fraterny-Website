@@ -140,7 +140,7 @@ const router = createBrowserRouter([
       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
 
       // RESULTS DEMO
-      { path: 'results-demo/:sessionId/:userId/:testid', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
+      { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
 
       // PROTECTED QUEST ROUTE - Authentication required
       {
