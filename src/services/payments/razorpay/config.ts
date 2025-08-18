@@ -12,7 +12,7 @@ export const RAZORPAY_CONFIG = {
   CURRENCY: 'INR',
   
   // App branding
-  COMPANY_NAME: 'Your App Name', // Replace with your actual app name
+  COMPANY_NAME: 'Fraterny', // Replace with your actual app name
   
   // Theme configuration
   THEME: {
@@ -29,14 +29,14 @@ export const RAZORPAY_CONFIG = {
 
 // Pricing configuration
 export const PRICING_CONFIG = {
-  // Early bird pricing (first 30 minutes)
+  // Early bird pricing (first 1 minute)
   EARLY_BIRD: {
     DURATION_MINUTES: 30,
     AMOUNT: 99900, // ₹999 in paise
     DESCRIPTION: 'Early Bird Special',
   },
-  
-  // Regular pricing (after 30 minutes)
+
+  // Regular pricing (after 1 minute)
   REGULAR: {
     AMOUNT: 149900, // ₹1499 in paise
     DESCRIPTION: 'Regular Pricing',
