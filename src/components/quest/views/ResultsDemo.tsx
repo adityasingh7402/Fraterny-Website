@@ -772,8 +772,8 @@ const SectionFrame: React.FC<SectionFrameProps> = ({ id, title, sub, shareText, 
         <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.12))" }} />
       )}
       <div className="mx-auto relative z-[1] flex h-full max-w-[390px] flex-col px-4 py-6">
-        <div className="mb-1 text-[14px] opacity-85 font-['Gilroy-Regular']">{sub || ""}</div>
-        <div className="mb-4 text-4xl font-[800] leading-8 font-['Gilroy-Bold'] tracking-tighter">
+        <div className="mb-1 text-sm font-normal font-['Inter'] uppercase leading-tight tracking-[4.20px]">{sub || ""}</div>
+        <div className="mb-4 text-5xl font-normal font-['Gilroy-Bold'] leading-10">
           {title}
         </div>
         <motion.div className="flex-1 overflow-hidden" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
@@ -1269,16 +1269,61 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           <div className="grid grid-rows-[auto_1fr] gap-4">
             {mindCard && (
               <>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-cyan-300 mb-2 font-['Gilroy-Bold'] tracking-tighter">{mindCard.name}</div>
-                  <div className="text-sm text-white/80 font-['Gilroy-semiBold'] ">{mindCard.description}</div>
+                <div className="text-left">
+                  <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2">{mindCard.name}</div>
+                  <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.description}</div>
                 </div>
-                <div className="space-y-3 pr-3">
-                  {mindStats.map((stat, i) => (
-                    <motion.div key={stat.label} initial={{ opacity: 0, y: 6 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: DUR_SM, ease: EASE_OUT }}>
-                      <StatBar label={stat.label} value={stat.value} light />
-                    </motion.div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <div className="flex gap-4 pb-4" style={{ width: "max-content" }}>
+                    {mindStats.map((stat, i) => {
+                      const colors = [
+                        { bg: "bg-red-800", decorative: "bg-red-400" },
+                        { bg: "bg-purple-900", decorative: "bg-purple-100" },
+                        { bg: "bg-stone-400", decorative: "bg-green-100" },
+                        { bg: "bg-sky-500", decorative: "bg-sky-100" }
+                      ];
+                      
+                      return (
+                        <div key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden flex-shrink-0`}>
+                          {/* Decorative Elements */}
+                          {/* {i === 0 && (
+                            <div className="w-40 h-40 relative opacity-30">
+                                <div className="w-40 h-28 left-0 top-0 absolute bg-red-400" />
+                                <div className="w-5 h-5 left-[50.20px] top-[139.62px] absolute bg-red-400" />
+                                <div className="w-5 h-5 left-[89.41px] top-[139.62px] absolute bg-red-400" />
+                                <div className="w-5 h-5 left-[130.20px] top-[139.62px] absolute bg-red-400" />
+                                <div className="w-5 h-5 left-[9.41px] top-[139.62px] absolute bg-red-400" />
+                            </div>
+                          )}
+                          {i === 1 && (
+                            <>
+                              <div className="w-28 h-11 absolute left-[136.37px] top-[123.25px] bg-purple-100" />
+                              <div className="w-16 h-24 absolute left-[110.17px] top-[26.06px] bg-purple-100" />
+                              <div className="w-16 h-24 absolute left-[189.45px] top-[15.74px] bg-purple-100" />
+                            </>
+                          )}
+                          {i === 2 && (
+                            <div className="w-20 h-32 absolute left-[169px] top-[24px] opacity-30 mix-blend-soft-light bg-green-100" />
+                          )}
+                          {i === 3 && (
+                            <div className="w-36 h-32 absolute left-[143px] top-[21px] opacity-30 mix-blend-hard-light bg-sky-100" />
+                          )} */}
+                          
+                          {/* Title */}
+                          <div className="absolute left-[20px] top-[21px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
+                            {stat.label.split(' ').map((word, idx) => (
+                              <div key={idx}>{word}</div>
+                            ))}
+                          </div>
+                          
+                          {/* Percentage */}
+                          <div className="absolute left-[20px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
+                            {stat.value}%
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             )}
@@ -1292,17 +1337,29 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Thought Provoking Insights" 
           shareText={findings.join("\n")} 
           themeKey="findings" 
-          customClass="pt-16"
+          customClass="pt-14 pb-8"
           sessionId={sessionId}
           testId={testId}
         >
-          <div className="-mx-4 h-full overflow-x-auto px-4">
-            <div className="flex flex-col h-full snap-x items-center gap-3 max-h-60 overflow-y-auto">
-              {findings.map((finding, i) => (
-                <div key={i} className="snap-center rounded-2xl p-4 text-[15px] leading-6 font-['Gilroy-Regular']" style={{ minWidth: 280, background: "rgba(255,255,255,0.18)" }}>
-                  {finding}
+          <div className="w-full">
+            <div className="grid grid-cols-2 gap-3 auto-rows-min">
+              {findings.slice(0, 4).map((finding, i) => (
+                <div 
+                  key={i} 
+                  className="bg-white/20 rounded-lg p-3 min-h-[80px] flex items-start"
+                >
+                  <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
+                    {finding}
+                  </div>
                 </div>
               ))}
+              {findings[4] && (
+                <div className="col-span-2 bg-white/20 rounded-lg p-3 min-h-[80px] flex items-start">
+                  <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
+                    {findings[4]}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </SectionFrame>

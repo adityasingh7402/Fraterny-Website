@@ -17,6 +17,10 @@ class PaymentApiService {
   private axiosInstance;
 
   constructor() {
+    console.log('🔧 PaymentApiService - Constructor Debug:');
+  console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+  console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+
     // Create axios instance with default configuration
     this.axiosInstance = axios.create({
       baseURL: API_CONFIG.BASE_URL,
@@ -25,6 +29,8 @@ class PaymentApiService {
         'Content-Type': 'application/json',
       },
     });
+
+      console.log('🔧 Axios instance baseURL:', this.axiosInstance.defaults.baseURL);
 
     // Add request interceptor for logging and auth
     this.axiosInstance.interceptors.request.use(
@@ -54,6 +60,12 @@ class PaymentApiService {
   // Create payment order
   async createOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
     try {
+      console.log('🔧 createOrder Debug:');
+    console.log('apiEndpoints.createOrder:', apiEndpoints.createOrder);
+    console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+    console.log('Full URL being called:', apiEndpoints.createOrder);
+    
+    console.log('Creating payment order:', orderData)
       // Validate request data
       const validation = validateCreateOrderRequest(orderData);
       if (!validation.isValid) {

@@ -61,6 +61,11 @@ export const API_CONFIG = {
   TIMEOUT: 30000, // 30 seconds
 } as const;
 
+console.log('🔧 DEBUG - Environment Variables:');
+console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+console.log('Full API_CONFIG:', API_CONFIG);
+
 // Validation rules
 export const VALIDATION_RULES = {
   SESSION_ID: {
