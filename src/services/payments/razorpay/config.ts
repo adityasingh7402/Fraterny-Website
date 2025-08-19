@@ -101,12 +101,12 @@ export const validateConfig = (): { isValid: boolean; missingVars: string[] } =>
   const missingVars: string[] = [];
   
   if (typeof window !== 'undefined') {
-    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
-      missingVars.push('NEXT_PUBLIC_RAZORPAY_KEY_ID');
+    if (!import.meta.env.VITE_RAZORPAY_KEY_ID?.trim()) {  // ✅ CORRECT
+      missingVars.push('VITE_RAZORPAY_KEY_ID');
     }
     
-    if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
-      missingVars.push('NEXT_PUBLIC_API_BASE_URL');
+    if (!import.meta.env.VITE_API_BASE_URL?.trim()) {     // ✅ CORRECT
+      missingVars.push('VITE_API_BASE_URL');
     }
   }
   
