@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, LayoutDashboard, LogOut, User, X, Luggage} from 'lucide-react';
-import { NotepadText  } from 'lucide-react';
+import { NotepadText, HelpCircle, Mail  } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {useIsMobile} from '../../../components/quest/views/questbouncing/use-mobile';
@@ -14,6 +14,7 @@ interface AnalyzeSidebarProps {
   onClose: () => void;
   theme?: 'blue' | 'white';
   className?: string;
+  onNavigateToSection?: (targetScreen: number, sectionId?: string) => void;
 }
 
 interface MenuItemConfig {
@@ -66,80 +67,155 @@ const menuItemVariants = {
   }
 };
 
+// const getMenuItems = (isAuthenticated: boolean, user: any): MenuItemConfig[] => {
+//   if (isAuthenticated && user) {
+//     return [
+//         {
+//         id: 'home',
+//         label: 'Home',
+//         icon: <Home className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'test',
+//         label: 'Start the test',
+//         icon: <NotepadText   className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'dashboard',
+//         label: 'Dashboard',
+//         icon: <LayoutDashboard className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'book',
+//         label: 'Book our Villa',
+//         icon: <Luggage className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'logout',
+//         label: 'Logout',
+//         icon: <LogOut className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'danger'
+//       }
+//     ];
+//   } else {
+//     return [
+//       {
+//         id: 'test',
+//         label: 'Start the test',
+//         icon: <NotepadText   className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'book',
+//         label: 'Book our Villa',
+//         icon: <Luggage className="w-5 h-5" />,
+//         action: () => {}, // Will be replaced in component
+//         variant: 'primary'
+//       },
+//       {
+//         id: 'signin',
+//         label: 'Sign in', // Changed label
+//         icon: <User className="w-5 h-5" />, // Google icon instead of User icon
+//         action: () => {}, // Changed action
+//         variant: 'primary'
+//       }
+      
+//     ];
+//   }
+// };
+
 const getMenuItems = (isAuthenticated: boolean, user: any): MenuItemConfig[] => {
+  const commonItems: MenuItemConfig[] = [
+    {
+      id: 'home',
+      label: 'Home',
+      icon: <Home className="w-5 h-5" />,
+      action: () => {}, // Will be replaced in component
+      variant: 'primary' as const
+    },
+    // {
+    //   id: 'dashboard',
+    //   label: 'Dashboard',
+    //   icon: <LayoutDashboard className="w-5 h-5" />,
+    //   action: () => {}, // Will be replaced in component
+    //   variant: 'primary' as const
+    // },
+    {
+      id: 'faq',
+      label: 'FAQ',
+      icon: <HelpCircle className="w-5 h-5" />,
+      action: () => {}, // Will be replaced in component
+      variant: 'primary' as const
+    },
+    // {
+    //   id: 'contact',
+    //   label: 'Contact',
+    //   icon: <Mail className="w-5 h-5" />,
+    //   action: () => {}, // Will be replaced in component
+    //   variant: 'primary' as const
+    // },
+    {
+      id: 'test',
+      label: 'Start Test',
+      icon: <NotepadText className="w-5 h-5" />,
+      action: () => {}, // Will be replaced in component
+      variant: 'primary' as const
+    }
+  ];
+
   if (isAuthenticated && user) {
     return [
-        {
-        id: 'home',
-        label: 'Home',
-        icon: <Home className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
-      },
+      ...commonItems,
       {
-        id: 'test',
-        label: 'Start the test',
-        icon: <NotepadText   className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
-      },
-      {
-        id: 'dashboard',
-        label: 'Dashboard',
-        icon: <LayoutDashboard className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
-      },
-      {
-        id: 'book',
-        label: 'Book our Villa',
-        icon: <Luggage className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      action: () => {}, // Will be replaced in component
+      variant: 'primary' as const
       },
       {
         id: 'logout',
         label: 'Logout',
         icon: <LogOut className="w-5 h-5" />,
         action: () => {}, // Will be replaced in component
-        variant: 'danger'
+        variant: 'danger' as const
       }
     ];
   } else {
     return [
-      {
-        id: 'test',
-        label: 'Start the test',
-        icon: <NotepadText   className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
-      },
-      {
-        id: 'book',
-        label: 'Book our Villa',
-        icon: <Luggage className="w-5 h-5" />,
-        action: () => {}, // Will be replaced in component
-        variant: 'primary'
-      },
+      ...commonItems,
       {
         id: 'signin',
-        label: 'Sign in', // Changed label
-        icon: <User className="w-5 h-5" />, // Google icon instead of User icon
-        action: () => {}, // Changed action
-        variant: 'primary'
+        label: 'Sign In',
+        icon: <User className="w-5 h-5" />,
+        action: () => {}, // Will be replaced in component
+        variant: 'primary' as const
       }
-      
     ];
   }
 };
+
 
 export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   isOpen,
   onClose,
   theme = 'blue',
-  className = ''
+  className = '',
+  onNavigateToSection
 }) => {
+  // console.log('🔍 AnalyzeSidebar - onNavigateToSection:', onNavigateToSection);
   const { user, isLoading, signOut } = useAuth();
+  const useremail  = user?.email;
   const navigate = useNavigate();
   
   // Only render on mobile
@@ -174,21 +250,36 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   };
 
   const handleHome = () => {
-    navigate('https://fraterny.com/');
+    navigate('/quest');
     onClose();
   };
 
   const baseMenuItems = getMenuItems(isAuthenticated, user);
-    const menuItems = baseMenuItems.map(item => ({
-    ...item,
-    action: item.id === 'home' ? () => navigate('/quest') :
-            item.id === 'test' ? () => navigate('/assessment') :
-            item.id === 'book' ? handleHome :
-            item.id === 'dashboard' ? handleDashboard :
-            item.id === 'logout' ? handleLogout :
-            item.id === 'signin' ? handleGoogleSignIn :
-            () => {}
-    }));
+  const menuItems = baseMenuItems.map(item => ({
+  ...item,
+  action: item.id === 'home' ? () => {
+            onNavigateToSection?.(0);
+            onClose();
+          } :
+          item.id === 'faq' ? () => {
+            onNavigateToSection?.(3, 'faq-section');
+            onClose();
+          } :
+          item.id === 'contact' ? () => {
+            onNavigateToSection?.(3, 'contact-section');
+            onClose();
+          } :
+          item.id === 'test' ? () => {
+            navigate('/assessment');
+            onClose();
+          } :
+          item.id === 'dashboard' ? () => {
+            handleDashboard();
+          } :
+          item.id === 'logout' ? handleLogout :
+          item.id === 'signin' ? handleGoogleSignIn :
+          () => {}
+}));
   
   return (
     <AnimatePresence>
@@ -204,6 +295,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
           />
           
           {/* Sidebar Panel */}
+          {/* Sidebar Panel */}
           <motion.div
             className={`fixed right-0 top-0 h-full w-60 z-[70] ${
               theme === 'blue' ? 'bg-[#004A7F]' : 'bg-white'
@@ -215,74 +307,61 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
           >
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-white/20">
-              <h3 className={`font-['Gilroy-medium'] font-medium ${
+              <h3 className={`font-['Gilroy-medium'] ${
                 theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
-                Explore Fraterny
+                {/* {user ? user.email : 'Explore Fraterny'} */}
+                Hello Stranger
               </h3>
               <button
                 onClick={onClose}
                 className={`p-2 rounded-lg transition-colors ${
                   theme === 'blue' 
                     ? 'hover:bg-white/10 text-white' 
-                    : 'hover:bg-gray-100 text-gray-600'
+                    : 'hover:bg-gray-100 text-gray-900'
                 }`}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Menu Items */}
             <motion.div
-              className="py-4"
+              className="px-4 py-6"
               variants={menuContainerVariants}
               initial="closed"
               animate="open"
             >
-              {menuItems.map((item) => (
+              {menuItems.map((item, index) => (
                 <motion.button
                   key={item.id}
-                  variants={menuItemVariants}
                   onClick={item.action}
-                  className={`w-full flex items-center gap-3 px-6 py-4 transition-colors ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left mb-2 ${
                     theme === 'blue'
-                      ? 'text-white hover:bg-white/10'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  } ${
-                    item.variant === 'danger' 
-                      ? 'border-t border-white/10 mt-4' 
-                      : ''
+                      ? item.variant === 'danger'
+                        ? 'text-white hover:bg-red-500/20'
+                        : 'text-white hover:bg-white/10'
+                      : item.variant === 'danger'
+                        ? 'text-white hover:bg-white/10'
+                        : 'text-gray-900 hover:bg-white/10'
                   }`}
+                  variants={menuItemVariants}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   {item.icon}
-                  <span className="font-['Gilroy-Bold']">
-                    {item.label}
-                  </span>
+                  <span className="font-['Gilroy-Regular']">{item.label}</span>
                 </motion.button>
               ))}
             </motion.div>
-            
-            {/* User Info (if logged in) */}
-            {isAuthenticated && user && (
-              <div className={`absolute bottom-0 left-0 right-0 p-4 border-t ${
-                theme === 'blue' ? 'border-white/20' : 'border-gray-200'
+
+            <motion.div className="flex justify-between items-center w-full pl-4 pb-4 pt-4 border-t border-white/20 absolute bottom-0">
+              <h3 className={`font-['Gilroy-medium'] font-medium ${
+                theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
-                <div className={`text-sm font-['Gilroy-semiBold'] ${
-                  theme === 'blue' ? 'text-white/80' : 'text-gray-600'
-                }`}>
-                  Logged in as
-                </div>
-                <div className={`font-['Gilroy-Bold'] ${
-                  theme === 'blue' ? 'text-white' : 'text-gray-900'
-                }`}>
-                  {user.user_metadata?.first_name 
-                    ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
-                    : user.email
-                  }
-                </div>
-              </div>
-            )}
+                A Product by Fraterny
+              </h3>
+            </motion.div>
           </motion.div>
         </>
       )}

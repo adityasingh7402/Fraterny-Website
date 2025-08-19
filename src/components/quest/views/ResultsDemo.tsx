@@ -1,332 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { useParams, useNavigate } from 'react-router-dom';
-// import { useAuth } from '../../../contexts/AuthContext';
-// import { toast } from 'sonner';
-// import { motion } from 'framer-motion';
-// import {CircleChevronUp} from 'lucide-react'
-// import { 
-//   PaymentService,
-//   getCurrentPricing,
-//   getPricingDisplayInfo,
-//   formatTimeRemaining,
-//   getUrgencyLevel 
-// } from '@/services/payments';
-
-// export function ResultsDemo() {
-//   const { sessionId, userId, testid } = useParams<{ 
-//     sessionId: string; 
-//     userId: string; 
-//     testid: string; 
-//   }>();
-//   const navigate = useNavigate();
-//   const { user, signInWithGoogle } = useAuth();
-//   const [paymentLoading, setPaymentLoading] = useState(false);
-//   const [signingIn, setSigningIn] = useState(false);
-//   const [isExpanded, setIsExpanded] = useState(false);
-//   const [pricingData, setPricingData] = useState({
-//   amount: '₹999',
-//   timeRemaining: 0, // minutes
-//   isEarlyBird: true,
-//   urgencyLevel: 'low'
-// });
-
-//     useEffect(() => {
-//   const updatePricing = () => {
-//     const pricing = PaymentService.getCurrentPricing();
-    
-//     // Debug logs to see what's happening
-//     // console.log('Pricing update:', {
-//     //   amount: pricing.amount,
-//     //   timeRemaining: pricing.timeRemaining,
-//     //   name: pricing.name,
-//     //   isEarlyBird: pricing.name === 'early'
-//     // });
-    
-//     setPricingData({
-//       amount: `₹${Math.round(pricing.amount / 100)}`,
-//       timeRemaining: pricing.timeRemaining || 0,
-//       isEarlyBird: pricing.name === 'early',
-//       urgencyLevel: getUrgencyLevel(pricing.timeRemaining || 0)
-//     });
-//   };
-  
-//   updatePricing();
-//   const interval = setInterval(updatePricing, 30000); // Every second for testing
-//   return () => clearInterval(interval);
-// }, []);
-
-//   // Sign in handler
-//   const handleSignIn = async () => {
-//     if (signingIn) return;
-    
-//     setSigningIn(true);
-//     try {
-//       await signInWithGoogle();
-//     //   toast.success('Successfully signed in!');
-//     } catch (error) {
-//       console.error('Sign-in error:', error);
-//       toast.error('Sign-in failed. Please try again.');
-//     } finally {
-//       toast.success('Successfully signed in!');
-//       setSigningIn(false);
-//     }
-//   };
-
-//   // Payment handler
-//   const handlePayment = async () => {
-//     if (!user?.id) {
-//       toast.error('Please sign in first');
-//       return;
-//     }
-    
-//     if (!sessionId || !testid) {
-//       toast.error('Missing session or test ID');
-//       return;
-//     }
-    
-//     setPaymentLoading(true);
-//     try {
-//       console.log('Starting payment with:', { sessionId, testid, userId: user.id });
-      
-//       const paymentResult = await PaymentService.startPayment(sessionId, testid);
-      
-//       if (paymentResult.success) {
-//         toast.success('Payment successful! You now have access to the full report.');
-//       } else {
-//         toast.error(paymentResult.error || 'Payment failed. Please try again.');
-//       }
-//     } catch (error: any) {
-//       console.error('Payment error:', error);
-//       toast.error('Payment failed. Please try again.');
-//     } finally {
-//       setPaymentLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-6">
-//       <div className="max-w-4xl mx-auto">
-
-//         {/* Sticky Bottom Bar */}
-//         <div className="fixed bottom-0 left-0 right-0 z-50">
-//           <motion.div
-//             initial={{ y: 0 }}
-//             animate={{ 
-//               height: isExpanded ? 'auto' : '80px',
-//               backgroundColor: isExpanded ? '#ffffff' : ''
-//             }}
-//             transition={{ 
-//               duration: 0.3,
-//               ease: [0.4, 0.0, 0.2, 1]
-//             }}
-//             className="relative bg-gray-100 bg-gradient-to-br from-sky-800 to-sky-400 shadow-2xl border-t border-gray-200"
-//           >
-//             {/* Collapsed State - Always Visible */}
-//             <div className="flex items-center justify-between px-2 py-4 h-20">
-//               <div>
-//                 <h3 className={`font-['Gilroy-Bold'] tracking-tighter text-xl ${isExpanded ? 'text-white' : 'text-white'}`}>
-//                   {isExpanded ? 'Just few steps away..' : 'Unlock Your Detailed Report'}
-//                 </h3>
-//                 {!isExpanded && (
-//                   <>
-//                   <p className="font-['Gilroy-Bold'] tracking-tighter text-sm text-gray-700">
-//                     Get more detailed insights with powerful AI models
-//                   </p>
-//                   <p className="font-['Gilroy-semiBold'] tracking-tighter text-lg text-white">
-//                     {pricingData.isEarlyBird && pricingData.timeRemaining > 0 ? (
-//                       <span>
-//                         {pricingData.timeRemaining} m left 
-//                         <span className="line-through text-gray-300 pl-5 text-sm">₹1499</span> 
-//                         <span className="font-bold text-green-300 text-sm"> {pricingData.amount}</span>
-//                       </span>
-//                     ) : (
-//                       `Regular pricing: ${pricingData.amount}`
-//                     )}
-//                   </p>
-//                   </>
-                  
-//                 )}
-//               </div>
-              
-//               <button
-//                 onClick={() => setIsExpanded(!isExpanded)}
-//                 className={`p-3 rounded-full transition-all duration-300 ${
-//                   isExpanded 
-//                     ? '' 
-//                     : ''
-//                 }`}
-//               >
-//                 <motion.div
-//                   animate={{ rotate: isExpanded ? 180 : 0 }}
-//                   transition={{ duration: 0.3 }}
-//                 >
-//                   <CircleChevronUp className="w-6 h-6 text-white" />
-//                 </motion.div>
-//               </button>
-//             </div>
-
-//             {/* Expanded Content */}
-//             <motion.div
-//               initial={{ opacity: 0, height: 0 }}
-//               animate={{ 
-//                 opacity: isExpanded ? 1 : 0,
-//                 height: isExpanded ? 'auto' : 0
-//               }}
-//               transition={{ 
-//                 duration: 0.3,
-//                 ease: [0.4, 0.0, 0.2, 1]
-//               }}
-//               className="overflow-hidden"
-//             >
-//               <div className="px-2 pb-6 space-y-6 bg-white">
-//                 {/* Divider */}
-//                 <div className="border-t border-gray-200"></div>
-                
-//                 {/* Authentication Section */}
-//                 <div className="space-y-1">
-//                   {!user?.id ? (
-//                     <>
-//                       <div className="p-1">
-//                         <h3 className={`font-['Gilroy-semiBold'] tracking-tight text-sm text-gray-800`}>Please sign in before continuing. We will save your progress and allow you to access your report later.</h3>
-//                       </div>
-
-//                       <button
-//                         onClick={handleSignIn}
-//                         disabled={signingIn}
-//                         className="w-full bg-white text-gray-600 font-['Gilroy-semiBold'] rounded-[36px] border-2"
-//                       >
-//                         {signingIn ? (
-//                           <>
-//                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-//                             Signing in...
-//                           </>
-//                         ) : (
-//                           <>
-//                             Sign In with Google
-//                           </>
-//                         )}
-//                       </button>
-//                     </>
-//                   ) : (
-//                     <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-//                       <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-//                         <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-//                         </svg>
-//                       </div>
-//                       <div>
-//                         <p className="text-green-800 font-medium text-sm">Successfully signed in</p>
-//                         <p className="text-green-600 text-xs">{user.email}</p>
-//                       </div>
-//                     </div>
-//                   )}
-//                 </div>
-
-//                 {/* Payment Section */}
-//                 <div className="space-y-4">
-//                   <button
-//                     onClick={handlePayment}
-//                     disabled={!user?.id || paymentLoading || !sessionId || !testid}
-//                     className={`w-full py-4 px-4 rounded-lg transition-all font-medium text-lg ${
-//                       !user?.id || paymentLoading || !sessionId || !testid
-//                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-//                         : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
-//                     }`}
-//                   >
-//                     {paymentLoading ? (
-//                       <span className="flex items-center justify-center gap-2">
-//                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-//                         Processing Payment...
-//                       </span>
-//                     ) : (
-//                       <span className="flex items-center justify-center gap-2">
-//                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-//                         </svg>
-//                         Unlock Full Report - $9.99
-//                       </span>
-//                     )}
-//                   </button>
-
-//                   {/* Requirements Checklist - Only show if payment disabled */}
-//                   {/* {(!user?.id || !sessionId || !testid) && (
-//                     <div className="bg-gray-50 p-4 rounded-lg">
-//                       <p className="font-medium text-gray-900 text-sm mb-3">Requirements:</p>
-//                       <div className="space-y-2 text-sm">
-//                         <div className={`flex items-center gap-2 ${user?.id ? 'text-green-600' : 'text-red-600'}`}>
-//                           <div className={`w-4 h-4 rounded-full flex items-center justify-center ${user?.id ? 'bg-green-100' : 'bg-red-100'}`}>
-//                             {user?.id ? (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-//                               </svg>
-//                             ) : (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-//                               </svg>
-//                             )}
-//                           </div>
-//                           <span>User authenticated</span>
-//                         </div>
-//                         <div className={`flex items-center gap-2 ${sessionId ? 'text-green-600' : 'text-red-600'}`}>
-//                           <div className={`w-4 h-4 rounded-full flex items-center justify-center ${sessionId ? 'bg-green-100' : 'bg-red-100'}`}>
-//                             {sessionId ? (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-//                               </svg>
-//                             ) : (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-//                               </svg>
-//                             )}
-//                           </div>
-//                           <span>Session ID available</span>
-//                         </div>
-//                         <div className={`flex items-center gap-2 ${testid ? 'text-green-600' : 'text-red-600'}`}>
-//                           <div className={`w-4 h-4 rounded-full flex items-center justify-center ${testid ? 'bg-green-100' : 'bg-red-100'}`}>
-//                             {testid ? (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-//                               </svg>
-//                             ) : (
-//                               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-//                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-//                               </svg>
-//                             )}
-//                           </div>
-//                           <span>Test ID available</span>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   )} */}
-//                 </div>
-//               </div>
-//             </motion.div>
-//             </motion.div>
-//         </div>
-//       </div>       
-
-//     </div>
-//   );
-// }
-
-// export default ResultsDemo;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ------------------------------------------------------------------------
 'use client';
 
@@ -359,6 +30,12 @@ import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
 import axios from 'axios';
 import { section } from "@/components/quest-landing/styles";
+import { signInWithGoogle } from '@/utils/auth';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { PaymentService, sessionStorageManager, sessionManager } from '@/services/payments';
+import { useParams } from 'react-router-dom';
 
 // =====================================================================
 // Quest Result Fullscreen - TypeScript Next.js Implementation
@@ -426,8 +103,17 @@ interface ResultData {
 
 interface User {
   id: string;
-  email: string;
+  email?: string; // Make email optional to match Supabase
   name?: string;
+  // Add other properties you might need
+  user_metadata?: any;
+  app_metadata?: any;
+}
+
+interface RouteParams {
+  userId: string;
+  sessionId: string;
+  testId: string;
 }
 
 // Design Tokens
@@ -530,12 +216,27 @@ const MOCK_RESULT_DATA: ResultData = {
 interface UpsellSheetProps {
   open: boolean;
   onClose: () => void;
-  onPayment: () => void;
+  onPayment: () => Promise<void>;
   paymentLoading: boolean;
 }
 
 const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, paymentLoading }) => {
   const [trial, setTrial] = useState(true);
+
+  const [seconds, setSeconds] = useState(30 * 60);
+  useEffect(() => {
+    const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+   const handlePaymentClick = async () => {
+    try {
+      await onPayment();
+    } catch (error) {
+      console.error('Payment error in UpsellSheet:', error);
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -553,16 +254,16 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
               <button aria-label="Close" onClick={onClose} className="absolute left-2 top-2 rounded-full p-2">
                 <X className="h-5 w-5" color={tokens.textDark} />
               </button>
-              <div className="pb-2 pt-6 text-[26px] font-[700] leading-8" style={{ color: tokens.textDark }}>
-                Enjoy premium features from now
+              <div className="pb-2 pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
+                Download your 35+ page <span className="font-['Gilroy-Black']">Psychoanalysis PDF Report</span>
               </div>
-              <div className="mb-3 text-[14px]" style={{ color: tokens.muted }}>Everything in Free, plus:</div>
+              <div className="mb-3 text-[14px] font-['Gilroy-Regular']" style={{ color: tokens.muted }}> Powered by Fraterny’s advanced AI model </div>
               <ul className="grid gap-2 pb-3">
-                {["Unlimited AI credits", "5 GB storage", "Unlimited project history", "Calendar integration & syncing", "Guest sharing and links"].map((t, i) => (
-                  <li key={i} className="flex items-center gap-2 text-[14px]">
+                {["A Deep-Dive Mindset Analysis", "Detailed Mental Blueprint", "Personalized Content Operating System ", "You VS Future You", "Curated Action & Growth Plan"].map((t, i) => (
+                  <li key={i} className="flex items-center gap-2 text-[14px] font-['Gilroy-semiBold']">
                     <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: i === 0 ? "#FF3B6B" : tokens.accent }} />
                     <span className={i === 0 ? "font-[700]" : ""} style={{ color: tokens.textDark }}>
-                      {i === 0 ? <><span style={{ color: "#FF3B6B" }}>Unlimited AI credits</span></> : t}
+                      {i === 0 ? <span style={{ color: "#FF3B6B" }}>A Deep-Dive Mindset Analysis</span> : t}
                     </span>
                   </li>
                 ))}
@@ -575,14 +276,14 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               >
-                <div className="text-[12px] opacity-95">Annual plan</div>
+                <div className="text-[12px] opacity-95"><span>Ends in {formatTime(seconds)}</span></div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-[14px] line-through opacity-85">$100.99</span>
-                  <span className="text-[20px] font-[700]">→ $39.99 / year</span>
+                  <span className="text-[14px] line-through opacity-85">₹1200</span>
+                  <span className="text-[20px] font-[700]">→ ₹950</span>
                 </div>
               </motion.div>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3" style={{ border: `1px solid ${tokens.border}` }}>
-                <div className="text-[14px]" style={{ color: tokens.textDark }}>7-day free trial</div>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
+                <div className="text-[16px]" style={{ color: tokens.textDark }}>Incorporate My Feedback</div>
                 <button aria-label="toggle trial" onClick={() => setTrial((t) => !t)} className="relative h-6 w-11 rounded-full" style={{ background: trial ? tokens.accent : "#D1D5DB", boxShadow: "0 10px 30px rgba(12,69,240,0.06)" }}>
                   <span className="absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform" style={{ transform: `translateX(${trial ? 20 : 0}px)` }} />
                 </button>
@@ -591,15 +292,15 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
             <div className="sticky bottom-0 mt-5 border-t" style={{ borderColor: tokens.border }}>
               <div className="px-4 py-3">
                 <button 
-                  onClick={onPayment}
+                  onClick={handlePaymentClick}
                   disabled={paymentLoading}
-                  className="w-full rounded-xl px-4 py-3 text-[16px] font-[600] text-white disabled:opacity-50" 
+                  className="w-full rounded-xl px-4 py-3 text-[16px] font-[600] font-['Gilroy-Bold'] tracking-tight text-white disabled:opacity-50" 
                   style={{ background: tokens.textDark }}
                 >
                   {paymentLoading ? 'Processing...' : 'Continue'}
                 </button>
                 <div className="pt-2 text-center text-[12px]" style={{ color: tokens.muted }}>
-                  No commitments. Cancel anytime.
+                  Fully Refundable. T&C apply. 
                 </div>
               </div>
             </div>
@@ -648,7 +349,7 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen }) => {
         <motion.button
           onClick={onOpen}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center justify-center rounded-full px-6 py-2.5 min-w-[180px] text-[14px] font-[700] text-white"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 min-w-[180px] text-[14px] font-[700] text-white"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
@@ -802,23 +503,31 @@ const SectionActions: React.FC<SectionActionsProps> = ({ title, share, textColor
   const [feedback, setFeedback] = useState("");
   const [shared, setShared] = useState(false);
 
-  const sendFeedback = async () => {
+  // Replace the existing sendFeedback function with this updated version:
+
+const sendFeedback = async () => {
   console.log("sendFeedback called with:", { sessionId, testId, sectionId });
   // if (!sessionId || !testId || !sectionId) return;
   
   try {
-    console.log("Sending feedback:", { sessionId, testId, reacted, feedback, sectionId });
-    await axios.post('/api/feedback', {
+    // Determine reaction value based on reacted state
+    let reaction = "none";
+    if (reacted === "up") reaction = "like";
+    if (reacted === "down") reaction = "dislike";
+    
+    console.log("Sending feedback:", { sessionId, testId, reaction, feedback, sectionId });
+    
+    await axios.post('https://api.fraterny.in/api/quest/feedback', {
       sessionId,
       testId,
-      like: reacted === "up" ? "yes" : "no",
-      dislike: reacted === "down" ? "yes" : "no", 
+      reaction,
       feedback,
       sectionId: sectionId
     });
-    onToast && onToast("Feedback sent ✓");
+    
+    toast.success("Thank you for the feedback");
   } catch (error) {
-    onToast && onToast("Failed to send feedback");
+    toast.error("Failed to send feedback");
   }
 };
 
@@ -827,7 +536,7 @@ const SectionActions: React.FC<SectionActionsProps> = ({ title, share, textColor
     if (ok) {
       setShared(true);
       setTimeout(() => setShared(false), 900);
-      onToast && onToast("Shared ✓");
+      toast.success("Shared ✓");
     }
   };
 
@@ -1133,6 +842,38 @@ const CirclePercent: React.FC<CirclePercentProps> = ({ percent }) => {
   );
 };
 
+const getAuthBannerColors = (sectionIndex: number) => {
+  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  const currentSection = sectionKeys[sectionIndex];
+  
+  switch (currentSection) {
+    case "quotes":
+    case "subjects": 
+    case "books":
+      // Light sections - use dark colors
+      return {
+        logoFilter: "invert(0)", // Dark logo
+        buttonBg: "rgba(0,0,0,0.8)", // Dark button background
+        buttonText: "text-white", // Dark text
+        buttonBorder: "border-black/50"
+      };
+    case "emotional":
+    case "mind":
+    case "findings":
+    case "films":
+    case "astrology":
+    case "work":
+    default:
+      // Dark sections - use light colors
+      return {
+        logoFilter: "invert(1)", // White logo
+        buttonBg: "rgba(255,255,255,0.2)", // Light button background
+        buttonText: "text-white", // White text
+        buttonBorder: "border-white/20"
+      };
+  }
+};
+
 interface AuthBannerProps {
   onSignIn: () => void;
   onPayment: () => void;
@@ -1141,48 +882,17 @@ interface AuthBannerProps {
   activeIndex?: number;
 }
 
-// const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paymentLoading }) => (
-//   <div className={`fixed top-0 left-0 right-0 z-[60] px-4 transition-all duration-300 py-2`} style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(255,255,255,0.15)' }}>
-//   <div className="max-w-md flex items-center justify-between">
-//     <img src={logo} alt="Logo" className="w-20 h-14" />
-//     {!user ? (
-//       <>
-//         <button
-//           onClick={onSignIn}
-//           className="font-['Gilroy-Regular'] tracking-tight bg-white/20 text-black px-4 py-2 rounded-lg border border-black shadow-md"
-//         >
-//           Save
-//         </button>
-//       </>
-//     ) : (
-//       <>
-//         <span className="text-green-600 font-medium">✓ Signed in</span>
-//         <button
-//           onClick={onPayment}
-//           disabled={paymentLoading}
-//           className="bg-green-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 border border-green-500/20"
-//         >
-//           {paymentLoading ? 'Processing...' : 'Get Premium'}
-//         </button>
-//       </>
-//     )}
-//   </div>
-// </div>
-
-// );
-
-// Main Component
 const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paymentLoading, activeIndex = 0 }) => {
-  // Function to get glass background based on section
+  const colors = getAuthBannerColors(activeIndex);
+  
   const getGlassBackground = (index: number) => {
     const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
     const currentSection = sectionKeys[index];
     
-    // Light sections get white tint, dark sections get subtle dark tint
     if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books") {
-      return 'rgba(255,255,255,0.15)'; // White tint for light sections
+      return 'rgba(255,255,255,0.15)';
     } else {
-      return 'rgba(255,255,255,0.1)'; // Slightly less white for dark sections
+      return 'rgba(255,255,255,0.1)';
     }
   };
 
@@ -1196,28 +906,70 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
       }}
     >
       <div className="max-w-md flex items-center justify-between">
-        <img src={logo} alt="Logo" className="w-20 h-14" />
-        {!user ? (
-          <>
-            <button
-              onClick={onSignIn}
-              className="font-['Gilroy-Regular'] tracking-tight bg-white/20 text-black px-4 py-2 rounded-lg border border-black shadow-md"
-            >
-              Save
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="text-green-600 font-medium">✓ Signed in</span>
-            <button
-              onClick={onPayment}
-              disabled={paymentLoading}
-              className="bg-green-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 border border-green-500/20"
-            >
-              {paymentLoading ? 'Processing...' : 'Get Premium'}
-            </button>
-          </>
-        )}
+        {/* Dynamic logo color */}
+        <img 
+          src={logo} 
+          alt="Logo" 
+          className="w-20 h-14 transition-all duration-300" 
+          style={{ filter: colors.logoFilter }}
+        />
+          <button
+            onClick={onSignIn}
+            className={`font-['Gilroy-Regular'] tracking-tight px-4 py-1 rounded-lg shadow-md transition-all duration-300 ${colors.buttonText} ${colors.buttonBorder}`}
+            style={{ background: colors.buttonBg }}
+          >
+            {user ? 'Dashboard' : 'Save'}
+          </button>
+      </div>
+    </div>
+  );
+};
+
+interface PaymentSuccessMessageProps {
+  userId?: string;
+}
+
+const PaymentSuccessMessage: React.FC<PaymentSuccessMessageProps> = ({ userId }) => {
+  const navigate = useNavigate();
+
+  const handleDashboardClick = () => {
+    if (userId) {
+      // Navigate to dashboard with userId in the URL if needed
+      navigate(`/quest-dashboard/${userId}`);
+    } else {
+      // Fallback to regular dashboard route
+      navigate('/quest-dashboard');
+    }
+  };
+
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        borderTop: `1px solid ${tokens.border}`,
+        boxShadow: "0 -6px 18px rgba(10,10,10,0.06)",
+        height: CTA_HEIGHT,
+      }}
+    >
+      <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-3" style={{ color: tokens.textDark }}>
+        <div className="flex-1 pr-4">
+          <div className="text-[12px] leading-4">
+            Our model is analyzing your response for deeper analysis. It will be ready in 15 minutes
+          </div>
+        </div>
+        <button
+          onClick={handleDashboardClick}
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-4 py-2 text-[14px] font-[700] text-white"
+          style={{
+            background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+            boxShadow: "0 4px 12px rgba(12,69,240,0.20)",
+          }}
+        >
+          Dashboard
+        </button>
       </div>
     </div>
   );
@@ -1230,30 +982,33 @@ interface QuestResultFullscreenProps {
   className?: string;
 }
 
-const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({ 
-  sessionId, 
-  testId, 
+const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({  
   className = '' 
 }) => {
   const [tip, setTip] = useState<string | null>(null);
   const [resultData] = useState<ResultData>(MOCK_RESULT_DATA);
-  const [mockUser, setMockUser] = useState<User | null>(null);
+  const { user, signInWithGoogle } = useAuth();
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showMeta, setShowMeta] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
-  
+  const { userId, sessionId, testId } = useParams();
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const toastTimerRef = useRef<number | null>(null);
   const metaTimerRef = useRef<number | null>(null);
 
   const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  
+  const navigate = useNavigate();
 
-  const onToast = (msg: string) => {
-    setToast(msg);
-    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = window.setTimeout(() => setToast(null), 1200);
+  const handleAuthAction = () => {
+    if (user) {
+      console.log('User is authenticated:', user.id);
+      navigate(`/quest-dashboard/${user.id}`);
+    } else {
+      handleSignIn();
+    }
   };
 
   useEffect(() => {
@@ -1295,62 +1050,122 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
     return () => {
       el.removeEventListener('scroll', handler);
       if (metaTimerRef.current) window.clearTimeout(metaTimerRef.current);
-      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+      // if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     };
   }, [sectionIds]);
 
   // Mock API handlers (commented real implementation)
   const handleSignIn = async () => {
-    /*
     try {
       await signInWithGoogle();
-      onToast('Successfully signed in!');
+      toast.success('Successfully signed in!');
     } catch (error) {
-      onToast('Sign-in failed. Please try again.');
+      console.error('Sign-in error:', error);
+      toast.error('Sign-in failed. Please try again.');
     }
-    */
-    
-    // Mock implementation
-    setMockUser({ id: 'mock-123', email: 'user@example.com', name: 'Mock User' });
-    onToast('Mock sign-in successful!');
   };
 
-  const handlePayment = async () => {
-    /*
+  useEffect(() => {
+  console.log('URL Params:', { userId, sessionId, testId });
+  if (!sessionId || !testId) {
+    console.error('Missing required URL parameters');
+    }
+  }, [userId, sessionId, testId]);
+
+  // const handlePayment = async () => {
+    
+  //   if (!user?.id) {
+  //     toast.error('Please sign in first');
+  //     return;
+  //   }
+    
+  //   setPaymentLoading(true);
+  //   try {
+  //     console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
+  //     const paymentResult = await PaymentService.startPayment(sessionId!, testId!);
+  //     if (paymentResult.success) {
+  //       toast.success('Payment successful!');
+  //       setPaymentSuccess(true);
+  //     } else {
+  //       toast.error(paymentResult.error || 'Payment failed.');
+  //     }
+  //   } catch (error) {
+  //     toast.error('Payment failed. Please try again.');
+  //   } finally {
+  //     setPaymentLoading(false);
+  //   }
+    
+    
+  //   // setPaymentLoading(true);
+  //   // setTimeout(() => {
+  //   //   setPaymentLoading(false);
+  //   //   toast.success('Mock payment successful!');
+  //   // }, 2000);
+  // };
+
+  // Extract data from mock result
+  
+  const handlePayment = async (): Promise<void> => {
     if (!user?.id) {
-      onToast('Please sign in first');
+      toast.error('Please sign in first');
+      return;
+    }
+    
+    if (!sessionId || !testId) {
+      toast.error('Missing session information. Please try again.');
+      console.error('Missing URL parameters:', { sessionId, testId });
       return;
     }
     
     setPaymentLoading(true);
     try {
-      const paymentResult = await PaymentService.startPayment(sessionId!, testId!);
+      console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
+      
+      const paymentResult = await PaymentService.startPayment(sessionId, testId);
+      
       if (paymentResult.success) {
-        onToast('Payment successful!');
+        toast.success('Payment successful!');
+        setPaymentSuccess(true);
+        setUpsellOpen(false); // Close the modal on success
       } else {
-        onToast(paymentResult.error || 'Payment failed.');
+        const errorMessage = paymentResult.error || 'Payment failed.';
+        console.error('Payment failed:', errorMessage);
+        toast.error(errorMessage);
       }
-    } catch (error) {
-      onToast('Payment failed. Please try again.');
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      
+      // Better error handling
+      let errorMessage = 'Payment failed. Please try again.';
+      
+      if (error.message) {
+        if (error.message.includes('Network error')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('Server error')) {
+          errorMessage = 'Server error. Please try again in a few moments.';
+        } else if (error.message.includes('Authentication')) {
+          errorMessage = 'Authentication required. Please sign in and try again.';
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setPaymentLoading(false);
     }
-    */
-    
-    // Mock implementation
-    if (!mockUser) {
-      onToast('Please sign in first');
-      return;
-    }
-    
-    setPaymentLoading(true);
-    setTimeout(() => {
-      setPaymentLoading(false);
-      onToast('Mock payment successful!');
-    }, 2000);
   };
 
-  // Extract data from mock result
+  useEffect(() => {
+  console.log('Payment flow state:', {
+    user: user?.id,
+    sessionId,
+    testId,
+    paymentLoading,
+    paymentSuccess,
+    upsellOpen
+  });
+}, [user?.id, sessionId, testId, paymentLoading, paymentSuccess, upsellOpen]);
+
+
   const mindCard = resultData.results["Mind Card"];
   const findings = resultData.results.findings || [];
   const quotes = resultData.results.quotes || [];
@@ -1374,9 +1189,9 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
     <div className={`min-h-screen w-full bg-white text-gray-900 ${className}`}>
       {/* Auth Banner */}
       <AuthBanner 
-        onSignIn={handleSignIn}
+        onSignIn={handleAuthAction}
         onPayment={handlePayment}
-        user={mockUser}
+        user={user}
         paymentLoading={paymentLoading}
         activeIndex={activeIndex}
       />
@@ -1417,7 +1232,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="" 
           shareText={resultData.results["section 1"] || ""} 
           themeKey="emotional" 
-          onToast={onToast}
           sessionId={sessionId}
          testId={testId}
         >
@@ -1448,7 +1262,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Archetype & stats" 
           shareText={`${mindCard?.name || 'Mind Card'}; ${mindStats.map(s => `${s.label} ${s.value}`).join(', ')}.`}
           themeKey="mind" 
-          onToast={onToast}
           customClass="pt-16"
           sessionId={sessionId}
           testId={testId}
@@ -1479,7 +1292,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Thought Provoking Insights" 
           shareText={findings.join("\n")} 
           themeKey="findings" 
-          onToast={onToast}
           customClass="pt-16"
           sessionId={sessionId}
           testId={testId}
@@ -1504,7 +1316,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           themeKey="quotes" 
            inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-          onToast={onToast}
           customClass="pt-20 pb-24"
           sessionId={sessionId}
           testId={testId}
@@ -1531,7 +1342,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Weekend cues" 
           shareText={films.map((f) => `${f.title} — ${f.description}`).join("\n")} 
           themeKey="films" 
-          onToast={onToast}
           customClass="pt-16 pb-16"
           sessionId={sessionId}
           testId={testId}
@@ -1560,7 +1370,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           themeKey="subjects" 
            inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-          onToast={onToast}
           customClass="pt-20"
           sessionId={sessionId}
           testId={testId}
@@ -1584,7 +1393,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
             sub="Apologies to the cosmos" 
             shareText={astrology.description} 
             themeKey="astrology" 
-            onToast={onToast}
             customClass="pt-12 pb-8"
             sessionId={sessionId}
             testId={testId}
@@ -1625,7 +1433,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
           themeKey="books" 
-          onToast={onToast}
           customClass="pt-24"
           sessionId={sessionId}
           testId={testId}
@@ -1652,7 +1459,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Start today; 60-minute cap" 
           shareText={actionItem} 
           themeKey="work" 
-          onToast={onToast}
           customClass="pt-28"
           sessionId={sessionId}
           testId={testId}
@@ -1699,34 +1505,25 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
         )}
       </AnimatePresence> */}
 
-      {/* Toast Notifications */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            className="fixed left-1/2 z-[70] -translate-x-1/2 rounded-2xl px-3 py-2 text-[12px]"
-            style={{ bottom: CTA_HEIGHT + 16, background: '#0A0A0A', color: '#fff', boxShadow: '0 10px 30px rgba(12,69,240,.12)' }}
-            initial={{ opacity: 0, scale: 0.98, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 6 }}
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Orb Component */}
       {/* <Orb onTip={() => setTip("Tap share on any section → native share or copy.")} /> */}
 
 
-
       {/* Sticky CTA + Upsell */}
-      <StickyCTA onOpen={() => setUpsellOpen(true)} />
-      <UpsellSheet 
-        open={upsellOpen} 
-        onClose={() => setUpsellOpen(false)}
-        onPayment={handlePayment}
-        paymentLoading={paymentLoading}
-      />
+      {paymentSuccess ? (
+        <PaymentSuccessMessage userId={userId} />
+      ) : (
+        <StickyCTA onOpen={() => !paymentSuccess && setUpsellOpen(true)} />
+      )}
+      {!paymentSuccess && (
+        <UpsellSheet 
+          open={upsellOpen} 
+          onClose={() => setUpsellOpen(false)}
+          onPayment={handlePayment}
+          paymentLoading={paymentLoading}
+        />
+      )}
 
       {/* Tip Tooltip */}
       <AnimatePresence>

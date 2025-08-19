@@ -12,6 +12,7 @@ interface StatisticsSectionProps {
   className?: string;
   onContinueClick?: () => void;
   onLogoClick?: () => void;
+  onMenuClick?: () => void;
 }
 
 // Simple animation variants
@@ -31,20 +32,17 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
   animationState,
   className = '',
   onContinueClick,
-  onLogoClick
+  onLogoClick,
+  onMenuClick
 }) => {
   const [hasRippled, setHasRippled] = useState(false);
+  
 
   const handleRipple = () => {
     if (!hasRippled) {
       setHasRippled(true);
     }
   }
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
-    const handleMenuClick = () => {
-      setIsSidebarOpen(true);
-    };
 
 
   return (
@@ -88,18 +86,13 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           variants={animationVariants} 
           initial="invisible" 
           animate="visible"
-          onClick={handleMenuClick}
+          onClick={onMenuClick}
           className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
           whileTap={{ scale: 0.95 }}
         >
           <Menu className="w-6 h-6 text-black" />
         </motion.span> */}
       </div>
-      <AnalyzeSidebar
-      isOpen={isSidebarOpen}
-      onClose={() => setIsSidebarOpen(false)}
-      theme="blue"
-      />
 
     <div className='relative flex flex-col gap-10 top-[18%] h-screen'>
       <div className=''>

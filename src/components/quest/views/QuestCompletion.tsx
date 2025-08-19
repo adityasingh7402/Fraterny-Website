@@ -90,32 +90,6 @@ export function QuestCompletion({
     console.log('❌ Conditions not met - skipping submission');
   }
 }, []);
-
-  // Function to store session history in database
-  const storeSessionHistory = async (sessionId: string, testid: string) => {
-    if (!auth.user?.id) {
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_session_history')
-        .insert({
-          user_id: auth.user.id,
-          session_id: sessionId,
-          testid: testid || null,
-          created_at: new Date().toISOString()
-        });
-      
-      if (error) {
-        console.error('Failed to store session history:', error);
-      } else {
-        console.log('Session history stored successfully');
-      }
-    } catch (err) {
-      console.error('Error storing session history:', err);
-    }
-  };
   
   const formatSubmissionData = () => {
     // if (!session) return null;

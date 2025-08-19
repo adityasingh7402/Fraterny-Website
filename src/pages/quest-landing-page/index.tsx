@@ -14,6 +14,9 @@ const QuestLandingPage: React.FC = () => {
         <ScreenContainer 
           onAnalyzeClick={handleAnalyzeClick}
           className=""
+          onNavigateToSection={(screen, section) => {
+            console.log('🎯 Page level navigation called:', { screen, section });
+          }}
         />
     </MotionProvider>
   );

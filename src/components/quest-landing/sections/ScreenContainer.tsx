@@ -395,10 +395,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hero, StatisticsSection, BenefitsSection, AnalyzeSection } from './index';
 import {useIsMobile} from '../../quest/views/questbouncing/use-mobile';
+import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 interface ScreenContainerProps {
   onAnalyzeClick?: () => void;
   className?: string;
+  onNavigateToSection?: (screen: number, sectionId?: string) => void;
 }
 
 // Simple animation variants
@@ -416,12 +418,57 @@ const animationVariants = {
 
 const ScreenContainer: React.FC<ScreenContainerProps> = ({
   onAnalyzeClick,
-  className = ''
+  className = '',
+  onNavigateToSection
 }) => {
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const analyzeScrollRef = useRef<HTMLDivElement>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleMenuClick = () => {
+  setIsSidebarOpen(true);
+};
+
+  // Navigation function for sidebar menu
+const navigateToSection = (targetScreen: number, sectionId?: string) => {
+  console.log('🚀 navigateToSection called:', { targetScreen, sectionId, current });
+  if (isTransitioning) return;
+
+  // If we're already on the target screen, just scroll to section
+  if (current === targetScreen && sectionId && targetScreen === 3) {
+    scrollToSection(sectionId);
+    return;
+  }
+
+  // If we need to change screens first
+  if (current !== targetScreen) {
+    setIsTransitioning(true);
+    setCurrent(targetScreen);
+    
+    // If there's a section to scroll to after screen transition
+    if (sectionId && targetScreen === 3) {
+      // Wait for screen transition to complete, then scroll
+      setTimeout(() => {
+        scrollToSection(sectionId);
+      }, 700); // Wait for transition animation
+    }
+  }
+};
+
+// Scroll to specific section within AnalyzeSection
+const scrollToSection = (sectionId: string) => {
+  if (!analyzeScrollRef.current) return;
+  
+  const targetElement = analyzeScrollRef.current.querySelector(`#${sectionId}`);
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+};
   
 
    const getScreenBackground = (screenIndex: number): string => {
@@ -450,7 +497,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
 
     const handleWheel = (event: WheelEvent) => {
     
-  console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
+  // console.log('🖱️ Wheel event:', { deltaY: event.deltaY, currentScreen: current });
   
   // Early return for non-mobile devices - disable wheel scrolling
   if (!isMobile) {
@@ -466,29 +513,29 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
       const hasScrollableContent = scrollHeight > clientHeight;
       
-      console.log('📊 Screen 4 scroll info:', {
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-        isAtTop,
-        isAtBottom,
-        hasScrollableContent,
-        deltaY: event.deltaY,
-        isTransitioning
-      });
+      // console.log('📊 Screen 4 scroll info:', {
+      //   scrollTop,
+      //   scrollHeight,
+      //   clientHeight,
+      //   isAtTop,
+      //   isAtBottom,
+      //   hasScrollableContent,
+      //   deltaY: event.deltaY,
+      //   isTransitioning
+      // });
       
       const scrollThreshold = hasScrollableContent ? 50 : 100;
       
       // Only allow forward navigation from screen 3 (no backward)
       if (event.deltaY > 0 && isAtBottom && current < 3) {
-        console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
+        // console.log('⬇️ TRIGGERING SCREEN TRANSITION - Going to next screen');
         event.preventDefault();
         if (!isTransitioning) {
           setIsTransitioning(true);
           setCurrent(current + 1);
         }
       } else {
-        console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
+        // console.log('📜 ALLOWING NATURAL SCROLL in Screen 4');
         // Allow natural scrolling (no backward navigation)
       }
     }
@@ -497,11 +544,11 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   
   // *** NEW LOGIC: Prevent backward scroll from Screen 3 (Benefits) ***
   if (current === 2) { // Screen 3 (Benefits)
-    console.log('🚫 Screen 3 (Benefits) - Preventing backward scroll');
+    //console.log('🚫 Screen 3 (Benefits) - Preventing backward scroll');
     event.preventDefault();
     
     if (isTransitioning) {
-      console.log('⏳ Already transitioning, ignoring');
+      //console.log('⏳ Already transitioning, ignoring');
       return;
     }
 
@@ -509,28 +556,28 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     const scrollThreshold = 50;
     
     if (Math.abs(event.deltaY) < scrollThreshold) {
-      console.log('🔻 Below threshold, ignoring');
+      //console.log('🔻 Below threshold, ignoring');
       return;
     }
 
     // Only allow forward navigation from screen 3
     if (scrollDown && current < 3) {
-      console.log('⬇️ Going to next screen from Benefits (Screen 3)');
+      //console.log('⬇️ Going to next screen from Benefits (Screen 3)');
       setIsTransitioning(true);
       setCurrent(current + 1);
     } else if (event.deltaY < 0) {
-      console.log('⬆️ Backward scroll blocked from Screen 3 - Use logo to go home');
+      //console.log('⬆️ Backward scroll blocked from Screen 3 - Use logo to go home');
       // Optional: Add a visual feedback here (like a bounce animation or toast)
     }
     return;
   }
   
-  console.log('🔄 Handling other screens (0, 1)');
+  //console.log('🔄 Handling other screens (0, 1)');
   // For screens 0 and 1, allow normal navigation
   event.preventDefault();
   
   if (isTransitioning) {
-    console.log('⏳ Already transitioning, ignoring');
+    //console.log('⏳ Already transitioning, ignoring');
     return;
   }
 
@@ -539,16 +586,16 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const scrollThreshold = 50;
   
   if (Math.abs(event.deltaY) < scrollThreshold) {
-    console.log('🔻 Below threshold, ignoring');
+    //console.log('🔻 Below threshold, ignoring');
     return;
   }
 
   if (scrollDown && current < 3) {
-    console.log('⬇️ Going to next screen from', current);
+    //console.log('⬇️ Going to next screen from', current);
     setIsTransitioning(true);
     setCurrent(current + 1);
   } else if (scrollUp && current > 0) {
-    console.log('⬆️ Going to previous screen from', current);
+    //console.log('⬆️ Going to previous screen from', current);
     setIsTransitioning(true);
     setCurrent(current - 1);
   }
@@ -683,6 +730,13 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
       className={`${getContainerClasses()}`}
       style={getContainerStyles()}
     >
+
+      <AnalyzeSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        theme="blue"
+        onNavigateToSection={navigateToSection}
+      />
       
       {/* Screen 1 - Hero */}
       {current === 0 && (
@@ -716,6 +770,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
               animationState="visible"
               className="relative z-30"
               onLogoClick={handleLogoClick}
+              onMenuClick={handleMenuClick}
             />
           </motion.div>
         </AnimatePresence>
@@ -735,6 +790,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             animationState="visible"
             className="relative z-30"
             onLogoClick={handleLogoClick}
+            onMenuClick={handleMenuClick}
           />
         </motion.div>
       )}
@@ -760,6 +816,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
               animationState="visible"
               className="relative z-30"
               onLogoClick={handleLogoClick}
+              onNavigateToSection={navigateToSection}
             />
           </div>
         </motion.div>

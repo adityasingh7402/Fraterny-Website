@@ -12,6 +12,7 @@ interface BenefitsSectionProps {
   className?: string;
   onScreenTransition?: () => void;
   onLogoClick?: () => void;
+  onMenuClick?: () => void;
 }
 
 // Simple animation variants
@@ -31,13 +32,14 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
   animationState: _animationState,
     className = '',
   onScreenTransition: _onScreenTransition,
-  onLogoClick: _onLogoClick
+  onLogoClick: _onLogoClick,
+  onMenuClick
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
-    const handleMenuClick = () => {
-      setIsSidebarOpen(true);
-    };
+  //   const handleMenuClick = () => {
+  //     setIsSidebarOpen(true);
+  //   };
     
   return (
 
@@ -94,18 +96,18 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
           variants={animationVariants} 
           initial="invisible" 
           animate="visible"
-          onClick={handleMenuClick}
+          onClick={onMenuClick}
           className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
           whileTap={{ scale: 0.95 }}
         >
           <Menu className="w-6 h-6 text-white" />
         </motion.span>
       </div>
-      <AnalyzeSidebar
+      {/* <AnalyzeSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         theme="blue"
-        />
+        /> */}
 
         <div className='z-50 pl-5 flex flex-col gap-10 absolute w-full top-[25%]'>
 

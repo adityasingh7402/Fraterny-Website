@@ -335,7 +335,7 @@ class UserJourneyManager {
       (journeyData as any).end_reason = endReason;
       
       console.log('📤 Sending journey data to backend:', journeyData);
-      alert('Journey data logged to console! Check it now before clicking OK.');
+      // alert('Journey data logged to console! Check it now before clicking OK.');
       
       // Send to backend using axios
       const response = await axios.post(this.BACKEND_URL, {
