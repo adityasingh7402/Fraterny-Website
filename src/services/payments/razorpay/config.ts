@@ -52,7 +52,7 @@ export const STORAGE_KEYS = {
 
 // API endpoints configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.fraterny.in/',
+  BASE_URL: 'https://api.fraterny.in',
   ENDPOINTS: {
     CREATE_ORDER: '/api/payments/create-order',
     COMPLETE_PAYMENT: '/api/payments/complete',
