@@ -35,6 +35,7 @@ const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import QuestResult from './components/quest/views/QuestResult';
 
 // ADMIN ROUTES - Heavily lazy loaded and chunk-separated
 const Dashboard = lazy(() => import('./pages/admin/dashboard'));
@@ -54,6 +55,7 @@ const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
 const QuestLandingPage = lazy(() => import('./pages/quest-landing-page'));
 const QuestDashboard = lazy(() => import('../src/components/quest/views/questdashboard/QuestDashboard'));
+const QuestPaidFeedback = lazy(() => import('./components/quest/views/QuestPaidFeedback'));
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
@@ -139,8 +141,6 @@ const router = createBrowserRouter([
       { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
       { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
 
-      // RESULTS DEMO
-      { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
 
       // PROTECTED QUEST ROUTE - Authentication required
       {
@@ -152,10 +152,14 @@ const router = createBrowserRouter([
       },
       
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
-      { path: 'quest-result/*', element: createSuspenseWrapper(QuestassessmentLoading)(<QuestResultRoute />) },
+      { path: 'quest-result/*', element: createSuspenseWrapper()(<QuestResultRoute />) },
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
       { path: 'quest', element: <QuestLandingPage />},
-      { path: 'quest-dashboard', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },
+      { path: 'quest-dashboard/:userId', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },
+      // RESULTS DEMO
+      { path: 'results-demo/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
+      { path: 'quest-result/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<QuestResult />) },
+      { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },

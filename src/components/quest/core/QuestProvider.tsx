@@ -414,33 +414,8 @@ const finishQuest = async (submissionData: any): Promise<QuestResult | null> => 
     localStorage.setItem('questSessionId', sessionId);
     localStorage.setItem('testid', testid);
     
-    // Store session history in database (if user is authenticated)
-    // if (auth.user?.id) {
-    //   console.log('🗄️ Storing session history in database...');
-    //   try {
-    //     const { data, error } = await supabase
-    //       .from('user_session_history')
-    //       .insert({
-    //         user_id: auth.user.id,
-    //         session_id: sessionId,
-    //         testid: testid || null,
-    //         created_at: new Date().toISOString()
-    //       });
-        
-    //     if (error) {
-    //       console.error('Failed to store session history:', error);
-    //     } else {
-    //       console.log('✅ Session history stored successfully');
-    //     }
-    //   } catch (dbError) {
-    //     console.error('Database error:', dbError);
-    //     // Don't throw - this shouldn't block the main flow
-    //   }
-    // }
-    
-    // Navigate to processing page
-    // const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
-    const targetUrl = `/quest-result/result/${sessionId}/${userId}/${testid}`;
+
+    const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
     console.log('🚀 Navigating to processing page:', targetUrl);
     navigate(targetUrl);
     

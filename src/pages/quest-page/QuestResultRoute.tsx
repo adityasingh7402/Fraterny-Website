@@ -55,18 +55,18 @@ const QuestResultRoute: React.FC = () => {
       <Route index element={<QuestResultIndex />} />
       
       {/* Processing routes - Most specific first */}
-      <Route 
+      {/* <Route 
         path="processing/:sessionId/:userId/:testid" 
         element={
           <Suspense fallback={null}>
             <QuestProcessing />
           </Suspense>
         } 
-      />
+      /> */}
       
       {/* Result routes - Most specific first */}
       <Route 
-        path="result/:sessionId/:userId/:testid" 
+        path="result/:userId/:sessionId/:testId" 
         element={
           <Suspense fallback={null}>
             <QuestResult />
@@ -75,7 +75,7 @@ const QuestResultRoute: React.FC = () => {
       />
       
       {/* Fallback routes for backwards compatibility */}
-      <Route 
+      {/* <Route 
         path="processing/:sessionId" 
         element={
           <Suspense fallback={null}>
@@ -95,10 +95,10 @@ const QuestResultRoute: React.FC = () => {
             <Footer />
           </Suspense>
         } 
-      />
+      /> */}
       
       {/* Simple fallback routes */}
-      <Route 
+      {/* <Route 
         path="processing" 
         element={
           <Suspense fallback={null}>
@@ -118,7 +118,7 @@ const QuestResultRoute: React.FC = () => {
             <Footer />
           </Suspense>
         } 
-      />
+      /> */}
       
       {/* Fallback to main assessment page */}
       <Route path="*" element={<Navigate to="/quest-result" replace />} />

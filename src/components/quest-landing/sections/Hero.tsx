@@ -148,7 +148,7 @@ const Hero: React.FC<HeroProps> = ({
     )
   }
   return (
-    <section className='bg-sky-800 gap-1 h-screen pt-1 flex flex-col items-center justify-center'>
+    <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
       <div className=' flex flex-col w-full items-center justify-center'>
         <div className='flex gap-2'>
           <motion.div 
@@ -156,7 +156,7 @@ const Hero: React.FC<HeroProps> = ({
           animate="visible"
           className=""
           >
-            <div className='justify-center text-neutral-900 text-7xl font-normal font-["Gilroy-Bold"]'>
+            <div className='justify-center text-neutral-900 text-[200px] font-normal font-["Gilroy-Bold"]'>
               I'm
             </div>
           </motion.div>
@@ -167,10 +167,10 @@ const Hero: React.FC<HeroProps> = ({
           >
             {/* <img src={img} alt="Logo" className="mt-3" /> */}
             <div>
-            <div className='text-7xl text-white font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
+            <div className='text-[180px] text-white font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
               QUEST
             </div>
-            <div className='text-xl text-neutral-900 font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
+            <div className='text-[40px] text-neutral-900 font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-28 mt-[-70px]'>
               BY FRATERNY
             </div>
             </div>
@@ -185,8 +185,8 @@ const Hero: React.FC<HeroProps> = ({
       </div>
 
       <div className='flex flex-col items-center justify-center w-full pl-5'>
-        <img src="/qr-code.svg" alt="QR Code" className="w-40 h-40" />
-        <div className='text-white text-[15px] font-normal font-["Gilroy-Regular"] mt-2'>Scan the QR code to get started on your mobile.</div>
+        <img src="/qr-code.png" alt="QR Code" className="w-40 h-40" />
+        <div className='text-white text-[25px] font-normal font-["Gilroy-Regular"] mt-2'>Scan the QR code to get started on your mobile.</div>
       </div>
     </section>
    

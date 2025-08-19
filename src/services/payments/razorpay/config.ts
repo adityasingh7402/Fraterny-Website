@@ -32,13 +32,13 @@ export const PRICING_CONFIG = {
   // Early bird pricing (first 1 minute)
   EARLY_BIRD: {
     DURATION_MINUTES: 30,
-    AMOUNT: 99900, // ₹999 in paise
+    AMOUNT: 95000, // ₹950 in paise
     DESCRIPTION: 'Early Bird Special',
   },
 
   // Regular pricing (after 1 minute)
   REGULAR: {
-    AMOUNT: 149900, // ₹1499 in paise
+    AMOUNT: 95000, // ₹950 in paise
     DESCRIPTION: 'Regular Pricing',
   },
 } as const;

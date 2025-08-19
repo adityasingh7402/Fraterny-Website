@@ -17,6 +17,7 @@ interface AnalyzeSectionProps {
   className?: string;
   onScreenTransition?: () => void;
   onLogoClick?: () => void;
+  onNavigateToSection?: (targetScreen: number, sectionId?: string) => void;
 }
 
 // Simple animation variants
@@ -36,15 +37,17 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
    animationState: _animationState,
     className = '',
   onScreenTransition: _onScreenTransition,
-  onLogoClick: _onLogoClick
+  onLogoClick: _onLogoClick,
+  onNavigateToSection
   
 }) => {
   const [isInHeroSection, setIsInHeroSection] = useState(true);
   const heroSectionRef = useRef<HTMLDivElement>(null);
-const containerRef = useRef<HTMLDivElement>(null);
+// const containerRef = useRef<HTMLDivElement>(null);
+const analyzeScrollRef = useRef<HTMLDivElement>(null);
   // console.log('Current logo state - should be white?', isInHeroSection);
   useEffect(() => {
-  const container = containerRef.current;
+  const container = analyzeScrollRef.current;
   if (!container) {
     // console.log('No container found');
     return;
@@ -78,7 +81,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
     <section className=''>
-    <div ref={containerRef} className='relative h-screen overflow-y-auto'>
+    <div ref={analyzeScrollRef} className='relative h-screen overflow-y-auto'>
       {/* Header */}
       <div className='flex justify-between fixed top-0 w-full z-50 p-2 left-0 text-white items-center'>
           <div className='flex-1 items-center justify-center'>
@@ -120,10 +123,12 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       isOpen={isSidebarOpen}
       onClose={() => setIsSidebarOpen(false)}
       theme="blue"
+      onNavigateToSection={onNavigateToSection}
       />
 
       {/* Hero section */}
-      <div ref={heroSectionRef} className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
+      {/* <div ref={heroSectionRef} className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'> */}
+      <div id="analyze-hero" ref={heroSectionRef} className='max-h-400 relative bg-[#004A7F] overflow-hidden gap-7 text-white w-full p-4 py-20'>
         <div className='gap-8 flex relative flex-col z-20'>
           {/* Main Title */}
           <div className='w-[140px] text-left'>
@@ -221,11 +226,17 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
         />
       </div>
 
-      <Change />
+      <div id="change-section">
+        <Change />
+      </div>
       <div className='flex flex-col'>
         <Testimonials />
+      <div id="faq-section">
         <FaqSection />
+      </div>
+      <div id="contact-section">
         <QuestFooter />
+      </div>
       </div>
 
     </div>

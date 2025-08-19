@@ -34,7 +34,7 @@ export function useAuthState() {
 
     // Set up auth state listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('Auth state change event:', event);
+      // console.log('Auth state change event:', event);
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setIsAdmin(newSession?.user?.email ? ADMIN_EMAILS.includes(newSession.user.email) : false);
