@@ -405,6 +405,7 @@ const finishQuest = async (submissionData: any): Promise<QuestResult | null> => 
       headers: {
         'Content-Type': 'application/json',  
       },
+      timeout: 420000,
     });
     
     console.log('✅ API submission successful:', response.data);
