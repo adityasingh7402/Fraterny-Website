@@ -157,7 +157,7 @@ const router = createBrowserRouter([
       { path: 'quest', element: <QuestLandingPage />},
       { path: 'quest-dashboard/:userId', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },
       // RESULTS DEMO
-      { path: 'results-demo/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
+      { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
       { path: 'quest-result/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<QuestResult />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
