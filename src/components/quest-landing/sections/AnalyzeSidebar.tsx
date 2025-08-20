@@ -216,6 +216,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   // console.log('🔍 AnalyzeSidebar - onNavigateToSection:', onNavigateToSection);
   const { user, isLoading, signOut } = useAuth();
   const useremail  = user?.email;
+  const userid = user?.id
   const navigate = useNavigate();
   
   // Only render on mobile
@@ -225,7 +226,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   const isAuthenticated = !!user && !isLoading;
   
   const handleDashboard = () => {
-    navigate('/quest-dashboard');
+    navigate(`/quest-dashboard/${userid}`);
     onClose();
   };
   
@@ -307,7 +308,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
           >
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-white/20">
-              <h3 className={`font-['Gilroy-medium'] ${
+              <h3 className={`font-['Gilroy-medium'] text-2xl ${
                 theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
                 {/* {user ? user.email : 'Explore Fraterny'} */}
@@ -356,7 +357,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
             </motion.div>
 
             <motion.div className="flex justify-between items-center w-full pl-4 pb-4 pt-4 border-t border-white/20 absolute bottom-0">
-              <h3 className={`font-['Gilroy-medium'] font-medium ${
+              <h3 className={`text-xs font-['Gilroy-medium'] font-medium ${
                 theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
                 A Product by Fraterny

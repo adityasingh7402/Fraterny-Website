@@ -53,72 +53,18 @@ const QuestResultRoute: React.FC = () => {
     <Routes>
       {/* Main assessment page */}
       <Route index element={<QuestResultIndex />} />
-      
-      {/* Processing routes - Most specific first */}
-      {/* <Route 
-        path="processing/:sessionId/:userId/:testid" 
-        element={
-          <Suspense fallback={null}>
-            <QuestProcessing />
-          </Suspense>
-        } 
-      /> */}
-      
-      {/* Result routes - Most specific first */}
-      <Route 
-        path="result/:userId/:sessionId/:testId" 
+      <Route
+        path="processing"
+        element={<QuestProcessing />}
+      />
+      <Route
+        path="result/:userId/:sessionId/:testId"
         element={
           <Suspense fallback={null}>
             <QuestResult />
           </Suspense>
         } 
       />
-      
-      {/* Fallback routes for backwards compatibility */}
-      {/* <Route 
-        path="processing/:sessionId" 
-        element={
-          <Suspense fallback={null}>
-            <Navigation />
-            <QuestProcessing />
-            <Footer />
-          </Suspense>
-        } 
-      />
-      
-      <Route 
-        path="result/:sessionId" 
-        element={
-          <Suspense fallback={null}>
-            <Navigation />
-            <QuestResult />
-            <Footer />
-          </Suspense>
-        } 
-      /> */}
-      
-      {/* Simple fallback routes */}
-      {/* <Route 
-        path="processing" 
-        element={
-          <Suspense fallback={null}>
-            <Navigation />
-            <QuestProcessing />
-            <Footer />
-          </Suspense>
-        } 
-      />
-      
-      <Route 
-        path="result" 
-        element={
-          <Suspense fallback={null}>
-            <Navigation />
-            <QuestResult />
-            <Footer />
-          </Suspense>
-        } 
-      /> */}
       
       {/* Fallback to main assessment page */}
       <Route path="*" element={<Navigate to="/quest-result" replace />} />

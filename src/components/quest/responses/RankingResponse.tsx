@@ -146,7 +146,7 @@ const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     <div className={`ranking-response ${className}`}>
       <div className="mb-4">
         <p className="text-[18px] text-[#A1A1AA] font-normal font-['Gilroy-Medium'] mb-3">
-          Hold and drag items to rank them in order of importance to you:
+          Rank the following in order of importance. <span className='font-bold'>1</span> being the most important.
         </p>
         
         <div className="space-y-2">

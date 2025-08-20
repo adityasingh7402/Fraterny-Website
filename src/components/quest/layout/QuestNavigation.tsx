@@ -476,28 +476,28 @@ const handleCancelSubmission = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
         >
-          <h3 className="text-xl font-medium text-navy mb-2">
+          {/* <h3 className="text-2xl font-['Gilroy-semiBold'] text-navy mb-2">
             Submit Assessment
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Do you want to confirm it for final submission? You won't be able to change your answers after submission.
+          </h3> */}
+          <p className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
+            Satisfied with your answers? Press the confirm button to submit your response.
           </p>
           
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-start space-x-3">
             <button
               onClick={handleCancelSubmission}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-semiBold'] tracking-[-2px]"
               disabled={isSubmitting}
             >
-              Cancel
+              Go Back
             </button>
             
             <button
               onClick={handleConfirmSubmission}
-              className="px-4 py-2 bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+              className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Confirm Submission'}
+              {isSubmitting ? 'Submitting...' : 'Confirm'}
             </button>
           </div>
         </motion.div>

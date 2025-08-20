@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Download, Calendar, ExternalLink, FileText, AlertCircle } from 'lucide-react';
+import { Lock, Download, Calendar, ExternalLink, FileText, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -18,8 +18,10 @@ interface DashboardTest {
   testid: string;
   sessionid: string;
   testtaken: string;
-  ispaymentdone: boolean;
+  ispaymentdone: "success" | null;
   pdflink: string;
+  quest_pdf: string | null;
+  quest_status: "generated" | "working";
 }
 
 interface QuestDashboardProps {
@@ -42,40 +44,50 @@ const MOCK_DATA: DashboardTest[] = [
     testid: "bae03e2a81ef518a232cd95800708b60bd1cfea9",
     sessionid: "session_1752577737404",
     testtaken: "2025-07-15T11:08:57.404Z",
-    ispaymentdone: true,
-    pdflink: "https://api.fraterny.in/api/report/session_1752577737404/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/bae03e2a81ef518a232cd95800708b60bd1cfea9"
+    ispaymentdone: 'success',
+    pdflink: "https://api.fraterny.in/api/report/session_1752577737404/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/bae03e2a81ef518a232cd95800708b60bd1cfea9",
+    quest_pdf: "working",
+    quest_status: "working"
   },
   {
     userid: "9bba4c19-c22b-4c83-9b60-bfc81a2695fe", 
     testid: "34545jljerkldsjrw35-3454e",
     sessionid: "e4aef47f-2359-4f8b-93ea-efc5dfd49f2a",
     testtaken: "2025-07-11T12:24:58.654Z",
-    ispaymentdone: false,
-    pdflink: "https://api.fraterny.in/api/report/e4aef47f-2359-4f8b-93ea-efc5dfd49f2a/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/34545jljerkldsjrw35-3454e"
+    ispaymentdone: 'success',
+    pdflink: "https://api.fraterny.in/api/report/e4aef47f-2359-4f8b-93ea-efc5dfd49f2a/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/34545jljerkldsjrw35-3454e",
+    quest_pdf: "working",
+    quest_status: "working"
   },
   {
     userid: "fedf723f-dcb0-4806-b84e-1590dfef4f76",
     testid: "bbadf5ce-2eb4-4f9c-8f96-9e4b9fd0e10a", 
     sessionid: "session_1752236698654",
     testtaken: "2025-07-11T12:24:58.654Z",
-    ispaymentdone: true,
-    pdflink: "https://api.fraterny.in/api/report/session_1752236698654/fedf723f-dcb0-4806-b84e-1590dfef4f76/bbadf5ce-2eb4-4f9c-8f96-9e4b9fd0e10a"
+    ispaymentdone: null,
+    pdflink: "https://api.fraterny.in/api/report/session_1752236698654/fedf723f-dcb0-4806-b84e-1590dfef4f76/bbadf5ce-2eb4-4f9c-8f96-9e4b9fd0e10a",
+    quest_pdf: "generated",
+    quest_status: "generated"
   },
   {
     userid: "9bba4c19-c22b-4c83-9b60-bfc81a2695fe",
     testid: "9d5602bd6a3f05b9e00900793e0d315d436f4ed7",
     sessionid: "session_1753961797982",
     testtaken: "2025-07-31T11:36:50.561Z",
-    ispaymentdone: false,
-    pdflink: "https://api.fraterny.in/api/report/session_1753961797982/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/9d5602bd6a3f05b9e00900793e0d315d436f4ed7"
+    ispaymentdone: 'success',
+    pdflink: "https://api.fraterny.in/api/report/session_1753961797982/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/9d5602bd6a3f05b9e00900793e0d315d436f4ed7",
+    quest_pdf: "generated",
+    quest_status: "generated"
   },
   {
     userid: "9bba4c19-c22b-4c83-9b60-bfc81a2695fe",
     testid: "c8a27db647f5c8742b8d5d70aa9cedb3f00a7b09",
     sessionid: "session_1753962293131",
     testtaken: "2025-07-31T11:45:17.168Z",
-    ispaymentdone: true,
-    pdflink: "https://api.fraterny.in/api/report/session_1753962293131/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/c8a27db647f5c8742b8d5d70aa9cedb3f00a7b09"
+    ispaymentdone: null,
+    pdflink: "https://api.fraterny.in/api/report/session_1753962293131/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/c8a27db647f5c8742b8d5d70aa9cedb3f00a7b09",
+    quest_pdf: "generated",
+    quest_status: "working"
   }
 ];
 
@@ -88,6 +100,8 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const [emailLoading, setEmailLoading] = useState<string | null>(null);
   const navigate = useNavigate();
   const { userId } = useParams();
+
+  
 
   // Format date helper function
   const formatDate = (dateString: string): string => {
@@ -141,7 +155,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 15000, // 15 second timeout for email sending
         }
       );
       console.log(`Email response from backend:`, response);
@@ -265,8 +278,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     handlePaymentResult();
   }, [userId]); // Only depend on userId
 
-  
-
   // Handle download actions
   const handleFreeReport = (testData: DashboardTest) => {
     navigate(`/quest-result/result/${testData.userid}/${testData.sessionid}/${testData.testid}`);
@@ -274,8 +285,16 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
 
   // Updated handlePaidReport function with backend email API
   const handlePaidReport = async (testData: DashboardTest) => {
+
+     if (testData.ispaymentdone === "success" && testData.quest_pdf === "generated") {
+      window.open(testData.pdflink, '_blank');
+      toast.success('Opening your PDF report!');
+      return;
+    }
+
+
     // If payment is already done, send email with PDF via backend API
-    if (testData.ispaymentdone) {
+    if (testData.ispaymentdone === "success") {
       try {
         setEmailLoading(testData.sessionid);
         
@@ -335,14 +354,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // Loading state
   if (loading) {
     return (
-      <div className={`p-6 ${className}`}>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+          <p className="text-gray-700 font-medium">Loading your dahsboard...</p>
         </div>
       </div>
     );
@@ -381,12 +396,13 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`p-6 ${className} bg-[#004A7F] text-white h-screen`}>
-      <div className='flex flex-col items-center justify-center w-full mb-8'>
-        <div className='text-3xl font-normal font-["Gilroy-Bold"]'>
+    <div className={`p-6 ${className} bg-[#004A7F] text-white h-auto`}>
+      <div className='flex flex-col items-center justify-center w-full mb-8'
+      onClick={() => navigate('/quest')}>
+        <div className='text-6xl font-normal font-["Gilroy-Bold"] tracking-tighter'>
           QUEST
         </div>
-        <div className='text-sm font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-0 mt-[-8px]'>
+        <div className='text-sm font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-0 mt-[-6px]'>
           BY FRATERNY
         </div>
       </div>
@@ -444,25 +460,8 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
 
                   {/* Paid Report */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {test.ispaymentdone ? (
-                      <button
-                        onClick={() => handlePaidReport(test)}
-                        disabled={emailLoading === test.sessionid}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {emailLoading === test.sessionid ? (
-                          <>
-                            <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-4 h-4 mr-2" />
-                            Email Report
-                          </>
-                        )}
-                      </button>
-                    ) : (
+                    {test.ispaymentdone !== "success" ? (
+                      // State 1: Payment not done - show unlock button
                       <button
                         onClick={() => handlePaidReport(test)}
                         disabled={paymentLoading === test.sessionid}
@@ -481,6 +480,40 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                           <>
                             <Lock className="w-4 h-4 mr-2" />
                             Unlock
+                          </>
+                        )}
+                      </button>
+                    ) : test.quest_status === "working" ? (
+                      // State 2: Payment done but PDF still generating
+                      <div className="inline-flex items-center px-3 py-2 text-sm text-orange-600 bg-orange-50 rounded-md">
+                        <Clock className="w-4 h-4 mr-2" />
+                        <span className="text-xs">PDF generating, check after 15 mins</span>
+                      </div>
+                    ) : test.quest_status === "generated" ? (
+                      // State 3: Payment done and PDF ready
+                      <button
+                        onClick={() => handlePaidReport(test)}
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Get Your PDF
+                      </button>
+                    ) : (
+                      // Fallback: Payment done but PDF status unknown - show email option
+                      <button
+                        onClick={() => handlePaidReport(test)}
+                        disabled={emailLoading === test.sessionid}
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {emailLoading === test.sessionid ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            Email Report
                           </>
                         )}
                       </button>
