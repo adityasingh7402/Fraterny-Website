@@ -58,51 +58,37 @@ const BenefitsSection: React.FC<BenefitsSectionProps> = ({
           }}
         />
 
-        {/* <div className='flex w-full items-center justify-center pt-4'>
+        <div className='flex w-full items-center justify-between pt-4'>
+          <motion.div>
+          </motion.div>
           <motion.div
-            layoutId='logo'
-            transition={{ duration: 1.2 }}
             className="z-50"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ 
+              duration: 0.8,
+              ease: "easeOut",
+              delay: 0.4  // Start after text fades out
+            }}
           >
             <img 
               src={img}
               alt="QUEST" 
-              className="h-[36px] w-auto brightness-0 invert"
+              className="h-[36px] w-auto brightness-0 invert cursor-pointer"
+              onClick={_onLogoClick} // Call the onLogoClick prop when clicked
             />
           </motion.div>
-        </div> */}
-
-        <div className='flex w-full items-center justify-between pt-4'>
-        <motion.div>
-        </motion.div>
-        <motion.div
-          className="z-50"
-          initial={{ y: 0, opacity: 1 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ 
-            duration: 0.8,
-            ease: "easeOut",
-            delay: 0.4  // Start after text fades out
-          }}
-        >
-          <img 
-            src={img}
-            alt="QUEST" 
-            className="h-[36px] w-auto brightness-0 invert cursor-pointer"
-            onClick={_onLogoClick} // Call the onLogoClick prop when clicked
-          />
-        </motion.div>
-        <motion.span 
-          variants={animationVariants} 
-          initial="invisible" 
-          animate="visible"
-          onClick={onMenuClick}
-          className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
-          whileTap={{ scale: 0.95 }}
-        >
-          <Menu className="w-6 h-6 text-white" />
-        </motion.span>
-      </div>
+          <motion.span 
+            variants={animationVariants} 
+            initial="invisible" 
+            animate="visible"
+            onClick={onMenuClick}
+            className="cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors z-[50]"
+            whileTap={{ scale: 0.95 }}
+          >
+            <Menu className="w-6 h-6 text-white" />
+          </motion.span>
+        </div>
       {/* <AnalyzeSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

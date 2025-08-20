@@ -315,14 +315,26 @@ const previousQuestion = () => {
     }
   };
   
-  // Finish the quest
-  // const finishQuest = async (): Promise<QuestResult | null> => {
-  //   if (!session) return null;
+  // Updated finishQuest function for QuestProvider.tsx
+  // const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
+  //   // if (!session) return null;
+  //   console.log(`submission data from finish quest ${submissionData}`);
     
   //   try {
   //     setIsSubmitting(true);
+  //     console.log('🚀 Starting quest submission...');
       
-  //     // Update session status
+  //     // Extract IDs from submission data
+  //     const sessionId = submissionData.assessment_metadata.session_id;
+  //     const testid = submissionData.user_data.testid;
+  //     const userId = submissionData.user_data.user_id;
+      
+  //     console.log('📊 Extracted IDs:');
+  //     console.log('   SessionId:', sessionId);
+  //     console.log('   TestId:', testid);
+  //     console.log('   UserId:', userId);
+      
+  //     // Update session status to completed
   //     setSession(prev => {
   //       if (!prev) return null;
         
@@ -336,44 +348,55 @@ const previousQuestion = () => {
   //       };
   //     });
       
-  //     // Generate a mock result (will be replaced with API call)
+  //     // Submit to backend API
+  //     console.log('📤 Submitting to backend API...');
+  //     const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+  //       headers: {
+  //         'Content-Type': 'application/json',  
+  //       },
+  //       timeout: 420000,
+  //     });
+      
+  //     console.log('✅ API submission successful:', response.data);
+      
+  //     // Store data in localStorage
+  //     console.log('💾 Storing data in localStorage...');
+  //     localStorage.setItem('questSessionId', sessionId);
+  //     localStorage.setItem('testid', testid);
+      
+
+  //     const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
+  //     console.log('🚀 Navigating to processing page:', targetUrl);
+  //     navigate(targetUrl);
+      
+  //     // Create result object for return (optional - mainly for consistency)
   //     const result: QuestResult = {
-  //       sessionId: session.id,
-  //       userId: session.userId,
+  //       sessionId: sessionId,
+  //       userId: userId,
   //       analysisData: {
-  //         summary: "This is a placeholder for AI-generated analysis results.",
-  //         sections: questSections.map(section => ({
-  //           sectionId: section.id,
-  //           sectionTitle: section.title,
-  //           responses: section.questions
-  //             .filter(q => session.responses && session.responses[q.id])
-  //             .map(q => ({
-  //               questionId: q.id,
-  //               questionText: q.text,
-  //               response: session.responses?.[q.id]?.response || '',
-  //               tags: session.responses?.[q.id]?.tags || []
-  //             }))
-  //         }))
+  //         summary: "Quest submitted successfully - processing started.",
+  //         sections: []
   //       },
   //       generatedAt: new Date().toISOString()
   //     };
       
   //     return result;
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err : new Error(String(err)));
-  //     return null;
+      
+  //   } catch (error: any) {
+  //     console.error('❌ Quest submission failed:', error.response?.data?.message || error.message);
+  //     setError(error instanceof Error ? error : new Error(error.message || 'Submission failed'));
+  //     throw error; // Re-throw so QuestCompletion can handle the error state
   //   } finally {
   //     setIsSubmitting(false);
   //   }
   // };
-  // Updated finishQuest function for QuestProvider.tsx
-const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
-  // if (!session) return null;
-  console.log(`submission data from finish quest ${submissionData}`);
+
+  const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
+  console.log('🚀 finishQuest started with data:', submissionData);
   
   try {
     setIsSubmitting(true);
-    console.log('🚀 Starting quest submission...');
+    console.log('🔄 Setting isSubmitting to true');
     
     // Extract IDs from submission data
     const sessionId = submissionData.assessment_metadata.session_id;
@@ -385,62 +408,218 @@ const finishQuest = async (submissionData: any): Promise<QuestResult | null> => 
     console.log('   TestId:', testid);
     console.log('   UserId:', userId);
     
+    // Validate required IDs
+    if (!sessionId || !testid || !userId) {
+      throw new Error(`Missing required IDs: sessionId=${sessionId}, testId=${testid}, userId=${userId}`);
+    }
+    
     // Update session status to completed
+    console.log('📝 Updating session status to completed...');
     setSession(prev => {
-      if (!prev) return null;
+      if (!prev) {
+        console.log('⚠️ No previous session found');
+        return null;
+      }
       
-      return {
+      const updatedSession = {
         ...prev,
-        status: 'completed',
+        status: 'completed' as QuestSessionStatus,
         completedAt: new Date().toISOString(),
         durationMinutes: prev.startedAt 
           ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
           : undefined
       };
+      
+      console.log('✅ Session updated:', {
+        id: updatedSession.id,
+        status: updatedSession.status,
+        duration: updatedSession.durationMinutes
+      });
+      
+      return updatedSession;
     });
     
-    // Submit to backend API
-    console.log('📤 Submitting to backend API...');
-    const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-      headers: {
-        'Content-Type': 'application/json',  
-      },
-      timeout: 420000,
-    });
+    // API submission with retry logic
+    console.log('📤 Starting API submission with retry logic...');
     
-    console.log('✅ API submission successful:', response.data);
+    let response;
+    let retryCount = 0;
+    const maxRetries = 2;
+    const retryDelay = 2000; // 2 seconds
+    const requestTimeout = 120000; // 2 minutes
+    
+    console.log(`🔧 Retry configuration: maxRetries=${maxRetries}, delay=${retryDelay}ms, timeout=${requestTimeout}ms`);
+    
+    while (retryCount <= maxRetries) {
+      const attemptNumber = retryCount + 1;
+      console.log(`\n🎯 === API ATTEMPT ${attemptNumber}/${maxRetries + 1} ===`);
+      console.log(`⏰ Attempt started at: ${new Date().toISOString()}`);
+      
+      try {
+        const startTime = Date.now();
+        
+        response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+          headers: {
+            'Content-Type': 'application/json',  
+          },
+          timeout: requestTimeout,
+        });
+        
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        
+        console.log(`✅ API submission successful!`);
+        console.log(`📊 Request took: ${duration}ms`);
+        console.log(`📦 Response status: ${response.status}`);
+        console.log(`📦 Response data:`, response.data);
+        
+        break; // Success, exit retry loop
+        
+      } catch (apiError: any) {
+        retryCount++;
+        const errorTime = Date.now();
+        
+        console.log(`\n❌ API ATTEMPT ${attemptNumber} FAILED`);
+        console.log(`⏰ Error occurred at: ${new Date(errorTime).toISOString()}`);
+        console.log(`🔍 Error message: "${apiError.message}"`);
+        console.log(`🔍 Error code: "${apiError.code}"`);
+        console.log(`🔍 Error response status: ${apiError.response?.status || 'undefined'}`);
+        console.log(`🔍 Error response data:`, apiError.response?.data || 'undefined');
+        console.log(`🔍 Full error object:`, {
+          name: apiError.name,
+          message: apiError.message,
+          code: apiError.code,
+          status: apiError.response?.status,
+          statusText: apiError.response?.statusText,
+          headers: apiError.response?.headers
+        });
+        
+        // Determine if this is a timeout-related error
+        const isDirectTimeout = apiError.response?.status === 504;
+        const isAxiosTimeout = apiError.code === 'ECONNABORTED';
+        const isCorsBlockedTimeout = apiError.message === 'Network Error' && apiError.code === 'ERR_NETWORK';
+        const isConnectionRefused = apiError.code === 'ERR_CONNECTION_REFUSED';
+        const isNetworkError = apiError.message === 'Network Error';
+        
+        console.log(`\n🔍 ERROR CLASSIFICATION:`);
+        console.log(`   Direct 504 timeout: ${isDirectTimeout}`);
+        console.log(`   Axios timeout: ${isAxiosTimeout}`);
+        console.log(`   CORS-blocked timeout: ${isCorsBlockedTimeout}`);
+        console.log(`   Connection refused: ${isConnectionRefused}`);
+        console.log(`   Generic network error: ${isNetworkError}`);
+        
+        const isTimeoutError = isDirectTimeout || isAxiosTimeout || isCorsBlockedTimeout;
+        
+        console.log(`\n⚖️ DECISION: ${isTimeoutError ? 'TREATING AS TIMEOUT' : 'TREATING AS NON-TIMEOUT ERROR'}`);
+        
+        if (isTimeoutError) {
+          if (retryCount <= maxRetries) {
+            console.log(`\n🔄 RETRY LOGIC:`);
+            console.log(`   Current attempt: ${retryCount}`);
+            console.log(`   Max retries: ${maxRetries}`);
+            console.log(`   Will retry: YES`);
+            console.log(`   Waiting ${retryDelay}ms before retry...`);
+            
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            
+            console.log(`🔄 Retry delay completed, starting next attempt...`);
+            continue; // Continue to next iteration
+            
+          } else {
+            console.log(`\n⏰ TIMEOUT EXHAUSTED:`);
+            console.log(`   All ${maxRetries + 1} attempts failed`);
+            console.log(`   Implementing graceful timeout handling...`);
+            console.log(`   Backend processing may still continue...`);
+            
+            // Store data in localStorage
+            console.log('💾 Storing data in localStorage...');
+            localStorage.setItem('questSessionId', sessionId);
+            localStorage.setItem('testid', testid);
+            console.log(`💾 Stored: questSessionId=${sessionId}`);
+            console.log(`💾 Stored: testid=${testid}`);
+            
+            // Navigate to processing page instead of result page
+            const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
+            console.log(`🚀 Navigating to processing page: ${targetUrl}`);
+            navigate(targetUrl);
+            
+            // Return success result since we're handling gracefully
+            const gracefulResult = {
+              sessionId: sessionId,
+              userId: userId,
+              analysisData: {
+                summary: "Quest submitted - processing may take a few minutes.",
+                sections: []
+              },
+              generatedAt: new Date().toISOString()
+            };
+            
+            console.log(`✅ Returning graceful result:`, gracefulResult);
+            return gracefulResult;
+          }
+        } else {
+          console.log(`\n🚫 NON-TIMEOUT ERROR:`);
+          console.log(`   Error type: ${apiError.name || 'Unknown'}`);
+          console.log(`   Will not retry, throwing error immediately`);
+          console.log(`   This will propagate to QuestCompletion error handling`);
+          
+          throw apiError; // Non-timeout error, throw immediately
+        }
+      }
+    }
+    
+    // If we reach here, API call was successful
+    console.log(`\n🎉 === API SUBMISSION COMPLETED SUCCESSFULLY ===`);
     
     // Store data in localStorage
-    console.log('💾 Storing data in localStorage...');
+    console.log('💾 Storing successful submission data in localStorage...');
     localStorage.setItem('questSessionId', sessionId);
     localStorage.setItem('testid', testid);
+    console.log(`💾 Stored: questSessionId=${sessionId}`);
+    console.log(`💾 Stored: testid=${testid}`);
     
-
+    // Navigate to result page on success
     const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
-    console.log('🚀 Navigating to processing page:', targetUrl);
+    console.log(`🚀 Navigating to result page: ${targetUrl}`);
     navigate(targetUrl);
     
-    // Create result object for return (optional - mainly for consistency)
+    // Create result object for return
     const result: QuestResult = {
       sessionId: sessionId,
       userId: userId,
       analysisData: {
-        summary: "Quest submitted successfully - processing started.",
+        summary: "Quest submitted successfully - processing completed.",
         sections: []
       },
       generatedAt: new Date().toISOString()
     };
     
+    console.log(`✅ Returning successful result:`, result);
     return result;
     
   } catch (error: any) {
-    console.error('❌ Quest submission failed:', error.response?.data?.message || error.message);
-    setError(error instanceof Error ? error : new Error(error.message || 'Submission failed'));
+    console.log(`\n💥 === OUTER CATCH BLOCK ===`);
+    console.log(`❌ Quest submission failed in outer catch`);
+    console.log(`🔍 Error type: ${error.name || 'Unknown'}`);
+    console.log(`🔍 Error message: "${error.message}"`);
+    console.log(`🔍 Error code: "${error.code || 'undefined'}"`);
+    console.log(`🔍 Error response:`, error.response?.data || 'undefined');
+    console.log(`🔍 Full error object:`, error);
+    
+    const errorToSet = error instanceof Error ? error : new Error(error.message || 'Submission failed');
+    console.log(`📝 Setting error state:`, errorToSet.message);
+    setError(errorToSet);
+    
+    console.log(`🔄 Re-throwing error for QuestCompletion to handle...`);
     throw error; // Re-throw so QuestCompletion can handle the error state
+    
   } finally {
+    console.log(`\n🧹 === CLEANUP (FINALLY BLOCK) ===`);
+    console.log(`🔄 Setting isSubmitting to false`);
     setIsSubmitting(false);
+    console.log(`✅ finishQuest function completed`);
   }
-};
+  };
   
   // Reset the quest state
   const resetQuest = () => {

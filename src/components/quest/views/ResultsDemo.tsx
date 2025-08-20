@@ -1233,6 +1233,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           shareText={resultData.results["section 1"] || ""} 
           themeKey="emotional" 
           sessionId={sessionId}
+          customClass="pb-16"
          testId={testId}
         >
           <div className="relative w-full max-w-[480px] mx-auto pt-4">
@@ -1262,7 +1263,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Archetype & stats" 
           shareText={`${mindCard?.name || 'Mind Card'}; ${mindStats.map(s => `${s.label} ${s.value}`).join(', ')}.`}
           themeKey="mind" 
-          customClass="pt-16"
+          customClass="pt-16 pb-16"
           sessionId={sessionId}
           testId={testId}
         >
@@ -1337,7 +1338,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Thought Provoking Insights" 
           shareText={findings.join("\n")} 
           themeKey="findings" 
-          customClass="pt-14 pb-8"
+          customClass="pt-14 pb-16"
           sessionId={sessionId}
           testId={testId}
         >
@@ -1346,7 +1347,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
               {findings.slice(0, 4).map((finding, i) => (
                 <div 
                   key={i} 
-                  className="bg-white/20 rounded-lg p-3 min-h-[80px] flex items-start"
+                  className="bg-white/30 rounded-lg p-3 min-h-[80px] flex items-start"
                 >
                   <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
                     {finding}
@@ -1354,7 +1355,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
                 </div>
               ))}
               {findings[4] && (
-                <div className="col-span-2 bg-white/20 rounded-lg p-3 min-h-[80px] flex items-start">
+                <div className="col-span-2 bg-white/30 rounded-lg p-3 min-h-[80px] flex items-start">
                   <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
                     {findings[4]}
                   </div>
@@ -1373,7 +1374,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           themeKey="quotes" 
            inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-          customClass="pt-20 pb-24"
+          customClass="pt-12 pb-24"
           sessionId={sessionId}
           testId={testId}
         >
@@ -1427,7 +1428,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           themeKey="subjects" 
            inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-          customClass="pt-20"
+          customClass="pt-12 pb-[50px]"
           sessionId={sessionId}
           testId={testId}
         >
@@ -1450,7 +1451,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
             sub="Apologies to the cosmos" 
             shareText={astrology.description} 
             themeKey="astrology" 
-            customClass="pt-12 pb-8"
+            customClass="pt-12 pb-16"
             sessionId={sessionId}
             testId={testId}
           >
@@ -1490,7 +1491,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
           buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
           themeKey="books" 
-          customClass="pt-24"
+          customClass="pt-12"
           sessionId={sessionId}
           testId={testId}
         >
@@ -1516,7 +1517,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sub="Start today; 60-minute cap" 
           shareText={actionItem} 
           themeKey="work" 
-          customClass="pt-28"
+          customClass="pt-20"
           sessionId={sessionId}
           testId={testId}
         >

@@ -347,7 +347,7 @@ export function QuestCompletion({
   // Show loading state while submitting
   if (submissionStatus === 'submitting') {
     return (
-      <div className='h-screen bg-[#004A7F]'>
+      <div className='h-screen bg-[#004A7F] max-w-screen overflow-hidden'>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -386,7 +386,7 @@ export function QuestCompletion({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className='absolute z-10 w-[554px] h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
+              className='absolute z-10 w-screen h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
               style={{
                 background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
                 backdropFilter: 'blur(180px)',

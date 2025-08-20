@@ -49,7 +49,7 @@ export function QuestPage() {
   
   return (
     <QuestProvider>
-      <div className="min-h-screen">
+      <div className="max-h-screen">
         {/* Render different views based on state */}
         {questState === QuestState.INTRO && (
           <QuestIntro onStart={handleStartAssessment} />

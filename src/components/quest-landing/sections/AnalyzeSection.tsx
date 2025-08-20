@@ -43,8 +43,8 @@ const AnalyzeSection: React.FC<AnalyzeSectionProps> = ({
 }) => {
   const [isInHeroSection, setIsInHeroSection] = useState(true);
   const heroSectionRef = useRef<HTMLDivElement>(null);
-// const containerRef = useRef<HTMLDivElement>(null);
-const analyzeScrollRef = useRef<HTMLDivElement>(null);
+  // const containerRef = useRef<HTMLDivElement>(null);
+  const analyzeScrollRef = useRef<HTMLDivElement>(null);
   // console.log('Current logo state - should be white?', isInHeroSection);
   useEffect(() => {
   const container = analyzeScrollRef.current;
@@ -55,14 +55,10 @@ const analyzeScrollRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
     const scrollTop = container.scrollTop;
-    // console.log('Container scroll position:', scrollTop);
-    
-    // Simple approach - if scrolled more than 300px, logo should be black
-    const shouldBeInHero = scrollTop < 100;
+    const shouldBeInHero = scrollTop < 20;
     
     if (shouldBeInHero !== isInHeroSection) {
       setIsInHeroSection(shouldBeInHero);
-      // console.log('Logo color changed to:', shouldBeInHero ? 'white' : 'black');
     }
   };
 
@@ -83,39 +79,39 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     <section className=''>
     <div ref={analyzeScrollRef} className='relative h-screen overflow-y-auto'>
       {/* Header */}
-      <div className='flex justify-between fixed top-0 w-full z-50 p-2 left-0 text-white items-center'>
-          <div className='flex-1 items-center justify-center'>
-          <div className='flex w-full items-center justify-center pt-4'>
-            <motion.div
-            layoutId='logo'
-              className="z-50"
-              initial={{ y: 0, opacity: 1 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ 
-                duration: 0.8,
-                ease: "easeOut",
-                delay: 0.4  // Start after text fades out
-              }}
-            >
-              <img 
-                src={img}
-                alt="QUEST" 
-                className={`h-[36px] w-auto transition-all duration-500 ease-out cursor-pointer ${isInHeroSection ? 'brightness-0 invert' : 'opacity-0'}`}
-                onClick={_onLogoClick} // Call the onLogoClick prop when clicked
-              />
-            </motion.div>
-          </div>
-          </div>
-          <motion.div 
-            variants={animationVariants} 
-            initial="invisible" 
-            animate="visible"
-            onClick={handleMenuClick}
-            className="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
-            whileTap={{ scale: 0.95 }}
-          >
-            <Menu className="w-6 h-6" />
-          </motion.div>
+      <div className='flex justify-between fixed top-0 w-full z-50 pt-4 left-0 text-white items-center'>
+        <motion.div>
+        </motion.div>
+        
+        <motion.div
+        layoutId='logo'
+          className="z-50"
+          initial={{ y: 0, opacity: 1 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ 
+            duration: 0.8,
+            ease: "easeOut",
+            delay: 0.4  // Start after text fades out
+          }}
+        >
+          <img 
+            src={img}
+            alt="QUEST" 
+            className={`h-[36px] w-auto transition-all duration-500 ease-out cursor-pointer ${isInHeroSection ? 'brightness-0 invert' : 'opacity-0'}`}
+            onClick={_onLogoClick} // Call the onLogoClick prop when clicked
+          />
+        </motion.div>
+
+        <motion.div 
+          variants={animationVariants} 
+          initial="invisible" 
+          animate="visible"
+          onClick={handleMenuClick}
+          className="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+          whileTap={{ scale: 0.95 }}
+        >
+          <Menu className="w-6 h-6" />
+        </motion.div>
       </div>   
 
       {/* Sidebar */}

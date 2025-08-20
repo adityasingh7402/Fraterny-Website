@@ -1808,7 +1808,6 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           `https://api.fraterny.in/api/report/${userId}/${sessionId}/${testId}`, 
           {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 30000
           }
         );
         console.log('API response:', response.data);

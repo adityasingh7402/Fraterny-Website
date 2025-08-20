@@ -131,14 +131,35 @@ export const loadSettingsFromStorage = (): QuestSettings => {
 };
 
 /**
- * Clear all quest data from local storage
+ * Clear all quest-related data for a fresh test start
  */
-export const clearQuestStorage = (): void => {
+export const clearQuestTags = (): void => {
   try {
-    localStorage.removeItem(STORAGE_KEYS.SESSION);
-    localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+    const keysToRemove: string[] = [];
+    
+    // Find all quest-related keys to remove
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('quest_tags_') ||     // Tag data
+        key === 'questSessionId' ||         // Previous session ID
+        key === 'testid' ||                 // Previous test ID
+        key === 'fraterny_quest_session' || // Quest session
+        key === 'fraterny_quest_responses'  // Quest responses
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    // Remove all found keys
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+      console.log(`🧹 Cleared: ${key}`);
+    });
+    
+    console.log(`✅ Cleared ${keysToRemove.length} quest-related keys`);
   } catch (error) {
-    console.error('Failed to clear quest storage:', error);
+    console.error('Failed to clear quest tags:', error);
   }
 };
 
