@@ -157,7 +157,7 @@ export interface QuestProcessingProps {
   gifSrc?: string; // Optional prop to customize the GIF source
 }
 
-export function QuestProcessing({ className = '', gifSrc = '../../../../public/analysis.gif' }: QuestProcessingProps) {
+export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: QuestProcessingProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { session } = useQuest();
