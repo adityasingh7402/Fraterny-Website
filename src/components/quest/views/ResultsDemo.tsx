@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
+import astrologyvector from '../../../../public/astrologyvector.svg';
 import axios from 'axios';
 import { section } from "@/components/quest-landing/styles";
 import { signInWithGoogle } from '@/utils/auth';
@@ -438,7 +439,8 @@ const sectionTheme = (key: string) => {
       };
     case "quotes":
       return {
-        bg: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 60%, rgba(65,217,255,0.25) 100%)`,
+        // bg: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 60%, rgba(65,217,255,0.25) 100%)`,
+        bg: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 30%, #006983 100%)`,
         text: tokens.textDark,
       };
     case "films":
@@ -1347,7 +1349,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
               {findings.slice(0, 4).map((finding, i) => (
                 <div 
                   key={i} 
-                  className="bg-white/30 rounded-lg p-3 min-h-[80px] flex items-start"
+                  className="bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start"
                 >
                   <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
                     {finding}
@@ -1355,7 +1357,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
                 </div>
               ))}
               {findings[4] && (
-                <div className="col-span-2 bg-white/30 rounded-lg p-3 min-h-[80px] flex items-start">
+                <div className="col-span-2 bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start">
                   <div className="text-white text-sm font-normal font-['Gilroy-Regular'] leading-tight">
                     {findings[4]}
                   </div>
@@ -1378,13 +1380,13 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           sessionId={sessionId}
           testId={testId}
         >
-          <ul className="grid content-center gap-3 max-h-60 overflow-y-auto">
+          <ul className="grid content-center gap-3 overflow-y-auto">
             {quotes.map((quote, i) => (
               <li key={i} className="rounded-2xl bg-white p-3" style={{ border: `1px solid ${tokens.border}` }}>
                 <div className="flex items-start gap-2">
                   <Quote className="mt-0.5 h-4 w-4" color={tokens.accent} />
                   <div>
-                    <div className="text-[14px] leading-5">"{quote.text}"</div>
+                    <div className="text-[15px] font-['Inter'] leading-tight">"{quote.text}"</div>
                     <div className="text-[12px]" style={{ color: tokens.muted }}>— {quote.author}</div>
                   </div>
                 </div>
@@ -1410,8 +1412,8 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
                 <div className="flex items-start gap-2">
                   <Film className="mt-0.5 h-4 w-4" />
                   <div>
-                    <div className="font-[600]">{film.title}</div>
-                    <div className="text-[13px] opacity-90">{film.description}</div>
+                    <div className="text-xl font-semibold font-['Inter'] leading-normal">{film.title}</div>
+                    <div className="opacity-90 text-xs font-normal font-['Inter'] leading-tight">{film.description}</div>
                   </div>
                 </div>
               </li>
@@ -1457,11 +1459,11 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
           >
             <div className="flex h-full flex-col justify-center gap-4">
               <div className="text-center">
-                <Sparkles className="h-5 w-6 mx-auto mb-1" />
-                <div className="text-[16px] font-['Gilroy-Bold']">
+                {/* <Sparkles className="h-5 w-6 mx-auto mb-1" /> */}
+                <div className="text-[16px] font-['Gilroy-Bold'] text-left leading-tight">
                   You behave more like a <span className="underline">{astrology.behavioralSign}</span> than your actual sign ({astrology.actualSign}).
                 </div>
-                <div className="max-w-[320px] mx-auto opacity-90 text-sm font-['Gilroy-Regular'] leading-[1]">
+                <div className=" text-left max-w-[320px] mt-3 opacity-90 text-sm font-['Gilroy-Regular'] leading-[1]">
                   {astrology.description}
                 </div>
               </div>
@@ -1471,6 +1473,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
                 {astrology.predictions.slice(0, 3).map((prediction, i) => (
                   <div key={i} className="rounded-2xl bg-white/10 p-3 flex items-center gap-3">
                     <CirclePercent percent={prediction.likelihood} />
+                    {/* <img src={astrologyvector} alt="Astrology" className="w-12 h-12" /> */}
                     <div className="text-[13px] leading-5">
                       <div className="font-[600]">{prediction.title}</div>
                       <div className="opacity-90">Why: {prediction.reason}</div>
@@ -1483,7 +1486,7 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
         )}
 
         {/* Books Section */}
-        <SectionFrame 
+        {/* <SectionFrame 
           id="books" 
           title="Books You'd Love If You Give Them a Chance" 
           sub="3 high-yield picks" 
@@ -1507,6 +1510,50 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
                 </div>
               </div>
             ))}
+          </div>
+        </SectionFrame> */}
+
+        {/* Books Section */}
+        <SectionFrame 
+          id="books" 
+          title="Books You'd Love If You Give Them a Chance" 
+          sub="3 high-yield picks" 
+          shareText={books.map((b) => `${b.title} — ${b.author}`).join("\n")}
+          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
+          themeKey="books" 
+          customClass="pt-12 pb-12"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
+              {books.map((book, i) => {
+                const backgrounds = ["#41D9FF", "#0C45F0", "#41D9FF"];
+                
+                return (
+                  <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
+                    {/* Book Card */}
+                    <div 
+                      className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] flex items-center justify-center"
+                      style={{ backgroundColor: backgrounds[i] }}
+                    >
+                      <BookOpen className="h-20 w-20 text-white" />
+                    </div>
+                    
+                    {/* Book Text */}
+                    <div className="w-36 text-center">
+                      <div className="text-neutral-950 text-lg font-bold font-['Inter'] leading-normal">
+                        {book.title}
+                      </div>
+                      <div className="text-gray-500 text-lg font-normal font-['Inter'] leading-normal">
+                        {book.author}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </SectionFrame>
 
@@ -1599,49 +1646,6 @@ const QuestResultFullscreen: React.FC<QuestResultFullscreenProps> = ({
 
       {/* Bottom CTA Space */}
       <div style={{ height: CTA_HEIGHT }} />
-
-      {/* Commented Axios Implementation */}
-      {/*
-      // Real API implementation (commented out)
-      useEffect(() => {
-        const fetchResultData = async () => {
-          try {
-            setIsLoading(true);
-            const userId = auth.user?.id || 'anonymous';
-            const response = await axios.get(
-              `https://api.fraterny.in/api/report/${currentSessionId}/${userId}/${currenttestid}`, 
-              {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 30000
-              }
-            );
-            
-            const analysisData = response.data;
-            if (typeof analysisData.results === 'string') {
-              analysisData.results = JSON.parse(analysisData.results);
-            }
-            
-            const validatedData = validateResultData(analysisData);
-            setResultData(validatedData);
-            setIsLoading(false);
-          } catch (axiosError: any) {
-            if (axiosError.code === 'ECONNABORTED') {
-              throw new Error('Request timeout - analysis may still be processing');
-            } else if (axiosError.response?.status === 404) {
-              throw new Error('Analysis not found - please try again later');
-            } else if (axiosError.response?.status === 401) {
-              throw new Error('Unauthorized access - please log in again');
-            } else {
-              throw new Error(`Network error: ${axiosError.message}`);
-            }
-          }
-        };
-        
-        if (currentSessionId && currenttestid) {
-          fetchResultData();
-        }
-      }, [currentSessionId, currenttestid, auth?.user?.id]);
-      */}
     </div>
   );
 };

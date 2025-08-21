@@ -152,7 +152,7 @@ const router = createBrowserRouter([
       },
       
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
-      { path: 'quest-result/*', element: createSuspenseWrapper()(<QuestResultRoute />) },
+      { path: 'quest-result/*', element: <QuestResultRoute /> },
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
       { path: 'quest', element: <QuestLandingPage />},
       { path: 'quest-dashboard/:userId', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },

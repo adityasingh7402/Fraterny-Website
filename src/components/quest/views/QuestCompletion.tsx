@@ -8,6 +8,7 @@ import QuestLayout from '../layout/QuestLayout';
 import { useQuest } from '../core/useQuest';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
+import QuestProcessing from './QuestProcessing';
 
 const psychologicalFacts = [
   "The average person has 12,000 to 60,000 thoughts per day, and many of them are repetitive.",
@@ -347,52 +348,53 @@ export function QuestCompletion({
   // Show loading state while submitting
   if (submissionStatus === 'submitting') {
     return (
-      <div className='h-screen bg-[#004A7F] max-w-screen overflow-hidden'>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center text-center h-screen relative z-20"
-            >
-              <div className='absolute flex flex-col items-center justify-center w-full top-14'>
-                <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
-                  QUEST
-                </div>
-                <div className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
-                  BY FRATERNY
-                </div>
-              </div>
+      // <div className='h-screen bg-[#004A7F] max-w-screen overflow-hidden'>
+      //       <motion.div
+      //         initial={{ opacity: 0 }}
+      //         animate={{ opacity: 1 }}
+      //         className="flex flex-col items-center justify-center text-center h-screen relative z-20"
+      //       >
+      //         <div className='absolute flex flex-col items-center justify-center w-full top-14'>
+      //           <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
+      //             QUEST
+      //           </div>
+      //           <div className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
+      //             BY FRATERNY
+      //           </div>
+      //         </div>
       
-              <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={factIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
-                >
-                  "{psychologicalFacts[factIndex]}"
-                </motion.p>
-              </AnimatePresence>
-              </div>
+      //         <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100">
+      //         <AnimatePresence mode="wait">
+      //           <motion.p
+      //             key={factIndex}
+      //             initial={{ opacity: 0, y: 20 }}
+      //             animate={{ opacity: 1, y: 0 }}
+      //             exit={{ opacity: 0, y: -20 }}
+      //             transition={{ duration: 0.5 }}
+      //             className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
+      //           >
+      //             "{psychologicalFacts[factIndex]}"
+      //           </motion.p>
+      //         </AnimatePresence>
+      //         </div>
               
-              <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter">
-                Please wait while we process your responses...
-              </p>
-            </motion.div>
+      //         <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter">
+      //           Please wait while we process your responses...
+      //         </p>
+      //       </motion.div>
       
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className='absolute z-10 w-screen h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
-              style={{
-                background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
-                backdropFilter: 'blur(180px)',
-              }}
-            />
-      </div> 
+      //       <motion.div
+      //         initial={{ opacity: 0, scale: 0.8 }}
+      //         animate={{ opacity: 1, scale: 1 }}
+      //         transition={{ duration: 0.8 }}
+      //         className='absolute z-10 w-screen h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
+      //         style={{
+      //           background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
+      //           backdropFilter: 'blur(180px)',
+      //         }}
+      //       />
+      // </div> 
+      <QuestProcessing className={className} gifSrc='../../../../public/analysis.gif' />
     );
   }
 
