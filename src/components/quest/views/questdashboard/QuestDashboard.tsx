@@ -212,7 +212,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
               headers: {
                 'Content-Type': 'application/json',
               },
-              timeout: 10000, // 10 second timeout
+              
             }
           );
           console.log('Dashboard data response:', response.data);
