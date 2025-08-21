@@ -227,7 +227,14 @@ const handleNext = () => {
       }
     }
     else if (currentQuestion.type === 'date_input') {
-      const currentDateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+      // Try to find MUI DatePicker input first
+    const currentDateInput = document.querySelector('input[placeholder*="date of birth"]') as HTMLInputElement ||
+                            document.querySelector('.MuiInputBase-input') as HTMLInputElement ||
+                            document.querySelector('input[type="date"]') as HTMLInputElement;
+      console.log('💾 Date input value:', currentDateInput?.value);
+      console.log('💾 Date input value:', currentDateInput?.value);
+      // Add this new one:
+      console.log('🔍 All inputs on page:', document.querySelectorAll('input'));
       if (currentDateInput && currentDateInput.value) {
         const selectedTags = getSelectedTagsFromQuestionCard();
         console.log('💾 Navigation saving date response with tags:', {
