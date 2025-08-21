@@ -58,15 +58,19 @@ export function QuestionCard({
     // Then use simple useState with the memoized value
     const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(getInitialTags);
 
-  //   useEffect(() => {
-  //   console.log('🔍 Date Response Debug:', {
-  //     questionId: question?.id,
-  //     questionType: question?.type,
-  //     responseValue: response,
-  //     previousResponseValue: previousResponse?.response,
-  //     isDateInput: question?.type === 'date_input'
-  //   });
-  // }, [question?.id, response, previousResponse]);
+    useEffect(() => {
+  console.log('🔄 Response state changed:', {
+    questionId: question?.id,
+    questionType: question?.type,
+    newResponse: response,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Add this part:
+  if (question?.type === 'date_input') {
+    console.log('📅 Date response stored:', response);
+  }
+}, [response, question?.id]);
   
   // Animation
   const { ref, controls, variants } = useQuestAnimation({
@@ -104,12 +108,14 @@ export function QuestionCard({
     const handleSubmit = (submittedResponse: string) => {
     if (!isActive) return;
     // console.log('Submitting response:', submittedResponse);
+    console.log('🚀 handleSubmit called with:', submittedResponse);
       
     // Call the onResponse callback with the response and tags (no validation blocking)
     onResponse(submittedResponse, selectedTags);
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
   const newValue = e.target.value;
   
   // Allow pasting but truncate if too long
@@ -119,6 +125,7 @@ export function QuestionCard({
   }
   
   setResponse(newValue);
+  console.log('📝 Set response to:', newValue);
   
   // AUTO-SAVE: Call onResponse immediately for auto-save
   // onResponse(newValue, selectedTags);

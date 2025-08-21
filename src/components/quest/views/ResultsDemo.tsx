@@ -47,6 +47,7 @@ import { useParams } from 'react-router-dom';
 interface Film {
   title: string;
   description: string;
+  imageUrl?: string;
 }
 
 interface Subject {
@@ -180,11 +181,11 @@ const MOCK_RESULT_DATA: ResultData = {
       { text: "Live the questions now.", author: "R.M. Rilke" }
     ],
     films: [
-      { title: "Arrival", description: "Language rewires how you choose." },
-      { title: "Whiplash", description: "Obsession versus self-regard." },
-      { title: "Her", description: "Intimacy with ideas, distance with people." },
-      { title: "Good Will Hunting", description: "Unused potential, chosen family." },
-      { title: "The Social Network", description: "Precision without tenderness costs." }
+      { title: "Arrival", description: "Language rewires how you choose.", imageUrl: "/film.svg" },
+      { title: "Whiplash", description: "Obsession versus self-regard.", imageUrl: "/film.svg" },
+      { title: "Her", description: "Intimacy with ideas, distance with people.", imageUrl: "/film.svg" },
+      { title: "Good Will Hunting", description: "Unused potential, chosen family.", imageUrl: "/film.svg" },
+      { title: "The Social Network", description: "Precision without tenderness costs.", imageUrl: "/film.svg" }
     ],
     subjects: [
       { title: "Game theory for everyday negotiations", description: "Strategic thinking in daily interactions", matchPercentage: 85 },

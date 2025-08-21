@@ -202,13 +202,13 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
       />
       
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/30 z-10" />
+      <div className="absolute inset-0" />
 
       {/* Main Content Overlay */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center text-center h-screen relative z-20"
+        className="flex flex-col items-center justify-center text-center h-screen relative"
       >
         {/* QUEST Logo Section */}
         {/* <div className='absolute flex flex-col items-center justify-center w-full top-14'>
@@ -227,7 +227,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
         </div> */}
 
         {/* Psychological Facts Box */}
-        {/* <div className="mt-96 h-44 flex items-center justify-center backdrop-blur-md bg-black/40 rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
+        {/* <div className="absolute top-96 h-44 flex items-center justify-center backdrop-blur-md bg-black/40 rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
           <AnimatePresence mode="wait">
             <motion.p
               key={factIndex}
@@ -245,12 +245,12 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
         
         {/* Processing Message */}
         <p 
-          className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
+          className="text-black text-3xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
           style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
         >
           Please wait while we process your responses...
         </p>
-        <div className=" h-40 flex items-center justify-center backdrop-blur-md bg-[#0ea5e9] rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
+        {/* <div className=" h-40 flex items-center justify-center backdrop-blur-md bg-[#0ea5e9] rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
           <AnimatePresence mode="wait">
             <motion.p
               key={factIndex}
@@ -264,7 +264,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
               "{psychologicalFacts[factIndex]}"
             </motion.p>
           </AnimatePresence>
-        </div>
+        </div> */}
       </motion.div>
     </div> 
   );

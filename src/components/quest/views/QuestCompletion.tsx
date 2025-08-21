@@ -183,7 +183,7 @@ export function QuestCompletion({
           section_name: sectionName,
           metadata: {
             tags: response.tags || [],
-            ...(timeTaken && { time_taken: timeTaken })
+            time_taken: timeTaken || (question?.type === 'date_input' ? '1s' : undefined)
           }
         };
       } else {
