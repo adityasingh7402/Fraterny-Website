@@ -37,6 +37,8 @@ export interface QuestionResponse {
   response: string;
   tags?: HonestyTag[];
   timestamp: string;
+  viewStartTime?: string;          // NEW: When user first viewed question
+  totalViewTimeSeconds?: number;
 }
 
 // Session status
@@ -88,6 +90,8 @@ export interface QuestContextActions {
   skipQuestion: () => void;
   goToQuestion: (questionIndex: number) => void;
   editResponse: (questionId: string) => void;
+   trackQuestionView: (questionId: string) => void;
+  stopQuestionTracking: () => void;
 }
 
 export interface QuestionSection {

@@ -39,6 +39,8 @@ export function QuestNavigation({
     changeSection,
     sections,           // ADD this
   currentSectionId,
+  trackQuestionView,
+  stopQuestionTracking
   } = useQuest();
   
   // Determine if this is the last question in the section
@@ -486,10 +488,10 @@ const handleCancelSubmission = () => {
           {/* <h3 className="text-2xl font-['Gilroy-semiBold'] text-navy mb-2">
             Submit Assessment
           </h3> */}
-          <p className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
+          <div className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
             Satisfied with your answers? Press the confirm button to submit your response.
-          </p>
-          
+          </div>
+
           <div className="flex justify-start space-x-3">
             <button
               onClick={handleCancelSubmission}

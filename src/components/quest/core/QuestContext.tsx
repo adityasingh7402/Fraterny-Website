@@ -37,6 +37,11 @@ const defaultContextValue: QuestContextValue = {
   finishSection: () => false,
   finishQuest: async () => null,
   resetQuest: () => {},
+   trackQuestionView: () => {},
+  stopQuestionTracking: () => {},
+  skipQuestion: () => {},           // ADD THIS
+  goToQuestion: () => {},           // ADD THIS  
+  editResponse: () => {},           // ADD THIS
 };
 
 // Create the context

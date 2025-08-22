@@ -33,6 +33,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   // ✨ NEW STATE - Add these lines after existing useState declarations
   const [allowSkip, setAllowSkip] = useState(true);
   const [visitedQuestions, setVisitedQuestions] = useState<string[]>([]);
+  const [currentViewingQuestion, setCurrentViewingQuestion] = useState<string | null>(null);
+const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number>>({});
+
 
   // submit quest
   const navigate = useNavigate();
@@ -136,7 +139,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
         questionId,
         response,
         tags,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        viewStartTime: questionViewTimes[questionId] ? new Date(questionViewTimes[questionId]).toISOString() : new Date().toISOString(),
+        totalViewTimeSeconds: session.responses?.[questionId]?.totalViewTimeSeconds || 0
       };
       
       // Update session with the new response
@@ -171,6 +176,54 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       setIsSubmitting(false);
     }
   };
+
+  // Track when user starts viewing a question
+const trackQuestionView = (questionId: string) => {
+  if (currentViewingQuestion === questionId) return; // Already tracking
+  
+  // Stop previous tracking
+  stopQuestionTracking();
+  
+  // Start new tracking
+  setCurrentViewingQuestion(questionId);
+  setQuestionViewTimes(prev => ({
+    ...prev,
+    [questionId]: Date.now()
+  }));
+};
+
+// Stop tracking current question
+const stopQuestionTracking = () => {
+  if (!currentViewingQuestion) return;
+  
+  const startTime = questionViewTimes[currentViewingQuestion];
+  if (startTime) {
+    const timeSpent = Math.round((Date.now() - startTime) / 1000);
+    
+    // Update session with accumulated time
+    setSession(prev => {
+      if (!prev || !prev.responses) return prev;
+      
+      const existingResponse = prev.responses[currentViewingQuestion];
+      if (existingResponse) {
+        const currentTotal = existingResponse.totalViewTimeSeconds || 0;
+        return {
+          ...prev,
+          responses: {
+            ...prev.responses,
+            [currentViewingQuestion]: {
+              ...existingResponse,
+              totalViewTimeSeconds: currentTotal + timeSpent
+            }
+          }
+        };
+      }
+      return prev;
+    });
+  }
+  
+  setCurrentViewingQuestion(null);
+};
   
   const nextQuestion = () => {
     if (!session) return;
@@ -791,7 +844,10 @@ const changeSection = (newSectionId: string) => {
 
      getTotalQuestionsInAssessment,
   getCurrentGlobalQuestionIndex,
-  isLastQuestionInEntireAssessment
+  isLastQuestionInEntireAssessment,
+
+  trackQuestionView,        // ADD THIS LINE
+  stopQuestionTracking,
   }), [
     session,
     currentQuestion,

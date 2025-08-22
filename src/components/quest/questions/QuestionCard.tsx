@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuestAnimation } from '../animations/useQuestAnimation';
 import { QuestionCardProps } from './types';
 import { HonestyTag } from '../core/types';
-import { PrivacyIndicator } from '../trust-elements/PrivacyIndicator';
+import { useQuest } from '../core/useQuest';
 import { AuthenticityTags } from '../trust-elements/AuthenticityTags';
 import { DateResponse } from '../responses/DateResponse';
 import { RankingResponse } from '../responses/RankingResponse';
@@ -36,6 +36,7 @@ export function QuestionCard({
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
+  const { trackQuestionView, stopQuestionTracking } = useQuest();
   // Replace your current selectedTags state with this:
   
 
@@ -65,13 +66,26 @@ export function QuestionCard({
     newResponse: response,
     timestamp: new Date().toISOString()
   });
-  
   // Add this part:
   if (question?.type === 'date_input') {
     console.log('📅 Date response stored:', response);
   }
 }, [response, question?.id]);
   
+
+useEffect(() => {
+  if (question?.id && isActive) {
+    // Track when this question becomes active
+    trackQuestionView(question.id);
+  }
+  
+  return () => {
+    // Stop tracking when component unmounts
+    stopQuestionTracking();
+  };
+}, [question?.id, isActive]);
+
+
   // Animation
   const { ref, controls, variants } = useQuestAnimation({
     variant: 'questionCard',
@@ -384,6 +398,7 @@ export function QuestionCard({
       );
     }
   };
+
   
   return (
     <motion.div
