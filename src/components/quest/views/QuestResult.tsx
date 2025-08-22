@@ -65,6 +65,7 @@ interface AstrologyData {
 interface Book {
   title: string;
   author: string;
+  description?: string;
 }
 
 interface Quote {
@@ -384,7 +385,7 @@ const validateResultData = (data: any): ResultData => {
       
       // Enhanced Mind Card validation with fallbacks for API inconsistencies
       "Mind Card": mindCardData ? {
-        name: mindCardData.name || "The Architect",
+        name: mindCardData.personality_type || "The Architect",
         personality: mindCardData.personlity || mindCardData.personality || "#Game-Styled Mindcard", 
         description: mindCardData.description || "A methodical thinker who builds systems and seeks elegant solutions.",
         // Handle both 'attribute' and 'attributes' from API
@@ -1228,7 +1229,7 @@ const BookModal: React.FC<BookModalProps> = ({ book, onClose }) => {
       >
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
         <motion.div
-          className="absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] min-h-[320px] rounded-[20px] bg-gradient-to-b from-blue-800 to-blue-900 overflow-hidden relative"
+          className="absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] min-h-[320px] rounded-[20px] bg-gradient-to-b from-blue-800 to-blue-900 overflow-hidden"
           initial={{ y: "50%", opacity: 0, scale: 0.9 }}
           animate={{ y: "-50%", opacity: 1, scale: 1 }}
           exit={{ y: "50%", opacity: 0, scale: 0.9 }}
@@ -1250,18 +1251,71 @@ const BookModal: React.FC<BookModalProps> = ({ book, onClose }) => {
           
           {/* Content */}
           <div className="p-6">
-            <h3 className="text-2xl font-['Gilroy-Bold'] text-white mb-2">
+            <h3 className="text-3xl font-['Gilroy-Bold'] text-white">
               {book.title}
             </h3>
             <p className="text-blue-200 text-lg font-['Gilroy-Regular'] mb-4">
               by {book.author}
             </p>
-            <p className="text-white/90 text-base font-['Gilroy-Regular'] leading-relaxed">
-              This book resonates with your psychological profile and thinking patterns. It offers insights that align with your mental framework and could provide valuable perspectives for your personal growth.
+            <p className="text-white/90 text-2xl leading-tight font-['Gilroy-semiBold']">
+              {book.description}
             </p>
           </div>
         </motion.div>
       </motion.div>
+    </AnimatePresence>
+  );
+};
+
+interface PaymentSuccessPopupProps {
+  open: boolean;
+  onClose: () => void;
+  userId?: string;
+}
+
+const PaymentSuccessPopup: React.FC<PaymentSuccessPopupProps> = ({ open, onClose, userId }) => {
+  const navigate = useNavigate();
+
+  const handleDashboardClick = () => {
+    if (userId) {
+      navigate(`/quest-dashboard/${userId}`);
+    } else {
+      navigate('/quest-dashboard');
+    }
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[80]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-xl p-6 max-w-md w-full mx-4 relative"
+          >
+            <button 
+              aria-label="Close" 
+              onClick={onClose} 
+              className="absolute right-4 top-4 rounded-full p-2 hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+            
+            <p className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-6 pr-8">
+              We have received your payment. Our AI model is analyzing your response for deeper analysis. It will be ready in 15 minutes. Please check your dashboard for the status.
+            </p>
+            
+            <button
+              onClick={handleDashboardClick}
+              className="px-6 py-3 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+            >
+              Dashboard
+            </button>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };
@@ -1286,6 +1340,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [upsellOpen, setUpsellOpen] = useState(false);
   const { userId, sessionId, testId } = useParams();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const metaTimerRef = useRef<number | null>(null);
@@ -1369,43 +1424,10 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       toast.error('Sign-in failed. Please try again.');
     }
   };
-
-  // const handlePayment = async () => {
-    
-  //   if (!user?.id) {
-  //     toast.error('Please sign in first');
-  //     return;
-  //   }
-    
-  //   setPaymentLoading(true);
-  //   try {
-  //     console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
-  //     const paymentResult = await PaymentService.startPayment(sessionId!, testId!);
-  //     if (paymentResult.success) {
-  //       toast.success('Payment successful!');
-  //       setPaymentSuccess(true);
-  //     } else {
-  //       toast.error(paymentResult.error || 'Payment failed.');
-  //     }
-  //   } catch (error) {
-  //     toast.error('Payment failed. Please try again.');
-  //   } finally {
-  //     setPaymentLoading(false);
-  //   }
-    
-    
-  //   // setPaymentLoading(true);
-  //   // setTimeout(() => {
-  //   //   setPaymentLoading(false);
-  //   //   toast.success('Mock payment successful!');
-  //   // }, 2000);
-  // };
-
-  // Extract data from mock result
   
   const handlePayment = async (): Promise<void> => {
     if (!user?.id) {
-      toast.error('Please sign in first');
+      toast.error('Please save your analysis first');
       return;
     }
     
@@ -1417,17 +1439,18 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     
     setPaymentLoading(true);
     try {
-      console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
+      // console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
       
       const paymentResult = await PaymentService.startPayment(sessionId, testId);
       
       if (paymentResult.success) {
         toast.success('Payment successful!');
         setPaymentSuccess(true);
+        setShowSuccessPopup(true);
         setUpsellOpen(false); // Close the modal on success
       } else {
         const errorMessage = paymentResult.error || 'Payment failed.';
-        console.error('Payment failed:', errorMessage);
+        // console.error('Payment failed:', errorMessage);
         toast.error(errorMessage);
       }
     } catch (error: any) {
@@ -1450,6 +1473,10 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     } finally {
       setPaymentLoading(false);
     }
+  };
+
+  const handleCloseSuccessPopup = () => {
+    setShowSuccessPopup(false);
   };
 
   useEffect(() => {
@@ -1642,7 +1669,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                   <>
                     <div className="text-left">
                       <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2">{mindCard.name}</div>
-                      <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.description}</div>
+                      <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.personality}</div>
                     </div>
                     <div className="overflow-x-auto">
                       <div  className="flex gap-4 pb-4" style={{ width: "max-content" }}>
@@ -1926,47 +1953,6 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             )}
     
             {/* Books Section */}
-            {/* <SectionFrame 
-              id="books" 
-              title="Books You'd Love If You Give Them a Chance" 
-              sub="3 high-yield picks" 
-              shareText={books.map((b) => `${b.title} — ${b.author}`).join("\n")}
-              inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
-              buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-              themeKey="books" 
-              customClass="pt-12 pb-12"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <div className="overflow-x-auto">
-                <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
-                  {books.map((book, i) => {
-                    const backgrounds = ["#41D9FF", "#0C45F0", "#41D9FF"];
-                    
-                    return (
-                      <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
-                        <div 
-                          className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] flex items-center justify-center"
-                          style={{ backgroundColor: backgrounds[i] }}
-                        >
-                          <BookOpen className="h-20 w-20 text-white" />
-                        </div>
-                        
-                        <div className="w-36 text-center">
-                          <div className="text-neutral-950 text-lg font-bold font-['Inter'] leading-normal">
-                            {book.title}
-                          </div>
-                          <div className="text-gray-500 text-lg font-normal font-['Inter'] leading-normal">
-                            {book.author}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </SectionFrame> */}
-            {/* Books Section */}
             <SectionFrame 
               id="books" 
               title="Books You'd Love If You Give Them a Chance" 
@@ -1985,7 +1971,12 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                     const backgrounds = ["#41D9FF", "#0C45F0", "#41D9FF"];
                     
                     return (
-                      <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
+                      <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0"
+                      onClick={() => {
+                          console.log('Book clicked:', book); // Add this for debugging
+                          setSelectedBook(book);
+                          setBookModalOpen(true);
+                        }}>
                         {/* Book Card */}
                         <div 
                           className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] flex items-center justify-center"
@@ -2084,6 +2075,12 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               paymentLoading={paymentLoading}
             />
           )}
+
+          <PaymentSuccessPopup
+            open={showSuccessPopup}
+            onClose={handleCloseSuccessPopup}
+            userId={userId}
+          />
 
           <InsightModal 
             insight={selectedInsight}
