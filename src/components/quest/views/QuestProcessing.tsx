@@ -5,6 +5,7 @@
 // import QuestLayout from '../layout/QuestLayout';
 // import { useQuest } from '../core/useQuest';
 // import { useAuth } from '../../../contexts/AuthContext';
+// import gif from '../../../../public/analysis.gif'
 
 // // Psychological facts to display during processing
 // const psychologicalFacts = [
@@ -30,9 +31,10 @@
 
 // export interface QuestProcessingProps {
 //   className?: string;
+//   gifSrc?: string; // Optional prop to customize the GIF source
 // }
 
-// export function QuestProcessing({ className = '' }: QuestProcessingProps) {
+// export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: QuestProcessingProps) {
 //   const navigate = useNavigate();
 //   const { user } = useAuth();
 //   const { session } = useQuest();
@@ -59,59 +61,88 @@
 //   const testid = params.testid || localStorage.getItem('testid');
 
 //   useEffect(() => {
-//       const factInterval = setInterval(() => {
-//         setFactIndex(prevIndex => (prevIndex + 1) % psychologicalFacts.length);
-//       }, 8000);
-  
-//       return () => clearInterval(factInterval);
-//     }, []);
+//     const factInterval = setInterval(() => {
+//       setFactIndex(prevIndex => (prevIndex + 1) % psychologicalFacts.length);
+//     }, 8000);
+
+//     return () => clearInterval(factInterval);
+//   }, []);
 
 //   return (
-//     <div className='h-screen bg-[#004A7F] max-w-screen overflow-hidden'>
+//     <div className='h-screen relative overflow-hidden'>
+//       {/* GIF Background */}
+//       <img 
+//         src={gifSrc}
+//         className="absolute inset-0 w-full h-full object-cover z-0"
+//         alt="Processing animation background"
+//         style={{ pointerEvents: 'none' }}
+//       />
+      
+//       {/* Dark overlay for better text readability */}
+//       <div className="absolute inset-0" />
+
+//       {/* Main Content Overlay */}
 //       <motion.div
 //         initial={{ opacity: 0 }}
 //         animate={{ opacity: 1 }}
-//         className="flex flex-col items-center justify-center text-center h-screen relative z-20"
+//         className="flex flex-col items-center justify-center text-center h-screen relative"
 //       >
-//         <div className='absolute flex flex-col items-center justify-center w-full top-14'>
-//           <div className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
+//         {/* QUEST Logo Section */}
+//         {/* <div className='absolute flex flex-col items-center justify-center w-full top-14'>
+//           <div 
+//             className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem] text-white'
+//             style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.7)' }}
+//           >
 //             QUEST
 //           </div>
-//           <div className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px]'>
+//           <div 
+//             className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px] text-white'
+//             style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.7)' }}
+//           >
 //             BY FRATERNY
 //           </div>
-//         </div>
+//         </div> */}
 
-//         <div className="h-44 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg m-2 p-6 mb-8 border border-gray-100">
-//         <AnimatePresence mode="wait">
-//           <motion.p
-//             key={factIndex}
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             exit={{ opacity: 0, y: -20 }}
-//             transition={{ duration: 0.5 }}
-//             className="text-2xl text-navy font-light italic font-['Gilroy-Light']"
-//           >
-//             "{psychologicalFacts[factIndex]}"
-//           </motion.p>
-//         </AnimatePresence>
-//         </div>
+//         {/* Psychological Facts Box */}
+//         {/* <div className="absolute top-96 h-44 flex items-center justify-center backdrop-blur-md bg-black/40 rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
+//           <AnimatePresence mode="wait">
+//             <motion.p
+//               key={factIndex}
+//               initial={{ opacity: 0, y: 20 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: -20 }}
+//               transition={{ duration: 0.5 }}
+//               className="text-2xl text-white font-light italic font-['Gilroy-Light']"
+//               style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+//             >
+//               "{psychologicalFacts[factIndex]}"
+//             </motion.p>
+//           </AnimatePresence>
+//         </div> */}
         
-//         <p className="text-white text-3xl font-['Gilroy-Bold'] tracking-tighter">
+//         {/* Processing Message */}
+//         <p 
+//           className="text-black text-3xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
+//           style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
+//         >
 //           Please wait while we process your responses...
 //         </p>
+//         {/* <div className=" h-40 flex items-center justify-center backdrop-blur-md bg-[#0ea5e9] rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
+//           <AnimatePresence mode="wait">
+//             <motion.p
+//               key={factIndex}
+//               initial={{ opacity: 0, y: 20 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: -20 }}
+//               transition={{ duration: 0.5 }}
+//               className="text-2xl text-white font-light italic font-['Gilroy-Light']"
+//               style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+//             >
+//               "{psychologicalFacts[factIndex]}"
+//             </motion.p>
+//           </AnimatePresence>
+//         </div> */}
 //       </motion.div>
-
-//       <motion.div
-//         initial={{ opacity: 0, scale: 0.8 }}
-//         animate={{ opacity: 1, scale: 1 }}
-//         transition={{ duration: 0.8 }}
-//         className='absolute z-10 w-screen h-[554px] bg-radial from-10% from-[#48B9D8] via-80% to-40% via-[#41D9FF] to-[#0C45F0] flex top-5 rounded-full blur-[80px]'
-//         style={{
-//           background: 'radial-gradient(50% 50% at 50% 50%, #0C45F0 0%, #41D9FF 50.96%, #48B9D8 100%)',
-//           backdropFilter: 'blur(180px)',
-//         }}
-//       />
 //     </div> 
 //   );
 // }
@@ -119,16 +150,8 @@
 // export default QuestProcessing;
 
 
-
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
-import QuestLayout from '../layout/QuestLayout';
-import { useQuest } from '../core/useQuest';
-import { useAuth } from '../../../contexts/AuthContext';
-import gif from '../../../../public/analysis.gif'
 
 // Psychological facts to display during processing
 const psychologicalFacts = [
@@ -152,23 +175,59 @@ const psychologicalFacts = [
   "The 'psychological immune system' helps you rationalize and recover from negative events.",
 ];
 
+const PsychologicalFactsCards = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => prev + 1);
+    }, 4000); // 4 seconds like testimonials
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (currentIndex === psychologicalFacts.length) {
+      // Reset to 0 after the transition completes
+      const timeout = setTimeout(() => {
+        setCurrentIndex(0);
+      }, 1000); // Wait for the 1s transition to complete
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex]);
+
+  return (
+    <div className="relative overflow-hidden w-full">
+      <div 
+        className="flex transition-transform duration-1000 ease-in-out"
+        style={{
+          transform: `translateX(calc(-${currentIndex * 100}% - ${currentIndex * 16}px))`
+        }}
+      >
+        {[...psychologicalFacts, ...psychologicalFacts].map((fact, index) => (
+          <div
+            key={index}
+            className="w-full h-auto relative bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 rounded-xl border-2 border-blue-400 overflow-hidden flex-shrink-0 mr-4"
+          >
+            <div className="flex items-center justify-center h-full p-1">
+              <p className="text-white text-2xl font-normal font-['Gilroy-Regular'] text-center leading-snug">
+                "{fact}"
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export interface QuestProcessingProps {
   className?: string;
   gifSrc?: string; // Optional prop to customize the GIF source
 }
 
 export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: QuestProcessingProps) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { session } = useQuest();
-  
-  // Get all parameters from URL
-  const params = useParams<{ 
-    sessionId?: string; 
-    userId?: string; 
-    testid?: string; 
-  }>();
-  
   const [factIndex, setFactIndex] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimedOut, setIsTimedOut] = useState(false);
@@ -178,10 +237,10 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
   const [pollCount, setPollCount] = useState(0);
   const [resultStatus, setResultStatus] = useState<'processing' | 'ready' | 'error'>('processing');
 
-  // Get sessionId, userId, and testid from various sources
-  const sessionId = params.sessionId || session?.id || localStorage.getItem('questSessionId');
-  const userId = params.userId || user?.id || 'anonymous';
-  const testid = params.testid || localStorage.getItem('testid');
+  // Mock session data for demo
+  const sessionId = 'demo-session';
+  const userId = 'demo-user';
+  const testid = 'demo-test';
 
   useEffect(() => {
     const factInterval = setInterval(() => {
@@ -203,68 +262,23 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis.gif' }: Qu
       
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0" />
+      {/* Card-by-Card Sliding Facts */}
+      <div className="absolute bottom-36 w-full">
+        <PsychologicalFactsCards />
+      </div>
 
-      {/* Main Content Overlay */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center text-center h-screen relative"
+        className="absolute bottom-10 flex justify-center items-center w-full"
       >
-        {/* QUEST Logo Section */}
-        {/* <div className='absolute flex flex-col items-center justify-center w-full top-14'>
-          <div 
-            className='text-7xl font-normal font-["Gilroy-Bold"] tracking-[-0.5rem] text-white'
-            style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.7)' }}
-          >
-            QUEST
-          </div>
-          <div 
-            className='text-lg font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-5 mt-[-8px] text-white'
-            style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.7)' }}
-          >
-            BY FRATERNY
-          </div>
-        </div> */}
-
-        {/* Psychological Facts Box */}
-        {/* <div className="absolute top-96 h-44 flex items-center justify-center backdrop-blur-md bg-black/40 rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={factIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl text-white font-light italic font-['Gilroy-Light']"
-              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
-            >
-              "{psychologicalFacts[factIndex]}"
-            </motion.p>
-          </AnimatePresence>
-        </div> */}
-        
         {/* Processing Message */}
         <p 
-          className="text-black text-3xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
+          className="text-black text-2xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
           style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
         >
-          Please wait while we process your responses...
+          Please wait..
         </p>
-        {/* <div className=" h-40 flex items-center justify-center backdrop-blur-md bg-[#0ea5e9] rounded-lg m-2 p-6 mb-8 border border-white/20 shadow-2xl">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={factIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl text-white font-light italic font-['Gilroy-Light']"
-              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
-            >
-              "{psychologicalFacts[factIndex]}"
-            </motion.p>
-          </AnimatePresence>
-        </div> */}
       </motion.div>
     </div> 
   );
