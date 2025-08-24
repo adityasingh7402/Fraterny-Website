@@ -10,8 +10,11 @@ import Navigation from '@/components/Navigation';
 import { useParams } from 'react-router-dom';
 
 // Lazy-load other quest-related components
-const QuestProcessing = lazy(() => import('../../components/quest/views/QuestProcessing'));
-const QuestResult = lazy(() => import('../../components/quest/views/QuestResult'));
+// const QuestProcessing = lazy(() => import('../../components/quest/views/QuestProcessing'));
+// const QuestResult = lazy(() => import('../../components/quest/views/QuestResult'));
+
+import QuestProcessing from '../../components/quest/views/QuestProcessing';
+import QuestResult from '../../components/quest/views/QuestResult';
 
 // Create a simple loading component for quest routes
 // const QuestLoading = () => (
@@ -60,9 +63,7 @@ const QuestResultRoute: React.FC = () => {
       <Route
         path="result/:userId/:sessionId/:testId"
         element={
-          <Suspense fallback={null}>
-            <QuestResult />
-          </Suspense>
+          <QuestResult />
         } 
       />
       

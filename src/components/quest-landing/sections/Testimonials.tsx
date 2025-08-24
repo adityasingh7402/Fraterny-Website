@@ -153,13 +153,13 @@ const testimonials: Testimonial[] = [
   {
     id: 3,
     text: "Astrology section made me question everything I was doing",
-    tag: "Mind",
+    tag: "Scary",
     color: "green"
   },
   {
     id: 4,
     text: "The premium report felt like someone wrote a research report on me. I have never felt so seen",
-    tag: "Brain-map",
+    tag: "Psychic",
     color: "orange"
   },
   {
@@ -236,7 +236,7 @@ useEffect(() => {
             return (
               <div
                 key={`${testimonial.id}-${index}`}
-                className={`w-full mr-4 h-96 relative ${colorClasses.bg} rounded-xl border-2 ${colorClasses.border} overflow-hidden flex-shrink-0`}
+                className={`w-full mr-4 h-auto pb-8 relative ${colorClasses.bg} rounded-xl border-2 ${colorClasses.border} overflow-hidden flex-shrink-0`}
               >
                 <p className={`pl-5 pt-2 ${colorClasses.text} text-7xl font-normal font-['Gilroy-MediumItalic']`}>"</p>
 
@@ -246,7 +246,7 @@ useEffect(() => {
 
                 <div className=' flex justify-between pl-5 pr-1 pt-2'>
                   <div className='pr-4 pt-5'>
-                    <div className={`${colorClasses.text} justify-end items-end text-5xl font-normal font-['Gilroy-Bold'] tracking-tighter`}>
+                    <div className={`${colorClasses.text} justify-end items-end text-5xl font-normal font-['Gilroy-Bold'] tracking-[-5px]`}>
                       {testimonial.tag}
                     </div>
                     <div className="flex justify-start text-neutral-500 text-sm font-normal font-['Gilroy-Regular']">
