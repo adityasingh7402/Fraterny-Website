@@ -371,7 +371,7 @@ const formatTime = (s: number): string => {
 };
 
 const validateResultData = (data: any): ResultData => {
-  console.log('🔍 Validating result data:', data);
+  // console.log('🔍 Validating result data:', data);
   
   // Handle both cases where Mind Card might be missing or have different property names
   const mindCardData = data.results?.["Mind Card"];
@@ -418,7 +418,7 @@ const validateResultData = (data: any): ResultData => {
     }
   };
   
-  console.log('✅ Validated result data:', validated);
+  // console.log('✅ Validated result data:', validated);
   return validated;
 };
 
@@ -534,21 +534,45 @@ const sendFeedback = async () => {
     if (reacted === "up") reaction = "like";
     if (reacted === "down") reaction = "dislike";
     
-    console.log("Sending feedback:", { sessionId, testId, reaction, feedback, sectionId });
+    console.log("Sending feedback:", { sessionId, testId, feedback, sectionId });
     
-    await axios.post('https://api.fraterny.in/api/quest/feedback', {
+    const reactions = await axios.post('https://api.fraterny.in/api/quest/feedback', {
       sessionId,
       testId,
       reaction,
       feedback,
       sectionId: sectionId
     });
-    
+
+    console.log("Feedback response:", reactions);
     toast.success("Thank you for the feedback");
   } catch (error) {
     toast.error("Failed to send feedback");
   }
 };
+
+
+const sendReaction = async (reactionType: "like" | "dislike") => {
+  console.log("sendReaction called with:", { sessionId, testId, sectionId, reactionType });
+  
+  try {
+    console.log("Sending reaction:", { sessionId, testId, reactionType, sectionId });
+
+    const res = await axios.post('https://api.fraterny.in/api/quest/like_feedback', {
+      sessionId,
+      testId,
+      reaction: reactionType,
+      sectionId: sectionId
+    });
+    console.log("Reaction response:", res);
+    toast.success("Reaction recorded");
+  } catch (error) {
+    console.error("Failed to send reaction:", error);
+    toast.error("Failed to record reaction");
+  }
+};
+
+
 
   const onShare = async () => {
     const ok = await shareText(title, share);
@@ -580,7 +604,13 @@ const sendFeedback = async () => {
 
           <div className="flex items-center gap-2">
           <motion.button
-            onClick={() => setReacted(reacted === "up" ? null : "up")}
+            onClick={() => {
+              const newReaction = reacted === "up" ? null : "up";
+              setReacted(newReaction);
+              if (newReaction === "up") {
+                sendReaction("like");
+              }
+            }}
             className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
             style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
             whileHover={{ scale: 1.05 }}
@@ -634,7 +664,13 @@ const sendFeedback = async () => {
           </motion.button>
 
           <motion.button
-            onClick={() => setReacted(reacted === "down" ? null : "down")}
+            onClick={() => {
+              const newReaction = reacted === "down" ? null : "down";
+              setReacted(newReaction);
+              if (newReaction === "down") {
+                sendReaction("dislike");
+              }
+            }}
             className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
             style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
             whileHover={{ scale: 1.05 }}
@@ -1479,16 +1515,16 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     setShowSuccessPopup(false);
   };
 
-  useEffect(() => {
-  console.log('Payment flow state:', {
-    user: user?.id,
-    sessionId,
-    testId,
-    paymentLoading,
-    paymentSuccess,
-    upsellOpen
-  });
-}, [user?.id, sessionId, testId, paymentLoading, paymentSuccess, upsellOpen]);
+//   useEffect(() => {
+//   console.log('Payment flow state:', {
+//     user: user?.id,
+//     sessionId,
+//     testId,
+//     paymentLoading,
+//     paymentSuccess,
+//     upsellOpen
+//   });
+// }, [user?.id, sessionId, testId, paymentLoading, paymentSuccess, upsellOpen]);
 
 
 
@@ -1503,7 +1539,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             headers: { 'Content-Type': 'application/json' },
           }
         );
-        console.log('API response:', response.data);
+        // console.log('API response:', response.data);
         
         const analysisData = response.data;
         if (typeof analysisData.results === 'string') {

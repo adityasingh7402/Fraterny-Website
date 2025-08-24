@@ -19,8 +19,7 @@ interface DashboardTest {
   sessionid: string;
   testtaken: string;
   ispaymentdone: "success" | null;
-  pdflink: string;
-  quest_pdf: string | null;
+  quest_pdf: string;
   quest_status: "generated" | "working";
 }
 
@@ -45,8 +44,7 @@ const MOCK_DATA: DashboardTest[] = [
     sessionid: "session_1752577737404",
     testtaken: "2025-07-15T11:08:57.404Z",
     ispaymentdone: 'success',
-    pdflink: "https://api.fraterny.in/api/report/session_1752577737404/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/bae03e2a81ef518a232cd95800708b60bd1cfea9",
-    quest_pdf: "working",
+    quest_pdf: "https://api.fraterny.in/api/report/session_1752577737404/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/bae03e2a81ef518a232cd95800708b60bd1cfea9",
     quest_status: "working"
   },
   {
@@ -55,8 +53,7 @@ const MOCK_DATA: DashboardTest[] = [
     sessionid: "e4aef47f-2359-4f8b-93ea-efc5dfd49f2a",
     testtaken: "2025-07-11T12:24:58.654Z",
     ispaymentdone: 'success',
-    pdflink: "https://api.fraterny.in/api/report/e4aef47f-2359-4f8b-93ea-efc5dfd49f2a/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/34545jljerkldsjrw35-3454e",
-    quest_pdf: "working",
+    quest_pdf: "https://api.fraterny.in/api/report/e4aef47f-2359-4f8b-93ea-efc5dfd49f2a/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/34545jljerkldsjrw35-3454e",
     quest_status: "working"
   },
   {
@@ -65,8 +62,7 @@ const MOCK_DATA: DashboardTest[] = [
     sessionid: "session_1752236698654",
     testtaken: "2025-07-11T12:24:58.654Z",
     ispaymentdone: null,
-    pdflink: "https://api.fraterny.in/api/report/session_1752236698654/fedf723f-dcb0-4806-b84e-1590dfef4f76/bbadf5ce-2eb4-4f9c-8f96-9e4b9fd0e10a",
-    quest_pdf: "generated",
+    quest_pdf: "https://api.fraterny.in/api/report/session_1752236698654/fedf723f-dcb0-4806-b84e-1590dfef4f76/bbadf5ce-2eb4-4f9c-8f96-9e4b9fd0e10a",
     quest_status: "generated"
   },
   {
@@ -75,8 +71,7 @@ const MOCK_DATA: DashboardTest[] = [
     sessionid: "session_1753961797982",
     testtaken: "2025-07-31T11:36:50.561Z",
     ispaymentdone: 'success',
-    pdflink: "https://api.fraterny.in/api/report/session_1753961797982/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/9d5602bd6a3f05b9e00900793e0d315d436f4ed7",
-    quest_pdf: "generated",
+    quest_pdf: "https://api.fraterny.in/api/report/session_1753961797982/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/9d5602bd6a3f05b9e00900793e0d315d436f4ed7",
     quest_status: "generated"
   },
   {
@@ -85,8 +80,7 @@ const MOCK_DATA: DashboardTest[] = [
     sessionid: "session_1753962293131",
     testtaken: "2025-07-31T11:45:17.168Z",
     ispaymentdone: null,
-    pdflink: "https://api.fraterny.in/api/report/session_1753962293131/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/c8a27db647f5c8742b8d5d70aa9cedb3f00a7b09",
-    quest_pdf: "generated",
+    quest_pdf: "https://api.fraterny.in/api/report/session_1753962293131/9bba4c19-c22b-4c83-9b60-bfc81a2695fe/c8a27db647f5c8742b8d5d70aa9cedb3f00a7b09",
     quest_status: "working"
   }
 ];
@@ -140,6 +134,15 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // Send email via backend API
   const sendReportEmail = async (testData: DashboardTest): Promise<EmailApiResponse> => {
     try {
+      console.log( {
+          user_name: user?.user_metadata?.first_name || 'User',
+          user_email: user?.email || 'one@gmail.com',
+          test_date: formatDate(testData.testtaken),
+          session_id: testData.sessionid,
+          pdf_link: testData.quest_pdf,
+          user_id: testData.userid,
+          test_id: testData.testid
+        })
       const response = await axios.post<EmailApiResponse>(
         'https://api.fraterny.in/send-report-email', // Your backend endpoint
         {
@@ -147,7 +150,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           user_email: user?.email || 'one@gmail.com',
           test_date: formatDate(testData.testtaken),
           session_id: testData.sessionid,
-          pdf_link: testData.pdflink,
+          pdf_link: testData.quest_pdf,
           user_id: testData.userid,
           test_id: testData.testid
         },
@@ -284,47 +287,107 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   };
 
   // Updated handlePaidReport function with backend email API
-  const handlePaidReport = async (testData: DashboardTest) => {
+  // const handlePaidReport = async (testData: DashboardTest) => {
 
-     if (testData.ispaymentdone === "success" && testData.quest_pdf === "generated") {
-      window.open(testData.pdflink, '_blank');
+  //    if (testData.ispaymentdone === "success" && testData.quest_pdf === "generated") {
+  //     window.open(testData.quest_pdf, '_blank');
+  //     toast.success('Opening your PDF report!');
+  //     return;
+  //   }
+
+
+  //   // If payment is already done, send email with PDF via backend API
+  //   if (testData.ispaymentdone === "success") {
+  //     try {
+  //       setEmailLoading(testData.sessionid);
+        
+  //       // Show immediate feedback
+  //       toast.info('Sending your report email...', {
+  //         duration: 2000
+  //       });
+        
+  //       const emailResult = await sendReportEmail(testData);
+  //       console.log('Email result:', emailResult);
+
+  //       if (emailResult.success) {
+  //         toast.success('Professional email sent successfully with your report link!', {
+  //           duration: 5000
+  //         });
+  //       } else {
+  //         toast.error(`Failed to send email: ${emailResult.error}`, {
+  //           duration: 6000
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('Email sending error:', error);
+  //       toast.error('Failed to send email. Please try again.');
+  //     } finally {
+  //       setEmailLoading(null);
+  //     }
+  //     return;
+  //   }
+
+  //   // User is authenticated (guaranteed in sidebar), proceed with payment
+  //   try {
+  //     setPaymentLoading(testData.sessionid);
+      
+  //     const paymentResult = await PaymentService.startPayment(
+  //       testData.sessionid, 
+  //       testData.testid
+  //     );
+      
+  //     if (paymentResult.success) {
+  //       toast.success('Payment successful!');
+  //       // Refresh data to show updated payment status
+  //       const updatedData = await fetchUpdatedDashboardData();
+  //       if (updatedData) {
+  //         setData(updatedData);
+  //       }
+  //     } else {
+  //       toast.error(paymentResult.error || 'Payment failed');
+  //     }
+      
+  //   } catch (error) {
+  //     toast.error('Payment failed. Please try again.');
+  //   } finally {
+  //     setPaymentLoading(null);
+  //   }
+  // };
+
+  // Updated handlePaidReport function with direct PDF download
+const handlePaidReport = async (testData: DashboardTest) => {
+  // If payment is done and PDF is ready, download directly
+  if (testData.ispaymentdone === "success" && testData.quest_status === "generated") {
+    try {
+      // Create a temporary link element to trigger download
+      const link = document.createElement('a');
+      link.href = testData.quest_pdf;
+      link.download = `Quest-Report-${formatDate(testData.testtaken)}.pdf`;
+      link.target = '_blank';
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Downloading your PDF report!');
+    } catch (error) {
+      console.error('PDF download error:', error);
+      // Fallback to opening in new tab
+      window.open(testData.quest_pdf, '_blank');
       toast.success('Opening your PDF report!');
-      return;
     }
+    return;
+  }
 
+  // If payment is done but PDF still generating, show appropriate message
+  if (testData.ispaymentdone === "success" && testData.quest_status === "working") {
+    toast.info('Your PDF is still being generated. Please check back in 15 minutes.');
+    return;
+  }
 
-    // If payment is already done, send email with PDF via backend API
-    if (testData.ispaymentdone === "success") {
-      try {
-        setEmailLoading(testData.sessionid);
-        
-        // Show immediate feedback
-        toast.info('Sending your report email...', {
-          duration: 2000
-        });
-        
-        const emailResult = await sendReportEmail(testData);
-        console.log('Email result:', emailResult);
-
-        if (emailResult.success) {
-          toast.success('Professional email sent successfully with your report link!', {
-            duration: 5000
-          });
-        } else {
-          toast.error(`Failed to send email: ${emailResult.error}`, {
-            duration: 6000
-          });
-        }
-      } catch (error) {
-        console.error('Email sending error:', error);
-        toast.error('Failed to send email. Please try again.');
-      } finally {
-        setEmailLoading(null);
-      }
-      return;
-    }
-
-    // User is authenticated (guaranteed in sidebar), proceed with payment
+  // If payment not done, proceed with payment flow
+  if (testData.ispaymentdone !== "success") {
     try {
       setPaymentLoading(testData.sessionid);
       
@@ -349,7 +412,14 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     } finally {
       setPaymentLoading(null);
     }
-  };
+    return;
+  }
+
+  // Fallback for any other case
+  toast.error('Unable to process request. Please try again.');
+};
+
+
 
   // Loading state
   if (loading) {

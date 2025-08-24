@@ -51,9 +51,9 @@ const ProfilePage = lazy(() => import('./pages/profile'));
 // QUEST ROUTE - Lazy loaded with optimized loading
 const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
 
-const QuestResultRoute = lazy(() => import('./pages/quest-page/QuestResultRoute'));
+import QuestResultRoute from './pages/quest-page/QuestResultRoute';
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
-const QuestLandingPage = lazy(() => import('./pages/quest-landing-page'));
+import QuestLandingPage from './pages/quest-landing-page';
 const QuestDashboard = lazy(() => import('../src/components/quest/views/questdashboard/QuestDashboard'));
 const QuestPaidFeedback = lazy(() => import('./components/quest/views/QuestPaidFeedback'));
 
@@ -158,7 +158,7 @@ const router = createBrowserRouter([
       { path: 'quest-dashboard/:userId', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },
       // RESULTS DEMO
       { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
-      { path: 'quest-result/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<QuestResult />) },
+      // { path: 'quest-result/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<QuestResult />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
