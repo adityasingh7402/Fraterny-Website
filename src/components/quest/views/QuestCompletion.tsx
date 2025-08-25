@@ -487,7 +487,7 @@ import { useQuest } from '../core/useQuest';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import QuestProcessing from './QuestProcessing';
-import analysisGif from '../../../../public/analysis.gif'
+import analysisGif from '../../../../public/analysis1.gif'
 
 const psychologicalFacts = [
   "The average person has 12,000 to 60,000 thoughts per day, and many of them are repetitive.",
