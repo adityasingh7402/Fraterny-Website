@@ -545,9 +545,13 @@ const sendFeedback = async () => {
     });
 
     console.log("Feedback response:", reactions);
-    toast.success("Thank you for the feedback");
+    toast.success("Thank you for the feedback",{
+      position: "top-right"
+    });
   } catch (error) {
-    toast.error("Failed to send feedback");
+    toast.error("Failed to send feedback",{
+      position: "top-right"
+    });
   }
 };
 
@@ -565,10 +569,14 @@ const sendReaction = async (reactionType: "like" | "dislike") => {
       sectionId: sectionId
     });
     console.log("Reaction response:", res);
-    toast.success("Reaction recorded");
+    toast.success("Reaction recorded", {
+      position: "top-right"
+    });
   } catch (error) {
     console.error("Failed to send reaction:", error);
-    toast.error("Failed to record reaction");
+    toast.error("Failed to record reaction", {
+      position: "top-right"
+    });
   }
 };
 
@@ -1454,21 +1462,29 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
-      toast.success('Successfully signed in!');
+      toast.success('Successfully signed in!', {
+        position: "top-right"
+      });
     } catch (error) {
       console.error('Sign-in error:', error);
-      toast.error('Sign-in failed. Please try again.');
+      toast.error('Sign-in failed. Please try again.', {
+        position: "top-right"
+      });
     }
   };
   
   const handlePayment = async (): Promise<void> => {
     if (!user?.id) {
-      toast.error('Please save your analysis first');
+      toast.error('Please save your analysis first',{
+      position: "top-right"
+    });
       return;
     }
     
     if (!sessionId || !testId) {
-      toast.error('Missing session information. Please try again.');
+      toast.error('Missing session information. Please try again.', {
+        position: "top-right"
+      });
       console.error('Missing URL parameters:', { sessionId, testId });
       return;
     }
@@ -1487,7 +1503,9 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       } else {
         const errorMessage = paymentResult.error || 'Payment failed.';
         // console.error('Payment failed:', errorMessage);
-        toast.error(errorMessage);
+        toast.error(errorMessage, {
+      position: "top-right"
+    });
       }
     } catch (error: any) {
       console.error('Payment error:', error);
@@ -1505,7 +1523,9 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         }
       }
       
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+       position: "top-right"
+     });
     } finally {
       setPaymentLoading(false);
     }
