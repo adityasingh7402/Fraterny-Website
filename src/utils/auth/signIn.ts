@@ -26,22 +26,48 @@ export const signIn = async (email: string, password: string): Promise<{user: Us
   }
 };
 
+// export const signInWithGoogle = async () => {
+//   const currentUrl = window.location.href;
+//   const currentOrigin = window.location.origin;
+  
+//   // If current URL contains 'quest' or 'quest-result', redirect back to the same page
+//   // Otherwise, redirect to the origin
+//   const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') ? currentUrl : currentOrigin;
+
+//   console.log('Current URL:', currentUrl);
+//   console.log('Using redirect URL:', redirectUrl);
+//   const cleanUrl = window.location.origin + window.location.pathname;
+
+//   const { data, error } = await supabase.auth.signInWithOAuth({
+//     provider: 'google',
+//     options: {
+//       redirectTo: cleanUrl
+//     }
+//   });
+
+//   if (error) {
+//     console.error('Error signing in with Google:', error);
+//     throw error;
+//   }
+  
+//   return data;
+// };
+
 export const signInWithGoogle = async () => {
   const currentUrl = window.location.href;
   const currentOrigin = window.location.origin;
-  
-  // If current URL contains 'quest' or 'quest-result', redirect back to the same page
-  // Otherwise, redirect to the origin
-  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') ? currentUrl : currentOrigin;
 
-  console.log('Current URL:', currentUrl);
-  console.log('Using redirect URL:', redirectUrl);
-  const cleanUrl = window.location.origin + window.location.pathname;
+  // Decide where to redirect
+  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result')
+    ? currentUrl
+    : currentOrigin;
+
+  console.log('Redirecting to:', redirectUrl);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: cleanUrl
+      redirectTo: redirectUrl  // 👈 use this instead of cleanUrl
     }
   });
 
@@ -49,6 +75,7 @@ export const signInWithGoogle = async () => {
     console.error('Error signing in with Google:', error);
     throw error;
   }
-  
+
   return data;
 };
+
