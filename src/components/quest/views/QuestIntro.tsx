@@ -217,7 +217,7 @@ const handleTermsChange = (checked: boolean) => {
         <div className=' pl-5 xs:pr-0 py-2'>
           <div className="justify-start text-white text-4xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you</div>
           <div className="justify-start text-white text-6xl font-bold font-['Gilroy-Bold'] mb-3">Analysed.</div>
-          <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">Self Introspection Test - 15 minutes. Detailed responses will achieve better results.</div>
+          <div className="w-full justify-start text-white text-xl font-normal font-['Gilroy-Regular'] mb-3">A 15 minute guided self-reflection. The more thoughtful your responses, the deeper the insights.</div>
           <label className='flex gap-2 mb-3 cursor-pointer'>
             {/* checkbox code from above */}
             <label className="relative inline-block w-5 h-5 cursor-pointer mt-1">
