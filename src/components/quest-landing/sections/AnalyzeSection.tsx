@@ -147,7 +147,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
           
           {/* Description */}
           <p className='pt-2' style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            I will decode your hidden
+            I'll make you introspect on your
           </p>
           
           {/* Pills */}
@@ -157,7 +157,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             animate="visible"
             className='flex flex-wrap gap-2 mt-[-5px]'
           >
-            {['Motivations', 'Ambitions', 'Patterns', 'Triggers', 'Fears'].map((item, i) => (
+            {['Motivations', 'Desires', 'Patterns', 'Triggers', 'Fears'].map((item, i) => (
               <div 
                 key={i}
                 className="px-4 py-2 font-normal font-['Gilroy-Bold'] rounded-full border-2 border-white bg-white/10 text-white tracking-[-1.5px]"
@@ -170,7 +170,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
           
           {/* Understanding text */}
           <p style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            So you'll finally understand
+            So that we can decode
           </p>
           
           {/* Questions list */}
@@ -181,10 +181,10 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             className='flex flex-col gap-6'
           >
             {[
-              'How you really think?',
-              "What's standing in your way?", 
+              'What makes you unique?',
+              "How to use your strengths?", 
               'How the world actually sees you?',
-              'What could truly change your life?'
+              'How to reach your ideal self?'
             ].map((question, i) => (
               <div key={i} className="relative flex items-center justify-between">
                 <p 
