@@ -108,7 +108,7 @@ const Hero: React.FC<HeroProps> = ({
             animate="visible"
             className='justify-start text-neutral-950 text-4xl font-normal font-["Gilroy-Regular"]'
           >
-            i can
+            I can
           </motion.div>
           <motion.div
             variants={animationVariants}
