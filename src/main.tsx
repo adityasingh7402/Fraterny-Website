@@ -28,11 +28,17 @@ const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 
 // LEGAL PAGES - Lazy load (rarely accessed)
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
-const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+// const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+// const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
+// const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+// const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+// const NotFound = lazy(() => import('./pages/NotFound'));
+
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import TermsAndConditions from './pages/TermsAndConditions';
+import RefundPolicy from './pages/RefundPolicy';
+import NotFound from './pages/NotFound';
 
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import QuestResult from './components/quest/views/QuestResult';
@@ -54,8 +60,8 @@ const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
 import QuestResultRoute from './pages/quest-page/QuestResultRoute';
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
 import QuestLandingPage from './pages/quest-landing-page';
-const QuestDashboard = lazy(() => import('../src/components/quest/views/questdashboard/QuestDashboard'));
-const QuestPaidFeedback = lazy(() => import('./components/quest/views/QuestPaidFeedback'));
+import QuestDashboard from './components/quest/views/questdashboard/QuestDashboard';
+import QuestPaidFeedback from './components/quest/views/QuestPaidFeedback';
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
@@ -154,18 +160,17 @@ const router = createBrowserRouter([
       // OTHER QUEST ROUTES - Lazy loaded with custom loading
       { path: 'quest-result/*', element: <QuestResultRoute /> },
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
-      { path: 'quest', element: <QuestLandingPage />},
-      { path: 'quest-dashboard/:userId', element: createSuspenseWrapper(QuestLoading)(<QuestDashboard />) },
+      { path: 'quest', element: <QuestLandingPage /> },
+      { path: 'quest-dashboard/:userId', element: <QuestDashboard /> },
       // RESULTS DEMO
       { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
-      // { path: 'quest-result/:userId/:sessionId/:testId', element: createSuspenseWrapper(LightLoading)(<QuestResult />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },
       { path: 'terms-of-use', element: <TermsOfUse /> },
-      { path: 'terms-and-conditions', element: createSuspenseWrapper()(<TermsAndConditions />) },
-      { path: 'refund-policy', element: createSuspenseWrapper()(<RefundPolicy />) },
+      { path: 'terms-and-conditions', element: <TermsAndConditions /> },
+      { path: 'refund-policy', element: <RefundPolicy /> },
       
       // PROFILE ROUTES - Protected and optimized loading
       {

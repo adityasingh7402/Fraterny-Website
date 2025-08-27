@@ -355,69 +355,69 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // };
 
   // Updated handlePaidReport function with direct PDF download
-const handlePaidReport = async (testData: DashboardTest) => {
-  // If payment is done and PDF is ready, download directly
-  if (testData.ispaymentdone === "success" && testData.quest_status === "generated") {
-    try {
-      // Create a temporary link element to trigger download
-      const link = document.createElement('a');
-      link.href = testData.quest_pdf;
-      link.download = `Quest-Report-${formatDate(testData.testtaken)}.pdf`;
-      link.target = '_blank';
-      
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Downloading your PDF report!');
-    } catch (error) {
-      console.error('PDF download error:', error);
-      // Fallback to opening in new tab
-      window.open(testData.quest_pdf, '_blank');
-      toast.success('Opening your PDF report!');
-    }
-    return;
-  }
-
-  // If payment is done but PDF still generating, show appropriate message
-  if (testData.ispaymentdone === "success" && testData.quest_status === "working") {
-    toast.info('Your PDF is still being generated. Please check back in 15 minutes.');
-    return;
-  }
-
-  // If payment not done, proceed with payment flow
-  if (testData.ispaymentdone !== "success") {
-    try {
-      setPaymentLoading(testData.sessionid);
-      
-      const paymentResult = await PaymentService.startPayment(
-        testData.sessionid, 
-        testData.testid
-      );
-      
-      if (paymentResult.success) {
-        toast.success('Payment successful!');
-        // Refresh data to show updated payment status
-        const updatedData = await fetchUpdatedDashboardData();
-        if (updatedData) {
-          setData(updatedData);
-        }
-      } else {
-        toast.error(paymentResult.error || 'Payment failed');
+  const handlePaidReport = async (testData: DashboardTest) => {
+    // If payment is done and PDF is ready, download directly
+    if (testData.ispaymentdone === "success" && testData.quest_status === "generated") {
+      try {
+        // Create a temporary link element to trigger download
+        const link = document.createElement('a');
+        link.href = testData.quest_pdf;
+        link.download = `Quest-Report-${formatDate(testData.testtaken)}.pdf`;
+        link.target = '_blank';
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success('Downloading your PDF report!');
+      } catch (error) {
+        console.error('PDF download error:', error);
+        // Fallback to opening in new tab
+        window.open(testData.quest_pdf, '_blank');
+        toast.success('Opening your PDF report!');
       }
-      
-    } catch (error) {
-      toast.error('Payment failed. Please try again.');
-    } finally {
-      setPaymentLoading(null);
+      return;
     }
-    return;
-  }
 
-  // Fallback for any other case
-  toast.error('Unable to process request. Please try again.');
-};
+    // If payment is done but PDF still generating, show appropriate message
+    if (testData.ispaymentdone === "success" && testData.quest_status === "working") {
+      toast.info('Your PDF is still being generated. Please check back in 15 minutes.');
+      return;
+    }
+
+    // If payment not done, proceed with payment flow
+    if (testData.ispaymentdone !== "success") {
+      try {
+        setPaymentLoading(testData.sessionid);
+        
+        const paymentResult = await PaymentService.startPayment(
+          testData.sessionid, 
+          testData.testid
+        );
+        
+        if (paymentResult.success) {
+          toast.success('Payment successful!');
+          // Refresh data to show updated payment status
+          const updatedData = await fetchUpdatedDashboardData();
+          if (updatedData) {
+            setData(updatedData);
+          }
+        } else {
+          toast.error(paymentResult.error || 'Payment failed');
+        }
+        
+      } catch (error) {
+        toast.error('Payment failed. Please try again.');
+      } finally {
+        setPaymentLoading(null);
+      }
+      return;
+    }
+
+    // Fallback for any other case
+    toast.error('Unable to process request. Please try again.');
+  };
 
 
 
