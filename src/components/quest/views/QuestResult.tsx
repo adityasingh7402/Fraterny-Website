@@ -1,4 +1,4 @@
-// // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // 'use client';
 
 // import React, { useEffect, useState, useRef } from "react";
@@ -3659,9 +3659,6 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
-      toast.success('Successfully signed in!', {
-        position: "top-right"
-      });
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Sign-in failed. Please try again.', {
@@ -3777,22 +3774,28 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         // console.log('API response:', response.data);
         
         const analysisData = response.data;
+        console.log('result from the backend:', analysisData)
         if (typeof analysisData.results === 'string') {
+        try {
+          console.log('Parsing results string...');
+          analysisData.results = JSON.parse(analysisData.results);
+          console.log('Successfully parsed results:', analysisData.results);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          // Try minimal cleaning for the typo
           try {
-            // Clean the JSON string before parsing
-            let cleanedResults = analysisData.results
-              .replace(/sixty-five/g, '65')  // Fix the specific issue
-              .replace(/:\s*([a-zA-Z-]+),/g, ': "$1",');  // Quote unquoted strings
-            
+            const cleanedResults = analysisData.results.replace('"personlity":', '"personality":');
             analysisData.results = JSON.parse(cleanedResults);
-          } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            // Fallback to empty results
+            console.log('Successfully parsed with typo fix');
+          } catch (finalError) {
+            console.error('Complete parsing failure:', finalError);
             analysisData.results = {};
           }
         }
+      }
         
         const validatedData = validateResultData(analysisData);
+        console.log('validated data:', validatedData)
         setResultData(validatedData);
         setIsLoading(false);
       } catch (axiosError: any) {
@@ -3815,11 +3818,36 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
 
   // Add this useEffect to update URL when user signs in
   useEffect(() => {
-    if (user?.id && userId === 'anonymous' && sessionId && testId) {
-      console.log('User authenticated, updating URL from anonymous to:', user.id);
-      const newUrl = `/quest-result/result/${user.id}/${sessionId}/${testId}`;
-      navigate(newUrl, { replace: true });
-    }
+    const associateDataAndNavigate = async () => {
+      if (user?.id && userId === 'anonymous' && sessionId && testId) {
+        console.log('User authenticated, updating URL from anonymous to:', user.id);
+        const userId = user?.id
+        try {
+          // Call API to associate anonymous data with authenticated user
+          await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+            sessionId,
+            testId,
+            userId
+          });
+          
+          // Show success toast
+          toast.success("Your result is saved now", {
+            position: "top-right"
+          });
+          
+        } catch (error) {
+          console.error('Failed to associate anonymous data:', error);
+          toast.error('Failed to save your result. Please try again.', {
+            position: "top-right"
+          });
+        }
+        
+        const newUrl = `/quest-result/result/${user.id}/${sessionId}/${testId}`;
+        navigate(newUrl, { replace: true });
+      }
+    };
+    
+    associateDataAndNavigate();
   }, [user?.id, userId, sessionId, testId, navigate]);
 
   useEffect(() => {
