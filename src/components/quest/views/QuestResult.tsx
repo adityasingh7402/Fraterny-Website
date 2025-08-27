@@ -2448,7 +2448,7 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 <X className="h-5 w-5" color={tokens.textDark} />
               </button>
               <div className="pb-2 pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
-                Download your 35+ page <span className="font-['Gilroy-Black']">Psychoanalysis PDF Report</span>
+                Download your 35+ page <span className="font-['Gilroy-Black']">Personalised PDF Report</span>
               </div>
               <div className="mb-3 text-[14px] font-['Gilroy-Regular']" style={{ color: tokens.muted }}> Powered by Fraterny’s advanced AI model </div>
               <ul className="grid gap-2 pb-3">
@@ -3214,7 +3214,7 @@ const PaymentSuccessMessage: React.FC<PaymentSuccessMessageProps> = ({ userId })
       <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-3" style={{ color: tokens.textDark }}>
         <div className="flex-1 pr-4">
           <div className="text-[12px] leading-4">
-            Our model is analyzing your response for deeper analysis. It will be ready in 15 minutes
+            I am analysing your responses to generate a detailed report. It will be ready in 15 minutes.
           </div>
         </div>
         <button
@@ -3543,7 +3543,7 @@ const PaymentSuccessPopup: React.FC<PaymentSuccessPopupProps> = ({ open, onClose
             </button>
             
             <p className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-6 pr-8">
-              We have received your payment. Our AI model is analyzing your response for deeper analysis. It will be ready in 15 minutes. Please check your dashboard for the status.
+              Payment Recieved. I'm performing an indepth analysis to generate your Personalised PDF. It will be ready in 15 minutes. Please check your dashboard for the latest status.
             </p>
             
             <button
@@ -4330,7 +4330,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <div className="rounded-2xl bg-white/10 p-4 text-[16px] leading-6">
                   <div className="font-[800] mb-2">{actionItem}</div>
-                  <div className="opacity-95 text-sm">Max 60 minutes • Public or private but logged • 1-line reflection afterward.</div>
+                  <div className="opacity-95 text-sm">One small step could change your direction forever.</div>
                 </div>
               </div>
             </SectionFrame>
