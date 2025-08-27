@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Psychological facts to display during processing
 const psychologicalFacts = [
-  "Most people aren’t avoiding the truth. They’re avoiding what the truth might change..",
+  "Most people aren’t avoiding the truth. They’re avoiding what the truth might change.",
   "The mind would rather stay in a familiar struggle than enter an unfamiliar peace.",
   "Sometimes the pain you avoid turns into the life you repeat.",
   "The brain is a prediction machine. Not a truth machine.",
   "People don't respond to what you say. They respond to how safe they feel when you say it.",
-  "Thers is a high chance you overestimate how much others notice about you.",
+  "There is a high chance you overestimate how much others notice about you.",
   "People don’t change from advice. They change from being understood.",
   "Rejection hurts because your brain processes it like physical pain.",
   "Labeling your emotions out loud (this is anxiety) helps calm your brain.",
@@ -29,7 +29,7 @@ const PsychologicalFactsCards = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => prev + 1);
-    }, 4000); // 4 seconds like testimonials
+    }, 8000); // 8 seconds for less percieved time
 
     return () => clearInterval(interval);
   }, []);
@@ -126,7 +126,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
           className="text-black text-2xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
 
         >
-          Analyzing..
+          Generating in 2-3 minutes
         </p>
       </motion.div>
     </div> 
