@@ -147,7 +147,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
           
           {/* Description */}
           <p className='pt-2' style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            I'll make you introspect on your
+            I'll guide you to reflect on your
           </p>
           
           {/* Pills */}
@@ -170,7 +170,7 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
           
           {/* Understanding text */}
           <p style={{ fontFamily: 'Gilroy-Regular', fontSize: '20px', fontWeight: 400 }}>
-            So that we can decode
+            So together, we can understand
           </p>
           
           {/* Questions list */}
@@ -181,10 +181,10 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             className='flex flex-col gap-6'
           >
             {[
-              'What makes you unique?',
-              "How to use your strengths?", 
-              'How the world actually sees you?',
-              'How to reach your ideal self?'
+              'What makes you unique',
+              "How to use your strengths", 
+              'How others truly see you',
+              'How to reach your ideal self'
             ].map((question, i) => (
               <div key={i} className="relative flex items-center justify-between">
                 <p 
