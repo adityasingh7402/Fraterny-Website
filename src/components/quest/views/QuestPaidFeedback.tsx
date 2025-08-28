@@ -75,7 +75,7 @@ const QuestPaidFeedback: React.FC = () => {
     //   });
 
       // use axios instead of fetch 
-      const response = await axios.post('https://api.fraterny.in/api/quest/paid/feedback', payload);
+      const response = await axios.post('https://api.fraterny.in/quest-paid-feedback/', payload);
 
       if (response.status !== 200) {
         throw new Error('Failed to submit feedback');
