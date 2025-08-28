@@ -136,26 +136,30 @@
   animation: fade-in 0.5s ease-out;
 }
 
-
-/* Mobile scroll fixes */
-body {
-  overscroll-behavior: none;
+.scroll-container {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
-/* Prevent iOS Safari bounce */
-html, body {
-  width: 100%;
-  min-height: 100%;
-  /* Remove position: fixed and overflow: hidden */
+
+/* html, body {
+  height: 100%;
+  overflow: hidden; 
 }
+
+.scroll-container {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; 
+} */
+
 
 /* Only for the scrollable analyze section */
 .mobile-scroll-container {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  overflow-y: auto;
-  height: 100vh;
+  overflow-y: scroll;
+  /* height: 100vh; */
 }
 
 

@@ -833,7 +833,7 @@ const SectionFrame: React.FC<SectionFrameProps> = ({ id, title, sub, shareText, 
         <div className="mb-4 text-5xl font-normal font-['Gilroy-Bold'] leading-10">
           {title}
         </div>
-        <motion.div className="flex-1 overflow-hidden" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
+        <motion.div className="flex-1 overflow-y-auto" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
           {children}
         </motion.div>
         <SectionActions title={title} share={shareText} textColor={text} onToast={onToast} inputClassName={inputClassName} buttonClassName={buttonClassName} sessionId={sessionId} testId={testId} sectionId={id} />
@@ -1511,6 +1511,8 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
     };
   }, [sectionIds]);
 
+  
+  
   // Mock API handlers (commented real implementation)
   const handleSignIn = async () => {
     try {
@@ -1630,12 +1632,12 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
         // console.log('API response:', response.data);
         
         const analysisData = response.data;
-        console.log('result from the backend:', analysisData)
+        // console.log('result from the backend:', analysisData)
         if (typeof analysisData.results === 'string') {
         try {
-          console.log('Parsing results string...');
+          // console.log('Parsing results string...');
           analysisData.results = JSON.parse(analysisData.results);
-          console.log('Successfully parsed results:', analysisData.results);
+          // console.log('Successfully parsed results:', analysisData.results);
         } catch (parseError) {
           console.error('JSON parse error:', parseError);
           // Try minimal cleaning for the typo
@@ -1651,7 +1653,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
       }
         
         const validatedData = validateResultData(analysisData);
-        console.log('validated data:', validatedData)
+        // console.log('validated data:', validatedData)
         setResultData(validatedData);
         setIsLoading(false);
       } catch (axiosError: any) {
@@ -1793,12 +1795,25 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
           />
     
           {/* Main Content */}
-          <div
+          {/* <div
             className="mx-auto max-w-[390px] overflow-y-auto"
             ref={containerRef}
             style={{ 
               scrollSnapType: "y mandatory", 
               height: `calc(100vh - ${CTA_HEIGHT}px`,
+            }}
+          > */}
+          <div
+            className="mx-auto max-w-[390px] overflow-y-auto"
+            ref={containerRef}
+            style={{
+              // iOS-friendly height and scrolling
+              height: `calc(100dvh - ${CTA_HEIGHT}px)`,
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
+              touchAction: 'pan-y',
+              // Softer snapping -> less “bounce”
+              scrollSnapType: 'y mandatory',
             }}
           >
     
@@ -1847,7 +1862,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                 {mindCard && (
                   <>
                     <div className="text-left">
-                      <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2">{mindCard.name}</div>
+                      <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2 pt-2">{mindCard.name}</div>
                       <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.personality}</div>
                     </div>
                     <div className="overflow-x-auto">

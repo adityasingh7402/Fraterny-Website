@@ -286,7 +286,7 @@ const handleNext = () => {
     } else if (showFinish) {
       if (onFinish) {
         // onFinish();
-        setShowConfirmation(true);
+        // setShowConfirmation(true);
       } else if (showFinish) {
         if (onFinish) {
           const unfinishedCheck = checkForUnfinishedQuestions();
@@ -315,40 +315,38 @@ const handleNext = () => {
 
   // check if user has answered all questions in the section
 
-  //   if (isLastQuestionInSection) {
-  //  // Always move to next section, ignore validation
-  //   const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
-  //   const nextSectionIndex = currentSectionIndex + 1;
-    
-  //   if (nextSectionIndex < sections.length) {
-  //     // Move to next section directly
-  //     const nextSection = sections[nextSectionIndex];
-  //     changeSection(nextSection.id);
-  //   } else if (showFinish) {
-  //     // Last section, check for unfinished questions first
-  //     if (onFinish) {
-  //       const unfinishedCheck = checkForUnfinishedQuestions();
-  //       console.log('🔍 Unfinished questions check:', unfinishedCheck);
+    // Check if user has answered all questions before proceeding
+if (isLastQuestionInSection) {
+  const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+  const nextSectionIndex = currentSectionIndex + 1;
+  
+  if (nextSectionIndex < sections.length) {
+    // Move to next section directly
+    const nextSection = sections[nextSectionIndex];
+    changeSection(nextSection.id);
+  } else if (showFinish) {
+    // Last section, check for unfinished questions first
+    if (onFinish) {
+      const unfinishedCheck = checkForUnfinishedQuestions();
+      console.log('🔍 Unfinished questions check:', unfinishedCheck);
             
-  //       if (unfinishedCheck.hasUnfinished) {
-  //         toast.error(`Please complete all questions in the section before finishing for best assessment.`
-  //           ,{
-  //             position: 'top-right',
-  //           }
-  //         );
-  //         return; // Don't proceed
-  //       }
-        
-  //       setShowConfirmation(true);
-  //     } else {
-  //       // finishQuest();
-  //       console.warn('No onFinish callback provided - cannot finish quest without submission data');
-  //     }
-  //   }
-  //   } else {
-  //   // Move to next question in current section
-  //   nextQuestion();
-  //   }
+      if (unfinishedCheck.hasUnfinished) {
+        toast.error(`Please complete all questions before finishing the assessment`,
+          {
+            position: 'top-center',
+          }
+        );
+        return; // Don't proceed - THIS PREVENTS THE CONFIRMATION DIALOG
+      }
+      
+      setShowConfirmation(true); // Only show if all questions are answered
+    } else {
+      console.warn('No onFinish callback provided - cannot finish quest without submission data');
+      }
+    }
+  } else {
+    nextQuestion();
+}
 };
 
 const handleConfirmSubmission = async () => {
