@@ -16,7 +16,7 @@ interface FaqItem {
 const faqs: FaqItem[] = [
   {
     question: "Who is Quest?",
-    answer: "I am the key that unlocks the door to your subconscious mind.\n\nThrough my extensive inhouse knowledge base and training on primary and secondary research data on human behavior and sociology, I perform quality, semantic and tone analysis on your responses to figure out the story behind the surface. "
+    answer: "I am the key that unlocks the door to your subconscious mind.\n\nThe Questions I ask are designed in-house after extensive primary and secondary research on human behavior and sociology. I use agentic AI architecture using reasoning models and large proprietary knowledgebase  on your responses to figure out the story behind the surface. "
   },
   {
     question: "Who is this test for?",
