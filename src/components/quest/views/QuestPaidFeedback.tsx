@@ -61,7 +61,7 @@ const QuestPaidFeedback: React.FC = () => {
         sessionId: urlParams.sessionId,
         testId: urlParams.testId,
         rating: rating,
-        feedback: feedback.trim()
+        feedback: feedback
       };
 
       console.log('Submitting feedback:', payload);
