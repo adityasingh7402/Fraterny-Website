@@ -436,7 +436,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // Error state
   if (error) {
     return (
-      <div className={`p-6 ${className} bg-[#004A7F] text-white h-screen`}>
+      <div className={`p-6 ${className} bg-[#004A7F] text-white h-screen `}>
         <div className="text-center py-12">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
@@ -466,7 +466,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`p-6 ${className} bg-[#004A7F] text-white h-auto`}>
+    <div className={`p-6 ${className} bg-[#004A7F] text-white h-auto min-h-screen`}>
       <div className='flex flex-col items-center justify-center w-full mb-8'
       onClick={() => navigate('/quest')}>
         <div className='text-6xl font-normal font-["Gilroy-Bold"] tracking-tighter'>

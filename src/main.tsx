@@ -164,7 +164,7 @@ const router = createBrowserRouter([
       { path: 'quest-dashboard/:userId', element: <QuestDashboard /> },
       // RESULTS DEMO
       { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
-      { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
+      { path: 'quest-paid-feedback/:userId/:sessionId/:testId', element: <QuestPaidFeedback /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },

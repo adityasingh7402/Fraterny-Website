@@ -30,8 +30,8 @@ function QuestFooter() {
                     <div className='flex flex-col gap-1'>
                         <a href="/quest" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">Home</a>
                         <a href="https://www.instagram.com/quest.fraterny/" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">Instagram</a>
-                        <a href="" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">LinkedIn</a>
-                        <a href="" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">Blog</a>
+                        <a href="https://www.linkedin.com/company/fraterny/" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">LinkedIn</a>
+                        <a href="/blog" className="text-[#292929] text-sm font-normal font-['Inter'] leading-tight">Blog</a>
                     </div>
                 </div>
                 <div className='flex-col gap-2 '>
