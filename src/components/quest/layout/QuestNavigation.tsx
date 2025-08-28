@@ -331,7 +331,7 @@ if (isLastQuestionInSection) {
       console.log('🔍 Unfinished questions check:', unfinishedCheck);
             
       if (unfinishedCheck.hasUnfinished) {
-        toast.error(`Please complete all questions before finishing the assessment`,
+        toast.error(`Please complete all questions before finishing the assessment.`,
           {
             position: 'top-center',
           }
