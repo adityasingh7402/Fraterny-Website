@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Psychological facts to display during processing
+//Entire Process to display during processing
 const psychologicalFacts = [
-  "Most people aren’t avoiding the truth. They’re avoiding what the truth might change.",
-  "The mind would rather stay in a familiar struggle than enter an unfamiliar peace.",
-  "Sometimes the pain you avoid turns into the life you repeat.",
-  "The brain is a prediction machine. Not a truth machine.",
-  "People don't respond to what you say. They respond to how safe they feel when you say it.",
-  "There is a high chance you overestimate how much others notice about you.",
-  "People don’t change from advice. They change from being understood.",
-  "Rejection hurts because your brain processes it like physical pain.",
-  "Labeling your emotions out loud (this is anxiety) helps calm your brain.",
-  "Your brain activity is as unique as your fingerprint, creating patterns that are distinctly yours.",
-  "It’s easy to feel behind when you’re scrolling through everyone else’s best moments.",
-  "Expressing gratitude increases happiness and reduces depression.",
-  "Your triggers aren’t your fault. But healing from them? That’s your responsibility.",
-  "The brain loves closure. So when it doesn’t get answers, it writes stories.",
-  "Your nervous system doesn’t care about your goals. It cares about your survival.",
-  "Emotional triggers show you where your healing is unfinished.",
-  "People don’t resist change. They resist being changed.",
-  "You are one decision away from a completely different life.",
+  "Processing your answers securely...",
+  "Cleaning and organising your responses...",
+  "Calibrating weights so no single answer dominates...",
+  "Balancing literal text with implied meaning...",
+  "Reviewing the quality and depth of your responses...",
+  "Quantifying uncertainty where answers are ambiguous...",
+  "Searching the knowldege database for in-depth analysis...",
+  "Analysing the emotional tone of the answers...",
+  "Mapping shifts in mood across topics...",
+  "Measuring emphasis vs understatement in phrasing...",
+  "Detecting recurring themes and motifs...",
+  "Looking for quiet signals you might underplay...",
+  "Understanding your thought patterns based on answer combinations...",
+  "Estimating confidence vs hesitation in wording...",
+  "Measuring intensity behind key statements...",
+  "Testing multiple interpretations for each signal...",
+  "Weighing contradictions vs consistencies...",
+  "Connecting answers to reveal pattern clusters...",
+  "Creating a detailed summary of your personality and internal drivers...",
+  "Locating edge cases that make you unique...",
+  "Compressing complex patterns into takeaways...",
+  "Generating your share-ready summary tiles...",
+  
 ];
 
 const PsychologicalFactsCards = () => {
@@ -29,7 +34,7 @@ const PsychologicalFactsCards = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => prev + 1);
-    }, 8000); // 8 seconds for less percieved time
+    }, 6000); // 6 seconds for less percieved time
 
     return () => clearInterval(interval);
   }, []);
