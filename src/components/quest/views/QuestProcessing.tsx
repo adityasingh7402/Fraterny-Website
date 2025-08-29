@@ -34,7 +34,7 @@ const PsychologicalFactsCards = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => prev + 1);
-    }, 6000); // 6 seconds for less percieved time
+    }, 5000); // 5 seconds for less percieved time
 
     return () => clearInterval(interval);
   }, []);
