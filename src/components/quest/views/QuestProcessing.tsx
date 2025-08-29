@@ -126,7 +126,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
           className="text-black text-2xl font-['Gilroy-Bold'] tracking-tighter px-2 mt-80 pb-4"
 
         >
-          Generating in 1-1.5 minutes. Don't close or refresh the page...
+          Generating in 2 minutes
         </p>
       </motion.div>
     </div> 
