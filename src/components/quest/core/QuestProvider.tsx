@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { supabase } from '../../../integrations/supabase/client';
 import axios from 'axios';
 import { QuestContext } from './QuestContext';
 import { 
@@ -42,6 +41,59 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
   const auth = useAuth();
 
 
+  // Auto-save timer ref
+  const autoSaveInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save effect - saves session responses every 5 seconds
+  useEffect(() => {
+    if (session && session.responses && Object.keys(session.responses).length > 0) {
+      // Clear existing timer
+      if (autoSaveInterval.current) {
+        clearInterval(autoSaveInterval.current);
+      }
+      
+      // Start new timer - save every 5 seconds
+      autoSaveInterval.current = setInterval(() => {
+        console.log('🔄 Auto-saving session responses...');
+        localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+      }, 5000);
+    }
+
+    // Cleanup timer when session ends or component unmounts
+    return () => {
+      if (autoSaveInterval.current) {
+        clearInterval(autoSaveInterval.current);
+      }
+    };
+  }, [session?.responses]);
+
+
+  // Immediate save on page unload/browser close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (session && session.responses && Object.keys(session.responses).length > 0) {
+        console.log('💾 Browser closing - saving session immediately');
+        localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && session && session.responses && Object.keys(session.responses).length > 0) {
+        console.log('📱 App backgrounded - saving session immediately');
+        localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [session]);
   
   // Derived state
   const currentQuestionIndex = session?.currentQuestionIndex || 0;
@@ -69,6 +121,21 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
     try {
       setIsLoading(true);
       setError(null);
+
+      // Check for saved session first
+      const savedSession = localStorage.getItem('fraterny_quest_session');
+      if (savedSession) {
+        try {
+          const parsedSession = JSON.parse(savedSession);
+          console.log('🔄 Found saved session, restoring progress...');
+          setSession(parsedSession);
+          setCurrentSectionId(parsedSession.sectionId || currentSectionId);
+          setSectionQuestions(getQuestionsBySection(parsedSession.sectionId || currentSectionId));
+          return parsedSession;
+        } catch (error) {
+          localStorage.removeItem('fraterny_quest_session');
+        }
+      }
       
       // Set section if provided
       if (sectionId) {
@@ -720,6 +787,10 @@ const previousQuestion = () => {
     // Store data locally
     localStorage.setItem('questSessionId', sessionId);
     localStorage.setItem('testid', testid);
+
+    // Clear auto-saved session data after successful submission
+    localStorage.removeItem('fraterny_quest_session');
+    console.log('🧹 Cleared auto-saved session data after successful submission');
     
     // Navigate to results
     const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
