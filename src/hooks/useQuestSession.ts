@@ -78,7 +78,7 @@ export function useQuestSession() {
       // Set up auto-save interval (every 30 seconds)
       autoSaveInterval.current = setInterval(() => {
         updateSessionProgress();
-      }, 30000);
+      }, 5000);
 
       setSessionState(prev => ({
         ...prev,

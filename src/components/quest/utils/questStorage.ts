@@ -144,7 +144,7 @@ export const clearQuestTags = (): void => {
         key.startsWith('quest_tags_') ||     // Tag data
         key === 'questSessionId' ||         // Previous session ID
         key === 'testid' ||                 // Previous test ID
-        key === 'fraterny_quest_session' || // Quest session
+        // key === 'fraterny_quest_session' || // Quest session
         key === 'fraterny_quest_responses'  // Quest responses
       )) {
         keysToRemove.push(key);

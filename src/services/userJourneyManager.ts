@@ -67,7 +67,7 @@ class UserJourneyManager {
 
   // Configuration
   private readonly SESSION_DURATION = 120 * 60 * 1000; // 2 hours means the user is active for 2 hours
-  private readonly SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes means the user is inactive
+  private readonly SESSION_TIMEOUT = 180 * 60 * 1000; // 30 minutes means the user is inactive
   private readonly HEARTBEAT_INTERVAL = 30 * 1000; // 30 seconds means the user is active
 // Configuration (TESTING VALUES)
     // private readonly SESSION_DURATION = 2 * 60 * 1000; // 2 minutes (instead of 1 hour)

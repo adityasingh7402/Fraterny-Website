@@ -12,19 +12,8 @@ import {
   Film, 
   Sparkles, 
   X, 
-  SendHorizontal,
-  Lock, 
-  ShieldCheck,
-  Download,
-  Home,
-  AlertTriangle,
-  Eye,
-  Users,
-  Shield,
-  Zap,
   BookOpen,
-  Star,
-  Moon
+  Expand
 } from "lucide-react";
 import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
@@ -1877,29 +1866,6 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                           
                           return (
                             <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden flex-shrink-0`}>
-                              {/* Decorative Elements */}
-                              {/* {i === 0 && (
-                                <div className="w-40 h-40 relative opacity-30">
-                                    <div className="w-40 h-28 left-0 top-0 absolute bg-red-400" />
-                                    <div className="w-5 h-5 left-[50.20px] top-[139.62px] absolute bg-red-400" />
-                                    <div className="w-5 h-5 left-[89.41px] top-[139.62px] absolute bg-red-400" />
-                                    <div className="w-5 h-5 left-[130.20px] top-[139.62px] absolute bg-red-400" />
-                                    <div className="w-5 h-5 left-[9.41px] top-[139.62px] absolute bg-red-400" />
-                                </div>
-                              )}
-                              {i === 1 && (
-                                <>
-                                  <div className="w-28 h-11 absolute left-[136.37px] top-[123.25px] bg-purple-100" />
-                                  <div className="w-16 h-24 absolute left-[110.17px] top-[26.06px] bg-purple-100" />
-                                  <div className="w-16 h-24 absolute left-[189.45px] top-[15.74px] bg-purple-100" />
-                                </>
-                              )}
-                              {i === 2 && (
-                                <div className="w-20 h-32 absolute left-[169px] top-[24px] opacity-30 mix-blend-soft-light bg-green-100" />
-                              )}
-                              {i === 3 && (
-                                <div className="w-36 h-32 absolute left-[143px] top-[21px] opacity-30 mix-blend-hard-light bg-sky-100" />
-                              )} */}
                               
                               {/* Title */}
                               <div className="absolute left-[20px] top-[21px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
@@ -1907,6 +1873,10 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                                   <div key={idx}>{word}</div>
                                 ))}
                               </div>
+
+                              {/* <div className="absolute right-[5px] top-[2px] opacity-70">
+                                <Expand className="text-white w-4 h-4" />
+                              </div> */}
                               
                               {/* Percentage */}
                               <div className="absolute left-[20px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
