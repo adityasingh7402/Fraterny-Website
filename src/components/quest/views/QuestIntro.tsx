@@ -139,7 +139,7 @@
 // export default QuestIntro;
 
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuest } from '../core/useQuest';
 import { QuestLayout } from '../layout/QuestLayout';
@@ -173,6 +173,30 @@ export function QuestIntro({
   // const timeRange = `${estimatedTimeInMinutes}-${estimatedTimeInMinutes + 5} mins`;
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const isMobile = useIsMobile();
+
+  const [hasUnfinishedQuest, setHasUnfinishedQuest] = useState(false);
+
+useEffect(() => {
+  // Check on mount
+  const savedSession = localStorage.getItem('fraterny_quest_session');
+  if (savedSession) {
+    try {
+      JSON.parse(savedSession); // Validate JSON
+      setHasUnfinishedQuest(true);
+      // Show toast immediately
+      toast.info("You have an unfinished quest. Resume the test to finish it", {
+        position: "top-right"
+      });
+    } catch (error) {
+      // Corrupted - clear it
+      localStorage.removeItem('fraterny_quest_session');
+      setHasUnfinishedQuest(false);
+    }
+  }
+}, []);
+
+// Conditional button text
+const buttonText = hasUnfinishedQuest ? "Resume" : "Get Started";
   
 const handleStart = async () => {
   if (!isTermsAccepted) {
@@ -181,7 +205,10 @@ const handleStart = async () => {
     });
     return;
   }
-  clearQuestTags();
+  // clearQuestTags();
+  if (!hasUnfinishedQuest) {
+    clearQuestTags();
+  }
   await startQuest();
   if (onStart) onStart();
 };
@@ -263,9 +290,8 @@ const handleTermsChange = (checked: boolean) => {
           onClick={handleStart}
           className="pt-2 w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
             <div className='flex gap-0'>
-              <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">Get Started</div>
-              <ChevronRight className="w-7 h-7 text-white items-center justify-center pt-1" />
-              
+              <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">{buttonText}</div>
+              <ChevronRight className="w-8 h-8 text-white items-center justify-center pt-2" />
           </div>
           </button>
           </div>
