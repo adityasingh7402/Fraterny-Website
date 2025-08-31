@@ -570,23 +570,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                       </button>
                     ) : (
                       // Fallback: Payment done but PDF status unknown - show email option
-                      <button
-                        onClick={() => handlePaidReport(test)}
-                        disabled={emailLoading === test.sessionid}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {emailLoading === test.sessionid ? (
-                          <>
-                            <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-4 h-4 mr-2" />
-                            Email Report
-                          </>
-                        )}
-                      </button>
+                      <div className="inline-flex items-center px-3 py-2 text-sm text-orange-600 bg-orange-50 rounded-md">
+                        <Clock className="w-4 h-4 mr-2" />
+                        <span className="text-xs">PDF generating, check after 15 mins</span>
+                      </div>
                     )}
                   </td>
                 </motion.tr>
