@@ -117,7 +117,7 @@ const Hero: React.FC<HeroProps> = ({
             className=''
           >
             <span className='justify-start text-neutral-950 text-4xl font-normal font-["Gilroy-Bold"]'>
-              Ananlyse Your Brain
+              Analyse Your Brain
             </span>
           </motion.div>
           
