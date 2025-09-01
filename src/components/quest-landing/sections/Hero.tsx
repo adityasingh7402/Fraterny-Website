@@ -117,7 +117,7 @@ const Hero: React.FC<HeroProps> = ({
             className=''
           >
             <span className='justify-start text-neutral-950 text-4xl font-normal font-["Gilroy-Bold"]'>
-              Decode Your Brain
+              Ananlyse Your Brain
             </span>
           </motion.div>
           
@@ -131,24 +131,13 @@ const Hero: React.FC<HeroProps> = ({
           </div>
         </motion.div>
 
-            {/* new line inserted here */}
-         <motion.div 
-           variants={animationVariants} 
-           initial="invisible" 
-           animate="visible"
-         >
-         <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
-            for free.
-        </div>
-        </motion.div>
-
         </div>
         
         {/* Link to /assessment for this button */}
         <Link to="/assessment">
           <div className=''>
             <div className="w-40 h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center" >
-                <div className="justify-center text-white text-2xl font-['Gilroy-Bold']">Analyse Me</div>
+                <div className="justify-center text-white text-2xl font-['Gilroy-Bold']">Start Test</div>
             </div>
           </div>
         </Link>
