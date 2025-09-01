@@ -121,25 +121,25 @@ const Hero: React.FC<HeroProps> = ({
             </span>
           </motion.div>
           
-         {/* new line inserted here */}
-         <motion.div 
-           variants={animationVariants} 
-           initial="invisible" 
-           animate="visible"
-         >
-         <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
-            for free
-        </div>
-        </motion.div>
-          
           <motion.div 
           variants={animationVariants} 
           initial="invisible" 
           animate="visible"
         >
           <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
-            in 15 minutes.
+            in 15 minutes
           </div>
+        </motion.div>
+
+            {/* new line inserted here */}
+         <motion.div 
+           variants={animationVariants} 
+           initial="invisible" 
+           animate="visible"
+         >
+         <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
+            for free.
+        </div>
         </motion.div>
 
         </div>
