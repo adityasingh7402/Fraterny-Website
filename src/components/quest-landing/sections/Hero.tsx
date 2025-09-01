@@ -120,7 +120,18 @@ const Hero: React.FC<HeroProps> = ({
               Decode Your Brain
             </span>
           </motion.div>
-
+          
+         {/* new line inserted here */}
+         <motion.div 
+           variants={animationVariants} 
+           initial="invisible" 
+           animate="visible"
+         >
+         <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Regular']">
+            for free
+        </div>
+        </motion.div>
+          
           <motion.div 
           variants={animationVariants} 
           initial="invisible" 
