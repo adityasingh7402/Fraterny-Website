@@ -4,7 +4,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://fraternity.in/sitemap.xml
+Sitemap: https://fraterny.in/sitemap.xml
 
 # Prevent crawling of private routes
 Disallow: /auth/
