@@ -25,7 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PaymentService, sessionStorageManager, sessionManager } from '@/services/payments';
 import { useParams } from 'react-router-dom';
-import { log } from "console";
+import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
+import { questionSummary } from '../core/questions';
 
 
 interface Film {
@@ -1681,6 +1682,17 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
           toast.success("Your result is saved now", {
             position: "top-right"
           });
+
+          // NEW: Track user conversion in GA4
+          if (sessionId) {
+            // Count questions completed (we don't have exact count here, so estimate)
+            const estimatedQuestionsCompleted = questionSummary.totalQuestions; 
+            googleAnalytics.trackUserConversion({
+              session_id: sessionId,
+              conversion_point: 'quest_result_page',
+              questions_completed_as_anonymous: estimatedQuestionsCompleted
+            });
+          }
           
         } catch (error) {
           console.error('Failed to associate anonymous data:', error);
@@ -1813,7 +1825,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
               shareText={resultData.results["section 1"] || ""} 
               themeKey="emotional" 
               sessionId={sessionId}
-              customClass="pb-16 overflow-y-auto"
+              customClass="pt-16 pb-16 overflow-y-auto"
              testId={testId}
             >
               <div className="relative w-full max-w-[480px] mx-auto pt-4">
