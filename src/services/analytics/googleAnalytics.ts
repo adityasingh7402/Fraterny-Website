@@ -357,6 +357,26 @@ trackPaymentInitiated(params: {
 }
 
 /**
+ * Track payment modal opened successfully
+ */
+trackPaymentModalOpened(params: {
+  session_id: string;
+  order_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  this.sendEvent('payment_modal_opened_from_result_page', {
+    event_category: 'Payment',
+    event_label: 'Payment Modal Opened',
+    session_id: params.session_id,
+    order_id: params.order_id,
+    amount: params.amount,
+    currency: params.currency,
+    device_type: this.getDeviceType()
+  });
+}
+
+/**
  * Track successful payment from result page
  */
 trackPaymentSuccess(params: {
@@ -372,6 +392,26 @@ trackPaymentSuccess(params: {
     payment_id: params.payment_id,
     order_id: params.order_id,
     amount: params.amount,
+    device_type: this.getDeviceType()
+  });
+}
+
+/**
+ * Track payment completed (end-to-end verification)
+ */
+trackPaymentCompleted(params: {
+  session_id: string;
+  payment_id: string;
+  verification_success: boolean;
+  total_duration: number;
+}): void {
+  this.sendEvent('payment_completed_from_result_page', {
+    event_category: 'Payment',
+    event_label: 'Payment Fully Completed',
+    session_id: params.session_id,
+    payment_id: params.payment_id,
+    verification_success: params.verification_success,
+    total_duration: Math.round(params.total_duration),
     device_type: this.getDeviceType()
   });
 }
@@ -413,6 +453,65 @@ trackPaymentCancelled(params: {
     device_type: this.getDeviceType()
   });
 }
+
+/**
+ * Track PDF unlock CTA button click
+ */
+trackPdfUnlockCTA(params: {
+  session_id: string;
+  test_id: string;
+  user_state: 'anonymous' | 'logged_in';
+}): void {
+  this.sendEvent('pdf_unlock_cta_clicked_from_result_page', {
+    event_category: 'Engagement',
+    event_label: 'PDF Unlock CTA Clicked',
+    session_id: params.session_id,
+    test_id: params.test_id,
+    user_state: params.user_state,
+    device_type: this.getDeviceType()
+  });
+}
+
+/**
+ * Track payment initiation from dashboard page
+ */
+trackPaymentInitiatedFromDashboard(params: {
+  session_id: string;
+  test_id: string;
+  user_state: 'anonymous' | 'logged_in';
+  payment_amount: number;
+  pricing_tier: 'early' | 'regular';
+}): void {
+  this.sendEvent('payment_initiated_from_dashboard_page', {
+    event_category: 'Payment',
+    event_label: 'Payment Started',
+    session_id: params.session_id,
+    test_id: params.test_id,
+    user_state: params.user_state,
+    payment_amount: params.payment_amount,
+    pricing_tier: params.pricing_tier,
+    device_type: this.getDeviceType()
+  });
+}
+
+/**
+ * Track PDF unlock CTA button click from dashboard
+ */
+trackPdfUnlockCTAFromDashboard(params: {
+  session_id: string;
+  test_id: string;
+  user_state: 'anonymous' | 'logged_in';
+}): void {
+  this.sendEvent('pdf_unlock_cta_clicked_from_dashboard_page', {
+    event_category: 'Engagement',
+    event_label: 'PDF Unlock CTA Clicked',
+    session_id: params.session_id,
+    test_id: params.test_id,
+    user_state: params.user_state,
+    device_type: this.getDeviceType()
+  });
+}
+
 }
 
 // Export singleton instance

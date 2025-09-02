@@ -10,6 +10,7 @@ import { paymentAuthService } from '../auth/paymentAuth';
 import { sessionManager } from '../auth/sessionManager';
 import { paymentApiService } from '../api/paymentApi';
 import { orderCreationService } from './orderCreation';
+import { googleAnalytics } from '../../analytics/googleAnalytics';
 
 // Declare Razorpay for TypeScript
 declare global {
@@ -120,8 +121,24 @@ class PaymentHandlerService {
           name: RAZORPAY_CONFIG.COMPANY_NAME,
           description: `Payment for Test`,
           order_id: orderData.razorpayOrderId,
+          // handler: (response: RazorpayResponse) => {
+          //   console.log('Payment successful:', response);
+          //   resolve({
+          //     success: true,
+          //     paymentData: response,
+          //   });
+          // },
           handler: (response: RazorpayResponse) => {
             console.log('Payment successful:', response);
+            
+            // Track payment success at Razorpay level
+            googleAnalytics.trackPaymentSuccess({
+              session_id: orderData.paymentSessionId,
+              payment_id: response.razorpay_payment_id,
+              order_id: response.razorpay_order_id,
+              amount: orderData.amount
+            });
+            
             resolve({
               success: true,
               paymentData: response,
@@ -139,9 +156,25 @@ class PaymentHandlerService {
         // Add modal configuration
         const modalOptions = {
           ...options,
+          // modal: {
+          //   ondismiss: () => {
+          //     console.log('Payment modal dismissed by user');
+          //     resolve({
+          //       success: false,
+          //       error: 'Payment cancelled by user',
+          //     });
+          //   },
           modal: {
             ondismiss: () => {
               console.log('Payment modal dismissed by user');
+              
+              // Track payment cancellation
+              googleAnalytics.trackPaymentCancelled({
+                session_id: orderData.paymentSessionId,
+                cancel_reason: 'user_dismissed',
+                amount: orderData.amount
+              });
+              
               resolve({
                 success: false,
                 error: 'Payment cancelled by user',
@@ -155,9 +188,34 @@ class PaymentHandlerService {
         // Create and open Razorpay instance
         const rzp = new window.Razorpay(modalOptions);
 
+        googleAnalytics.trackPaymentModalOpened({
+          session_id: orderData.paymentSessionId,
+          order_id: orderData.razorpayOrderId,
+          amount: orderData.amount,
+          currency: orderData.currency
+        });
+
+        // // Handle payment failure
+        // rzp.on('payment.failed', (response: any) => {
+        //   console.error('Payment failed:', response);
+        //   resolve({
+        //     success: false,
+        //     error: response.error?.description || 'Payment failed',
+        //   });
+        // });
+
         // Handle payment failure
         rzp.on('payment.failed', (response: any) => {
           console.error('Payment failed:', response);
+          
+          // Track payment failure
+          googleAnalytics.trackPaymentFailed({
+            session_id: orderData.paymentSessionId,
+            failure_reason: response.error?.description || 'Payment failed',
+            error_code: response.error?.code || 'unknown',
+            amount: orderData.amount
+          });
+          
           resolve({
             success: false,
             error: response.error?.description || 'Payment failed',
@@ -226,6 +284,14 @@ class PaymentHandlerService {
 
       // Send completion data to backend
       await paymentApiService.completePayment(completionRequest);
+
+      // Track payment completed (end-to-end success)
+      googleAnalytics.trackPaymentCompleted({
+        session_id: sessionData.originalSessionId,
+        payment_id: paymentData.razorpay_payment_id,
+        verification_success: true,
+        total_duration: sessionDuration
+      });
 
       // Clean up session data
       sessionManager.clearAllData();
