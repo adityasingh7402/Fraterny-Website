@@ -8,6 +8,8 @@ import { AuthenticityTags } from '../trust-elements/AuthenticityTags';
 import { DateResponse } from '../responses/DateResponse';
 import { RankingResponse } from '../responses/RankingResponse';
 import { getWordValidationStatus, getWordValidationMessage } from '../utils/questValidation';
+import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
+import { useAuth } from '../../../contexts/AuthContext';
 
 /**
  * Base question card component
@@ -36,8 +38,8 @@ export function QuestionCard({
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
-  const { trackQuestionView, stopQuestionTracking } = useQuest();
-  // Replace your current selectedTags state with this:
+   const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
+  const { user } = useAuth(); // Add this line
   
 
     // First, create a memoized initial value outside of useState
@@ -73,20 +75,56 @@ export function QuestionCard({
 }, [response, question?.id]);
   
 
-useEffect(() => {
-  if (question?.id && isActive) {
-    // Track when this question becomes active
-    trackQuestionView(question.id);
-  }
+// useEffect(() => {
+//   if (question?.id && isActive) {
+//     // Track when this question becomes active
+//     trackQuestionView(question.id);
+//   }
   
-  return () => {
-    // Stop tracking when component unmounts
-    stopQuestionTracking();
-  };
-}, [question?.id, isActive]);
+//   return () => {
+//     // Stop tracking when component unmounts
+//     stopQuestionTracking();
+//   };
+// }, [question?.id, isActive]);
 
+useEffect(() => {
+    if (question?.id && isActive) {
+      // Existing internal tracking
+      trackQuestionView(question.id);
+      
+      // NEW: GA4 tracking
+      const userState = user ? 'logged_in' : 'anonymous';
+      const sessionId = session?.id || `temp_${Date.now()}`;
+      
+      // Calculate question indices safely
+      const questionIndex = allQuestions?.findIndex(q => q.id === question.id) + 1 || 1;
+      const sectionQuestions = sections?.find(s => s.id === question.sectionId)?.questions || [];
+      const sectionQuestionIndex = sectionQuestions.findIndex(q => q.id === question.id) + 1 || 1;
+      
+      // Only track if we have required data
+      if (question.sectionId && question.sectionId.trim() !== '') {
+        googleAnalytics.trackQuestionView({
+          session_id: sessionId,
+          question_id: question.id,
+          section_id: question.sectionId,
+          user_state: userState,
+          question_index: questionIndex,
+          section_question_index: sectionQuestionIndex
+        });
+      }
+    }
+  }, [question?.id, isActive, session?.id, user, allQuestions, sections]);
 
-  // Animation
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   const { ref, controls, variants } = useQuestAnimation({
     variant: 'questionCard',
     triggerOnce: true

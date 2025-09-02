@@ -12,6 +12,7 @@ import {
   HonestyTag
 } from './types';
 import questSections, { getAllQuestions, getQuestionsBySection } from './questions';
+import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 
 interface QuestProviderProps {
   children: React.ReactNode;
@@ -69,11 +70,60 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
 
 
   // Immediate save on page unload/browser close
+  // useEffect(() => {
+  //   const handleBeforeUnload = () => {
+  //     if (session && session.responses && Object.keys(session.responses).length > 0) {
+  //       console.log('💾 Browser closing - saving session immediately');
+  //       localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+  //     }
+  //   };
+
+  //   const handleVisibilityChange = () => {
+  //     if (document.hidden && session && session.responses && Object.keys(session.responses).length > 0) {
+  //       console.log('📱 App backgrounded - saving session immediately');
+  //       localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+  //     }
+  //   };
+
+  //   // Add event listeners
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+  //   document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  //   // Cleanup
+  //   return () => {
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
+  //   };
+  // }, [session]);
+
+  // Immediate save on page unload/browser close + GA4 abandon tracking
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (session && session.responses && Object.keys(session.responses).length > 0) {
         console.log('💾 Browser closing - saving session immediately');
         localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+        
+        // NEW: Track quest abandonment in GA4
+        if (session.status === 'in_progress') {
+          const userState = auth.user ? 'logged_in' : 'anonymous';
+          const startTime = session.startedAt ? new Date(session.startedAt).getTime() : Date.now();
+          const sessionDuration = (Date.now() - startTime) / 1000;
+          const questionsCompleted = Object.keys(session.responses).length;
+          const currentQuestionIndex = session.currentQuestionIndex || 0;
+          const currentQuestion = sectionQuestions[currentQuestionIndex];
+          
+          if (currentQuestion) {
+            googleAnalytics.trackQuestAbandon({
+              session_id: session.id,
+              question_id: currentQuestion.id,
+              section_id: currentQuestion.sectionId || currentSectionId,
+              user_state: userState,
+              question_index: currentQuestionIndex + 1,
+              session_duration: sessionDuration,
+              abandon_reason: 'browser_close'
+            });
+          }
+        }
       }
     };
 
@@ -81,6 +131,28 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       if (document.hidden && session && session.responses && Object.keys(session.responses).length > 0) {
         console.log('📱 App backgrounded - saving session immediately');
         localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
+        
+        // NEW: Track quest abandonment in GA4 (for mobile users backgrounding the app)
+        if (session.status === 'in_progress') {
+          const userState = auth.user ? 'logged_in' : 'anonymous';
+          const startTime = session.startedAt ? new Date(session.startedAt).getTime() : Date.now();
+          const sessionDuration = (Date.now() - startTime) / 1000;
+          const questionsCompleted = Object.keys(session.responses).length;
+          const currentQuestionIndex = session.currentQuestionIndex || 0;
+          const currentQuestion = sectionQuestions[currentQuestionIndex];
+          
+          if (currentQuestion) {
+            googleAnalytics.trackQuestAbandon({
+              session_id: session.id,
+              question_id: currentQuestion.id,
+              section_id: currentQuestion.sectionId || currentSectionId,
+              user_state: userState,
+              question_index: currentQuestionIndex + 1,
+              session_duration: sessionDuration,
+              abandon_reason: 'app_backgrounded'
+            });
+          }
+        }
       }
     };
 
@@ -93,7 +165,7 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [session]);
+  }, [session, auth.user, currentSectionId, sectionQuestions]);
   
   // Derived state
   const currentQuestionIndex = session?.currentQuestionIndex || 0;
@@ -160,6 +232,16 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       
       setSession(newSession);
       setVisitedQuestions([]);
+      // NEW: Track quest start in GA4
+      const userState = auth.user ? 'logged_in' : 'anonymous';
+      const isResumedSession = !!savedSession;
+
+      googleAnalytics.trackQuestStart({
+        session_id: newSession.id,
+        user_state: userState,
+        total_questions: allQuestions.length,
+        is_resumed_session: isResumedSession
+      });
       return newSession;
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -234,8 +316,25 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
         };
       });
       
-      // ✨ REMOVED - Auto-advance logic removed
-      // User now controls navigation manually
+      // NEW: Track successful question completion in GA4
+      const userState = auth.user ? 'logged_in' : 'anonymous';
+      const sessionId = session?.id || `temp_${Date.now()}`;
+
+      // Find question details for GA4
+      const question = sectionQuestions.find(q => q.id === questionId);
+      if (question && question.sectionId) {
+        const questionIndex = allQuestions.findIndex(q => q.id === questionId) + 1;
+        
+        googleAnalytics.trackQuestionComplete({
+          session_id: sessionId,
+          question_id: questionId,
+          section_id: question.sectionId,
+          user_state: userState,
+          question_index: questionIndex,
+          response_length: response?.length || 0,
+          time_on_question: questionResponse.totalViewTimeSeconds || 0
+        });
+      }
       
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -245,52 +344,52 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
   };
 
   // Track when user starts viewing a question
-const trackQuestionView = (questionId: string) => {
-  if (currentViewingQuestion === questionId) return; // Already tracking
-  
-  // Stop previous tracking
-  stopQuestionTracking();
-  
-  // Start new tracking
-  setCurrentViewingQuestion(questionId);
-  setQuestionViewTimes(prev => ({
-    ...prev,
-    [questionId]: Date.now()
-  }));
-};
-
-// Stop tracking current question
-const stopQuestionTracking = () => {
-  if (!currentViewingQuestion) return;
-  
-  const startTime = questionViewTimes[currentViewingQuestion];
-  if (startTime) {
-    const timeSpent = Math.round((Date.now() - startTime) / 1000);
+  const trackQuestionView = (questionId: string) => {
+    if (currentViewingQuestion === questionId) return; // Already tracking
     
-    // Update session with accumulated time
-    setSession(prev => {
-      if (!prev || !prev.responses) return prev;
+    // Stop previous tracking
+    stopQuestionTracking();
+    
+    // Start new tracking
+    setCurrentViewingQuestion(questionId);
+    setQuestionViewTimes(prev => ({
+      ...prev,
+      [questionId]: Date.now()
+    }));
+  };
+
+  // Stop tracking current question
+  const stopQuestionTracking = () => {
+    if (!currentViewingQuestion) return;
+    
+    const startTime = questionViewTimes[currentViewingQuestion];
+    if (startTime) {
+      const timeSpent = Math.round((Date.now() - startTime) / 1000);
       
-      const existingResponse = prev.responses[currentViewingQuestion];
-      if (existingResponse) {
-        const currentTotal = existingResponse.totalViewTimeSeconds || 0;
-        return {
-          ...prev,
-          responses: {
-            ...prev.responses,
-            [currentViewingQuestion]: {
-              ...existingResponse,
-              totalViewTimeSeconds: currentTotal + timeSpent
+      // Update session with accumulated time
+      setSession(prev => {
+        if (!prev || !prev.responses) return prev;
+        
+        const existingResponse = prev.responses[currentViewingQuestion];
+        if (existingResponse) {
+          const currentTotal = existingResponse.totalViewTimeSeconds || 0;
+          return {
+            ...prev,
+            responses: {
+              ...prev.responses,
+              [currentViewingQuestion]: {
+                ...existingResponse,
+                totalViewTimeSeconds: currentTotal + timeSpent
+              }
             }
-          }
-        };
-      }
-      return prev;
-    });
-  }
-  
-  setCurrentViewingQuestion(null);
-};
+          };
+        }
+        return prev;
+      });
+    }
+    
+    setCurrentViewingQuestion(null);
+  };
   
   const nextQuestion = () => {
     if (!session) return;
@@ -446,10 +545,6 @@ const previousQuestion = () => {
     const testid = submissionData.user_data.testid;
     const userId = submissionData.user_data.user_id;
     
-    console.log('📊 Session ID:', sessionId);
-    console.log('📊 Test ID:', testid);
-    console.log('📊 User ID:', userId);
-    
     // Update session status
     setSession(prev => {
       if (!prev) return null;
@@ -463,9 +558,9 @@ const previousQuestion = () => {
       };
     });
     
-    // Make single API request and wait for response
-    console.log('📤 Sending data to server...');
-    console.log('⏳ Waiting for analysis to complete...');
+    // // Make single API request and wait for response
+    // console.log('📤 Sending data to server...');
+    // console.log('⏳ Waiting for analysis to complete...');
     
     const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
       headers: {
@@ -474,8 +569,8 @@ const previousQuestion = () => {
       timeout: 300000 // 5 minutes timeout - enough time for analysis
     });
     
-    console.log('✅ Analysis completed successfully!');
-    console.log('📦 Server response:', response.data);
+    // console.log('✅ Analysis completed successfully!');
+    // console.log('📦 Server response:', response.data);
     
     // Store data locally
     localStorage.setItem('questSessionId', sessionId);
@@ -484,10 +579,21 @@ const previousQuestion = () => {
     // Clear auto-saved session data after successful submission
     localStorage.removeItem('fraterny_quest_session');
     console.log('🧹 Cleared auto-saved session data after successful submission');
+
+    const userState = auth.user ? 'logged_in' : 'anonymous';
+    const startTime = session?.startedAt ? new Date(session.startedAt).getTime() : Date.now();
+    const totalDuration = (Date.now() - startTime) / 1000; // in seconds
+    const questionsCompleted = session?.responses ? Object.keys(session.responses).length : 0;
+
+    googleAnalytics.trackQuestComplete({
+      session_id: sessionId,
+      user_state: userState,
+      total_duration: totalDuration,
+      questions_completed: questionsCompleted
+    });
     
     // Navigate to results
     const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
-    console.log('🚀 Navigating to results:', targetUrl);
     navigate(targetUrl);
     
     // Return result
