@@ -1516,6 +1516,15 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
   };
   
   const handlePayment = async (): Promise<void> => {
+    // Track payment initiation
+    googleAnalytics.trackPaymentInitiated({
+      session_id: sessionId!,
+      test_id: testId!,
+      user_state: user?.id ? 'logged_in' : 'anonymous',
+      payment_amount: 95000,
+      pricing_tier: 'early'
+    });
+
   if (!sessionId || !testId) {
     toast.error('Missing session information. Please try again.', {
       position: "top-right"
@@ -2239,7 +2248,17 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
           {paymentSuccess ? (
             <PaymentSuccessMessage userId={userId} />
           ) : (
-            <StickyCTA onOpen={() => !paymentSuccess && setUpsellOpen(true)} />
+            <StickyCTA onOpen={() => {
+              if (!paymentSuccess) {
+                // Track PDF unlock CTA click
+                googleAnalytics.trackPdfUnlockCTA({
+                  session_id: sessionId!,
+                  test_id: testId!,
+                  user_state: user?.id ? 'logged_in' : 'anonymous'
+                });
+                setUpsellOpen(true);
+              }
+            }} />
           )}
           {!paymentSuccess && (
             <UpsellSheet 

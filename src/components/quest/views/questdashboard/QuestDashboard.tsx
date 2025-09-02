@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { PaymentService, sessionStorageManager, sessionManager } from '@/services/payments';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { googleAnalytics } from '../../../../services/analytics/googleAnalytics';
 
 interface DashboardApiResponse {
   status: number;
@@ -395,6 +396,14 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           testData.sessionid, 
           testData.testid
         );
+
+        googleAnalytics.trackPaymentInitiatedFromDashboard({
+          session_id: testData.sessionid,
+          test_id: testData.testid,
+          user_state: user?.id ? 'logged_in' : 'anonymous',
+          payment_amount: 95000, // Same as result page for now
+          pricing_tier: 'early' // Same as result page for now
+        });
         
         if (paymentResult.success) {
           toast.success('Payment successful!');
@@ -533,7 +542,15 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                     {test.ispaymentdone !== "success" ? (
                       // State 1: Payment not done - show unlock button
                       <button
-                        onClick={() => handlePaidReport(test)}
+                        onClick={() => {
+                          // Track unlock CTA click
+                          googleAnalytics.trackPdfUnlockCTAFromDashboard({
+                            session_id: test.sessionid,
+                            test_id: test.testid,
+                            user_state: user?.id ? 'logged_in' : 'anonymous'
+                          });
+                          handlePaidReport(test);
+                        }}
                         disabled={paymentLoading === test.sessionid}
                         className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-white/10 backdrop-blur-sm hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
