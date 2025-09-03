@@ -75,7 +75,7 @@ class GoogleAnalyticsService {
       });
 
       this.isInitialized = true;
-      console.log('✅ GA4 Quest Analytics initialized:', this.measurementId);
+      // console.log('✅ GA4 Quest Analytics initialized:', this.measurementId);
       
       // Process any queued events
       this.processEventQueue();

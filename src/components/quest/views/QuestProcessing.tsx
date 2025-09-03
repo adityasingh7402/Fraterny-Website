@@ -58,14 +58,14 @@ const PsychologicalFactsCards = () => {
           transform: `translateX(calc(-${currentIndex * 100}% - ${currentIndex * 16}px))`
         }}
       >
-        {[...psychologicalFacts, ...psychologicalFacts].map((fact, index) => (
+        {[...psychologicalFacts].map((fact, index) => (
           <div
             key={index}
             className="w-full h-auto relative bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 rounded-xl border-2 border-blue-400 overflow-hidden flex-shrink-0 mr-4"
           >
             <div className="flex items-center justify-center h-full p-1">
               <p className="text-white text-2xl font-normal font-['Gilroy-Regular'] text-center leading-snug">
-                "{fact}"
+                {fact}
               </p>
             </div>
           </div>

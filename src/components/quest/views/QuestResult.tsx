@@ -13,7 +13,9 @@ import {
   Sparkles, 
   X, 
   BookOpen,
-  Expand
+  Paperclip,
+  BookmarkPlus,
+  ChevronsUp 
 } from "lucide-react";
 import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
@@ -568,11 +570,11 @@ const sendReaction = async (reactionType: "like" | "dislike") => {
 
   const onShare = async () => {
     const ok = await shareText(title, share);
-    if (ok) {
-      setShared(true);
-      setTimeout(() => setShared(false), 900);
-      toast.success("Shared ✓");
-    }
+    // if (ok) {
+    //   setShared(true);
+    //   setTimeout(() => setShared(false), 900);
+    //   toast.success("Shared ✓");
+    // }
   };
 
   return (
@@ -1889,18 +1891,19 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                             <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden flex-shrink-0`}>
                               
                               {/* Title */}
-                              <div className="absolute left-[20px] top-[21px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
+                              <div className="absolute left-[20px] top-[30px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
                                 {stat.label.split(' ').map((word, idx) => (
                                   <div key={idx}>{word}</div>
                                 ))}
                               </div>
 
-                              {/* <div className="absolute right-[5px] top-[2px] opacity-70">
-                                <Expand className="text-white w-4 h-4" />
-                              </div> */}
+                              <div className="absolute right-[0px] bottom-[10px] opacity-70">
+                                {/* <img src="/i-card.png" alt="Prediction Card" /> */}
+                                <ChevronsUp className="h-8 w-8 text-white" />
+                              </div>
                               
                               {/* Percentage */}
-                              <div className="absolute left-[20px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
+                              <div className="absolute left-[10px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
                                 {stat.value}%
                               </div>
                             </div>
@@ -2033,21 +2036,34 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                       {/* Film Card */}
                       <div className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] overflow-hidden bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
                         {film.imageUrl ? (
-                          <img 
-                            src={film.imageUrl} 
-                            alt={film.title}
-                            className="w-full h-full object-cover"
-                          />
+                          // <img 
+                          //   src={film.imageUrl} 
+                          //   alt={film.title}
+                          //   className="w-full h-full object-cover"
+                          // />
+                          <>
+                            <img 
+                              src={film.imageUrl} 
+                              alt={film.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <img 
+                              src="/filmiconsvg.svg" 
+                              alt="Prediction Card" 
+                              className="absolute bottom-2 left-2 h-6 w-5 z-10 drop-shadow-2xl" 
+                            />
+                          </>
                         ) : (
                           <Film className="h-16 w-16 text-white/60" />
                         )}
                       </div>
                       
                       {/* Film Title */}
-                      <div className="w-36 text-center">
+                      <div className="flex gap-2">
                         <div className="text-white text-lg font-bold font-['Inter'] leading-normal">
                           {film.title}
                         </div>
+
                       </div>
                     </div>
                   ))}
@@ -2062,7 +2078,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
               sub="Deepen the edges" 
               shareText={subjects.map(s => `${s.title}: ${s.description}`).join("; ")} 
               themeKey="subjects" 
-               inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+              inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
               buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
               customClass="pt-12 pb-[50px] overflow-y-auto"
               sessionId={sessionId}
@@ -2118,8 +2134,11 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                             }}
                           >
                             {/* Percentage */}
-                            <div className="absolute left-[20px] top-[21px] text-white text-6xl font-normal font-['Gilroy-Bold'] leading-[60px]">
+                            <div className="absolute left-[20px] top-[5px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
                               {prediction.likelihood}%
+                            </div>
+                            <div className="w-14 h-14 absolute right-[5px] top-[5px]">
+                              <img src="/i-card.png" alt="Prediction Card" />
                             </div>
                             
                             {/* Title */}
@@ -2166,6 +2185,8 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                           style={{ backgroundColor: backgrounds[i] }}
                         >
                           <BookOpen className="h-20 w-20 text-white" />
+                          <BookmarkPlus  className="absolute right-2 bottom-2 h-6 w-6 text-white/70" />
+                          {/* <img src="/i-card.png" alt="Prediction Card" className="absolute right-2 bottom-2 h-6 w-6 text-white/70" /> */}
                         </div>
                         
                         {/* Book Text */}
