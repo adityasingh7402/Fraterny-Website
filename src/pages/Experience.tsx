@@ -1,5 +1,6 @@
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { setMeta } from "@/utils/seo";
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import HeroSection from '../components/experience/HeroSection';
@@ -19,6 +20,15 @@ const LoadingFallback = () => (
 );
 
 const Experience = () => {
+    useEffect(() => {
+    setMeta({
+      title: "FratVilla Experience — Luxury Retreat for Ambitious Minds",
+      description:
+        "Spend a week in a luxury villa setting with 20 dreamers designed for growth, connection, and unforgettable moments.",
+      canonical: "https://fraterny.in/experience"
+    });
+  }, []);
+
   const isMobile = useIsMobile();
   
   return (
