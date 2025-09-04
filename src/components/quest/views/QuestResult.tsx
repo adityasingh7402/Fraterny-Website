@@ -17,6 +17,7 @@ import {
   BookmarkPlus,
   ChevronsUp 
 } from "lucide-react";
+
 import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
 import axios from 'axios';
@@ -1888,7 +1889,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                           ];
                           
                           return (
-                            <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden flex-shrink-0`}>
+                            <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden`}>
                               
                               {/* Title */}
                               <div className="absolute left-[20px] top-[30px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
@@ -1897,14 +1898,32 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                                 ))}
                               </div>
 
-                              <div className="absolute right-[0px] bottom-[10px] opacity-70">
-                                {/* <img src="/i-card.png" alt="Prediction Card" /> */}
+                              {/* <div className="absolute right-[0px] bottom-[10px] opacity-70">
                                 <ChevronsUp className="h-8 w-8 text-white" />
                               </div>
                               
-                              {/* Percentage */}
                               <div className="absolute left-[10px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
                                 {stat.value}%
+                              </div> */}
+                              <div className="flex justify-between items-end h-full pl-4">
+                                {/* Percentage */}
+                                <div className="opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
+                                  {stat.value}%
+                                </div>
+                                {/* <div className="pb-2">
+                                  <ChevronsUp className="h-8 w-8 text-white" />
+                                </div> */}
+                                <motion.div
+                                  animate={{ y: [0, -3, 0] }}
+                                  transition={{
+                                    duration: 2.5,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                  className="pb-2"
+                                >
+                                  <ChevronsUp className="h-8 w-8 text-white" />
+                                </motion.div>
                               </div>
                             </div>
                           );
@@ -2140,6 +2159,21 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                             <div className="w-14 h-14 absolute right-[5px] top-[5px]">
                               <img src="/i-card.png" alt="Prediction Card" />
                             </div>
+                            {/* <motion.div 
+                              className="w-14 h-14 absolute right-[5px] top-[5px]"
+                              animate={{ 
+                                scale: [1, 1.05, 1],
+                                opacity: [0.8, 1, 0.8]
+                              }}
+                              transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.4  // Stagger each card by 400ms
+                              }}
+                            >
+                              <img src="/i-card.png" alt="Prediction Card" />
+                            </motion.div> */}
                             
                             {/* Title */}
                             <div className="absolute left-[20px] bottom-[21px] text-white text-xl font-normal font-['Gilroy-Bold'] leading-6">
