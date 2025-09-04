@@ -4,6 +4,7 @@ import HeroSection from '../components/home/HeroSection';
 import Footer from '../components/Footer';
 import { initializeLightweightAnalytics, updateDaysLeftSimple } from '@/utils/lightweightAnalytics';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
+import { setMeta } from "@/utils/seo";
 
 // Lazy load components that are below the fold
 const NavalQuoteSection = lazy(() => import('../components/home/NavalQuoteSection'));
@@ -19,6 +20,15 @@ const LoadingFallback = () => (
 );
 
 const Index = () => {
+    useEffect(() => {
+    setMeta({
+      title: "Fraterny — Where Ambition Finds its Tribe",
+      description:
+        "Fraterny builds tools and experiences for ambitious people. Take Quest — a 15-minute self-awareness test or Register for Fratvilla experience.",
+      canonical: "https://fraterny.in/"
+    });
+  }, []);
+
   // Get settings for registration date
   const { settings, isLoading } = useReactQueryWebsiteSettings();
 
