@@ -140,12 +140,12 @@ const router = createBrowserRouter([
       { path: 'auth', element: <Auth /> },
       
       // SECONDARY ROUTES - Lazy loaded with light loading
-      { path: 'experience', element: createSuspenseWrapper(LightLoading)(<Experience />) },
-      { path: 'process', element: createSuspenseWrapper(LightLoading)(<Process />) },
-      { path: 'pricing', element: createSuspenseWrapper(LightLoading)(<Pricing />) },
-      { path: 'faq', element: createSuspenseWrapper(LightLoading)(<FAQ />) },
-      { path: 'blog', element: createSuspenseWrapper(LightLoading)(<Blog />) },
-      { path: 'blog/:id', element: createSuspenseWrapper(LightLoading)(<BlogPost />) },
+      { path: 'experience', element: <Experience /> },
+      { path: 'process', element: <Process /> },
+      { path: 'pricing', element: <Pricing /> },
+      { path: 'faq', element: <FAQ /> },
+      { path: 'blog', element: <Blog /> },
+      { path: 'blog/:id', element: <BlogPost /> },
 
 
       // PROTECTED QUEST ROUTE - Authentication required
