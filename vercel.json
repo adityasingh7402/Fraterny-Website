@@ -1,10 +1,11 @@
 {
   "redirects": [
-    {
-      "source": "/:path*/",
-      "destination": "/:path*",
-      "permanent": true
-    },
+   {
+  "source": "/:path+/",
+  "destination": "/:path+",
+  "permanent": true
+},
+
     {
       "source": "/refund-policy",
       "destination": "/privacy-policy",
