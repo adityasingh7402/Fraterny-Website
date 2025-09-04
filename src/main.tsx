@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import ModernLoading from './components/ui/ModernLoading';
-import { detectPlatform, storePlatformInfo } from '@/utils/platformTracking';
+import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
 import ResultsDemo from './components/quest/views/ResultsDemo';
 
@@ -199,6 +199,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <HelmetProvider>
+      <RouterProvider router={router} />
+    </HelmetProvider>
   </React.StrictMode>
 );
