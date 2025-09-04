@@ -12,7 +12,10 @@ Disallow: /admin/
 Disallow: /api/
 
 # Prevent crawling of search results and dynamic routes
-Disallow: /*?*
+Disallow: /*?*utm_*
+Disallow: /*?*fbclid=*
+Disallow: /*?*gclid=*
+Disallow: /*?*msclkid=*
 
 # Allow crawling of static assets
 Allow: /assets/
