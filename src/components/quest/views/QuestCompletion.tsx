@@ -860,7 +860,7 @@ export function QuestCompletion({
           </h2>
           
           <p className="text-gray-600 mb-6 max-w-md">
-            {submissionError || 'There was an error submitting your assessment. Please try again.'}
+            {' We are having heavy traffic for our AI. There was an error submitting your assessment. Please try again.'}
           </p>
           
           <motion.button

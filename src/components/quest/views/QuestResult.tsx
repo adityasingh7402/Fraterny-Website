@@ -2079,7 +2079,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                       
                       {/* Film Title */}
                       <div className="flex gap-2">
-                        <div className="text-white text-lg font-bold font-['Inter'] leading-normal">
+                        <div className="text-white w-28 text-center text-lg font-bold font-['Inter'] leading-normal">
                           {film.title}
                         </div>
 
@@ -2153,7 +2153,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                             }}
                           >
                             {/* Percentage */}
-                            <div className="absolute left-[20px] top-[5px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
+                            <div className="absolute left-[20px] top-[10px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
                               {prediction.likelihood}%
                             </div>
                             <div className="w-14 h-14 absolute right-[5px] top-[5px]">
@@ -2177,7 +2177,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                             
                             {/* Title */}
                             <div className="absolute left-[20px] bottom-[21px] text-white text-xl font-normal font-['Gilroy-Bold'] leading-6">
-                              {prediction.title.split(' ').slice(0, 3).join(' ')}
+                              {prediction.title.split(' ').slice(0, 3).join('  ') + ' ....'}
                             </div>
                           </div>
                         );

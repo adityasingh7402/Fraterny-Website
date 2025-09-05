@@ -200,10 +200,24 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
         try {
           const parsedSession = JSON.parse(savedSession);
           console.log('🔄 Found saved session, restoring progress...');
-          setSession(parsedSession);
+          console.log('🔍 DEBUG - Saved session found:', parsedSession);
+          console.log('🔍 DEBUG - Session status:', parsedSession.status);
+          console.log('🔍 DEBUG - Session responses:', Object.keys(parsedSession.responses || {}));
+          // setSession(parsedSession);
+          const resumedSession = {
+            ...parsedSession,
+            status: 'in_progress',
+            completedAt: undefined
+          };
+          setSession(resumedSession);
+          console.log('✅ Session restored:', resumedSession);
+          // setCurrentSectionId(parsedSession.sectionId || currentSectionId);
+          // setSectionQuestions(getQuestionsBySection(parsedSession.sectionId || currentSectionId));
+          // return parsedSession;
           setCurrentSectionId(parsedSession.sectionId || currentSectionId);
           setSectionQuestions(getQuestionsBySection(parsedSession.sectionId || currentSectionId));
-          return parsedSession;
+          setIsLoading(false);
+          return resumedSession;
         } catch (error) {
           localStorage.removeItem('fraterny_quest_session');
         }
@@ -546,6 +560,25 @@ const previousQuestion = () => {
     const userId = submissionData.user_data.user_id;
     
     // Update session status
+    // setSession(prev => {
+    //   if (!prev) return null;
+    //   return {
+    //     ...prev,
+    //     status: 'completed' as QuestSessionStatus,
+    //     completedAt: new Date().toISOString(),
+    //     durationMinutes: prev.startedAt 
+    //       ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
+    //       : undefined
+    //   };
+    // });
+    
+    const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 300000 // 5 minutes timeout - enough time for analysis
+    });
+
     setSession(prev => {
       if (!prev) return null;
       return {
@@ -556,17 +589,6 @@ const previousQuestion = () => {
           ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
           : undefined
       };
-    });
-    
-    // // Make single API request and wait for response
-    // console.log('📤 Sending data to server...');
-    // console.log('⏳ Waiting for analysis to complete...');
-    
-    const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 300000 // 5 minutes timeout - enough time for analysis
     });
     
     // console.log('✅ Analysis completed successfully!');
@@ -611,7 +633,7 @@ const previousQuestion = () => {
     console.error('❌ Quest submission failed:', error.message);
     
     // Set error in context for UI to show
-    setError(error instanceof Error ? error : new Error('Submission failed'));
+    // setError(error instanceof Error ? error : new Error('Submission failed'));
     
     // Re-throw so QuestCompletion can handle it
     throw error;
