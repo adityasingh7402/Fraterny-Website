@@ -843,36 +843,30 @@ export function QuestCompletion({
   // Show error state if submission failed
   if (submissionStatus === 'error') {
     return (
-      <QuestLayout showHeader={false} showNavigation={false} className={className}>
+      <div className='h-screen flex items-center justify-center'>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center px-4 py-12 max-w-3xl mx-auto text-center"
-        >
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          
-          <h2 className="text-2xl font-playfair text-navy mb-4">
-            Submission Failed
+        > 
+          <h2 className="text-2xl font-['Gilroy-Bold'] text-navy mb-4">
+            OOPS...!
           </h2>
           
-          <p className="text-gray-600 mb-6 max-w-md">
-            {' We are having heavy traffic for our AI. There was an error submitting your assessment. Please try again.'}
+          <p className="text-gray-600 mb-6 max-w-md font-['Gilroy-semiBold']">
+            {'Due to weak internet connection, your response was not submitted. Please send your responses again.'}
           </p>
           
           <motion.button
             onClick={handleRetry}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
-            className="px-6 py-3 bg-terracotta text-white rounded-lg hover:bg-terracotta/90 transition-colors"
+            className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
           >
-            Try Again
+            Send Again
           </motion.button>
         </motion.div>
-      </QuestLayout>
+      </div>
     );
   }
 
