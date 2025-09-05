@@ -854,7 +854,7 @@ export function QuestCompletion({
           </h2>
           
           <p className="text-gray-600 mb-6 max-w-md font-['Gilroy-semiBold']">
-            {'Due to weak internet connection, your response was not submitted. Please send your responses again.'}
+            {'Due to weak internet connection, your response was not submitted.'}
           </p>
           
           <motion.button
