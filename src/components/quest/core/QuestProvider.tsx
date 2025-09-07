@@ -55,7 +55,7 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       
       // Start new timer - save every 5 seconds
       autoSaveInterval.current = setInterval(() => {
-        console.log('🔄 Auto-saving session responses...');
+        // console.log('🔄 Auto-saving session responses...');
         localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
       }, 5000);
     }
@@ -559,18 +559,6 @@ const previousQuestion = () => {
     const testid = submissionData.user_data.testid;
     const userId = submissionData.user_data.user_id;
     
-    // Update session status
-    // setSession(prev => {
-    //   if (!prev) return null;
-    //   return {
-    //     ...prev,
-    //     status: 'completed' as QuestSessionStatus,
-    //     completedAt: new Date().toISOString(),
-    //     durationMinutes: prev.startedAt 
-    //       ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
-    //       : undefined
-    //   };
-    // });
     
     const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
       headers: {
@@ -578,6 +566,16 @@ const previousQuestion = () => {
       },
       timeout: 300000 // 5 minutes timeout - enough time for analysis
     });
+    console.log('📦 Server response received:', response.data);
+
+    // Validate response status
+    if (!response.data || response.data.status !== "Submitted") {
+      const errorMessage = response.data?.message || 'Submission failed - unexpected response';
+      console.error('❌ Submission failed:', errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    console.log('✅ Submission successful:', response.data);
 
     setSession(prev => {
       if (!prev) return null;
@@ -599,8 +597,8 @@ const previousQuestion = () => {
     localStorage.setItem('testid', testid);
 
     // Clear auto-saved session data after successful submission
-    localStorage.removeItem('fraterny_quest_session');
-    console.log('🧹 Cleared auto-saved session data after successful submission');
+    // localStorage.removeItem('fraterny_quest_session');
+    // console.log('🧹 Cleared auto-saved session data after successful submission');
 
     const userState = auth.user ? 'logged_in' : 'anonymous';
     const startTime = session?.startedAt ? new Date(session.startedAt).getTime() : Date.now();
@@ -615,7 +613,8 @@ const previousQuestion = () => {
     });
     
     // Navigate to results
-    const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
+    // const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
+    const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
     navigate(targetUrl);
     
     // Return result
@@ -634,6 +633,50 @@ const previousQuestion = () => {
     
     // Set error in context for UI to show
     // setError(error instanceof Error ? error : new Error('Submission failed'));
+    // If it's a network error, check if submission actually succeeded
+    if (error.code === 'NETWORK_ERROR' || 
+    error.message.includes('timeout') || 
+    error.message.includes('Network Error') ||
+    error.code === 'ECONNABORTED') {
+  
+  // Extract IDs (move this outside try-catch to ensure they're available)
+  const sessionId = submissionData.assessment_metadata.session_id;
+  const testid = submissionData.user_data.testid;
+  const userId = submissionData.user_data.user_id;
+  
+  try {
+    console.log('🔍 Network error detected, checking if submission actually succeeded...');
+    const statusResponse = await fetch(`https://api.fraterny.in/api/status/${testid}`);
+    const statusData = await statusResponse.json();
+    
+    if (statusData.status === 'processing' || statusData.status === 'ready') {
+      console.log('✅ Submission was actually successful, navigating to processing...');
+      
+      // Mark session as completed and do all success cleanup
+      setSession(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: 'completed' as QuestSessionStatus,
+          completedAt: new Date().toISOString(),
+          durationMinutes: prev.startedAt 
+            ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
+            : undefined
+        };
+      });
+      
+      localStorage.setItem('questSessionId', sessionId);
+      localStorage.setItem('testid', testid);
+      localStorage.removeItem('fraterny_quest_session');
+      
+      const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
+      navigate(targetUrl);
+      return null;
+    }
+  } catch (statusError) {
+    console.log('Status check also failed, will show retry option');
+  }
+}
     
     // Re-throw so QuestCompletion can handle it
     throw error;
@@ -641,138 +684,8 @@ const previousQuestion = () => {
   } finally {
     setIsSubmitting(false);
   }
-};
-  
-
-
-  
-  // const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
-  // console.log('🚀 Starting quest submission...');
-  
-  // try {
-  //   setIsSubmitting(true);
+  };
     
-  //   // Extract required IDs
-  //   const sessionId = submissionData.assessment_metadata.session_id;
-  //   const testid = submissionData.user_data.testid;
-  //   const userId = submissionData.user_data.user_id;
-    
-  //   console.log('📊 Session ID:', sessionId);
-  //   console.log('📊 Test ID:', testid);
-  //   console.log('📊 User ID:', userId);
-    
-  //   // Update session status
-  //   setSession(prev => {
-  //     if (!prev) return null;
-  //     return {
-  //       ...prev,
-  //       status: 'completed' as QuestSessionStatus,
-  //       completedAt: new Date().toISOString(),
-  //       durationMinutes: prev.startedAt 
-  //         ? (Date.now() - new Date(prev.startedAt).getTime()) / 60000 
-  //         : undefined
-  //     };
-  //   });
-    
-  //   // First submission attempt
-  //   console.log('📤 Sending data to server (First attempt)...');
-  //   console.log('⏳ Waiting for analysis to complete...');
-    
-  //   const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     timeout: 300000 // 5 minutes timeout
-  //   });
-    
-  //   console.log('📦 Server response status:', response.status);
-    
-  //   // Check response status
-  //   if (response.status === 200) {
-  //     console.log('✅ First submission successful!');
-  //     console.log('📦 Server response:', response.data);
-      
-  //     // Success - continue with current flow
-  //     localStorage.setItem('questSessionId', sessionId);
-  //     localStorage.setItem('testid', testid);
-      
-  //     const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
-  //     console.log('🚀 Navigating to results:', targetUrl);
-  //     navigate(targetUrl);
-      
-  //     return {
-  //       sessionId: sessionId,
-  //       userId: userId,
-  //       analysisData: {
-  //         summary: "Quest analysis completed successfully.",
-  //         sections: []
-  //       },
-  //       generatedAt: new Date().toISOString()
-  //     };
-      
-  //   } else if (response.status === 300) {
-  //     console.log('⚠️ Received status 300 - Retrying submission...');
-      
-  //     // Retry submission
-  //     console.log('📤 Sending data to server (Retry attempt)...');
-  //     const retryResponse = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       timeout: 300000 // 5 minutes timeout
-  //     });
-      
-  //     console.log('📦 Retry response status:', retryResponse.status);
-      
-  //     if (retryResponse.status === 200) {
-  //       console.log('✅ Retry submission successful!');
-  //       console.log('📦 Retry response:', retryResponse.data);
-        
-  //       // Success on retry - continue with current flow
-  //       localStorage.setItem('questSessionId', sessionId);
-  //       localStorage.setItem('testid', testid);
-        
-  //       const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
-  //       console.log('🚀 Navigating to results:', targetUrl);
-  //       navigate(targetUrl);
-        
-  //       return {
-  //         sessionId: sessionId,
-  //         userId: userId,
-  //         analysisData: {
-  //           summary: "Quest analysis completed successfully on retry.",
-  //           sections: []
-  //         },
-  //         generatedAt: new Date().toISOString()
-  //       };
-        
-  //     } else {
-  //       console.error('❌ Retry submission failed with status:', retryResponse.status);
-  //       throw new Error(`Retry submission failed with status: ${retryResponse.status}`);
-  //     }
-      
-  //   } else {
-  //     console.error('❌ Submission failed with unexpected status:', response.status);
-  //     throw new Error(`Submission failed with status: ${response.status}`);
-  //   }
-    
-  // } catch (error: any) {
-  //   console.error('❌ Quest submission failed:', error.message);
-    
-  //   // Set error in context for UI to show
-  //   setError(error instanceof Error ? error : new Error(error.message || 'Submission failed'));
-    
-  //   // Re-throw error so QuestCompletion can handle the error state
-  //   throw error;
-    
-  // } finally {
-  //   setIsSubmitting(false);
-  // }
-  // };
-  
-  
-  
-  
   const resetQuest = () => {
     setSession(null);
     setError(null);

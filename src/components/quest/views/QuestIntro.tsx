@@ -179,6 +179,8 @@ export function QuestIntro({
 useEffect(() => {
   // Check on mount
   const savedSession = localStorage.getItem('fraterny_quest_session');
+  console.log('🔍 Checking for saved session:', savedSession);
+
   if (savedSession) {
     try {
       JSON.parse(savedSession); // Validate JSON

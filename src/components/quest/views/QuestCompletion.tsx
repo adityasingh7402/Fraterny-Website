@@ -541,6 +541,7 @@ export function QuestCompletion({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [factIndex, setFactIndex] = useState(0);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
@@ -722,81 +723,120 @@ export function QuestCompletion({
   };
 
   // Auto-submit function that runs when component loads
-  const handleAutoSubmit = async () => {
-    // Prevent duplicate submissions
-    if (hasSubmitted || submissionStatus === 'submitting' || submissionStatus === 'submitted') {
-      console.log('🛡️ Submission already in progress or completed, skipping...');
+  // const handleAutoSubmit = async () => {
+  //   // Prevent duplicate submissions
+  //   if (hasSubmitted || submissionStatus === 'submitting' || submissionStatus === 'submitted') {
+  //     console.log('🛡️ Submission already in progress or completed, skipping...');
+  //     return;
+  //   }
+  //   setHasSubmitted(true); // Mark as submitted immediately
+  //   try {
+  //     console.log('🚀 Auto-submitting quest data...');
+  //     setSubmissionStatus('submitting');
+      
+  //     const submissionData = formatSubmissionData();
+  //     console.log('📊 Submission data:', submissionData);
+      
+  //     if (!submissionData) {
+  //       console.error('No submission data available');
+  //       setSubmissionStatus('error');
+  //       setSubmissionError('No submission data available');
+  //       return;
+  //     }
+
+  //     const sessionId = submissionData.assessment_metadata.session_id;
+  //     const testid = submissionData?.user_data?.testid || '';
+      
+  //     console.log('📤 Submitting to API...');
+
+  //     // Call finishQuest from context with submission data
+  //     const result = await finishQuest(submissionData);
+
+  //     console.log('✅ Quest finished successfully:', result);
+  //     setSubmissionStatus('submitted');
+  //     setIsNavigating(true); // ADD THIS LINE
+  //     setSubmissionError(null); // ADD THIS LINE
+  //     // Note: Navigation and storage are now handled in finishQuest()
+      
+  //   } catch (error: any) {
+  //     console.error('❌ Submission failed:', error.response?.data?.message || error.message);
+  //     setSubmissionStatus('error');
+  //     setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
+  //     setHasSubmitted(false); // Reset on error to allow retry
+  //   }
+    
+  // };
+
+  // Auto-submit function that runs when component loads
+const handleAutoSubmit = async () => {
+  console.log('🔍 [DEBUG] handleAutoSubmit called - hasSubmitted:', hasSubmitted, 'submissionStatus:', submissionStatus);
+  
+  // Prevent duplicate submissions
+  if (hasSubmitted || submissionStatus === 'submitting' || submissionStatus === 'submitted') {
+    console.log('🛡️ [DEBUG] Submission already in progress or completed, skipping...');
+    return;
+  }
+  
+  console.log('🔄 [DEBUG] Setting hasSubmitted to true');
+  setHasSubmitted(true); // Mark as submitted immediately
+  
+  try {
+    console.log('🚀 [DEBUG] Starting auto-submission process...');
+    console.log('📊 [DEBUG] Setting submissionStatus to "submitting"');
+    setSubmissionStatus('submitting');
+    
+    console.log('🔨 [DEBUG] Formatting submission data...');
+    const submissionData = formatSubmissionData();
+    console.log('📊 [DEBUG] Submission data created:', submissionData ? 'SUCCESS' : 'FAILED');
+    
+    if (!submissionData) {
+      console.error('❌ [DEBUG] No submission data available');
+      setSubmissionStatus('error');
+      setSubmissionError('No submission data available');
       return;
     }
-    setHasSubmitted(true); // Mark as submitted immediately
-    try {
-      console.log('🚀 Auto-submitting quest data...');
-      setSubmissionStatus('submitting');
-      
-      const submissionData = formatSubmissionData();
-      console.log('📊 Submission data:', submissionData);
-      
-      if (!submissionData) {
-        console.error('No submission data available');
-        setSubmissionStatus('error');
-        setSubmissionError('No submission data available');
-        return;
-      }
 
-      const sessionId = submissionData.assessment_metadata.session_id;
-      const testid = submissionData?.user_data?.testid || '';
-      
-      console.log('📤 Submitting to API...');
-      // const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
-      //   headers: {
-      //     'Content-Type': 'application/json',  
-      //   },
-      // });
-
-      // ------------------------------------------------
-      // MOCK: Simulating API submission
-      // console.log('🧪 MOCK SUBMISSION - Data that would be sent:', submissionData);
-      // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      // const response = { data: { success: true, mock: 'data' } };
-
-      // console.log('✅ MOCK: Submission successful:', response.data);
-
-      // ------------------------------------------------// 
-
-      // console.log('✅ Submission successful:', response.data);
-      // setSubmissionStatus('submitted');
-      
-      // // Store data in localStorage and database
-      // localStorage.setItem('questSessionId', sessionId);
-      // localStorage.setItem('testid', testid);
-      // await storeSessionHistory(sessionId, testid);
-      
-      // // Call completion callback
-      // if (onComplete) {
-      //   onComplete();
-      // }
-      
-      // // Navigate to processing page immediately
-      // const userId = auth.user?.id || 'anonymous';
-      // const targetUrl = `/quest-result/processing/${sessionId}/${userId}/${testid}`;
-      // console.log('🚀 Navigating to processing:', targetUrl);
-      // navigate(targetUrl);
-
-      // Call finishQuest from context with submission data
-      const result = await finishQuest(submissionData);
-
-      console.log('✅ Quest finished successfully:', result);
-      setSubmissionStatus('submitted');
-      // Note: Navigation and storage are now handled in finishQuest()
-      
-    } catch (error: any) {
-      console.error('❌ Submission failed:', error.response?.data?.message || error.message);
-      setSubmissionStatus('error');
-      setSubmissionError(error.response?.data?.message || error.message || 'Submission failed');
-      setHasSubmitted(false); // Reset on error to allow retry
-    }
+    const sessionId = submissionData.assessment_metadata.session_id;
+    const testid = submissionData?.user_data?.testid || '';
+    console.log('🆔 [DEBUG] Session ID:', sessionId, 'Test ID:', testid);
     
-  };
+    console.log('📤 [DEBUG] About to call finishQuest...');
+    
+    // Call finishQuest from context with submission data
+    const result = await finishQuest(submissionData);
+    
+    console.log('✅ [DEBUG] finishQuest completed successfully:', result ? 'SUCCESS' : 'NO_RESULT');
+    console.log('🔄 [DEBUG] Setting submissionStatus to "submitted"');
+    setSubmissionStatus('submitted');
+    
+    console.log('🧭 [DEBUG] Setting isNavigating to true');
+    setIsNavigating(true);
+    
+    console.log('🧹 [DEBUG] Clearing submission error');
+    setSubmissionError(null);
+    
+    console.log('✅ [DEBUG] Quest submission process completed successfully');
+    
+  } catch (error: any) {
+    console.error('❌ [DEBUG] Error caught in handleAutoSubmit:', error);
+    console.error('❌ [DEBUG] Error message:', error.message);
+    console.error('❌ [DEBUG] Error response:', error.response?.data);
+    
+    console.log('🔄 [DEBUG] Setting isNavigating to false due to error');
+    setIsNavigating(false);
+    
+    console.log('🔄 [DEBUG] Setting submissionStatus to "error"');
+    setSubmissionStatus('error');
+    
+    const errorMessage = error.response?.data?.message || error.message || 'Submission failed';
+    console.log('📝 [DEBUG] Setting error message:', errorMessage);
+    setSubmissionError(errorMessage);
+    
+    console.log('🔄 [DEBUG] Resetting hasSubmitted to false for retry');
+    setHasSubmitted(false); // Reset on error to allow retry
+  }
+};
+  
   const detectDeviceType = (): string => {
     const userAgent = navigator.userAgent;
     if (/mobile|android|iphone|ipad|ipod/i.test(userAgent.toLowerCase())) {
@@ -833,6 +873,40 @@ export function QuestCompletion({
     handleAutoSubmit();
   };
 
+  console.log('🎨 [DEBUG] Render state - submissionStatus:', submissionStatus, 'isNavigating:', isNavigating, 'submissionError:', submissionError);
+
+  if (isNavigating) {
+    console.log('🧭 [DEBUG] Showing navigation screen');
+  return (
+    <div className='h-screen flex items-center justify-center'>
+      <div className="text-center px-4">
+        <h2 className="text-2xl font-['Gilroy-Bold'] text-navy mb-4">
+          Redirecting...
+        </h2>
+        <p className="text-gray-600 mb-6 font-['Gilroy-semiBold']">
+          Taking you to your analysis results
+        </p>
+      </div>
+    </div>
+  );
+}
+
+if (submissionStatus === 'submitted') {
+  console.log('✅ [DEBUG] Showing submitted screen (preventing error flash)');
+  return (
+    <div className='h-screen flex items-center justify-center'>
+      <div className="text-center px-4">
+        <h2 className="text-2xl font-['Gilroy-Bold'] text-navy mb-4">
+          Submission Complete
+        </h2>
+        <p className="text-gray-600 mb-6 font-['Gilroy-semiBold']">
+          Processing your responses...
+        </p>
+      </div>
+    </div>
+  );
+}
+
   // Show loading state while submitting
   if (submissionStatus === 'submitting') {
     return (
@@ -842,6 +916,7 @@ export function QuestCompletion({
 
   // Show error state if submission failed
   if (submissionStatus === 'error') {
+    console.log('❌ [DEBUG] Showing error screen');
     return (
       <div className='h-screen flex items-center justify-center'>
         <motion.div

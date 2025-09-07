@@ -57,7 +57,7 @@ const QuestResultRoute: React.FC = () => {
       {/* Main assessment page */}
       <Route index element={<QuestResultIndex />} />
       <Route
-        path="processing"
+        path="processing/:userId/:sessionId/:testId"
         element={<QuestProcessing />}
       />
       <Route

@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect } from 'react';
-import { ScreenContainer } from '../../components/quest-landing/sections/index'
-import { MotionProvider } from '../../components/quest-landing/animations/index';
+import ScreenContainer from '../../components/quest-landing/sections/ScreenContainer'
+import MotionProvider from '../../components/quest-landing/animations/MotionProvider';
 import { setMeta } from '../../utils/seo';
 
 const QuestLandingPage: React.FC = () => {
