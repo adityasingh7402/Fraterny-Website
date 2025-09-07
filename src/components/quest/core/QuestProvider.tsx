@@ -597,8 +597,8 @@ const previousQuestion = () => {
     localStorage.setItem('testid', testid);
 
     // Clear auto-saved session data after successful submission
-    // localStorage.removeItem('fraterny_quest_session');
-    // console.log('🧹 Cleared auto-saved session data after successful submission');
+    localStorage.removeItem('fraterny_quest_session');
+    console.log('🧹 Cleared auto-saved session data after successful submission');
 
     const userState = auth.user ? 'logged_in' : 'anonymous';
     const startTime = session?.startedAt ? new Date(session.startedAt).getTime() : Date.now();

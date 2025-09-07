@@ -56,7 +56,6 @@ const ProfilePage = lazy(() => import('./pages/profile'));
 
 // QUEST ROUTE - Lazy loaded with optimized loading
 import QuestRoute from './pages/quest/QuestRoute';
-
 import QuestResultRoute from './pages/quest-page/QuestResultRoute';
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
 import QuestLandingPage from './pages/quest-landing-page';

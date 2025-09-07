@@ -312,17 +312,14 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
     // Results ready state
     if (resultStatus === 'ready') {
       return (
-        <div className='h-screen max-h-screen relative overflow-hidden flex items-center justify-center'>
+        <div className='h-screen bg-[#004A7F] max-h-screen relative overflow-hidden flex items-center justify-center'>
           <div className="text-center px-4">
-            <h2 className="text-4xl font-['Gilroy-Bold'] text-[#004A7F] mb-4">
+            <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
               Your Results are Ready!
             </h2>
-            {/* <button
-              onClick={() => navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`)}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg font-['Gilroy-Bold'] hover:bg-green-700 transition-colors"
-            >
-              See Your Results
-            </button> */}
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            </div>
           </div>
         </div>
       );
