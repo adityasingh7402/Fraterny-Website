@@ -55,7 +55,7 @@ const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
 const ProfilePage = lazy(() => import('./pages/profile'));
 
 // QUEST ROUTE - Lazy loaded with optimized loading
-const QuestRoute = lazy(() => import('../src/pages/quest/QuestRoute'));
+import QuestRoute from './pages/quest/QuestRoute';
 
 import QuestResultRoute from './pages/quest-page/QuestResultRoute';
 const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'));
@@ -162,7 +162,7 @@ const router = createBrowserRouter([
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
       { path: 'quest', element: <QuestLandingPage /> },
       { path: 'quest-dashboard/:userId', element: <QuestDashboard /> },
-      // RESULTS DEMO
+      { path: 'assessment', element: <QuestRoute /> },
       { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
