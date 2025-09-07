@@ -314,18 +314,15 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
       return (
         <div className='h-screen max-h-screen relative overflow-hidden flex items-center justify-center'>
           <div className="text-center px-4">
-            <h2 className="text-3xl font-['Gilroy-Bold'] text-green-600 mb-4">
+            <h2 className="text-4xl font-['Gilroy-Bold'] text-[#004A7F] mb-4">
               Your Results are Ready!
             </h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Your analysis is complete. Redirecting automatically after few seconds or click below to view now.
-            </p>
-            <button
+            {/* <button
               onClick={() => navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`)}
               className="bg-green-600 text-white px-6 py-3 rounded-lg font-['Gilroy-Bold'] hover:bg-green-700 transition-colors"
             >
               See Your Results
-            </button>
+            </button> */}
           </div>
         </div>
       );

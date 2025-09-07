@@ -876,7 +876,7 @@ const handleAutoSubmit = async () => {
   console.log('🎨 [DEBUG] Render state - submissionStatus:', submissionStatus, 'isNavigating:', isNavigating, 'submissionError:', submissionError);
 
   if (isNavigating) {
-    console.log('🧭 [DEBUG] Showing navigation screen');
+  console.log('🧭 [DEBUG] Showing navigation screen');
   return (
     <div className='h-screen flex items-center justify-center'>
       <div className="text-center px-4">
