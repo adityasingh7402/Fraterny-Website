@@ -245,8 +245,8 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
 
       // IMMEDIATE check on page load
       // Wait 15 seconds before first check to allow backend DB operations to complete
-      console.log('⏱️ Waiting 10 seconds for backend processing to start...');
-      await new Promise(resolve => setTimeout(resolve, 15000));
+      console.log('⏱️ Waiting 15 seconds for backend processing to start...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       console.log('🔍 Checking status after initial delay...');
       const isComplete = await pollForResults();
