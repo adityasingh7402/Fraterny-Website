@@ -230,15 +230,31 @@ const isLastQuestion = isLastQuestionInEntireAssessment();
 const isFirstQuestion = isFirstQuestionInEntireAssessment();
 
 const checkForUnfinishedQuestions = () => {
-  
-  // console.log(`Questions:`, allQuestions);
-  // console.log(`Session responses:`, session?.responses);
-  // console.log(`Current section:`, currentSection);
-  // console.log(`Sections:`, sections);
+
+  // const unfinishedQuestions = allQuestions?.filter(question => {
+  //   const response = session?.responses?.[question.id];
+  //   return !response; // No response = unfinished
+  // }) || [];
+
   const unfinishedQuestions = allQuestions?.filter(question => {
-    const response = session?.responses?.[question.id];
-    return !response; // No response = unfinished
-  }) || [];
+  const response = session?.responses?.[question.id];
+  
+  // If no response in session, check if current question has DOM value
+  if (!response && question.id === currentQuestion?.id) {
+    // Check current DOM state for this question with proper type casting
+    const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
+    const currentInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+    const currentRadio = document.querySelector(`input[name="question-${question.id}"]:checked`) as HTMLInputElement;
+    
+    const hasCurrentValue = (currentTextarea && currentTextarea.value.trim()) || 
+                           (currentInput && currentInput.value.trim()) || 
+                           currentRadio;
+    
+    return !hasCurrentValue; // Has current value = not unfinished
+  }
+  
+  return !response; // No response = unfinished
+}) || [];
   
   if (unfinishedQuestions.length > 0) {
     const firstUnfinishedQuestion = unfinishedQuestions[0];
@@ -255,7 +271,7 @@ const checkForUnfinishedQuestions = () => {
   return { hasUnfinished: false };
 };
 
-const handleNext = () => {
+const handleNext = async () => {
   if (currentQuestion) {
     
     const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
@@ -298,7 +314,7 @@ const handleNext = () => {
         // });
         
         // Submit response with tags
-        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+        await submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
       }
     } 
     else if (currentQuestion.type === 'multiple_choice') {
