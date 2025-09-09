@@ -5,13 +5,13 @@ class ApiEndpoints {
   private baseUrl: string;
 
   constructor(baseUrl: string = API_CONFIG.BASE_URL) {
-  console.log('🔧 ApiEndpoints - Constructor Debug:');
-  console.log('Input baseUrl:', baseUrl);
-  console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+  // console.log('🔧 ApiEndpoints - Constructor Debug:');
+  // console.log('Input baseUrl:', baseUrl);
+  // console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
   
   this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
   
-  console.log('🔧 Final this.baseUrl:', this.baseUrl);
+  // console.log('🔧 Final this.baseUrl:', this.baseUrl);
 }
 
   // Build full URL for an endpoint

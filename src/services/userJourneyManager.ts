@@ -107,7 +107,7 @@ class UserJourneyManager {
       this.endSession('session_expired');
     }, this.SESSION_DURATION);
 
-    console.log('🚀 User journey session started:', this.sessionId);
+    //console.log('🚀 User journey session started:', this.sessionId);
   }
 
   private getDeviceInfo() {
@@ -193,7 +193,7 @@ class UserJourneyManager {
     // Start new page
     this.startNewPage(page, title);
     
-    console.log(`📄 Page visit tracked: ${page}`);
+    // console.log(`📄 Page visit tracked: ${page}`);
   }
 
   private startNewPage(page: string, title: string): void {
@@ -276,7 +276,7 @@ class UserJourneyManager {
       return;
     }
 
-    console.log(`🏁 Ending session: ${this.sessionId} (${reason})`);
+    // console.log(`🏁 Ending session: ${this.sessionId} (${reason})`);
     
     // End current page
     if (this.currentPage) {
@@ -334,23 +334,23 @@ class UserJourneyManager {
       // Add end reason to the data
       (journeyData as any).end_reason = endReason;
       
-      console.log('📤 Sending journey data to backend:', journeyData);
+      // console.log('📤 Sending journey data to backend:', journeyData);
       // alert('Journey data logged to console! Check it now before clicking OK.');
       
       // Send to backend using axios
-      const response = await axios.post(this.BACKEND_URL, {
-        user_journey: journeyData
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 5000 // 5 second timeout
-      });
+      // const response = await axios.post(this.BACKEND_URL, {
+      //   user_journey: journeyData
+      // }, {
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   timeout: 5000 // 5 second timeout
+      // });
       
-      console.log('✅ Journey data sent successfully:', response.status);
+      // console.log('✅ Journey data sent successfully:', response.status);
       
     } catch (error) {
-      console.error('❌ Failed to send journey data:', error);
+      // console.error('❌ Failed to send journey data:', error);
       
       // Store failed data in localStorage for retry later
       this.storeFailedData(this.generateJourneyData());

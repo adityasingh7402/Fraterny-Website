@@ -5,6 +5,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getWordValidationStatus } from '../utils/questValidation';
 import { HonestyTag } from '../core/types';
 import { toast } from 'sonner';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import QuestLoading from '../views/QuestLoading';
 
 interface QuestNavigationProps {
   showPrevious?: boolean;
@@ -39,17 +42,158 @@ export function QuestNavigation({
     changeSection,
     sections,           // ADD this
   currentSectionId,
+  finishQuest,
   trackQuestionView,
   stopQuestionTracking
   } = useQuest();
-  
-  // Determine if this is the last question in the section
-  // const isLastQuestion = session && 
-  //   questions.length > 0 && 
-  //   session.currentQuestionIndex === questions.length - 1;
 
   const [showConfirmation, setShowConfirmation] = useState(false);
-const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  const formatSubmissionData = () => {
+    const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    const workingSession = { 
+      id: session?.id || fallbackSessionId, 
+      userId: auth.user?.id || 'anonymous', 
+      startedAt: session?.startedAt || new Date().toISOString(), 
+      responses: session?.responses || {},
+      status: 'completed'
+    };
+
+    const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    
+    const userData = auth.user?.id ? {
+      user_id: auth.user.id,
+      name: auth.user.user_metadata?.first_name 
+        ? `${auth.user.user_metadata.first_name} ${auth.user.user_metadata.last_name || ''}`
+        : 'User',
+      email: auth.user.email || 'user@example.com',
+      "mobile no": auth.user.user_metadata?.phone || "",
+      city: auth.user.user_metadata?.city || "",
+      DOB: auth.user.user_metadata?.dob || undefined,
+      "testid": testid
+    } : {
+      user_id: `${workingSession?.userId || 'unknown'}`,
+      name: 'Anonymous User',
+      email: '',
+      "mobile no": '',
+      city: '',
+      DOB: undefined,
+      "testid": testid
+    };
+    
+    const startTime = workingSession?.startedAt;
+    const completionTime = new Date().toISOString();
+    const startTimeValue = startTime || new Date().toISOString();
+    const durationMinutes = (new Date().getTime() - new Date(startTimeValue).getTime()) / (1000 * 60);
+    
+    let previousTimestamp: string | null = null;
+    const responses = allQuestions?.map((question, index) => {
+      const response = workingSession?.responses?.[question.id];
+      const sectionId = question?.sectionId || '';
+      const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
+      
+      if (response) {
+        let timeTaken = null;
+        if (previousTimestamp) {
+          const currentTime = new Date(response.timestamp).getTime();
+          const prevTime = new Date(previousTimestamp).getTime();
+          const diffSeconds = Math.round((currentTime - prevTime) / 1000);
+          timeTaken = `${diffSeconds}s`;
+        }
+        previousTimestamp = response.timestamp;
+        
+        return {
+          qno: index + 1,
+          question_id: question.id,
+          question_text: question?.text || '',
+          answer: response.response,
+          section_id: sectionId,
+          section_name: sectionName,
+          metadata: {
+            tags: response.tags || [],
+            time_taken: timeTaken || (question?.type === 'date_input' ? '1s' : undefined)
+          }
+        };
+      } else {
+        return {
+          qno: index + 1,
+          question_id: question.id,
+          question_text: question?.text || '',
+          answer: "I preferred not to response for this question",
+          section_id: sectionId,
+          section_name: sectionName,
+          metadata: {
+            tags: [],
+            time_taken: '1s'
+          }
+        };
+      }
+    }) || [];
+    
+    const tagCounts: Record<string, number> = {};
+    responses.forEach(response => {
+      if (response.metadata.tags) {
+        response.metadata.tags.forEach((tag: string) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      }
+    });
+    
+    const allTags = ['Honest', 'Unsure', 'Sarcastic', 'Avoiding'];
+    allTags.forEach(tag => {
+      if (!tagCounts[tag]) tagCounts[tag] = 0;
+    });
+    
+    const detectDeviceType = (): string => {
+      const userAgent = navigator.userAgent;
+      if (/mobile|android|iphone|ipad|ipod/i.test(userAgent.toLowerCase())) {
+        return /ipad/i.test(userAgent.toLowerCase()) ? 'tablet' : 'mobile';
+      }
+      return 'desktop';
+    };
+    
+    const detectBrowser = (): string => {
+      const userAgent = navigator.userAgent;
+      if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
+      if (userAgent.indexOf('Safari') > -1) return 'Safari';
+      if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
+      if (userAgent.indexOf('MSIE') > -1 || userAgent.indexOf('Trident') > -1) return 'Internet Explorer';
+      if (userAgent.indexOf('Edge') > -1) return 'Edge';
+      return 'Unknown';
+    };
+    
+    const detectOS = (): string => {
+      const userAgent = navigator.userAgent;
+      if (userAgent.indexOf('Windows') > -1) return 'Windows';
+      if (userAgent.indexOf('Mac') > -1) return 'Mac';
+      if (userAgent.indexOf('Linux') > -1) return 'Linux';
+      if (userAgent.indexOf('Android') > -1) return 'Android';
+      if (userAgent.indexOf('iOS') > -1) return 'iOS';
+      return 'Unknown';
+    };
+    
+    return {
+      response: responses,
+      user_data: userData,
+      assessment_metadata: {
+        session_id: workingSession?.id || '',
+        start_time: startTime,
+        completion_time: completionTime,
+        duration_minutes: Number(durationMinutes.toFixed(1)),
+        completion_percentage: Math.round((Object.keys(workingSession?.responses || {}).length / (allQuestions?.length || 1)) * 100),
+        device_info: {
+          type: detectDeviceType(),
+          browser: detectBrowser(),
+          operating_system: detectOS()
+        },
+      }
+    };
+  };
 
   const isLastQuestionInSection = session && 
   questions.length > 0 && 
@@ -349,20 +493,71 @@ if (isLastQuestionInSection) {
 }
 };
 
+// const handleConfirmSubmission = async () => {
+//   setIsSubmitting(true);
+//   try {
+//     if (onFinish) {  // ← Add null check
+//        onFinish();
+//     }
+//     setShowConfirmation(false);
+//   } catch (error) {
+//     console.error('Submission failed:', error);
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
 const handleConfirmSubmission = async () => {
   setIsSubmitting(true);
+  setSubmissionError(null);
+  
   try {
-    if (onFinish) {  // ← Add null check
-       onFinish();
+    console.log('🚀 Starting quest submission from confirmation...');
+    
+    // Format submission data
+    const submissionData = formatSubmissionData();
+    console.log('📊 Submission data created:', submissionData ? 'SUCCESS' : 'FAILED');
+    
+    if (!submissionData) {
+      throw new Error('No submission data available');
     }
-    setShowConfirmation(false);
-  } catch (error) {
-    console.error('Submission failed:', error);
+
+    const sessionId = submissionData.assessment_metadata.session_id;
+    const testid = submissionData?.user_data?.testid || '';
+    console.log('🆔 Session ID:', sessionId, 'Test ID:', testid);
+    
+    // Call finishQuest with submission data
+    const result = await finishQuest(submissionData);
+    
+    console.log('✅ Quest submission completed successfully:', result);
+    
+    // Show success state
+    setIsSubmitted(true);
+    
+    // Show success toast
+    toast.success('Quest submission successful', {
+      position: 'top-center',
+    });
+    
+    // Small delay to show success state, then navigate
+    setTimeout(() => {
+      setShowConfirmation(false);
+      if (result?.navigationData?.targetUrl) {
+        console.log('🧭 Navigating to:', result.navigationData.targetUrl);
+        navigate(result.navigationData.targetUrl);
+      }
+    }, 1000);
+    
+  } catch (error: any) {
+    console.error('❌ Submission failed:', error);
+    const errorMessage = error.response?.data?.message || error.message || 'Submission failed';
+    setSubmissionError(errorMessage);
+    setIsSubmitted(false);
   } finally {
     setIsSubmitting(false);
   }
 };
-
 
 
 const handleCancelSubmission = () => {
@@ -380,24 +575,6 @@ const handleCancelSubmission = () => {
     <>
       <nav className={`${className}`}>
         <div className="flex gap-1">
-          {/* Previous button - ✨ UPDATED: Always enabled except on first question */}
-          {/* {showPrevious && (
-            <motion.button
-            variants={buttonVariants}
-            initial="initial"
-            animate="animate"
-            whileTap="tap"
-            onClick={previousQuestion}
-            disabled={isFirstQuestion}
-            className={` ${
-              isFirstQuestion
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                : 'border-navy text-navy hover:bg-navy hover:text-white'
-            }`}
-          >
-            Previous
-          </motion.button>
-        )} */}
 
         {showPrevious && (
           <motion.button
@@ -417,39 +594,6 @@ const handleCancelSubmission = () => {
           </motion.button>
         )}
 
-        {/* ✨ NEW - Skip button in center */}
-        {/* <div className="flex gap-2">
-          {showSkip && !isLastQuestion && (
-            <motion.button
-              variants={buttonVariants}
-              initial="initial"
-              animate="animate"
-              whileTap="tap"
-              onClick={handleSkip}
-              className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 underline hover:no-underline transition-colors"
-            >
-              Skip for now
-            </motion.button>
-          )}
-        </div> */}
-        
-        {/* Next/Finish button - ✨ UPDATED: Always enabled */}
-        {/* {showNext && (
-          <motion.button
-            variants={buttonVariants}
-            initial="initial"
-            animate="animate"
-            whileTap="tap"
-            onClick={handleNext}
-            className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors ${
-              isLastQuestion && showFinish
-                ? 'bg-gold hover:bg-gold/90'
-                : 'bg-terracotta hover:bg-terracotta/90'
-            }`}
-          >
-            {isLastQuestion && showFinish ? 'Finish' : 'Next'}
-          </motion.button>
-        )} */}
         {showNext && (
           <motion.button
             variants={buttonVariants}
@@ -476,16 +620,13 @@ const handleCancelSubmission = () => {
       </div>
     </nav>
 
-    {showConfirmation && (
+    {/* {showConfirmation && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
         >
-          {/* <h3 className="text-2xl font-['Gilroy-semiBold'] text-navy mb-2">
-            Submit Assessment
-          </h3> */}
           <div className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
             Satisfied with your answers? Press the confirm button to submit your response.
           </div>
@@ -507,6 +648,104 @@ const handleCancelSubmission = () => {
               {isSubmitting ? 'Submitting...' : 'Confirm'}
             </button>
           </div>
+        </motion.div>
+      </div>
+    )} */}
+    {showConfirmation && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
+        >
+          {/* Conditional content based on submission state */}
+          {!isSubmitting && !isSubmitted && !submissionError && (
+            <>
+              <div className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
+                Satisfied with your answers? Press the confirm button to submit your response.
+              </div>
+
+              <div className="flex justify-start space-x-3">
+                <button
+                  onClick={handleCancelSubmission}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-semiBold'] tracking-[-2px]"
+                >
+                  Go Back
+                </button>
+                
+                <button
+                  onClick={handleConfirmSubmission}
+                  className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Submitting state */}
+          {isSubmitting && (
+            <>
+              <div className="text-center py-8">
+                <h3 className="text-2xl font-['Gilroy-Bold'] text-navy mb-2">
+                  Submitting...
+                </h3>
+                <p className="text-gray-600 font-['Gilroy-Regular']">
+                  We are submitting your responses. Please do not close this window.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Success state */}
+          {isSubmitted && !submissionError && (
+            <>
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-['Gilroy-Bold'] text-green-600 mb-2">
+                  Submitted Successfully!
+                </h3>
+                <p className="text-gray-600 font-['Gilroy-Regular']">
+                  Our AI is reviewing your responses. You will be redirected shortly.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Error state */}
+          {submissionError && (
+            <>
+              <div className="text-center py-4">
+                <div className="text-black font-['Gilroy-Regular'] text-sm mb-4 p-3 rounded-lg">
+                  Due to slow network your submission was not successful. Please try again.
+                </div>
+                
+                <div className="flex justify-center space-x-3">
+                  <button
+                    onClick={handleCancelSubmission}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-semiBold'] tracking-[-2px]"
+                  >
+                    Cancel
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setSubmissionError(null);
+                      setIsSubmitted(false);
+                      handleConfirmSubmission();
+                    }}
+                    className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
     )}

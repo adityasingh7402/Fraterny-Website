@@ -17,9 +17,9 @@ class PaymentApiService {
   private axiosInstance;
 
   constructor() {
-    console.log('🔧 PaymentApiService - Constructor Debug:');
-  console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
-  console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+  //   console.log('🔧 PaymentApiService - Constructor Debug:');
+  // console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+  // console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
 
     // Create axios instance with default configuration
     this.axiosInstance = axios.create({
@@ -30,16 +30,16 @@ class PaymentApiService {
       },
     });
 
-      console.log('🔧 Axios instance baseURL:', this.axiosInstance.defaults.baseURL);
+      // console.log('🔧 Axios instance baseURL:', this.axiosInstance.defaults.baseURL);
 
     // Add request interceptor for logging and auth
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        console.log(`Making API request to: ${config.method?.toUpperCase()} ${config.url}`);        
+        // console.log(`Making API request to: ${config.method?.toUpperCase()} ${config.url}`);        
         return config;
       },
       (error) => {
-        console.error('Request interceptor error:', error);
+        // console.error('Request interceptor error:', error);
         return Promise.reject(error);
       }
     );
