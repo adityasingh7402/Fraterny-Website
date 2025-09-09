@@ -38,7 +38,7 @@ export const PRICING_CONFIG = {
 
   // Regular pricing (after 1 minute)
   REGULAR: {
-    AMOUNT: 95000, // ₹950 in paise
+    AMOUNT: 100, // ₹950 in paise - Changed to Rs1 for testing
     DESCRIPTION: 'Regular Pricing',
   },
 } as const;
