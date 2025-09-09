@@ -509,6 +509,55 @@ if (isLastQuestionInSection) {
 }
 };
 
+const handlePrevious = () => {
+  if (currentQuestion) {
+    // Copy the exact same response-saving logic from handleNext()
+    const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
+      try {
+        const saved = localStorage.getItem(`quest_tags_${currentQuestion.id}`);
+        if (saved) {
+          const tags = JSON.parse(saved);
+          return tags;
+        }
+      } catch (error) {
+        console.error('Failed to load tags from localStorage:', error);
+      }
+      
+      const tagButtons = document.querySelectorAll('[data-tag-selected="true"]');
+      const selectedTags: HonestyTag[] = [];
+      
+      tagButtons.forEach(button => {
+        const tagValue = button.getAttribute('data-tag-value') as HonestyTag;
+        if (tagValue) {
+          selectedTags.push(tagValue);
+        }
+      });
+      
+      return selectedTags;
+    };
+
+    // Save current response before going back (copy from handleNext)
+    if (currentQuestion.type === 'text_input') {
+      const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
+      if (currentTextarea && currentTextarea.value) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+      }
+    } 
+    else if (currentQuestion.type === 'multiple_choice') {
+      const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
+      if (selectedRadio) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        submitResponse(currentQuestion.id, selectedRadio.value, selectedTags);
+      }
+    }
+    // Add other question types as needed (copy from handleNext)
+  }
+
+  // After saving, navigate to previous question
+  previousQuestion();
+};
+
 // const handleConfirmSubmission = async () => {
 //   setIsSubmitting(true);
 //   try {
@@ -598,7 +647,7 @@ const handleCancelSubmission = () => {
             initial="initial"
             animate="animate"
             whileTap="tap"
-            onClick={previousQuestion}
+            onClick={handlePrevious}
             disabled={isFirstQuestion}
             className={` ${
               isFirstQuestion
