@@ -564,7 +564,7 @@ const previousQuestion = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      timeout: 300000 // 5 minutes timeout - enough time for analysis
+      timeout: 300000
     });
     console.log('📦 Server response received:', response.data);
 
@@ -612,15 +612,30 @@ const previousQuestion = () => {
       questions_completed: questionsCompleted
     });
     
-    // Navigate to results
-    // const targetUrl = `/quest-result/result/${userId}/${sessionId}/${testid}`;
-    const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
-    navigate(targetUrl);
+    // const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
+    // navigate(targetUrl);
+
+    const navigationData = {
+      targetUrl: `/quest-result/processing/${userId}/${sessionId}/${testid}`,
+      userId,
+      sessionId,
+      testid
+    };
     
     // Return result
+    // return {
+    //   sessionId: sessionId,
+    //   userId: userId,
+    //   analysisData: {
+    //     summary: "Quest analysis completed successfully.",
+    //     sections: []
+    //   },
+    //   generatedAt: new Date().toISOString()
+    // };
     return {
       sessionId: sessionId,
       userId: userId,
+      navigationData: navigationData,
       analysisData: {
         summary: "Quest analysis completed successfully.",
         sections: []
@@ -669,9 +684,23 @@ const previousQuestion = () => {
       localStorage.setItem('testid', testid);
       localStorage.removeItem('fraterny_quest_session');
       
-      const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
-      navigate(targetUrl);
-      return null;
+      const navigationData = {
+        targetUrl: `/quest-result/processing/${userId}/${sessionId}/${testid}`,
+        userId,
+        sessionId,
+        testid
+      };
+
+      return {
+        sessionId: sessionId,
+        userId: userId,
+        navigationData: navigationData,
+        analysisData: {
+          summary: "Quest analysis completed successfully.",
+          sections: []
+        },
+        generatedAt: new Date().toISOString()
+      };
     }
   } catch (statusError) {
     console.log('Status check also failed, will show retry option');

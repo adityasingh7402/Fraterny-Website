@@ -64,7 +64,16 @@ export interface QuestSession {
 export interface QuestResult {
   sessionId: string;
   userId: string;
-  analysisData: any; // Will be replaced with specific AI analysis structure
+  navigationData?: {
+    targetUrl: string;
+    userId: string;
+    sessionId: string;
+    testid: string;
+  };
+  analysisData: {
+    summary: string;
+    sections: any[];
+  };
   generatedAt: string;
 }
 

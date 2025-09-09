@@ -10,7 +10,7 @@ import { useQuestSession, useQuestAnalytics } from '../../components/quest/hooks
 enum QuestState {
   INTRO = 'intro',
   ASSESSMENT = 'assessment',
-  COMPLETION = 'completion',
+  // COMPLETION = 'completion',
   LOADING = 'loading',
   ERROR = 'error'
 }
@@ -34,9 +34,9 @@ export function QuestPage() {
     }, 1500);
   };
   
-  const handleCompleteAssessment = () => {
-    setQuestState(QuestState.COMPLETION);
-  };
+  // const handleCompleteAssessment = () => {
+  //   setQuestState(QuestState.COMPLETION);
+  // };
   
   const handleRestartAssessment = () => {
     setQuestState(QuestState.INTRO);
@@ -60,12 +60,13 @@ export function QuestPage() {
         )}
         
         {questState === QuestState.ASSESSMENT && (
-          <QuestAssessment onComplete={handleCompleteAssessment} />
+          // <QuestAssessment onComplete={handleCompleteAssessment} />
+          <QuestAssessment />
         )}
         
-        {questState === QuestState.COMPLETION && (
+        {/* {questState === QuestState.COMPLETION && (
           <QuestCompletion onRestart={handleRestartAssessment} />
-        )}
+        )} */}
         
         {questState === QuestState.ERROR && (
           <QuestError 
