@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { useProgressAnimation } from '../animations/useProgressAnimation';
 import { useQuest } from '../core/useQuest';
 import { SectionDrawer } from './SectionDrawer';
+import { HonestyTag } from '../core/types';
 
 interface ProgressBarProps {
   currentValue: number;
@@ -49,7 +50,7 @@ export function ProgressBar({
   }, [isDrawerOpen]);
 
   // Get sections from the quest context
-  const { sections, currentSectionId, currentQuestion, session, changeSection, allQuestions } = useQuest();
+  const { sections, currentSectionId, currentQuestion, session, changeSection, allQuestions, submitResponse } = useQuest();
   
   // Find current section
   const currentSection = sections.find(section => section.id === currentSectionId);
@@ -173,10 +174,67 @@ const getCurrentSectionProgress = () => {
   };
 
   // Handle section selection from drawer
+  // const handleSectionSelect = (sectionId: string) => {
+  //   changeSection(sectionId);
+  //   setIsDrawerOpen(false); // Close drawer after selection
+  // };
+
   const handleSectionSelect = (sectionId: string) => {
-    changeSection(sectionId);
-    setIsDrawerOpen(false); // Close drawer after selection
-  };
+  // Save current response before changing section
+  if (currentQuestion) {
+    const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
+      try {
+        const saved = localStorage.getItem(`quest_tags_${currentQuestion.id}`);
+        if (saved) {
+          const tags = JSON.parse(saved);
+          return tags;
+        }
+      } catch (error) {
+        console.error('Failed to load tags from localStorage:', error);
+      }
+      
+      const tagButtons = document.querySelectorAll('[data-tag-selected="true"]');
+      const selectedTags: HonestyTag[] = [];
+      
+      tagButtons.forEach(button => {
+        const tagValue = button.getAttribute('data-tag-value') as HonestyTag;
+        if (tagValue) {
+          selectedTags.push(tagValue);
+        }
+      });
+      
+      return selectedTags;
+    };
+
+    if (currentQuestion.type === 'text_input') {
+      const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
+      if (currentTextarea && currentTextarea.value) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+      }
+    } 
+    else if (currentQuestion.type === 'multiple_choice') {
+      const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
+      if (selectedRadio) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        submitResponse(currentQuestion.id, selectedRadio.value, selectedTags);
+      }
+    }
+    else if (currentQuestion.type === 'date_input') {
+      const currentDateInput = document.querySelector('input[placeholder*="date of birth"]') as HTMLInputElement ||
+                              document.querySelector('.MuiInputBase-input') as HTMLInputElement ||
+                              document.querySelector('input[type="date"]') as HTMLInputElement;
+      if (currentDateInput && currentDateInput.value) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        submitResponse(currentQuestion.id, currentDateInput.value, selectedTags);
+      }
+    }
+  }
+  
+  // After saving, change section
+  changeSection(sectionId);
+  setIsDrawerOpen(false);
+};
   
   return (
     <>

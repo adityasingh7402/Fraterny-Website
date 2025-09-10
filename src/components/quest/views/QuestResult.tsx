@@ -2029,9 +2029,11 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
                 {quotes.map((quote, i) => (
                   <li key={i} className="rounded-2xl bg-white p-3" style={{ border: `1px solid ${tokens.border}` }}>
                     <div className="flex items-start gap-2">
-                      <Quote className="mt-0.5 h-4 w-4" color={tokens.accent} />
+                      <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center mt-0.5">
+                        <Quote className="w-full h-full" color={tokens.accent} />
+                      </div>
                       <div>
-                        <div className="text-[15px] font-['Inter'] leading-tight">"{quote.text}"</div>
+                        <div className="text-[15px] font-['Inter'] leading-tight">{quote.text}</div>
                         <div className="text-[12px]" style={{ color: tokens.muted }}>— {quote.author}</div>
                       </div>
                     </div>
