@@ -506,13 +506,13 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
               Something went wrong
             </h2>
             <p className="text-lg text-gray-700 mb-6">
-              Analysis took longer than expected. Please try refreshing to check if your result is ready.
+              Analysis took longer than expected. Please check again to see if your result is ready.
             </p>
             <button
               onClick={() => window.location.reload()}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg font-['Gilroy-Bold'] hover:bg-blue-700 transition-colors"
             >
-              Retry Polling
+              Check Again
             </button>
           </div>
         </div>

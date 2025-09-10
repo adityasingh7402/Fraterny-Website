@@ -32,13 +32,13 @@ export const PRICING_CONFIG = {
   // Early bird pricing (first 1 minute)
   EARLY_BIRD: {
     DURATION_MINUTES: 30,
-    AMOUNT: import.meta.env.VITE_EARLY_BIRD_PRICE, // ₹950 in paise - Changed to Rs1 for testing
+    AMOUNT: Number(import.meta.env.VITE_EARLY_BIRD_PRICE), // ₹950 in paise - Changed to Rs1 for testing
     DESCRIPTION: 'Early Bird Special',
   },
 
   // Regular pricing (after 1 minute)
   REGULAR: {
-    AMOUNT: import.meta.env.VITE_REGULAR_PRICE, // ₹950 in paise - Changed to Rs1 for testing
+    AMOUNT: Number(import.meta.env.VITE_REGULAR_PRICE), // ₹950 in paise - Changed to Rs1 for testing
     DESCRIPTION: 'Regular Pricing',
   },
 } as const;
