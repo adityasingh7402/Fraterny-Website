@@ -112,7 +112,7 @@ class GoogleAnalyticsService {
         page_title: document.title
       });
       
-      console.log(`📊 GA4 Event: ${eventName}`, parameters);
+      // console.log(`📊 GA4 Event: ${eventName}`, parameters);
     } catch (error) {
       console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
     }

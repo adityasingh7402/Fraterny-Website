@@ -129,7 +129,7 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
 
     const handleVisibilityChange = () => {
       if (document.hidden && session && session.responses && Object.keys(session.responses).length > 0) {
-        console.log('📱 App backgrounded - saving session immediately');
+        // console.log('📱 App backgrounded - saving session immediately');
         localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
         
         // NEW: Track quest abandonment in GA4 (for mobile users backgrounding the app)
@@ -199,10 +199,10 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       if (savedSession) {
         try {
           const parsedSession = JSON.parse(savedSession);
-          console.log('🔄 Found saved session, restoring progress...');
-          console.log('🔍 DEBUG - Saved session found:', parsedSession);
-          console.log('🔍 DEBUG - Session status:', parsedSession.status);
-          console.log('🔍 DEBUG - Session responses:', Object.keys(parsedSession.responses || {}));
+          // console.log('🔄 Found saved session, restoring progress...');
+          // console.log('🔍 DEBUG - Saved session found:', parsedSession);
+          // console.log('🔍 DEBUG - Session status:', parsedSession.status);
+          // console.log('🔍 DEBUG - Session responses:', Object.keys(parsedSession.responses || {}));
           // setSession(parsedSession);
           const resumedSession = {
             ...parsedSession,

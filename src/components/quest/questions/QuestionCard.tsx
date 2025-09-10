@@ -62,12 +62,12 @@ export function QuestionCard({
     const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(getInitialTags);
 
     useEffect(() => {
-  console.log('🔄 Response state changed:', {
-    questionId: question?.id,
-    questionType: question?.type,
-    newResponse: response,
-    timestamp: new Date().toISOString()
-  });
+  // console.log('🔄 Response state changed:', {
+  //   questionId: question?.id,
+  //   questionType: question?.type,
+  //   newResponse: response,
+  //   timestamp: new Date().toISOString()
+  // });
   // Add this part:
   if (question?.type === 'date_input') {
     console.log('📅 Date response stored:', response);
@@ -167,7 +167,7 @@ useEffect(() => {
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
+    // console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
   const newValue = e.target.value;
   
   // Allow pasting but truncate if too long
@@ -177,7 +177,7 @@ useEffect(() => {
   }
   
   setResponse(newValue);
-  console.log('📝 Set response to:', newValue);
+  // console.log('📝 Set response to:', newValue);
   
   // AUTO-SAVE: Call onResponse immediately for auto-save
   // onResponse(newValue, selectedTags);
