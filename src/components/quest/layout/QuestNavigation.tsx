@@ -51,6 +51,7 @@ export function QuestNavigation({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hasStartedSubmission, setHasStartedSubmission] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -574,6 +575,11 @@ const handlePrevious = () => {
 
 
 const handleConfirmSubmission = async () => {
+  if (hasStartedSubmission || isSubmitting || isSubmitted) {
+    console.log('Submission already in progress, ignoring click');
+    return;
+  }
+  setHasStartedSubmission(true);
   setIsSubmitting(true);
   setSubmissionError(null);
   
@@ -615,6 +621,7 @@ const handleConfirmSubmission = async () => {
     }, 1000);
     
   } catch (error: any) {
+    setHasStartedSubmission(false);
     console.error('❌ Submission failed:', error);
     const errorMessage = error.response?.data?.message || error.message || 'Submission failed';
     setSubmissionError(errorMessage);
@@ -740,6 +747,7 @@ const handleCancelSubmission = () => {
                 
                 <button
                   onClick={handleConfirmSubmission}
+                  disabled={hasStartedSubmission || isSubmitting || isSubmitted}
                   className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
                 >
                   Confirm
@@ -786,7 +794,7 @@ const handleCancelSubmission = () => {
             <>
               <div className="text-left py-4">
                 <div className="text-black font-['Gilroy-Regular'] text-xl mb-4 p-3 rounded-lg">
-                  Due to slow network your submission was not successful. Please try again.
+                  Due to slow network your submission was not successful last time. Please try again.
                 </div>
                 
                 <div className="flex justify-start space-x-3">
