@@ -755,7 +755,7 @@ const handleCancelSubmission = () => {
                 <h3 className="text-2xl font-['Gilroy-Bold'] text-navy mb-2">
                   Submitting...
                 </h3>
-                <p className="text-gray-600 font-['Gilroy-Regular']">
+                <p className="text-gray-600 font-['Gilroy-Regular'] text-xl">
                   We are submitting your responses. Please do not close this window.
                 </p>
               </div>
@@ -784,12 +784,12 @@ const handleCancelSubmission = () => {
           {/* Error state */}
           {submissionError && (
             <>
-              <div className="text-center py-4">
-                <div className="text-black font-['Gilroy-Regular'] text-sm mb-4 p-3 rounded-lg">
+              <div className="text-left py-4">
+                <div className="text-black font-['Gilroy-Regular'] text-xl mb-4 p-3 rounded-lg">
                   Due to slow network your submission was not successful. Please try again.
                 </div>
                 
-                <div className="flex justify-center space-x-3">
+                <div className="flex justify-start space-x-3">
                   <button
                     onClick={handleCancelSubmission}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-semiBold'] tracking-[-2px]"
