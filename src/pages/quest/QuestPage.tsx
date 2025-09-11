@@ -24,7 +24,7 @@ export function QuestPage() {
   // State for the current view
   const [questState, setQuestState] = useState<QuestState>(QuestState.INTRO);
   const [error, setError] = useState<Error | null>(null);
-  const [showRecentCheck, setShowRecentCheck] = useState(false);
+  // const [showRecentCheck, setShowRecentCheck] = useState(false);
   // const [questState, setQuestState] = useState(QuestState.LANDING);
 
   
@@ -40,7 +40,7 @@ export function QuestPage() {
 
   const handleStartAssessment = () => {
     setQuestState(QuestState.LOADING);
-    setShowRecentCheck(true); // Show recent check
+    // setShowRecentCheck(true); // Show recent check
     
     setTimeout(() => {
       setQuestState(QuestState.ASSESSMENT);
@@ -79,11 +79,12 @@ export function QuestPage() {
         )}
         
         {/* Add RecentAssessmentCheck component */}
-        {showRecentCheck && questState === QuestState.ASSESSMENT && (
+        {/* Add RecentAssessmentCheck component */}
+        {questState === QuestState.INTRO && (
           <RecentAssessmentCheck
-            onContinue={() => setShowRecentCheck(false)}
+            onContinue={() => {/* User dismissed popup, continue with intro */}}
             onSelectSession={(session) => {
-              // Handle session selection
+              // Handle session selection - navigate to results
               console.log('User selected previous session:', session);
             }}
           />

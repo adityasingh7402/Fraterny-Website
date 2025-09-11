@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import ScreenContainer from '../../components/quest-landing/sections/ScreenContainer'
 import MotionProvider from '../../components/quest-landing/animations/MotionProvider';
 import { setMeta } from '../../utils/seo';
+import { RecentAssessmentCheck } from '../../components/quest/views/RecentAssessmentCheck';
 
 const QuestLandingPage: React.FC = () => {
   const handleAnalyzeClick = () => {
@@ -19,17 +20,34 @@ const QuestLandingPage: React.FC = () => {
     });
   }, []);
 
+  // return (
+  //   <MotionProvider>
+  //       <ScreenContainer 
+  //         onAnalyzeClick={handleAnalyzeClick}
+  //         className=""
+  //         onNavigateToSection={(screen, section) => {
+  //           console.log('🎯 Page level navigation called:', { screen, section });
+  //         }}
+  //       />
+  //   </MotionProvider>
+  // );
   return (
-    <MotionProvider>
-        <ScreenContainer 
-          onAnalyzeClick={handleAnalyzeClick}
-          className=""
-          onNavigateToSection={(screen, section) => {
-            console.log('🎯 Page level navigation called:', { screen, section });
-          }}
-        />
+  <MotionProvider>
+      <ScreenContainer 
+        onAnalyzeClick={handleAnalyzeClick}
+        className=""
+        onNavigateToSection={(screen, section) => {
+          console.log('🎯 Page level navigation called:', { screen, section });
+        }}
+      />
+      
+      {/* Add RecentAssessmentCheck component */}
+      <RecentAssessmentCheck
+        key="quest-landing-recent-check"
+        onContinue={() => {}} // Component handles hiding itself
+        onSelectSession={() => {}} // Component handles navigation itself
+      />
     </MotionProvider>
   );
 };
-
 export default QuestLandingPage;
