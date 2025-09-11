@@ -8,6 +8,7 @@ import ModernLoading from './components/ui/ModernLoading';
 import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
 import ResultsDemo from './components/quest/views/ResultsDemo';
+import { QuestRecovery } from './components/quest/views/QuestRecovery';
 
 initializeUserJourney();
 
@@ -164,6 +165,7 @@ const router = createBrowserRouter([
       { path: 'assessment', element: <QuestRoute /> },
       { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
+      { path: 'quest-recovery', element: <QuestRecovery /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },
