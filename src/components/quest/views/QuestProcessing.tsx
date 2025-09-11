@@ -521,7 +521,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
     // Results ready state
     if (resultStatus === 'ready') {
       return (
-        <div className='h-screen bg-[#004A7F] max-h-screen relative overflow-hidden flex items-center justify-center'>
+        <div className='min-h-screen bg-[#004A7F] max-h-screen relative overflow-hidden flex items-center justify-center'>
           <div className="text-center px-4">
             <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
               Your Results are Ready!

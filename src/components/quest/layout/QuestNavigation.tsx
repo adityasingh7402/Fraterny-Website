@@ -178,6 +178,18 @@ export function QuestNavigation({
       if (userAgent.indexOf('iOS') > -1) return 'iOS';
       return 'Unknown';
     };
+
+    // Try to get device backup info for fallback recovery (secondary method)
+    let deviceBackup = null;
+    try {
+      const stored = localStorage.getItem('fraterny_device_backup');
+      if (stored) {
+        deviceBackup = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.log('Could not retrieve device backup (non-critical)');
+    }
+
     
     return {
       response: responses,
@@ -193,6 +205,10 @@ export function QuestNavigation({
           browser: detectBrowser(),
           operating_system: detectOS()
         },
+        device_identifier: deviceBackup ? {
+          ip: deviceBackup.ip,
+          deviceHash: deviceBackup.deviceHash
+        } : null,
       }
     };
   };

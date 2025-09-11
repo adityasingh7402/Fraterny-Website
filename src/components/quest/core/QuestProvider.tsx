@@ -14,6 +14,7 @@ import {
 import questSections, { getAllQuestions, getQuestionsBySection } from './questions';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { usePostHog } from 'posthog-js/react';
+import { getDeviceIdentifier } from '@/utils/deviceFingerprint';
 
 interface QuestProviderProps {
   children: React.ReactNode;
@@ -36,6 +37,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const [visitedQuestions, setVisitedQuestions] = useState<string[]>([]);
   const [currentViewingQuestion, setCurrentViewingQuestion] = useState<string | null>(null);
   const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number>>({});
+  const [deviceIdentifier, setDeviceIdentifier] = useState<any>(null);
+  const [hasSubmittedToAPI, setHasSubmittedToAPI] = useState(false);
+
 
   const navigate = useNavigate();
   const auth = useAuth();
@@ -160,11 +164,27 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const generateSessionId = () => `session_${Date.now()}`;
   
 
-  // ✨ UPDATED - Replace the existing startQuest function with this
   const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
+    
     try {
       setIsLoading(true);
       setError(null);
+
+      // Capture device identifier for fallback recovery (secondary method)
+      // This runs alongside existing session storage, doesn't replace it
+      getDeviceIdentifier().then(identifier => {
+        setDeviceIdentifier(identifier);
+        // Store in localStorage as additional backup info
+        localStorage.setItem('fraterny_device_backup', JSON.stringify({
+          ip: identifier.ip,
+          deviceHash: identifier.deviceHash,
+          sessionId: newSession.id,
+          timestamp: new Date().toISOString()
+        }));
+      }).catch(err => {
+        console.log('Device identifier capture failed (non-critical):', err);
+      });
+
 
       // Check for saved session first
       const savedSession = localStorage.getItem('fraterny_quest_session');
@@ -237,28 +257,6 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     }
   };
 
-  // Auto-advance logic after response submission
-  // const autoAdvance = () => {
-  //   if (!session) return;
-    
-  //   const currentIndex = session.currentQuestionIndex || 0;
-  //   const isLastQuestionInSection = currentIndex === sectionQuestions.length - 1;
-    
-  //   if (isLastQuestionInSection) {
-  //     // Try to move to next section
-  //     const hasMoreSections = finishSection();
-      
-  //     // If no more sections, finish quest
-  //     if (!hasMoreSections) {
-  //       finishQuest();
-  //     }
-  //   } else {
-  //     // Move to next question in current section
-  //     nextQuestion();
-  //   }
-  // };
-  
-  // ✨ UPDATED - Replace the entire existing submitResponse function with this
   const submitResponse = async (
     questionId: string, 
     response: string, 
@@ -520,9 +518,38 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
 
   const finishQuest = async (submissionData: any): Promise<QuestResult | null> => {
   console.log('🚀 Starting quest submission...');
+
+    // Check if already submitted to prevent duplicates
+  if (hasSubmittedToAPI) {
+    console.log('⚠️ Submission already sent, preventing duplicate');
+    // Try to return cached result if available
+    const cachedSessionId = localStorage.getItem('questSessionId');
+    const cachedTestId = localStorage.getItem('testid');
+    if (cachedSessionId && cachedTestId) {
+      const navigationData = {
+        targetUrl: `/quest-result/processing/${submissionData.user_data.user_id}/${cachedSessionId}/${cachedTestId}`,
+        userId: submissionData.user_data.user_id,
+        sessionId: cachedSessionId,
+        testid: cachedTestId
+      };
+      return {
+        sessionId: cachedSessionId,
+        userId: submissionData.user_data.user_id,
+        navigationData: navigationData,
+        analysisData: {
+          summary: "Quest already submitted. Redirecting to results...",
+          sections: []
+        },
+        generatedAt: new Date().toISOString()
+      };
+    }
+    return null;
+  }
+
   
   try {
     setIsSubmitting(true);
+    setHasSubmittedToAPI(true); // Mark as submitted immediately
     
     // Extract required IDs
     const sessionId = submissionData.assessment_metadata.session_id;
