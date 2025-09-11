@@ -1,13 +1,13 @@
 import React, { lazy, Suspense, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { PostHogProvider } from 'posthog-js/react';
 import './index.css';
 import App from './App';
 import ModernLoading from './components/ui/ModernLoading';
 import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
 import ResultsDemo from './components/quest/views/ResultsDemo';
-
 
 initializeUserJourney();
 
@@ -198,8 +198,18 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <HelmetProvider>
-      <RouterProvider router={router} />
-    </HelmetProvider>
+    <PostHogProvider
+      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+      options={{
+        api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+        defaults: '2025-05-24',
+        capture_exceptions: true,
+        debug: import.meta.env.MODE === 'development',
+      }}
+    >
+      <HelmetProvider>
+        <RouterProvider router={router} />
+      </HelmetProvider>
+    </PostHogProvider>
   </React.StrictMode>
 );

@@ -7,7 +7,7 @@ import { HonestyTag } from '../core/types';
 import { toast } from 'sonner';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import QuestLoading from '../views/QuestLoading';
+import { usePostHog } from 'posthog-js/react';
 
 interface QuestNavigationProps {
   showPrevious?: boolean;
@@ -31,16 +31,16 @@ export function QuestNavigation({
   className = ''
 }: QuestNavigationProps) {
   const { 
-    session, 
-    currentQuestion,
-    questions,
-    allQuestions,
-    currentSection,
-    nextQuestion,
-    previousQuestion,
-    submitResponse,
-    changeSection,
-    sections,           // ADD this
+  session, 
+  currentQuestion,
+  questions,
+  allQuestions,
+  currentSection,
+  nextQuestion,
+  previousQuestion,
+  submitResponse,
+  changeSection,
+  sections,           // ADD this
   currentSectionId,
   finishQuest,
   trackQuestionView,
@@ -54,6 +54,7 @@ export function QuestNavigation({
   const [hasStartedSubmission, setHasStartedSubmission] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
+  const posthog = usePostHog();
 
   const formatSubmissionData = () => {
     const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
@@ -201,19 +202,19 @@ export function QuestNavigation({
   session.currentQuestionIndex === questions.length - 1;
 
   const isLastQuestionInEntireAssessment = () => {
-  if (!session || !currentSection) return false;
-  
-  // Check if current section is the last section
-  const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
-  const isLastSection = currentSectionIndex === sections.length - 1;
-  
-  // Check if current question is last in this section
-  const isLastQuestionInThisSection = session.currentQuestionIndex === questions.length - 1;
-  
-  return isLastSection && isLastQuestionInThisSection;
-};
+    if (!session || !currentSection) return false;
+    
+    // Check if current section is the last section
+    const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
+    const isLastSection = currentSectionIndex === sections.length - 1;
+    
+    // Check if current question is last in this section
+    const isLastQuestionInThisSection = session.currentQuestionIndex === questions.length - 1;
+    
+    return isLastSection && isLastQuestionInThisSection;
+  };
 
-const isLastQuestion = isLastQuestionInEntireAssessment();
+  const isLastQuestion = isLastQuestionInEntireAssessment();
 
   const isFirstQuestionInEntireAssessment = () => {
   if (!session) return true;
@@ -226,7 +227,7 @@ const isLastQuestion = isLastQuestionInEntireAssessment();
   const isFirstQuestionInThisSection = session.currentQuestionIndex === 0;
   
   return isFirstSection && isFirstQuestionInThisSection;
-};
+  };
 
 const isFirstQuestion = isFirstQuestionInEntireAssessment();
 
@@ -559,20 +560,6 @@ const handlePrevious = () => {
   previousQuestion();
 };
 
-// const handleConfirmSubmission = async () => {
-//   setIsSubmitting(true);
-//   try {
-//     if (onFinish) {  // ← Add null check
-//        onFinish();
-//     }
-//     setShowConfirmation(false);
-//   } catch (error) {
-//     console.error('Submission failed:', error);
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-
 
 const handleConfirmSubmission = async () => {
   if (hasStartedSubmission || isSubmitting || isSubmitted) {
@@ -597,9 +584,16 @@ const handleConfirmSubmission = async () => {
     const sessionId = submissionData.assessment_metadata.session_id;
     const testid = submissionData?.user_data?.testid || '';
     console.log('🆔 Session ID:', sessionId, 'Test ID:', testid);
+    posthog.capture('confirm_button_clicked', {
+      testid: testid,
+      user_id: auth.user?.id || 'anonymous',
+      session_id: submissionData?.assessment_metadata?.session_id || 'unknown',
+      timestamp: new Date().toISOString()
+    });
     
     // Call finishQuest with submission data
     const result = await finishQuest(submissionData);
+
     
     console.log('✅ Quest submission completed successfully:', result);
     
@@ -774,11 +768,6 @@ const handleCancelSubmission = () => {
           {isSubmitted && !submissionError && (
             <>
               <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
                 <h3 className="text-2xl font-['Gilroy-Bold'] text-green-600 mb-2">
                   Submitted Successfully!
                 </h3>
