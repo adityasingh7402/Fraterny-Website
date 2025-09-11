@@ -144,16 +144,17 @@ export const RAZORPAY_CONFIG = {
 
 // Pricing configuration
 export const PRICING_CONFIG = {
-  EARLY_BIRD: {
-    DURATION_MINUTES: 30,
-    AMOUNT: Number(import.meta.env.VITE_EARLY_BIRD_PRICE),
-    DESCRIPTION: 'Early Bird Special',
+  INDIA: { 
+    amount: Number(import.meta.env.VITE_INDIA_PRICE_PAISE),
+    currency: 'INR',
+    description: 'India Pricing' 
   },
-  REGULAR: {
-    AMOUNT: Number(import.meta.env.VITE_REGULAR_PRICE),
-    DESCRIPTION: 'Regular Pricing',
-  },
-} as const;
+  INTERNATIONAL: { 
+    amount: Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS),
+    currency: 'USD', 
+    description: 'International Pricing'
+  }
+}
 
 // API endpoints configuration
 export const API_CONFIG = {
@@ -186,47 +187,47 @@ export const getUserLocationFlag = async (): Promise<boolean> => {
 };
 
 // Helper function for display pricing only (frontend display)
-export const getDisplayPricing = async () => {
-  try {
-    const locationData = await locationService.getUserLocation();
-    const isIndia = locationData.isIndia;
+// export const getDisplayPricing = async () => {
+//   try {
+//     const locationData = await locationService.getUserLocation();
+//     const isIndia = locationData.isIndia;
     
-    if (isIndia) {
-      // India pricing display - hardcoded
-      const indiaPrice = 950;
-      return {
-        currency: 'INR',
-        symbol: '₹',
-        amount: indiaPrice,
-        display: `₹${indiaPrice}`,
-        originalDisplay: '₹1200',
-        isIndia: true,
-      };
-    } else {
-      // International pricing display - hardcoded
-      const usdPrice = 20;
-      return {
-        currency: 'USD',
-        symbol: '$',
-        amount: usdPrice,
-        display: `$${usdPrice}`,
-        originalDisplay: '$25',
-        isIndia: false,
-      };
-    }
-  } catch (error) {
-    console.error('Failed to get display pricing:', error);
-    // Fallback to India pricing
-    return {
-      currency: 'INR',
-      symbol: '₹',
-      amount: 950,
-      display: '₹950',
-      originalDisplay: '₹1200',
-      isIndia: true,
-    };
-  }
-};
+//     if (isIndia) {
+//       // India pricing display - hardcoded
+//       const indiaPrice = 950;
+//       return {
+//         currency: 'INR',
+//         symbol: '₹',
+//         amount: indiaPrice,
+//         display: `₹${indiaPrice}`,
+//         originalDisplay: '₹1200',
+//         isIndia: true,
+//       };
+//     } else {
+//       // International pricing display - hardcoded
+//       const usdPrice = 20;
+//       return {
+//         currency: 'USD',
+//         symbol: '$',
+//         amount: usdPrice,
+//         display: `$${usdPrice}`,
+//         originalDisplay: '$25',
+//         isIndia: false,
+//       };
+//     }
+//   } catch (error) {
+//     console.error('Failed to get display pricing:', error);
+//     // Fallback to India pricing
+//     return {
+//       currency: 'INR',
+//       symbol: '₹',
+//       amount: 950,
+//       display: '₹950',
+//       originalDisplay: '₹1200',
+//       isIndia: true,
+//     };
+//   }
+// };
 
 export const getPriceForLocation = async () => {
   try {
@@ -316,6 +317,10 @@ export const validateConfig = (): { isValid: boolean; missingVars: string[] } =>
     isValid: missingVars.length === 0,
     missingVars,
   };
+};
+
+export const getLocationBasedPricing = (isIndia: boolean) => {
+  return isIndia ? PRICING_CONFIG.INDIA : PRICING_CONFIG.INTERNATIONAL;
 };
 
 // Export types for the config

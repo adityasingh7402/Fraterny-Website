@@ -127,16 +127,16 @@ class SessionStorageManager {
   }
 
   // Check if browser supports sessionStorage
-  isSessionStorageAvailable(): boolean {
-    try {
-      const test = '__test__';
-      sessionStorage.setItem(test, test);
-      sessionStorage.removeItem(test);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
+  // isSessionStorageAvailable(): boolean {
+  //   try {
+  //     const test = '__test__';
+  //     sessionStorage.setItem(test, test);
+  //     sessionStorage.removeItem(test);
+  //     return true;
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
 
   // Get current session start time (create if doesn't exist)
   getOrCreateSessionStartTime(): string {
@@ -152,19 +152,19 @@ class SessionStorageManager {
   }
 
   // Clear session start time
-  clearSessionStartTime(): void {
-    sessionStorage.removeItem('session_start_time');
-  }
+  // clearSessionStartTime(): void {
+  //   sessionStorage.removeItem('session_start_time');
+  // }
 
   // Debug: Get all payment-related storage items
-  getAllPaymentStorageItems(): Record<string, any> {
-    return {
-      paymentContext: this.getPaymentContext(),
-      sessionData: this.getSessionData(),
-      pricingSnapshot: this.getPricingSnapshot(),
-      sessionStartTime: sessionStorage.getItem('session_start_time'),
-    };
-  }
+  // getAllPaymentStorageItems(): Record<string, any> {
+  //   return {
+  //     paymentContext: this.getPaymentContext(),
+  //     sessionData: this.getSessionData(),
+  //     pricingSnapshot: this.getPricingSnapshot(),
+  //     sessionStartTime: sessionStorage.getItem('session_start_time'),
+  //   };
+  // }
 }
 
 // Create and export singleton instance
@@ -174,18 +174,18 @@ export const sessionStorageManager = new SessionStorageManager();
 export { SessionStorageManager };
 
 // Utility functions for direct use
-export const storePaymentContext = (context: PaymentContext): void => {
-  sessionStorageManager.storePaymentContext(context);
-};
+// export const storePaymentContext = (context: PaymentContext): void => {
+//   sessionStorageManager.storePaymentContext(context);
+// };
 
-export const getPaymentContext = (): PaymentContext | null => {
-  return sessionStorageManager.getPaymentContext();
-};
+// export const getPaymentContext = (): PaymentContext | null => {
+//   return sessionStorageManager.getPaymentContext();
+// };
 
-export const clearPaymentContext = (): void => {
-  sessionStorageManager.clearPaymentContext();
-};
+// export const clearPaymentContext = (): void => {
+//   sessionStorageManager.clearPaymentContext();
+// };
 
-export const clearAllPaymentData = (): void => {
-  sessionStorageManager.clearAllPaymentData();
-};
+// export const clearAllPaymentData = (): void => {
+//   sessionStorageManager.clearAllPaymentData();
+// };

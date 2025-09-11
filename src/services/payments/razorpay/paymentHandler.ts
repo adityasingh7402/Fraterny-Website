@@ -333,62 +333,62 @@ class PaymentHandlerService {
   }
 
   // Resume payment flow after authentication
-  async resumePaymentAfterAuth(): Promise<PaymentResult | null> {
-    try {
-      console.log('Attempting to resume payment after authentication...');
+  // async resumePaymentAfterAuth(): Promise<PaymentResult | null> {
+  //   try {
+  //     console.log('Attempting to resume payment after authentication...');
 
-      // Check if this is a post-auth return
-      if (!paymentAuthService.isPostAuthReturn()) {
-        return null;
-      }
+  //     // Check if this is a post-auth return
+  //     if (!paymentAuthService.isPostAuthReturn()) {
+  //       return null;
+  //     }
 
-      // Handle post-auth return
-      const authResult = await paymentAuthService.handlePostAuthReturn();
+  //     // Handle post-auth return
+  //     const authResult = await paymentAuthService.handlePostAuthReturn();
       
-      if (!authResult.canResumePayment || !authResult.context) {
-        console.log('Cannot resume payment:', authResult.error);
-        return null;
-      }
+  //     if (!authResult.canResumePayment || !authResult.context) {
+  //       console.log('Cannot resume payment:', authResult.error);
+  //       return null;
+  //     }
 
-      // Resume payment with stored context
-      const { originalSessionId, testId } = authResult.context;
-      return await this.initiatePayment(originalSessionId, testId);
+  //     // Resume payment with stored context
+  //     const { originalSessionId, testId } = authResult.context;
+  //     return await this.initiatePayment(originalSessionId, testId);
 
-    } catch (error) {
-      console.error('Error resuming payment after auth:', error);
-      return {
-        success: false,
-        error: 'Failed to resume payment after authentication',
-      };
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Error resuming payment after auth:', error);
+  //     return {
+  //       success: false,
+  //       error: 'Failed to resume payment after authentication',
+  //     };
+  //   }
+  // }
 
   // Check if Razorpay is available
-  isRazorpayAvailable(): boolean {
-    return this.isRazorpayLoaded && !!window.Razorpay;
-  }
+  // isRazorpayAvailable(): boolean {
+  //   return this.isRazorpayLoaded && !!window.Razorpay;
+  // }
 
   // Get payment handler status
-  getPaymentHandlerStatus(): {
-    razorpayLoaded: boolean;
-    razorpayAvailable: boolean;
-    configValid: boolean;
-  } {
-    return {
-      razorpayLoaded: this.isRazorpayLoaded,
-      razorpayAvailable: this.isRazorpayAvailable(),
-      configValid: !!RAZORPAY_CONFIG.KEY_ID,
-    };
-  }
+  // getPaymentHandlerStatus(): {
+  //   razorpayLoaded: boolean;
+  //   razorpayAvailable: boolean;
+  //   configValid: boolean;
+  // } {
+  //   return {
+  //     razorpayLoaded: this.isRazorpayLoaded,
+  //     razorpayAvailable: this.isRazorpayAvailable(),
+  //     configValid: !!RAZORPAY_CONFIG.KEY_ID,
+  //   };
+  // }
 
   // Cleanup function
-  cleanup(): void {
-    // Clear any stored data
-    sessionManager.clearAllData();
-    paymentAuthService.cleanupAuthFlow();
+  // cleanup(): void {
+  //   // Clear any stored data
+  //   sessionManager.clearAllData();
+  //   paymentAuthService.cleanupAuthFlow();
     
-    console.log('Payment handler cleanup completed');
-  }
+  //   console.log('Payment handler cleanup completed');
+  // }
 }
 
 // Create and export singleton instance
@@ -398,22 +398,22 @@ export const paymentHandlerService = new PaymentHandlerService();
 export { PaymentHandlerService };
 
 // Utility functions for direct use
-export const initiatePayment = async (sessionId: string, testId: string): Promise<PaymentResult> => {
-  return paymentHandlerService.initiatePayment(sessionId, testId);
-};
+// export const initiatePayment = async (sessionId: string, testId: string): Promise<PaymentResult> => {
+//   return paymentHandlerService.initiatePayment(sessionId, testId);
+// };
 
-export const resumePaymentAfterAuth = async (): Promise<PaymentResult | null> => {
-  return paymentHandlerService.resumePaymentAfterAuth();
-};
+// export const resumePaymentAfterAuth = async (): Promise<PaymentResult | null> => {
+//   return paymentHandlerService.resumePaymentAfterAuth();
+// };
 
-export const isRazorpayReady = (): boolean => {
-  return paymentHandlerService.isRazorpayAvailable();
-};
+// export const isRazorpayReady = (): boolean => {
+//   return paymentHandlerService.isRazorpayAvailable();
+// };
 
-export const getPaymentStatus = () => {
-  return paymentHandlerService.getPaymentHandlerStatus();
-};
+// export const getPaymentStatus = () => {
+//   return paymentHandlerService.getPaymentHandlerStatus();
+// };
 
-export const cleanupPayment = (): void => {
-  paymentHandlerService.cleanup();
-};
+// export const cleanupPayment = (): void => {
+//   paymentHandlerService.cleanup();
+// };

@@ -33,18 +33,18 @@ class ApiEndpoints {
   }
 
   // Method to update base URL if needed
-  updateBaseUrl(newBaseUrl: string): void {
-    this.baseUrl = newBaseUrl.replace(/\/$/, '');
-  }
+  // updateBaseUrl(newBaseUrl: string): void {
+  //   this.baseUrl = newBaseUrl.replace(/\/$/, '');
+  // }
 
   // Get all endpoints as an object
-  getAllEndpoints(): Record<string, string> {
-    return {
-      createOrder: this.createOrder,
-      completePayment: this.completePayment,
-      verifyPayment: this.verifyPayment,
-    };
-  }
+  // getAllEndpoints(): Record<string, string> {
+  //   return {
+  //     createOrder: this.createOrder,
+  //     completePayment: this.completePayment,
+  //     verifyPayment: this.verifyPayment,
+  //   };
+  // }
 }
 
 // Create and export singleton instance
@@ -54,33 +54,33 @@ export const apiEndpoints = new ApiEndpoints();
 export { ApiEndpoints };
 
 // Helper function to validate if URL is reachable (optional utility)
-export const validateEndpoint = async (url: string): Promise<boolean> => {
-  try {
-    const response = await fetch(url, { 
-      method: 'HEAD',
-      mode: 'cors',
-    });
-    return response.ok;
-  } catch (error) {
-    console.warn(`Endpoint validation failed for: ${url}`, error);
-    return false;
-  }
-};
+// export const validateEndpoint = async (url: string): Promise<boolean> => {
+//   try {
+//     const response = await fetch(url, { 
+//       method: 'HEAD',
+//       mode: 'cors',
+//     });
+//     return response.ok;
+//   } catch (error) {
+//     console.warn(`Endpoint validation failed for: ${url}`, error);
+//     return false;
+//   }
+// };
 
-// Environment-specific endpoint configurations
-export const getEnvironmentEndpoints = (environment: 'development' | 'staging' | 'production') => {
-  const configs = {
-    development: 'http://localhost:3000',
-    staging: 'https://staging-api.yourapp.com', // Replace with your staging URL
-    production: 'https://api.yourapp.com',       // Replace with your production URL
-  };
+// // Environment-specific endpoint configurations
+// export const getEnvironmentEndpoints = (environment: 'development' | 'staging' | 'production') => {
+//   const configs = {
+//     development: 'http://localhost:3000',
+//     staging: 'https://staging-api.yourapp.com', // Replace with your staging URL
+//     production: 'https://api.yourapp.com',       // Replace with your production URL
+//   };
 
-  return new ApiEndpoints(configs[environment]);
-};
+//   return new ApiEndpoints(configs[environment]);
+// };
 
 // Export endpoint URLs as constants for direct use
-export const PAYMENT_ENDPOINTS = {
-  CREATE_ORDER: apiEndpoints.createOrder,
-  COMPLETE_PAYMENT: apiEndpoints.completePayment,
-  VERIFY_PAYMENT: apiEndpoints.verifyPayment,
-} as const;
+// export const PAYMENT_ENDPOINTS = {
+//   CREATE_ORDER: apiEndpoints.createOrder,
+//   COMPLETE_PAYMENT: apiEndpoints.completePayment,
+//   VERIFY_PAYMENT: apiEndpoints.verifyPayment,
+// } as const;

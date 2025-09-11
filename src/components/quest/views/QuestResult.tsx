@@ -21,12 +21,10 @@ import {
 import imgicon from '../../../../public/message.png'
 import logo from '../../../../public/Vector.svg';
 import axios from 'axios';
-import { section } from "@/components/quest-landing/styles";
-import { signInWithGoogle } from '@/utils/auth';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { PaymentService, sessionStorageManager, sessionManager } from '@/services/payments';
+import { PaymentService, sessionManager } from '@/services/payments';
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
@@ -1556,7 +1554,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
     });
 
   if (!sessionId || !testId) {
-    toast.error('Missing session information. Please try again.', {
+    toast.error('Missing user information. Please try again.', {
       position: "top-right"
     });
     console.error('Missing URL parameters:', { sessionId, testId });
