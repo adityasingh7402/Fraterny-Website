@@ -87,64 +87,59 @@ class PaymentAuthService {
   }
 }
 
-  // Initiate Google sign-in flow
-  private async initiateGoogleSignIn(): Promise<void> {
-    
-  }
-
   // Handle return from authentication (call this after successful auth)
-  async handlePostAuthReturn(): Promise<{
-    hasPaymentContext: boolean;
-    context?: PaymentContext;
-    canResumePayment: boolean;
-    error?: string;
-  }> {
-    try {
-      // Check if we have a valid payment context to resume
-      const resumeResult = sessionManager.resumePaymentFlow();
+  // async handlePostAuthReturn(): Promise<{
+  //   hasPaymentContext: boolean;
+  //   context?: PaymentContext;
+  //   canResumePayment: boolean;
+  //   error?: string;
+  // }> {
+  //   try {
+  //     // Check if we have a valid payment context to resume
+  //     const resumeResult = sessionManager.resumePaymentFlow();
       
-      if (!resumeResult.canResume) {
-        return {
-          hasPaymentContext: false,
-          canResumePayment: false,
-          error: resumeResult.reason,
-        };
-      }
+  //     if (!resumeResult.canResume) {
+  //       return {
+  //         hasPaymentContext: false,
+  //         canResumePayment: false,
+  //         error: resumeResult.reason,
+  //       };
+  //     }
 
-      // Mark authentication as completed
-      sessionManager.markAuthenticationCompleted();
+  //     // Mark authentication as completed
+  //     sessionManager.markAuthenticationCompleted();
       
-      console.log('Post-auth return successful, can resume payment:', resumeResult.context);
+  //     console.log('Post-auth return successful, can resume payment:', resumeResult.context);
       
-      return {
-        hasPaymentContext: true,
-        context: resumeResult.context!,
-        canResumePayment: true,
-      };
+  //     return {
+  //       hasPaymentContext: true,
+  //       context: resumeResult.context!,
+  //       canResumePayment: true,
+  //     };
 
-    } catch (error) {
-      console.error('Post-auth return handling failed:', error);
-      return {
-        hasPaymentContext: false,
-        canResumePayment: false,
-        error: 'Failed to handle post-authentication return',
-      };
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Post-auth return handling failed:', error);
+  //     return {
+  //       hasPaymentContext: false,
+  //       canResumePayment: false,
+  //       error: 'Failed to handle post-authentication return',
+  //     };
+  //   }
+  // }
 
   // Check if current page load is a return from authentication
-  isPostAuthReturn(): boolean {
-    // Check URL parameters that Supabase auth might add
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasAuthParams = urlParams.has('access_token') || 
-                         urlParams.has('refresh_token') ||
-                         urlParams.has('code');
+  // isPostAuthReturn(): boolean {
+  //   // Check URL parameters that Supabase auth might add
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const hasAuthParams = urlParams.has('access_token') || 
+  //                        urlParams.has('refresh_token') ||
+  //                        urlParams.has('code');
     
-    // Check if we have stored payment context
-    const hasStoredContext = sessionManager.getPaymentContext() !== null;
+  //   // Check if we have stored payment context
+  //   const hasStoredContext = sessionManager.getPaymentContext() !== null;
     
-    return hasAuthParams && hasStoredContext;
-  }
+  //   return hasAuthParams && hasStoredContext;
+  // }
 
   // Get current user safely
   async getCurrentUser(): Promise<User | null> {
@@ -215,43 +210,43 @@ class PaymentAuthService {
   }
 
   // Clean up authentication flow data
-  cleanupAuthFlow(): void {
-    // Clear payment context and session data
-    sessionManager.clearAllData();
+  // cleanupAuthFlow(): void {
+  //   // Clear payment context and session data
+  //   sessionManager.clearAllData();
     
-    // Clean up URL parameters if present
-    if (this.isPostAuthReturn()) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('access_token');
-      url.searchParams.delete('refresh_token');
-      url.searchParams.delete('code');
-      url.searchParams.delete('token_type');
-      url.searchParams.delete('expires_in');
+  //   // Clean up URL parameters if present
+  //   if (this.isPostAuthReturn()) {
+  //     const url = new URL(window.location.href);
+  //     url.searchParams.delete('access_token');
+  //     url.searchParams.delete('refresh_token');
+  //     url.searchParams.delete('code');
+  //     url.searchParams.delete('token_type');
+  //     url.searchParams.delete('expires_in');
       
-      // Update URL without page reload
-      window.history.replaceState({}, document.title, url.toString());
-    }
-  }
+  //     // Update URL without page reload
+  //     window.history.replaceState({}, document.title, url.toString());
+  //   }
+  // }
 
   // Get authentication flow state for debugging
-  getAuthFlowState(): {
-    isAuthenticated: boolean;
-    hasPaymentContext: boolean;
-    requiresAuth: boolean;
-    isPostAuthReturn: boolean;
-    sessionDuration: number;
-  } {
-    const user = supabase.auth.getUser();
-    const flowState = sessionManager.getPaymentFlowState();
+  // getAuthFlowState(): {
+  //   isAuthenticated: boolean;
+  //   hasPaymentContext: boolean;
+  //   requiresAuth: boolean;
+  //   isPostAuthReturn: boolean;
+  //   sessionDuration: number;
+  // } {
+  //   const user = supabase.auth.getUser();
+  //   const flowState = sessionManager.getPaymentFlowState();
     
-    return {
-      isAuthenticated: !!user,
-      hasPaymentContext: flowState.hasPaymentContext,
-      requiresAuth: flowState.requiresAuth,
-      isPostAuthReturn: this.isPostAuthReturn(),
-      sessionDuration: flowState.sessionDuration,
-    };
-  }
+  //   return {
+  //     isAuthenticated: !!user,
+  //     hasPaymentContext: flowState.hasPaymentContext,
+  //     requiresAuth: flowState.requiresAuth,
+  //     isPostAuthReturn: this.isPostAuthReturn(),
+  //     sessionDuration: flowState.sessionDuration,
+  //   };
+  // }
 }
 
 // Create and export singleton instance
@@ -261,26 +256,26 @@ export const paymentAuthService = new PaymentAuthService();
 export { PaymentAuthService };
 
 // Utility functions for direct use
-export const checkAuthForPayment = async (
-  sessionId: string,
-  testId: string,
-  currentPath?: string
-) => {
-  return paymentAuthService.checkAuthAndRedirect(sessionId, testId, currentPath);
-};
+// export const checkAuthForPayment = async (
+//   sessionId: string,
+//   testId: string,
+//   currentPath?: string
+// ) => {
+//   return paymentAuthService.checkAuthAndRedirect(sessionId, testId, currentPath);
+// };
 
-export const handleAuthReturn = async () => {
-  return paymentAuthService.handlePostAuthReturn();
-};
+// export const handleAuthReturn = async () => {
+//   return paymentAuthService.handlePostAuthReturn();
+// };
 
-export const isPostAuthReturn = (): boolean => {
-  return paymentAuthService.isPostAuthReturn();
-};
+// export const isPostAuthReturn = (): boolean => {
+//   return paymentAuthService.isPostAuthReturn();
+// };
 
-export const getCurrentUser = async (): Promise<User | null> => {
-  return paymentAuthService.getCurrentUser();
-};
+// export const getCurrentUser = async (): Promise<User | null> => {
+//   return paymentAuthService.getCurrentUser();
+// };
 
-export const cleanupAuthFlow = (): void => {
-  paymentAuthService.cleanupAuthFlow();
-};
+// export const cleanupAuthFlow = (): void => {
+//   paymentAuthService.cleanupAuthFlow();
+// };

@@ -103,17 +103,17 @@ class SessionManager {
   }
 
   // Mark authentication as completed
-  markAuthenticationCompleted(): void {
-    const sessionData = this.getSessionData();
+  // markAuthenticationCompleted(): void {
+  //   const sessionData = this.getSessionData();
     
-    if (sessionData) {
-      const updatedData: StoredSessionData = {
-        ...sessionData,
-        authenticationRequired: false,
-      };
-      sessionStorageManager.storeSessionData(updatedData);
-    }
-  }
+  //   if (sessionData) {
+  //     const updatedData: StoredSessionData = {
+  //       ...sessionData,
+  //       authenticationRequired: false,
+  //     };
+  //     sessionStorageManager.storeSessionData(updatedData);
+  //   }
+  // }
 
   // Get or create session start time
   getOrCreateSessionStartTime(): string {
@@ -121,10 +121,10 @@ class SessionManager {
   }
 
   // Reset session start time (for new sessions)
-  resetSessionStartTime(): string {
-    sessionStorageManager.clearSessionStartTime();
-    return sessionStorageManager.getOrCreateSessionStartTime();
-  }
+  // resetSessionStartTime(): string {
+  //   sessionStorageManager.clearSessionStartTime();
+  //   return sessionStorageManager.getOrCreateSessionStartTime();
+  // }
 
   // Get session duration in minutes
   getSessionDuration(): number {
@@ -142,10 +142,10 @@ class SessionManager {
   }
 
   // Check if session is expired (based on your business logic)
-  isSessionExpired(maxDurationMinutes: number = 120): boolean {
-    const duration = this.getSessionDuration();
-    return duration > maxDurationMinutes;
-  }
+  // isSessionExpired(maxDurationMinutes: number = 120): boolean {
+  //   const duration = this.getSessionDuration();
+  //   return duration > maxDurationMinutes;
+  // }
 
   // Prepare session metadata for API calls
   prepareSessionMetadata(): {
@@ -272,21 +272,21 @@ class SessionManager {
   }
 
   // Get debug information
-  getDebugInfo(): {
-    paymentContext: PaymentContext | null;
-    sessionData: StoredSessionData | null;
-    pricingSnapshot: any;
-    flowState: any;
-    sessionDuration: number;
-  } {
-    return {
-      paymentContext: this.getPaymentContext(),
-      sessionData: this.getSessionData(),
-      pricingSnapshot: sessionStorageManager.getPricingSnapshot(),
-      flowState: this.getPaymentFlowState(),
-      sessionDuration: this.getSessionDuration(),
-    };
-  }
+  // getDebugInfo(): {
+  //   paymentContext: PaymentContext | null;
+  //   sessionData: StoredSessionData | null;
+  //   pricingSnapshot: any;
+  //   flowState: any;
+  //   sessionDuration: number;
+  // } {
+  //   return {
+  //     paymentContext: this.getPaymentContext(),
+  //     sessionData: this.getSessionData(),
+  //     pricingSnapshot: sessionStorageManager.getPricingSnapshot(),
+  //     flowState: this.getPaymentFlowState(),
+  //     sessionDuration: this.getSessionDuration(),
+  //   };
+  // }
 }
 
 // Create and export singleton instance
@@ -296,26 +296,26 @@ export const sessionManager = new SessionManager();
 export { SessionManager };
 
 // Utility functions for direct use
-export const createPaymentContext = (
-  originalSessionId: string,
-  testId: string,
-  returnUrl?: string
-): PaymentContext => {
-  return sessionManager.createPaymentContext(originalSessionId, testId, returnUrl);
-};
+// export const createPaymentContext = (
+//   originalSessionId: string,
+//   testId: string,
+//   returnUrl?: string
+// ): PaymentContext => {
+//   return sessionManager.createPaymentContext(originalSessionId, testId, returnUrl);
+// };
 
-export const getPaymentContext = (): PaymentContext | null => {
-  return sessionManager.getPaymentContext();
-};
+// export const getPaymentContext = (): PaymentContext | null => {
+//   return sessionManager.getPaymentContext();
+// };
 
-export const clearPaymentData = (): void => {
-  sessionManager.clearAllData();
-};
+// export const clearPaymentData = (): void => {
+//   sessionManager.clearAllData();
+// };
 
-export const resumePaymentFlow = () => {
-  return sessionManager.resumePaymentFlow();
-};
+// export const resumePaymentFlow = () => {
+//   return sessionManager.resumePaymentFlow();
+// };
 
-export const getSessionDuration = (): number => {
-  return sessionManager.getSessionDuration();
-};
+// export const getSessionDuration = (): number => {
+//   return sessionManager.getSessionDuration();
+// };

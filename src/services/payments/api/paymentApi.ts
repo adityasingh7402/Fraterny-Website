@@ -169,18 +169,18 @@ class PaymentApiService {
   }
 
   // Health check for API connectivity
-  async healthCheck(): Promise<boolean> {
-    try {
-      const response = await this.axiosInstance.get('/health', {
-        timeout: 5000, // Shorter timeout for health check
-      });
+  // async healthCheck(): Promise<boolean> {
+  //   try {
+  //     const response = await this.axiosInstance.get('/health', {
+  //       timeout: 5000, // Shorter timeout for health check
+  //     });
       
-      return response.status === 200;
-    } catch (error) {
-      console.warn('API health check failed:', error);
-      return false;
-    }
-  }
+  //     return response.status === 200;
+  //   } catch (error) {
+  //     console.warn('API health check failed:', error);
+  //     return false;
+  //   }
+  // }
 
   // Handle axios errors and convert to user-friendly messages
   private handleApiError(error: AxiosError): Error {
@@ -226,38 +226,38 @@ class PaymentApiService {
   }
 
   // Get API status information
-  async getApiStatus(): Promise<{
-    isHealthy: boolean;
-    baseUrl: string;
-    timestamp: string;
-  }> {
-    const isHealthy = await this.healthCheck();
+  // async getApiStatus(): Promise<{
+  //   isHealthy: boolean;
+  //   baseUrl: string;
+  //   timestamp: string;
+  // }> {
+  //   const isHealthy = await this.healthCheck();
     
-    return {
-      isHealthy,
-      baseUrl: API_CONFIG.BASE_URL,
-      timestamp: new Date().toISOString(),
-    };
-  }
+  //   return {
+  //     isHealthy,
+  //     baseUrl: API_CONFIG.BASE_URL,
+  //     timestamp: new Date().toISOString(),
+  //   };
+  // }
 
   // Update base URL if needed
-  updateBaseUrl(newBaseUrl: string): void {
-    this.axiosInstance.defaults.baseURL = newBaseUrl;
-    apiEndpoints.updateBaseUrl(newBaseUrl);
-  }
+  // updateBaseUrl(newBaseUrl: string): void {
+  //   this.axiosInstance.defaults.baseURL = newBaseUrl;
+  //   apiEndpoints.updateBaseUrl(newBaseUrl);
+  // }
 
   // Get request configuration for debugging
-  getRequestConfig(): {
-    baseURL: string;
-    timeout: number;
-    headers: any;
-  } {
-    return {
-      baseURL: this.axiosInstance.defaults.baseURL || '',
-      timeout: this.axiosInstance.defaults.timeout || 0,
-      headers: this.axiosInstance.defaults.headers,
-    };
-  }
+  // getRequestConfig(): {
+  //   baseURL: string;
+  //   timeout: number;
+  //   headers: any;
+  // } {
+  //   return {
+  //     baseURL: this.axiosInstance.defaults.baseURL || '',
+  //     timeout: this.axiosInstance.defaults.timeout || 0,
+  //     headers: this.axiosInstance.defaults.headers,
+  //   };
+  // }
 }
 
 // Create and export singleton instance
@@ -267,26 +267,26 @@ export const paymentApiService = new PaymentApiService();
 export { PaymentApiService };
 
 // Utility functions for direct use
-export const createPaymentOrder = async (orderData: CreateOrderRequest): Promise<CreateOrderResponse> => {
-  return paymentApiService.createOrder(orderData);
-};
+// export const createPaymentOrder = async (orderData: CreateOrderRequest): Promise<CreateOrderResponse> => {
+//   return paymentApiService.createOrder(orderData);
+// };
 
-export const completePayment = async (paymentData: PaymentCompletionRequest): Promise<void> => {
-  return paymentApiService.completePayment(paymentData);
-};
+// export const completePayment = async (paymentData: PaymentCompletionRequest): Promise<void> => {
+//   return paymentApiService.completePayment(paymentData);
+// };
 
-export const verifyPayment = async (verificationData: {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}): Promise<{ verified: boolean }> => {
-  return paymentApiService.verifyPayment(verificationData);
-};
+// export const verifyPayment = async (verificationData: {
+//   razorpay_order_id: string;
+//   razorpay_payment_id: string;
+//   razorpay_signature: string;
+// }): Promise<{ verified: boolean }> => {
+//   return paymentApiService.verifyPayment(verificationData);
+// };
 
-export const checkApiHealth = async (): Promise<boolean> => {
-  return paymentApiService.healthCheck();
-};
+// export const checkApiHealth = async (): Promise<boolean> => {
+//   return paymentApiService.healthCheck();
+// };
 
-export const getApiStatus = async () => {
-  return paymentApiService.getApiStatus();
-};
+// export const getApiStatus = async () => {
+//   return paymentApiService.getApiStatus();
+// };
