@@ -13,6 +13,7 @@ import {
 } from './types';
 import questSections, { getAllQuestions, getQuestionsBySection } from './questions';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
+import { usePostHog } from 'posthog-js/react';
 
 interface QuestProviderProps {
   children: React.ReactNode;
@@ -34,12 +35,11 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const [allowSkip, setAllowSkip] = useState(true);
   const [visitedQuestions, setVisitedQuestions] = useState<string[]>([]);
   const [currentViewingQuestion, setCurrentViewingQuestion] = useState<string | null>(null);
-const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number>>({});
+  const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number>>({});
 
-
-  // submit quest
   const navigate = useNavigate();
   const auth = useAuth();
+  const posthog = usePostHog();
 
 
   // Auto-save timer ref
@@ -67,34 +67,6 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
       }
     };
   }, [session?.responses]);
-
-
-  // Immediate save on page unload/browser close
-  // useEffect(() => {
-  //   const handleBeforeUnload = () => {
-  //     if (session && session.responses && Object.keys(session.responses).length > 0) {
-  //       console.log('💾 Browser closing - saving session immediately');
-  //       localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
-  //     }
-  //   };
-
-  //   const handleVisibilityChange = () => {
-  //     if (document.hidden && session && session.responses && Object.keys(session.responses).length > 0) {
-  //       console.log('📱 App backgrounded - saving session immediately');
-  //       localStorage.setItem('fraterny_quest_session', JSON.stringify(session));
-  //     }
-  //   };
-
-  //   // Add event listeners
-  //   window.addEventListener('beforeunload', handleBeforeUnload);
-  //   document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  //   // Cleanup
-  //   return () => {
-  //     window.removeEventListener('beforeunload', handleBeforeUnload);
-  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
-  //   };
-  // }, [session]);
 
   // Immediate save on page unload/browser close + GA4 abandon tracking
   useEffect(() => {
@@ -432,50 +404,48 @@ const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number
     });
   };
 
-const previousQuestion = () => {
-  if (!session) return;
-  
-  const currentIndex = session.currentQuestionIndex || 0;
-  
-  // If we're at the first question of current section, go to previous section
-  if (currentIndex === 0) {
-    const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+  const previousQuestion = () => {
+    if (!session) return;
     
-    // If there's a previous section, go to its last question
-    if (currentSectionIndex > 0) {
-      const previousSectionId = questSections[currentSectionIndex - 1].id;
-      const previousSectionQuestions = getQuestionsBySection(previousSectionId);
+    const currentIndex = session.currentQuestionIndex || 0;
+    
+    // If we're at the first question of current section, go to previous section
+    if (currentIndex === 0) {
+      const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
       
-      // Change to previous section and go to its last question
-      setCurrentSectionId(previousSectionId);
-      
+      // If there's a previous section, go to its last question
+      if (currentSectionIndex > 0) {
+        const previousSectionId = questSections[currentSectionIndex - 1].id;
+        const previousSectionQuestions = getQuestionsBySection(previousSectionId);
+        
+        // Change to previous section and go to its last question
+        setCurrentSectionId(previousSectionId);
+        
+        setSession(prev => {
+          if (!prev) return null;
+          
+          return {
+            ...prev,
+            currentQuestionIndex: previousSectionQuestions.length - 1,
+            sectionId: previousSectionId
+          };
+        });
+      }
+      // If already in first section, do nothing (already at beginning)
+    } else {
+      // Move to previous question in current section
       setSession(prev => {
         if (!prev) return null;
         
+        const prevIndex = currentIndex - 1;
+        
         return {
           ...prev,
-          currentQuestionIndex: previousSectionQuestions.length - 1,
-          sectionId: previousSectionId
+          currentQuestionIndex: prevIndex
         };
       });
     }
-    // If already in first section, do nothing (already at beginning)
-  } else {
-    // Move to previous question in current section
-    setSession(prev => {
-      if (!prev) return null;
-      
-      const prevIndex = currentIndex - 1;
-      
-      return {
-        ...prev,
-        currentQuestionIndex: prevIndex
-      };
-    });
-  }
-};
-
-  // ✨ NEW FUNCTIONS - Add these after the existing previousQuestion function
+  };
   
   // Skip current question
   const skipQuestion = () => {
@@ -558,6 +528,16 @@ const previousQuestion = () => {
     const sessionId = submissionData.assessment_metadata.session_id;
     const testid = submissionData.user_data.testid;
     const userId = submissionData.user_data.user_id;
+
+    // Track API request start
+    const requestStartTime = Date.now();
+    posthog.capture('api_request_started', {
+      testid: testid,
+      endpoint: 'agent_submission',
+      method: 'POST',
+      timestamp: new Date().toISOString()
+    });
+    console.log('posthog event captured: api_request_started..', requestStartTime);
     
     
     const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
@@ -575,7 +555,16 @@ const previousQuestion = () => {
       throw new Error(errorMessage);
     }
 
-    console.log('✅ Submission successful:', response.data);
+    //console.log('✅ Submission successful:', response.data);
+    // Track API request success
+    const responseTime = Date.now() - requestStartTime;
+    posthog.capture('api_request_success', {
+      testid: testid,
+      endpoint: 'agent_submission',
+      response_time_ms: responseTime,
+      timestamp: new Date().toISOString()
+    });
+
 
     setSession(prev => {
       if (!prev) return null;
@@ -621,30 +610,29 @@ const previousQuestion = () => {
       sessionId,
       testid
     };
-    
-    // Return result
-    // return {
-    //   sessionId: sessionId,
-    //   userId: userId,
-    //   analysisData: {
-    //     summary: "Quest analysis completed successfully.",
-    //     sections: []
-    //   },
-    //   generatedAt: new Date().toISOString()
-    // };
+
     return {
       sessionId: sessionId,
       userId: userId,
       navigationData: navigationData,
       analysisData: {
-        summary: "Quest analysis completed successfully.",
+        summary: "Quest submitted successfully.",
         sections: []
       },
       generatedAt: new Date().toISOString()
     };
     
   } catch (error: any) {
+    const sessionId = submissionData.assessment_metadata.session_id;
+    const testid = submissionData.user_data.testid;
+    const userId = submissionData.user_data.user_id;
     console.error('❌ Quest submission failed:', error.message);
+    posthog.capture('api_request_error', {
+      testid: testid,
+      endpoint: 'agent_submission',
+      error_message: error.message || 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
     
     // Set error in context for UI to show
     // setError(error instanceof Error ? error : new Error('Submission failed'));
@@ -654,18 +642,29 @@ const previousQuestion = () => {
     error.message.includes('Network Error') ||
     error.code === 'ECONNABORTED') {
   
-  // Extract IDs (move this outside try-catch to ensure they're available)
-  const sessionId = submissionData.assessment_metadata.session_id;
-  const testid = submissionData.user_data.testid;
-  const userId = submissionData.user_data.user_id;
-  
   try {
     console.log('🔍 Network error detected, checking if submission actually succeeded...');
+
+    //let's add posthog event for network error detected
+    posthog.capture('network_error_detected', {
+      testid: testid,
+      endpoint: 'agent_submission',
+      error_message: error.message || 'Network error detected',
+      timestamp: new Date().toISOString()
+    });
+
     const statusResponse = await fetch(`https://api.fraterny.in/api/status/${testid}`);
     const statusData = await statusResponse.json();
     
     if (statusData.status === 'processing' || statusData.status === 'ready') {
       console.log('✅ Submission was actually successful, navigating to processing...');
+
+      //add posthog event for submission confirmed successful after network error
+      posthog.capture('submission_confirmed_successful', {
+        testid: testid,
+        endpoint: 'agent_submission',
+        timestamp: new Date().toISOString()
+      });
       
       // Mark session as completed and do all success cleanup
       setSession(prev => {
@@ -704,10 +703,17 @@ const previousQuestion = () => {
     }
   } catch (statusError) {
     console.log('Status check also failed, will show retry option');
+    // posthog event for status check failure
+    posthog.capture('status_check_failed_after_submission', {
+      testid: testid,
+      endpoint: 'status_check',
+      error_message: (statusError as Error).message || 'Status check failed',
+      timestamp: new Date().toISOString()
+    });
+
   }
 }
-    
-    // Re-throw so QuestCompletion can handle it
+
     throw error;
     
   } finally {
@@ -726,130 +732,130 @@ const previousQuestion = () => {
     return questSections.find(s => s.id === currentSectionId) || questSections[0];
   };
 
-const getTotalQuestionsInAssessment = () => {
-  return questSections.reduce((total, section) => total + section.questions.length, 0);
-};
+  const getTotalQuestionsInAssessment = () => {
+    return questSections.reduce((total, section) => total + section.questions.length, 0);
+  };
 
-// Get current global question index (across all sections)
-const getCurrentGlobalQuestionIndex = () => {
-  const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
-  const questionsBefore = questSections
-    .slice(0, currentSectionIndex)
-    .reduce((total, section) => total + section.questions.length, 0);
-  
-  return questionsBefore + (session?.currentQuestionIndex || 0);
-};
+  // Get current global question index (across all sections)
+  const getCurrentGlobalQuestionIndex = () => {
+    const currentSectionIndex = questSections.findIndex(s => s.id === currentSectionId);
+    const questionsBefore = questSections
+      .slice(0, currentSectionIndex)
+      .reduce((total, section) => total + section.questions.length, 0);
+    
+    return questionsBefore + (session?.currentQuestionIndex || 0);
+  };
 
-// Check if this is the very last question in entire assessment
-const isLastQuestionInEntireAssessment = () => {
-  const totalQuestions = getTotalQuestionsInAssessment();
-  const currentGlobalIndex = getCurrentGlobalQuestionIndex();
-  return currentGlobalIndex === totalQuestions - 1;
-};
+  // Check if this is the very last question in entire assessment
+  const isLastQuestionInEntireAssessment = () => {
+    const totalQuestions = getTotalQuestionsInAssessment();
+    const currentGlobalIndex = getCurrentGlobalQuestionIndex();
+    return currentGlobalIndex === totalQuestions - 1;
+  };
 
-const finishSection = (): boolean => {
-  console.log('🔄 finishSection called');
-  console.log('📍 Session exists:', !!session);
-  console.log('📍 Current section:', getCurrentSection()?.id);
-  
-  if (!session || !getCurrentSection()) {
-    console.log('❌ No session or current section - returning false');
-    return false;
-  }
-  
-  // Check if all questions in current section are answered
-  const currentSectionQuestions = getCurrentSection().questions;
-  console.log('📊 Questions in current section:', currentSectionQuestions.length);
-  console.log('📝 Session responses:', Object.keys(session.responses || {}));
-  
-  const allQuestionsAnswered = currentSectionQuestions.every(q => {
-    const hasResponse = session.responses && session.responses[q.id];
-    console.log(`   Question ${q.id}: ${hasResponse ? '✅' : '❌'} answered`);
-    return hasResponse;
-  });
-  
-  console.log('✅ All questions answered:', allQuestionsAnswered);
-  
-  if (!allQuestionsAnswered) {
-    console.log('❌ Not all questions answered - returning false');
-    // Don't automatically move to next section if current isn't complete
-    return false;
-  }
-  
-  // Find next section
-  const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
-  console.log('📍 Current section index:', currentIndex);
-  console.log('📍 Total sections:', questSections.length);
-  
-  const nextSectionIndex = currentIndex + 1;
-  console.log('📍 Next section index:', nextSectionIndex);
-  
-  if (nextSectionIndex < questSections.length) {
-    // Move to next section
-    const nextSection = questSections[nextSectionIndex];
-    console.log('➡️ Moving to next section:', nextSection.id, nextSection.title);
-    changeSection(nextSection.id);
-    console.log('✅ Section change completed - returning true');
-    return true;
-  }
-  
-  // No more sections - assessment is complete
-  console.log('🏁 No more sections - assessment complete - returning false');
-  return false;
-};
-
-const changeSection = (newSectionId: string) => {
-  // console.log('🔀 changeSection called with:', newSectionId);
-  
-  // Validate that the section exists
-  const targetSection = questSections.find(s => s.id === newSectionId);
-  // console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
-  
-  if (!targetSection) {
-    console.warn(`❌ Section ${newSectionId} not found`);
-    return;
-  }
-
-  // If already in the target section, do nothing
-  if (currentSectionId === newSectionId) {
-    // console.log('⚠️ Already in target section - no change needed');
-    return;
-  }
-
-  // console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
-
-  // Update current section
-  setCurrentSectionId(newSectionId);
-  // console.log('✅ Current section ID updated');
-  
-  // Reset to first question of the new section
-  setSession(prev => {
-    if (!prev) {
-      console.log('❌ No previous session state');
-      return null;
+  const finishSection = (): boolean => {
+    console.log('🔄 finishSection called');
+    console.log('📍 Session exists:', !!session);
+    console.log('📍 Current section:', getCurrentSection()?.id);
+    
+    if (!session || !getCurrentSection()) {
+      console.log('❌ No session or current section - returning false');
+      return false;
     }
     
-    // console.log('📝 Updating session state:');
-    // console.log('   Previous question index:', prev.currentQuestionIndex);
-    // console.log('   Previous section ID:', prev.sectionId);
-    // console.log('   New question index: 0');
-    // console.log('   New section ID:', newSectionId);
+    // Check if all questions in current section are answered
+    const currentSectionQuestions = getCurrentSection().questions;
+    console.log('📊 Questions in current section:', currentSectionQuestions.length);
+    console.log('📝 Session responses:', Object.keys(session.responses || {}));
     
-    const newState = {
-      ...prev,
-      currentQuestionIndex: 0, // Always start from first question
-      sectionId: newSectionId
-    };
+    const allQuestionsAnswered = currentSectionQuestions.every(q => {
+      const hasResponse = session.responses && session.responses[q.id];
+      console.log(`   Question ${q.id}: ${hasResponse ? '✅' : '❌'} answered`);
+      return hasResponse;
+    });
     
-    // console.log('✅ Session state updated');
-    return newState;
-  });
-  
-  // Clear any errors
-  setError(null);
-  // console.log('🧹 Errors cleared');
-  // console.log('🏁 changeSection completed');
-};
+    console.log('✅ All questions answered:', allQuestionsAnswered);
+    
+    if (!allQuestionsAnswered) {
+      console.log('❌ Not all questions answered - returning false');
+      // Don't automatically move to next section if current isn't complete
+      return false;
+    }
+    
+    // Find next section
+    const currentIndex = questSections.findIndex(s => s.id === currentSectionId);
+    console.log('📍 Current section index:', currentIndex);
+    console.log('📍 Total sections:', questSections.length);
+    
+    const nextSectionIndex = currentIndex + 1;
+    console.log('📍 Next section index:', nextSectionIndex);
+    
+    if (nextSectionIndex < questSections.length) {
+      // Move to next section
+      const nextSection = questSections[nextSectionIndex];
+      console.log('➡️ Moving to next section:', nextSection.id, nextSection.title);
+      changeSection(nextSection.id);
+      console.log('✅ Section change completed - returning true');
+      return true;
+    }
+    
+    // No more sections - assessment is complete
+    console.log('🏁 No more sections - assessment complete - returning false');
+    return false;
+  };
+
+  const changeSection = (newSectionId: string) => {
+    // console.log('🔀 changeSection called with:', newSectionId);
+    
+    // Validate that the section exists
+    const targetSection = questSections.find(s => s.id === newSectionId);
+    // console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
+    
+    if (!targetSection) {
+      console.warn(`❌ Section ${newSectionId} not found`);
+      return;
+    }
+
+    // If already in the target section, do nothing
+    if (currentSectionId === newSectionId) {
+      // console.log('⚠️ Already in target section - no change needed');
+      return;
+    }
+
+    // console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
+
+    // Update current section
+    setCurrentSectionId(newSectionId);
+    // console.log('✅ Current section ID updated');
+    
+    // Reset to first question of the new section
+    setSession(prev => {
+      if (!prev) {
+        console.log('❌ No previous session state');
+        return null;
+      }
+      
+      // console.log('📝 Updating session state:');
+      // console.log('   Previous question index:', prev.currentQuestionIndex);
+      // console.log('   Previous section ID:', prev.sectionId);
+      // console.log('   New question index: 0');
+      // console.log('   New section ID:', newSectionId);
+      
+      const newState = {
+        ...prev,
+        currentQuestionIndex: 0, // Always start from first question
+        sectionId: newSectionId
+      };
+      
+      // console.log('✅ Session state updated');
+      return newState;
+    });
+    
+    // Clear any errors
+    setError(null);
+    // console.log('🧹 Errors cleared');
+    // console.log('🏁 changeSection completed');
+  };
   
   // Context value
   const value = useMemo(() => ({

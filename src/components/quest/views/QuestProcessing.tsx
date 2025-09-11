@@ -387,7 +387,6 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
           
           const response = await axios.get(`https://api.fraterny.in/api/status/${testId}`, {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 10000,
           });
 
           const data = response.data;
