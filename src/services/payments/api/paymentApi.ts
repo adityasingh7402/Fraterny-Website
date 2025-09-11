@@ -1,7 +1,7 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import { CreateOrderRequest, CreateOrderResponse, PaymentCompletionRequest } from '../types';
 import { apiEndpoints } from './endpoints';
-import { API_CONFIG } from '../razorpay/config';
+import { API_CONFIG, getUserLocationFlag } from '../razorpay/config';
 import { validateCreateOrderRequest, validatePaymentCompletionRequest } from '../utils/validation';
 
 // API response wrapper interface
@@ -60,7 +60,7 @@ class PaymentApiService {
   // Create payment order
   async createOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
     try {
-      console.log('🔧 createOrder Debug:');
+    console.log('🔧 createOrder Debug:');
     console.log('apiEndpoints.createOrder:', apiEndpoints.createOrder);
     console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
     console.log('Full URL being called:', apiEndpoints.createOrder);
@@ -74,9 +74,18 @@ class PaymentApiService {
 
       console.log('Creating payment order:', orderData);
 
+      // Add location flag to order data
+      const isIndia = await getUserLocationFlag();
+      const orderDataWithLocation = {
+        ...orderData,
+        isIndia: isIndia
+      };
+
+      console.log('Order data with location:', { isIndia, orderDataWithLocation });
+
       const response: AxiosResponse<ApiResponse<CreateOrderResponse>> = await this.axiosInstance.post(
         apiEndpoints.createOrder,
-        orderData
+        orderDataWithLocation
       );
 
       if (!response.data.success) {

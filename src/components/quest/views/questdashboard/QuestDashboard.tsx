@@ -8,6 +8,7 @@ import { PaymentService, sessionStorageManager, sessionManager } from '@/service
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../../services/analytics/googleAnalytics';
+import { getUserLocationFlag } from '../../../../services/payments/razorpay/config';
 
 interface DashboardApiResponse {
   status: number;
@@ -93,6 +94,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const [error, setError] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const [emailLoading, setEmailLoading] = useState<string | null>(null);
+  const [priceDisplay, setPriceDisplay] = useState('Loading...');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [isLoadingPrice, setIsLoadingPrice] = useState(true);
+
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -356,6 +361,40 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // };
 
   // Updated handlePaidReport function with direct PDF download
+  
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        setIsLoadingPrice(true);
+        console.log('💰 Loading location-based pricing...');
+        
+        const isIndia = await getUserLocationFlag();
+        console.log('🌍 Location result for pricing:', isIndia);
+        
+        if (isIndia) {
+          setPriceDisplay('₹950');
+          setOriginalPrice('₹1200');
+        } else {
+          setPriceDisplay('$20');
+          setOriginalPrice('$25');
+        }
+        
+        console.log('✅ Pricing loaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to load pricing:', error);
+        // Fallback to default pricing
+        setPriceDisplay('₹950');
+        setOriginalPrice('₹1200');
+      } finally {
+        setIsLoadingPrice(false);
+      }
+    };
+
+    loadPricing();
+  }, []);
+
+  
+  
   const handlePaidReport = async (testData: DashboardTest) => {
     // If payment is done and PDF is ready, download directly
     if (testData.ispaymentdone === "success" && testData.quest_status === "generated") {

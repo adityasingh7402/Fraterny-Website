@@ -30,6 +30,7 @@ import { PaymentService, sessionStorageManager, sessionManager } from '@/service
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
+import { getUserLocationFlag } from '../../../services/payments/razorpay/config';
 
 
 interface Film {
@@ -308,9 +309,35 @@ interface StickyCTAProps {
 
 const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen }) => {
   const [seconds, setSeconds] = useState(30 * 60);
+  const [priceDisplay, setPriceDisplay] = useState('₹950');
+  const [originalPrice, setOriginalPrice] = useState('₹1200');
+
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
+  }, []);
+
+    useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        console.log('💰 StickyCTA: Loading location-based pricing...');
+        const isIndia = await getUserLocationFlag();
+        console.log('🌍 StickyCTA: Location result:', isIndia);
+        
+        if (isIndia) {
+          setPriceDisplay('₹950');
+          setOriginalPrice('₹1200');
+        } else {
+          setPriceDisplay('$20');
+          setOriginalPrice('$25');
+        }
+        
+        console.log('✅ StickyCTA: Pricing updated');
+      } catch (error) {
+        console.error('❌ StickyCTA: Failed to load pricing:', error);
+      }
+    };
+    loadPricing();
   }, []);
 
   return (
