@@ -24,10 +24,13 @@ export interface CreateOrderRequest {
   pricingTier: 'early' | 'regular';
   amount: number;              // in paise
   sessionStartTime: string;    // Original session start time
+  isIndia: boolean;
   metadata: {
     userAgent: string;
     timestamp: string;
     authenticationRequired: boolean;
+    isIndia: boolean;
+    location: string | null;
   };
 }
 

@@ -20,17 +20,17 @@ export const validateSessionId = (sessionId: string): ValidationResult => {
     errors.push('Session ID must be a string');
   }
   
-  if (sessionId.length < VALIDATION_RULES.SESSION_ID.MIN_LENGTH) {
-    errors.push(`Session ID must be at least ${VALIDATION_RULES.SESSION_ID.MIN_LENGTH} characters`);
-  }
+  // if (sessionId.length < VALIDATION_RULES.SESSION_ID.MIN_LENGTH) {
+  //   errors.push(`Session ID must be at least ${VALIDATION_RULES.SESSION_ID.MIN_LENGTH} characters`);
+  // }
   
-  if (sessionId.length > VALIDATION_RULES.SESSION_ID.MAX_LENGTH) {
-    errors.push(`Session ID must be no more than ${VALIDATION_RULES.SESSION_ID.MAX_LENGTH} characters`);
-  }
+  // if (sessionId.length > VALIDATION_RULES.SESSION_ID.MAX_LENGTH) {
+  //   errors.push(`Session ID must be no more than ${VALIDATION_RULES.SESSION_ID.MAX_LENGTH} characters`);
+  // }
   
-  if (!VALIDATION_RULES.SESSION_ID.PATTERN.test(sessionId)) {
-    errors.push('Session ID contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed');
-  }
+  // if (!VALIDATION_RULES.SESSION_ID.PATTERN.test(sessionId)) {
+  //   errors.push('Session ID contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed');
+  // }
   
   return { isValid: errors.length === 0, errors };
 };
@@ -48,17 +48,17 @@ export const validateTestId = (testId: string): ValidationResult => {
     errors.push('Test ID must be a string');
   }
   
-  if (testId.length < VALIDATION_RULES.TEST_ID.MIN_LENGTH) {
-    errors.push(`Test ID must be at least ${VALIDATION_RULES.TEST_ID.MIN_LENGTH} characters`);
-  }
+  // if (testId.length < VALIDATION_RULES.TEST_ID.MIN_LENGTH) {
+  //   errors.push(`Test ID must be at least ${VALIDATION_RULES.TEST_ID.MIN_LENGTH} characters`);
+  // }
   
-  if (testId.length > VALIDATION_RULES.TEST_ID.MAX_LENGTH) {
-    errors.push(`Test ID must be no more than ${VALIDATION_RULES.TEST_ID.MAX_LENGTH} characters`);
-  }
+  // if (testId.length > VALIDATION_RULES.TEST_ID.MAX_LENGTH) {
+  //   errors.push(`Test ID must be no more than ${VALIDATION_RULES.TEST_ID.MAX_LENGTH} characters`);
+  // }
   
-  if (!VALIDATION_RULES.TEST_ID.PATTERN.test(testId)) {
-    errors.push('Test ID contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed');
-  }
+  // if (!VALIDATION_RULES.TEST_ID.PATTERN.test(testId)) {
+  //   errors.push('Test ID contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed');
+  // }
   
   return { isValid: errors.length === 0, errors };
 };

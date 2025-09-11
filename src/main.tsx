@@ -9,6 +9,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
 import ResultsDemo from './components/quest/views/ResultsDemo';
 import { QuestRecovery } from './components/quest/views/QuestRecovery';
+import { getUserLocationFlag } from './services/payments/razorpay/config'
 
 initializeUserJourney();
 
@@ -197,6 +198,16 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+console.log('🌍 Initializing location detection...');
+getUserLocationFlag()
+  .then((isIndia) => {
+    console.log('✅ Location detection initialized. User in India:', isIndia);
+  })
+  .catch((error) => {
+    console.error('❌ Location detection initialization failed:', error);
+  });
+
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

@@ -4,6 +4,7 @@ import { dynamicPricingService } from '../pricing/dynamicPricing';
 import { sessionManager } from '../auth/sessionManager';
 import { paymentApiService } from '../api/paymentApi';
 import { validateCreateOrderRequest } from '../utils/validation';
+import { getUserLocationFlag } from './config';
 
 // Order creation service class
 class OrderCreationService {
@@ -34,34 +35,45 @@ class OrderCreationService {
       // Step 2: Get or create session start time
       const sessionStartTime = sessionManager.getOrCreateSessionStartTime();
 
-      // Step 3: Calculate current pricing
-      const currentPricing = dynamicPricingService.calculatePricing(sessionStartTime);
-      console.log('Current pricing:', currentPricing);
+      // Step 3: Get location flag
+      const isIndia = await getUserLocationFlag();
+      
+      // Step 4: Set hardcoded pricing based on location
+      const hardcodedPricing = {
+        name: 'regular' as const,
+        amount: isIndia ? 100 : 2000, // ₹950 in paise for India, $20 in cents for international
+        description: isIndia ? 'India Pricing' : 'International Pricing'
+      };
+      
+      console.log('Hardcoded pricing:', hardcodedPricing, 'for location:', isIndia ? 'India' : 'International');
 
-      // Step 4: Create session data first, then update with pricing
+      // Step 5: Create session data first, then update with pricing
       const existingSessionData = sessionManager.getSessionData();
       if (!existingSessionData) {
         console.log('Creating new session data...');
         sessionManager.createSessionData(sessionId, testId, false);
       }
 
-      // Now update with pricing
-      sessionManager.updateSessionDataWithPricing(currentPricing.name, currentPricing.amount);
+      // Now update with hardcoded pricing
+      sessionManager.updateSessionDataWithPricing(hardcodedPricing.name, hardcodedPricing.amount);
 
-      // Step 5: Prepare metadata
+      // Step 6: Prepare metadata
       const metadata = sessionManager.prepareSessionMetadata();
 
-      // Step 6: Build order request
+      // Step 7: Build order request with hardcoded pricing
       const orderRequest: CreateOrderRequest = {
         sessionId,
         testId,
         userId: authResult.user.id,
-        pricingTier: currentPricing.name,
-        amount: currentPricing.amount,
+        pricingTier: hardcodedPricing.name,
+        amount: hardcodedPricing.amount,
         sessionStartTime,
+        isIndia: isIndia,
         metadata: {
           ...metadata,
           authenticationRequired: authResult.needsAuth || false,
+          isIndia: isIndia,
+          location: isIndia ? 'IN' : 'INTL',
         },
       };
 
@@ -118,9 +130,14 @@ class OrderCreationService {
         console.warn('Session continuity check:', continuityCheck.reason);
       }
 
-      // Get current pricing
+      // Get hardcoded pricing based on location
       const sessionStartTime = sessionManager.getOrCreateSessionStartTime();
-      const pricing = dynamicPricingService.calculatePricing(sessionStartTime);
+      const isIndia = await getUserLocationFlag();
+      const pricing = {
+        name: 'regular' as const,
+        amount: isIndia ? 95000 : 2000, // ₹950 for India, $20 for international
+        description: isIndia ? 'India Pricing' : 'International Pricing'
+      };
 
       return {
         isValid: errors.length === 0,
