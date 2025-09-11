@@ -25,16 +25,19 @@ export function RecentAssessmentCheck({ onContinue, onSelectSession }: RecentAss
   const [userIP, setUserIP] = useState<string>('');
 
   useEffect(() => {
+    console.log('🔍 RecentAssessmentCheck: Component mounted, starting check...');
     checkRecentAssessments();
   }, []);
 
   const checkRecentAssessments = async () => {
+    console.log('🚀 RecentAssessmentCheck: Starting recent assessment check...');
     try {
       // Get user's IP address
       const ipResponse = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipResponse.json();
       const ip = ipData.ip;
       setUserIP(ip);
+      console.log('📍 RecentAssessmentCheck: Got user IP:', ip);
 
       // Check for recent assessments (within 3 hours)
       const response = await axios.post('https://api.fraterny.in/api/quest/check-recent', {
@@ -42,13 +45,21 @@ export function RecentAssessmentCheck({ onContinue, onSelectSession }: RecentAss
         hoursLimit: 3
       });
 
+      console.log('📊 RecentAssessmentCheck: API response received:', response.data);
+      
+
       if (response.data.success && response.data.sessions && response.data.sessions.length > 0) {
+        console.log('✅ RecentAssessmentCheck: Found recent sessions:', response.data.sessions.length);
         setRecentSessions(response.data.sessions);
         setShowPopup(true);
+        console.log('🎯 RecentAssessmentCheck: Popup should now be visible');
+      } else {
+        console.log('❌ RecentAssessmentCheck: No recent sessions found');
       }
     } catch (error) {
-      console.log('No recent assessments found or error checking:', error);
+      console.log('⚠️ RecentAssessmentCheck: Check failed or no recent assessments:', error);
     } finally {
+       console.log('🏁 RecentAssessmentCheck: Check completed, isChecking set to false');
       setIsChecking(false);
     }
   };
