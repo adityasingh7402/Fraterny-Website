@@ -287,6 +287,10 @@ export class PaymentService {
   static async startPayment(sessionId: string, testId: string): Promise<PaymentResult> {
     return paymentHandlerService.initiatePayment(sessionId, testId);
   }
+
+  // static async handleAuthReturn(): Promise<PaymentResult | null> {
+  //   return paymentHandlerService.resumePaymentAfterAuth();
+  // }
 }
 
 export { sessionManager };
