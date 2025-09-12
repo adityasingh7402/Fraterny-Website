@@ -4,7 +4,7 @@ import { Lock, Download, Calendar, ExternalLink, FileText, AlertCircle, Clock } 
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { PaymentService, sessionStorageManager, sessionManager } from '@/services/payments';
+import { PaymentService, sessionManager } from '@/services/payments';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../../services/analytics/googleAnalytics';
@@ -257,110 +257,40 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   }, [userId]); // Only depend on user.id
 
   // Handle payment result updates
-  useEffect(() => {
-    const handlePaymentResult = async () => {
-      try {
-        // Check for payment results from PaymentService
-        const paymentResult = await PaymentService.handleAuthReturn();
+  // useEffect(() => {
+  //   const handlePaymentResult = async () => {
+  //     try {
+  //       // Check for payment results from PaymentService
+  //       const paymentResult = await PaymentService.handleAuthReturn();
         
-        if (paymentResult) {
-          if (paymentResult.success) {
-            toast.success('Payment successful! Your report is now unlocked.');
+  //       if (paymentResult) {
+  //         if (paymentResult.success) {
+  //           toast.success('Payment successful! Your report is now unlocked.');
             
-            // Refresh dashboard data to get updated payment status
-            if (user?.id) {
-              const updatedData = await fetchUpdatedDashboardData();
-              if (updatedData) {
-                setData(updatedData);
-              }
-            }
+  //           // Refresh dashboard data to get updated payment status
+  //           if (user?.id) {
+  //             const updatedData = await fetchUpdatedDashboardData();
+  //             if (updatedData) {
+  //               setData(updatedData);
+  //             }
+  //           }
             
-          } else {
-            toast.error('Payment failed. Please try again.');
-          }
-        }
-      } catch (error) {
-        console.error('Error handling payment result:', error);
-      }
-    };
+  //         } else {
+  //           toast.error('Payment failed. Please try again.');
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error handling payment result:', error);
+  //     }
+  //   };
 
-    handlePaymentResult();
-  }, [userId]); // Only depend on userId
+  //   handlePaymentResult();
+  // }, [userId]);
 
   // Handle download actions
   const handleFreeReport = (testData: DashboardTest) => {
     navigate(`/quest-result/result/${testData.userid}/${testData.sessionid}/${testData.testid}`);
   };
-
-  // Updated handlePaidReport function with backend email API
-  // const handlePaidReport = async (testData: DashboardTest) => {
-
-  //    if (testData.ispaymentdone === "success" && testData.quest_pdf === "generated") {
-  //     window.open(testData.quest_pdf, '_blank');
-  //     toast.success('Opening your PDF report!');
-  //     return;
-  //   }
-
-
-  //   // If payment is already done, send email with PDF via backend API
-  //   if (testData.ispaymentdone === "success") {
-  //     try {
-  //       setEmailLoading(testData.sessionid);
-        
-  //       // Show immediate feedback
-  //       toast.info('Sending your report email...', {
-  //         duration: 2000
-  //       });
-        
-  //       const emailResult = await sendReportEmail(testData);
-  //       console.log('Email result:', emailResult);
-
-  //       if (emailResult.success) {
-  //         toast.success('Professional email sent successfully with your report link!', {
-  //           duration: 5000
-  //         });
-  //       } else {
-  //         toast.error(`Failed to send email: ${emailResult.error}`, {
-  //           duration: 6000
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('Email sending error:', error);
-  //       toast.error('Failed to send email. Please try again.');
-  //     } finally {
-  //       setEmailLoading(null);
-  //     }
-  //     return;
-  //   }
-
-  //   // User is authenticated (guaranteed in sidebar), proceed with payment
-  //   try {
-  //     setPaymentLoading(testData.sessionid);
-      
-  //     const paymentResult = await PaymentService.startPayment(
-  //       testData.sessionid, 
-  //       testData.testid
-  //     );
-      
-  //     if (paymentResult.success) {
-  //       toast.success('Payment successful!');
-  //       // Refresh data to show updated payment status
-  //       const updatedData = await fetchUpdatedDashboardData();
-  //       if (updatedData) {
-  //         setData(updatedData);
-  //       }
-  //     } else {
-  //       toast.error(paymentResult.error || 'Payment failed');
-  //     }
-      
-  //   } catch (error) {
-  //     toast.error('Payment failed. Please try again.');
-  //   } finally {
-  //     setPaymentLoading(null);
-  //   }
-  // };
-
-  // Updated handlePaidReport function with direct PDF download
   
   useEffect(() => {
     const loadPricing = async () => {
