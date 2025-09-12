@@ -35,56 +35,56 @@ export function useQuestRecovery() {
   });
 
   // Primary recovery method - check localStorage
-  const checkPrimaryRecovery = async (): Promise<boolean> => {
-    try {
-      console.log('🔍 Primary Recovery: Checking localStorage...');
+  // const checkPrimaryRecovery = async (): Promise<boolean> => {
+  //   try {
+  //     console.log('🔍 Primary Recovery: Checking localStorage...');
       
-      const sessionId = localStorage.getItem('questSessionId');
-      const testId = localStorage.getItem('testid');
+  //     const sessionId = localStorage.getItem('questSessionId');
+  //     const testId = localStorage.getItem('testid');
       
-      if (sessionId && testId) {
-        console.log('✅ Primary Recovery: Found sessionId and testId');
+  //     if (sessionId && testId) {
+  //       console.log('✅ Primary Recovery: Found sessionId and testId');
         
-        // Verify the session is still valid by checking API
-        try {
-          const response = await axios.get(`https://api.fraterny.in/api/status/${testId}`);
+  //       // Verify the session is still valid by checking API
+  //       try {
+  //         const response = await axios.get(`https://api.fraterny.in/api/status/${testId}`);
           
-          if (response.data && (response.data.status === 'ready' || response.data.status === 'processing')) {
-            console.log('✅ Primary Recovery: Session is valid, navigating...');
-            const userId = user?.id || 'anonymous';
+  //         if (response.data && (response.data.status === 'ready' || response.data.status === 'processing')) {
+  //           console.log('✅ Primary Recovery: Session is valid, navigating...');
+  //           const userId = user?.id || 'anonymous';
             
-            setState(prev => ({ ...prev, recoveryMethod: 'primary' }));
+  //           setState(prev => ({ ...prev, recoveryMethod: 'primary' }));
             
-            // Navigate based on status
-            if (response.data.status === 'ready') {
-              navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`, { replace: true });
-            } else {
-              navigate(`/quest-result/processing/${userId}/${sessionId}/${testId}`, { replace: true });
-            }
-            return true;
-          } else {
-            console.log('⚠️ Primary Recovery: Session exists but not valid, clearing localStorage');
-            localStorage.removeItem('questSessionId');
-            localStorage.removeItem('testid');
-            return false;
-          }
-        } catch (apiError) {
-          console.log('⚠️ Primary Recovery: API verification failed, but session exists');
-          // If API fails but we have session data, still try to navigate
-          const userId = user?.id || 'anonymous';
-          navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`, { replace: true });
-          return true;
-        }
-      }
+  //           // Navigate based on status
+  //           if (response.data.status === 'ready') {
+  //             navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`, { replace: true });
+  //           } else {
+  //             navigate(`/quest-result/processing/${userId}/${sessionId}/${testId}`, { replace: true });
+  //           }
+  //           return true;
+  //         } else {
+  //           console.log('⚠️ Primary Recovery: Session exists but not valid, clearing localStorage');
+  //           localStorage.removeItem('questSessionId');
+  //           localStorage.removeItem('testid');
+  //           return false;
+  //         }
+  //       } catch (apiError) {
+  //         console.log('⚠️ Primary Recovery: API verification failed, but session exists');
+  //         // If API fails but we have session data, still try to navigate
+  //         const userId = user?.id || 'anonymous';
+  //         navigate(`/quest-result/result/${userId}/${sessionId}/${testId}`, { replace: true });
+  //         return true;
+  //       }
+  //     }
       
-      console.log('❌ Primary Recovery: No valid session found in localStorage');
-      return false;
+  //     console.log('❌ Primary Recovery: No valid session found in localStorage');
+  //     return false;
       
-    } catch (error) {
-      console.error('❌ Primary Recovery: Failed with error:', error);
-      return false;
-    }
-  };
+  //   } catch (error) {
+  //     console.error('❌ Primary Recovery: Failed with error:', error);
+  //     return false;
+  //   }
+  // };
 
   // Fallback recovery method - device fingerprinting
   const checkFallbackRecovery = async (): Promise<RecoveredSession[]> => {
@@ -149,10 +149,10 @@ export function useQuestRecovery() {
     console.log('🚀 Quest Recovery: Starting comprehensive recovery...');
     
     // Try primary method first
-    const primarySuccess = await checkPrimaryRecovery();
-    if (primarySuccess) {
-      return 'primary_success';
-    }
+    // const primarySuccess = await checkPrimaryRecovery();
+    // if (primarySuccess) {
+    //   return 'primary_success';
+    // }
 
     // Primary failed, try fallback method
     const fallbackSessions = await checkFallbackRecovery();
@@ -199,7 +199,7 @@ export function useQuestRecovery() {
     selectSession,
     resetRecovery,
     // Individual methods for advanced usage
-    checkPrimaryRecovery,
+    //checkPrimaryRecovery,
     checkFallbackRecovery
   };
 }

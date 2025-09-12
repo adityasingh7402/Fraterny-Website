@@ -430,7 +430,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
           setPollCount(prev => prev + 1);
           
           // Stop after 16 failed attempts (4 minutes)
-          if (pollCount >= 15) {
+          if (pollCount >= 2) {
             console.error('⏰ Max polling attempts reached');
             setResultStatus('error');
             setIsPolling(false);
