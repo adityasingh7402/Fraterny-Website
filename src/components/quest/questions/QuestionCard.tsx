@@ -10,6 +10,7 @@ import { RankingResponse } from '../responses/RankingResponse';
 import { getWordValidationStatus, getWordValidationMessage } from '../utils/questValidation';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { useAuth } from '../../../contexts/AuthContext';
+import { CityAutocomplete } from '../responses/CityAutocomplete';
 
 /**
  * Base question card component
@@ -33,13 +34,51 @@ export function QuestionCard({
   className = ''
 }: QuestionCardProps) {
   // State for the current response
+
+  console.log('🔍 QuestionCard loading for:', question.id);
+  console.log('🔍 previousResponse:', previousResponse);
+  console.log('🔍 previousResponse.response:', previousResponse?.response);
   
-  const [response, setResponse] = useState<string>(previousResponse?.response || '');
+  //const [response, setResponse] = useState<string>(previousResponse?.response || '');
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
    const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
   const { user } = useAuth(); // Add this line
+  //const [selectedCity, setSelectedCity] = useState<string>('');
+
+  // Parse previous response to separate city and text
+const [response, setResponse] = useState<string>(() => {
+  if (previousResponse?.response) {
+    try {
+      // Try to parse as JSON (new format with city)
+      const parsed = JSON.parse(previousResponse.response);
+      return parsed.details || '';
+    } catch {
+      // If not JSON, treat as plain text (old format)
+      return previousResponse.response;
+    }
+  }
+  return '';
+});
+
+const [selectedCity, setSelectedCity] = useState<string>(() => {
+  if (previousResponse?.response) {
+    try {
+      // Try to parse as JSON to get city
+      const parsed = JSON.parse(previousResponse.response);
+      return parsed.selectedCity || '';
+    } catch {
+      // If not JSON, no previous city selected
+      return '';
+    }
+  }
+  return '';
+});
+
+useEffect(() => {
+  console.log('🏙️ selectedCity state changed to:', selectedCity);
+}, [selectedCity]);
   
 
     // First, create a memoized initial value outside of useState
@@ -157,40 +196,75 @@ useEffect(() => {
   
 
 
-    const handleSubmit = (submittedResponse: string) => {
-    if (!isActive) return;
-    // console.log('Submitting response:', submittedResponse);
-    console.log('🚀 handleSubmit called with:', submittedResponse);
+  //   const handleSubmit = (submittedResponse: string) => {
+  //   if (!isActive) return;
+  //   // console.log('Submitting response:', submittedResponse);
+  //   console.log('🚀 handleSubmit called with:', submittedResponse);
       
-    // Call the onResponse callback with the response and tags (no validation blocking)
-    onResponse(submittedResponse, selectedTags);
-  };
+  //   // Call the onResponse callback with the response and tags (no validation blocking)
+  //   onResponse(submittedResponse, selectedTags);
+  // };
+
+  const handleSubmit = (submittedResponse: string) => {
+  if (!isActive) return;
+  console.log('🚀 handleSubmit called with:', submittedResponse);
+  
+  // Combine city and text response for location questions
+  let finalResponse = submittedResponse;
+  if (question.enableCityAutocomplete && selectedCity) {
+    finalResponse = JSON.stringify({
+      selectedCity: selectedCity,
+      details: submittedResponse
+    });
+    console.log('📦 SAVING city+text as:', finalResponse);
+  } else {
+    console.log('📝 SAVING text only as:', finalResponse);
+  }
+  
+  // Call the onResponse callback with the response and tags
+  onResponse(finalResponse, selectedTags);
+};
+  
+//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+//     // console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
+//   const newValue = e.target.value;
+  
+//   // Allow pasting but truncate if too long
+//   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
+//     setResponse(newValue.substring(0, maxLength));
+//     return;
+//   }
+  
+//   setResponse(newValue);
+//   // console.log('📝 Set response to:', newValue);
+  
+//   // AUTO-SAVE: Call onResponse immediately for auto-save
+//   // onResponse(newValue, selectedTags);
+// };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    // console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
   const newValue = e.target.value;
+  console.log('⌨️ Text input changed to:', newValue);
   
-  // Allow pasting but truncate if too long
   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
     setResponse(newValue.substring(0, maxLength));
     return;
   }
   
   setResponse(newValue);
-  // console.log('📝 Set response to:', newValue);
-  
-  // AUTO-SAVE: Call onResponse immediately for auto-save
-  // onResponse(newValue, selectedTags);
 };
-  
-  
+
+
   const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (response.trim()) {
-      
-      handleSubmit(response);
-    }
-  };
+  e.preventDefault();
+  console.log('📋 Form submitted!');
+  console.log('📋 response (text):', response);
+  console.log('📋 selectedCity at submit:', selectedCity);
+  
+  if (response.trim()) {
+    handleSubmit(response);
+  }
+};
   
 
   const getTextInputValidation = () => {
@@ -286,6 +360,22 @@ useEffect(() => {
           const textValidation = getTextInputValidation();
           return (
             <div className="mb-6">
+              {question.enableCityAutocomplete && (
+              <div className="mb-4">
+                <label className="block text-xl font-['Gilroy-Medium'] text-gray-700 mb-2">
+                  Primary City
+                </label>
+                <CityAutocomplete
+                  onCitySelect={(city) => {
+                    console.log('🏙️ City selected:', city);
+                    setSelectedCity(city);
+                  }}
+                  placeholder="Start typing..."
+                  selectedCity={selectedCity}
+                />
+              </div>
+            )}
+
               <form onSubmit={handleFormSubmit}>
                 <div className="relative mb-[-15px]">
                   <textarea

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { TextResponseProps } from './types';
 import { getWordValidationStatus, getWordValidationMessage } from '../utils/questValidation';
+import { CityAutocomplete } from './CityAutocomplete';
 
 /**
  * Text input response component
@@ -24,9 +25,11 @@ export function TextResponse({
   showWordCount = false,
   wordWarningThreshold = 90
 }: TextResponseProps) {
+  alert('TextResponse component loaded for question: ' + question.id);
   // Response state
   const [response, setResponse] = useState<string>(previousResponse);
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [selectedCity, setSelectedCity] = useState('');
   
   // Ref for the textarea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -37,6 +40,14 @@ export function TextResponse({
       textareaRef.current.focus();
     }
   }, [autoFocus, isActive, isAnswered]);
+
+  useEffect(() => {
+  console.log('=== QUESTION DEBUG ===');
+  console.log('Question ID:', question.id);
+  console.log('Question text:', question.text);
+  console.log('enableCityAutocomplete:', question.enableCityAutocomplete);
+  console.log('Full question object:', question);
+}, [question]);
   
   // Handle text change
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -82,6 +93,20 @@ export function TextResponse({
   
   return (
     <div className={`text-response ${className}`}>
+      
+      {question.enableCityAutocomplete && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Primary City (optional)
+          </label>
+          <CityAutocomplete
+            onCitySelect={(city) => setSelectedCity(city)}
+            placeholder="Start typing a city name..."
+            selectedCity={selectedCity}
+          />
+        </div>
+      )}
+
       <div className="relative">
         <motion.textarea
           ref={textareaRef}
