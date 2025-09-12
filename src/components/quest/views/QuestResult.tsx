@@ -106,6 +106,16 @@ interface RouteParams {
   testId: string;
 }
 
+interface PricingData {
+  main: string;
+  original: string;
+  currency: string;
+  symbol: string;
+  amount: number;
+  isIndia: boolean;
+  isLoading: boolean;
+}
+
 // Design Tokens
 const tokens = {
   textDark: "#0A0A0A",
@@ -208,9 +218,10 @@ interface UpsellSheetProps {
   onClose: () => void;
   onPayment: () => Promise<void>;
   paymentLoading: boolean;
+  pricing: PricingData;
 }
 
-const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, paymentLoading }) => {
+const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, paymentLoading, pricing }) => {
   const [trial, setTrial] = useState(true);
 
   const [seconds, setSeconds] = useState(30 * 60);
@@ -268,8 +279,12 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
               >
                 <div className="text-[12px] opacity-95"><span>Ends in {formatTime(seconds)}</span></div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-[14px] line-through opacity-85">₹1200</span>
-                  <span className="text-[20px] font-[700]">→ ₹950</span>
+                  <span className="text-[24px] font-[800]" style={{ color: tokens.textDark }}>
+                      {pricing.isLoading ? '...' : pricing.main}
+                    </span>
+                    <span className="text-[14px] line-through" style={{ color: tokens.muted }}>
+                      {pricing.isLoading ? '...' : pricing.original}
+                    </span>
                 </div>
               </motion.div>
               <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
@@ -303,40 +318,41 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
 
 interface StickyCTAProps {
   onOpen: () => void;
+  pricing: PricingData;
 }
 
-const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen }) => {
+const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
   const [seconds, setSeconds] = useState(30 * 60);
-  const [priceDisplay, setPriceDisplay] = useState('₹950');
-  const [originalPrice, setOriginalPrice] = useState('₹1200');
+  // const [priceDisplay, setPriceDisplay] = useState('₹950');
+  // const [originalPrice, setOriginalPrice] = useState('₹1200');
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, []);
 
-    useEffect(() => {
-    const loadPricing = async () => {
-      try {
-        console.log('💰 StickyCTA: Loading location-based pricing...');
-        const isIndia = await getUserLocationFlag();
-        console.log('🌍 StickyCTA: Location result:', isIndia);
+  //   useEffect(() => {
+  //   const loadPricing = async () => {
+  //     try {
+  //       console.log('💰 StickyCTA: Loading location-based pricing...');
+  //       const isIndia = await getUserLocationFlag();
+  //       console.log('🌍 StickyCTA: Location result:', isIndia);
         
-        if (isIndia) {
-          setPriceDisplay('₹950');
-          setOriginalPrice('₹1200');
-        } else {
-          setPriceDisplay('$20');
-          setOriginalPrice('$25');
-        }
+  //       if (isIndia) {
+  //         setPriceDisplay('₹950');
+  //         setOriginalPrice('₹1200');
+  //       } else {
+  //         setPriceDisplay('$20');
+  //         setOriginalPrice('$25');
+  //       }
         
-        console.log('✅ StickyCTA: Pricing updated');
-      } catch (error) {
-        console.error('❌ StickyCTA: Failed to load pricing:', error);
-      }
-    };
-    loadPricing();
-  }, []);
+  //       console.log('✅ StickyCTA: Pricing updated');
+  //     } catch (error) {
+  //       console.error('❌ StickyCTA: Failed to load pricing:', error);
+  //     }
+  //   };
+  //   loadPricing();
+  // }, []);
 
   return (
     <div
@@ -353,8 +369,14 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen }) => {
       <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-3" style={{ color: tokens.textDark }}>
         <div className="flex flex-col">
           <div className="flex items-baseline gap-2">
-            <span className="text-[20px] font-[800]">₹950</span>
-            <span className="text-[12px] line-through" style={{ color: tokens.muted }}>₹1200</span>
+            {/* <span className="text-[20px] font-[800]">₹950</span>
+            <span className="text-[12px] line-through" style={{ color: tokens.muted }}>₹1200</span> */}
+            <span className="text-[20px] font-[800]">
+              {pricing.isLoading ? '...' : pricing.main}
+            </span>
+            <span className="text-[12px] line-through" style={{ color: tokens.muted }}>
+              {pricing.isLoading ? '...' : pricing.original}
+            </span>
           </div>
           <div className="mt-1 flex items-center gap-1 text-[12px]" aria-live="polite" style={{ color: tokens.muted }}>
             <Clock className="h-4 w-4" color={tokens.accent} />
@@ -1455,8 +1477,18 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [selectedFinding, setSelectedFinding] = useState<string | null>(null);
-const [findingModalOpen, setFindingModalOpen] = useState(false);
-const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
+  const [findingModalOpen, setFindingModalOpen] = useState(false);
+  const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
+  // Add pricing state
+  const [pricing, setPricing] = useState<PricingData>({
+    main: '₹950',
+    original: '₹1200',
+    currency: 'INR',
+    symbol: '₹',
+    amount: 950,
+    isIndia: true,
+    isLoading: true
+  });
 
   const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
   const getEffectiveUserId = () => {
@@ -1528,6 +1560,36 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
       // if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     };
   }, [sectionIds]);
+
+  // Add pricing effect
+useEffect(() => {
+  const loadPricing = async () => {
+    try {
+      console.log('💰 QuestResult: Loading location-based pricing...');
+      const isIndia = await getUserLocationFlag();
+      console.log('🌍 QuestResult: Location result:', isIndia);
+      
+      const newPricing = {
+        main: isIndia ? '₹950' : '$20',
+        original: isIndia ? '₹1200' : '$25',
+        currency: isIndia ? 'INR' : 'USD',
+        symbol: isIndia ? '₹' : '$',
+        amount: isIndia ? 950 : 20,
+        isIndia: isIndia,
+        isLoading: false
+      };
+      
+      setPricing(newPricing);
+      console.log('✅ QuestResult: Pricing updated', newPricing);
+    } catch (error) {
+      console.error('❌ QuestResult: Failed to load pricing:', error);
+      // Keep default India pricing on error
+      setPricing(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  loadPricing();
+}, []);
 
   
   
@@ -2340,17 +2402,20 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
           {paymentSuccess ? (
             <PaymentSuccessMessage userId={userId} />
           ) : (
-            <StickyCTA onOpen={() => {
-              if (!paymentSuccess) {
-                // Track PDF unlock CTA click
-                googleAnalytics.trackPdfUnlockCTA({
-                  session_id: sessionId!,
-                  test_id: testId!,
-                  user_state: user?.id ? 'logged_in' : 'anonymous'
-                });
-                setUpsellOpen(true);
-              }
-            }} />
+            <StickyCTA 
+              onOpen={() => {
+                if (!paymentSuccess) {
+                  // Track PDF unlock CTA click
+                  googleAnalytics.trackPdfUnlockCTA({
+                    session_id: sessionId!,
+                    test_id: testId!,
+                    user_state: user?.id ? 'logged_in' : 'anonymous'
+                  });
+                  setUpsellOpen(true);
+                }
+              }}
+              pricing={pricing}
+            />
           )}
           {!paymentSuccess && (
             <UpsellSheet 
@@ -2358,6 +2423,7 @@ const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
               onClose={() => setUpsellOpen(false)}
               onPayment={handlePayment}
               paymentLoading={paymentLoading}
+              pricing={pricing}
             />
           )}
 
