@@ -207,12 +207,33 @@ const getCurrentSectionProgress = () => {
     };
 
     if (currentQuestion.type === 'text_input') {
-      const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
-      if (currentTextarea && currentTextarea.value) {
-        const selectedTags = getSelectedTagsFromQuestionCard();
+  const currentTextarea = document.querySelector('textarea');
+  if (currentTextarea && currentTextarea.value) {
+    const selectedTags = getSelectedTagsFromQuestionCard();
+    
+    // Check if this question has city autocomplete enabled
+    if (currentQuestion.enableCityAutocomplete) {
+      // Read both city and text
+      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+      const selectedCity = cityInput?.value || '';
+      
+      if (selectedCity) {
+        // Save as JSON with both city and text
+        const combinedResponse = JSON.stringify({
+          selectedCity: selectedCity,
+          details: currentTextarea.value
+        });
+        submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+      } else {
+        // No city selected, save just text
         submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
       }
-    } 
+    } else {
+      // Regular text question, save just text
+      submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+    }
+  }
+} 
     else if (currentQuestion.type === 'multiple_choice') {
       const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
       if (selectedRadio) {

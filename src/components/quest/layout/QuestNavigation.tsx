@@ -56,6 +56,8 @@ export function QuestNavigation({
   const navigate = useNavigate();
   const posthog = usePostHog();
 
+  
+
   const formatSubmissionData = () => {
     const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     const workingSession = { 
@@ -66,6 +68,21 @@ export function QuestNavigation({
       status: 'completed'
     };
 
+    const extractCityFromResponse = () => {
+  const q1_5_response = workingSession?.responses?.['q1_5']?.response;
+    if (q1_5_response) {
+      try {
+        const parsed = JSON.parse(q1_5_response);
+        return parsed.selectedCity || '';
+      } catch {
+        return ''; // If not JSON, no city data
+      }
+    }
+    return '';
+  };
+
+  const cityFromQuest = extractCityFromResponse();
+
     const testid = crypto.getRandomValues(new Uint8Array(20)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
     
     const userData = auth.user?.id ? {
@@ -75,7 +92,7 @@ export function QuestNavigation({
         : 'User',
       email: auth.user.email || 'user@example.com',
       "mobile no": auth.user.user_metadata?.phone || "",
-      city: auth.user.user_metadata?.city || "",
+      city: cityFromQuest || auth.user.user_metadata?.city || "",
       DOB: auth.user.user_metadata?.dob || undefined,
       "testid": testid
     } : {
@@ -83,7 +100,7 @@ export function QuestNavigation({
       name: 'Anonymous User',
       email: '',
       "mobile no": '',
-      city: '',
+      city: cityFromQuest || "",
       DOB: undefined,
       "testid": testid
     };
@@ -319,23 +336,50 @@ const handleNext = async () => {
       return selectedTags;
     };
 
+    // if (currentQuestion.type === 'text_input') {
+    //   const currentTextarea = document.querySelector('textarea');
+    //   if (currentTextarea && currentTextarea.value) {
+    //     // Get the selected tags
+    //     const selectedTags = getSelectedTagsFromQuestionCard();
+        
+    //     // console.log('💾 Navigation saving text response with tags:', {
+    //     //   questionId: currentQuestion.id,
+    //     //   response: currentTextarea.value,
+    //     //   tags: selectedTags
+    //     // });
+        
+    //     // Submit response with tags
+    //     await submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+    //   }
+    // } 
     if (currentQuestion.type === 'text_input') {
       const currentTextarea = document.querySelector('textarea');
       if (currentTextarea && currentTextarea.value) {
-        // Get the selected tags
         const selectedTags = getSelectedTagsFromQuestionCard();
         
-        // console.log('💾 Navigation saving text response with tags:', {
-        //   questionId: currentQuestion.id,
-        //   response: currentTextarea.value,
-        //   tags: selectedTags
-        // });
-        
-        // Submit response with tags
-        await submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+        // Check if this question has city autocomplete enabled
+        if (currentQuestion.enableCityAutocomplete) {
+          // Read both city and text
+          const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+          const selectedCity = cityInput?.value || '';
+          
+          if (selectedCity) {
+            // Save as JSON with both city and text
+            const combinedResponse = JSON.stringify({
+              selectedCity: selectedCity,
+              details: currentTextarea.value
+            });
+            submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+          } else {
+            // No city selected, save just text
+            submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+          }
+        } else {
+          // Regular text question, save just text
+          submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+        }
       }
-    } 
-    else if (currentQuestion.type === 'multiple_choice') {
+    } else if (currentQuestion.type === 'multiple_choice') {
       // Handle multiple choice questions
       const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
       if (selectedRadio) {
@@ -556,12 +600,33 @@ const handlePrevious = () => {
 
     // Save current response before going back (copy from handleNext)
     if (currentQuestion.type === 'text_input') {
-      const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
-      if (currentTextarea && currentTextarea.value) {
-        const selectedTags = getSelectedTagsFromQuestionCard();
+  const currentTextarea = document.querySelector('textarea');
+  if (currentTextarea && currentTextarea.value) {
+    const selectedTags = getSelectedTagsFromQuestionCard();
+    
+    // Check if this question has city autocomplete enabled
+    if (currentQuestion.enableCityAutocomplete) {
+      // Read both city and text
+      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+      const selectedCity = cityInput?.value || '';
+      
+      if (selectedCity) {
+        // Save as JSON with both city and text
+        const combinedResponse = JSON.stringify({
+          selectedCity: selectedCity,
+          details: currentTextarea.value
+        });
+        submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+      } else {
+        // No city selected, save just text
         submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
       }
-    } 
+    } else {
+      // Regular text question, save just text
+      submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+    }
+  }
+} 
     else if (currentQuestion.type === 'multiple_choice') {
       const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
       if (selectedRadio) {
@@ -576,6 +641,10 @@ const handlePrevious = () => {
   previousQuestion();
 };
 
+// const handleConfirmSubmission = () => {
+//       const submissionData = formatSubmissionData();
+//     console.log('📊 Submission data created:', submissionData);
+// };
 
 const handleConfirmSubmission = async () => {
   if (hasStartedSubmission || isSubmitting || isSubmitted) {

@@ -21,6 +21,7 @@ export interface Question {
   sectionId?: string;
   allowTags?: boolean;
   placeholder?: string;
+  enableCityAutocomplete?: boolean;
   additionalInput?: {
     type: string;
     label: string;

@@ -56,6 +56,7 @@ export const questSections: QuestionSection[] = [
         category: 'personal_info',
         sectionId: 'section_1',
         placeholder: 'Improve accuracy by giving more details.  You can write multiple locations and timelines.',
+        enableCityAutocomplete: true, 
       }
     ]
   },
