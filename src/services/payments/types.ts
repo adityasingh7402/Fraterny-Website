@@ -20,7 +20,9 @@ export interface PricingTier {
 export interface CreateOrderRequest {
   sessionId: string;
   testId: string;
-  userId: string;              // After authentication
+  userId: string;   
+  fixEmail: string;          // To fix missing email issue
+  //fixName: string;           // To fix missing name issue           
   pricingTier: 'early' | 'regular';
   amount: number;              // in paise
   sessionStartTime: string;    // Original session start time

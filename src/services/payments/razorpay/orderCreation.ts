@@ -71,6 +71,8 @@ class OrderCreationService {
         sessionId,
         testId,
         userId: authResult.user.id,
+        fixEmail: authResult.user.email || '',
+        //fixName: authResult.user.full_name || 'User',
         pricingTier: hardcodedPricing.name,
         amount: hardcodedPricing.amount,
         sessionStartTime,

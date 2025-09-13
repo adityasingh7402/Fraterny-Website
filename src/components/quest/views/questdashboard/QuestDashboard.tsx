@@ -360,7 +360,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     if (testData.ispaymentdone !== "success") {
       try {
         setPaymentLoading(testData.sessionid);
-        
         const paymentResult = await PaymentService.startPayment(
           testData.sessionid, 
           testData.testid
