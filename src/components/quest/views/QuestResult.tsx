@@ -31,6 +31,7 @@ import { questionSummary } from '../core/questions';
 import { getUserLocationFlag } from '../../../services/payments/razorpay/config';
 
 
+
 interface Film {
   title: string;
   description: string;
@@ -279,10 +280,10 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
               >
                 <div className="text-[12px] opacity-95"><span>Ends in {formatTime(seconds)}</span></div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-[24px] font-[800]" style={{ color: tokens.textDark }}>
+                  <span className="text-[24px] font-['Gilroy-Regular'] font-[400] text-white">
                       {pricing.isLoading ? '...' : pricing.main}
                     </span>
-                    <span className="text-[14px] line-through" style={{ color: tokens.muted }}>
+                    <span className="text-[18px] font-['Gilroy-Regular'] line-through text-gray-800">
                       {pricing.isLoading ? '...' : pricing.original}
                     </span>
                 </div>
@@ -1495,6 +1496,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     return user?.id || userId;
   };
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const handleAuthAction = () => {
     if (user) {
@@ -1591,12 +1593,38 @@ useEffect(() => {
   loadPricing();
 }, []);
 
-  
+  // const handleSignIn = async () => {
+  //       if (user?.id) { 
+  //       const userId = user?.id
+  //       const username = user?.user_metadata?.full_name
+  //         ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
+  //         : 'User';
+  //       const email = user?.email || '';
+  //       console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
+  // }
+
   
   // Mock API handlers (commented real implementation)
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
+      // send the userdata to the backend to associate the session
+      if (user?.id) {
+        const userId = user?.id
+        const username = user.user_metadata.full_name;
+        const email = user?.email || '';
+        //console.log('User signed in:', user.user_metadata.full_name, user.email);
+        //console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
+        const response = await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+          sessionId,
+          testId,
+          userId,
+          username,
+          email
+        });
+        console.log('Sign-in association response:', response.data);
+        
+      }
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Sign-in failed. Please try again.', {
@@ -1637,6 +1665,22 @@ useEffect(() => {
       
       // Trigger Google sign-in (redirect-based)
       await signInWithGoogle();
+      // send userdata to the backend to associate the session
+      if (user?.id) {
+        const userId = user?.id
+        const username = user?.user_metadata?.first_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
+          : 'User';
+        const email = user?.email || '';
+        console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
+        await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+          sessionId,
+          testId,
+          userId,
+          username,
+          email
+        });
+      }
       return;
     } catch (error) {
       console.error('Failed to initiate auth flow:', error);
@@ -1769,14 +1813,19 @@ useEffect(() => {
       if (user?.id && userId === 'anonymous' && sessionId && testId) {
         console.log('User authenticated, updating URL from anonymous to:', user.id);
         const userId = user?.id
+        const username = user?.user_metadata?.full_name;
+        const email = user?.email || '';
+        console.log('Associating session with user:', { sessionId, testId, userId, username, email });
         try {
           // Call API to associate anonymous data with authenticated user
-          await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+          const response =await axios.post('https://api.fraterny.in/api/saveusingsignin', {
             sessionId,
             testId,
-            userId
+            userId,
+            username,
+            email
           });
-          
+          console.log('Association response:', response.data);
           // Show success toast
           toast.success("Your result is saved now", {
             position: "top-right"

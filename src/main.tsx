@@ -7,8 +7,6 @@ import App from './App';
 import ModernLoading from './components/ui/ModernLoading';
 import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
-import ResultsDemo from './components/quest/views/ResultsDemo';
-import { QuestRecovery } from './components/quest/views/QuestRecovery';
 import { getUserLocationFlag } from './services/payments/razorpay/config'
 
 initializeUserJourney();
@@ -149,24 +147,13 @@ const router = createBrowserRouter([
       { path: 'blog/:id', element: <BlogPost /> },
 
 
-      // PROTECTED QUEST ROUTE - Authentication required
-      {
-        path: 'assessment',
-        // element: <ProtectedRoute />,
-        children: [
-          { index: true, element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
-        ],
-      },
-      
-      // OTHER QUEST ROUTES - Lazy loaded with custom loading
+      // QUEST ROUTES - Lazy loaded with custom loading
+      { path: 'assessment', element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
       { path: 'quest-result/*', element: <QuestResultRoute /> },
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
       { path: 'quest', element: <QuestLandingPage /> },
       { path: 'quest-dashboard/:userId', element: <QuestDashboard /> },
-      { path: 'assessment', element: <QuestRoute /> },
-      { path: 'results-demo', element: createSuspenseWrapper(LightLoading)(<ResultsDemo />) },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
-      { path: 'quest-recovery', element: <QuestRecovery /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },
@@ -210,19 +197,17 @@ getUserLocationFlag()
 
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
-      options={{
-        api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-        defaults: '2025-05-24',
-        capture_exceptions: true,
-        debug: import.meta.env.MODE === 'development',
-      }}
-    >
-      <HelmetProvider>
-        <RouterProvider router={router} />
-      </HelmetProvider>
-    </PostHogProvider>
-  </React.StrictMode>
+  <PostHogProvider
+    apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+    options={{
+      api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+      defaults: '2025-05-24',
+      capture_exceptions: true,
+      debug: import.meta.env.MODE === 'development',
+    }}
+  >
+    <HelmetProvider>
+      <RouterProvider router={router} />
+    </HelmetProvider>
+  </PostHogProvider>
 );
