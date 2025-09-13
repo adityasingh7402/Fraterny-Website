@@ -1614,7 +1614,7 @@ useEffect(() => {
         const username = user.user_metadata.full_name;
         const email = user?.email || '';
         //console.log('User signed in:', user.user_metadata.full_name, user.email);
-        //console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
+        console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
         const response = await axios.post('https://api.fraterny.in/api/saveusingsignin', {
           sessionId,
           testId,
@@ -1673,13 +1673,14 @@ useEffect(() => {
           : 'User';
         const email = user?.email || '';
         console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
-        await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+        const response  = await axios.post('https://api.fraterny.in/api/saveusingsignin', {
           sessionId,
           testId,
           userId,
           username,
           email
         });
+        console.log('Sign-in association response during payment:', response.data);
       }
       return;
     } catch (error) {
@@ -1848,7 +1849,6 @@ useEffect(() => {
             position: "top-right"
           });
         }
-        
         const newUrl = `/quest-result/result/${user.id}/${sessionId}/${testId}`;
         navigate(newUrl, { replace: true });
       }

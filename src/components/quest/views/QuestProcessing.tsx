@@ -782,11 +782,11 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
     return (
       <div className='h-screen max-h-screen relative overflow-hidden flex items-center justify-center'>
         <div className="text-center px-4">
-          <h2 className="text-2xl font-['Gilroy-Bold'] text-black mb-4">
+          {/* <h2 className="text-2xl font-['Gilroy-Bold'] text-black mb-4">
             Something went wrong
-          </h2>
+          </h2> */}
           <p className="text-lg text-gray-700 mb-6">
-            Analysis took longer than expected. Checking for your recent submission...
+            Analysis took longer than expected. Please check again if your results are ready.
           </p>
           <button
             onClick={handleRecoveryAttempt}
