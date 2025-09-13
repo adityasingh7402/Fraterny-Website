@@ -45,6 +45,8 @@ class PaymentHandlerService {
       }
 
       const userInfo = paymentAuthService.getUserInfoForPayment(user);
+      console.log('User info for payment:', userInfo);
+      
 
       // Step 4: Open Razorpay modal
       const paymentResult = await this.openRazorpayModal(orderData, userInfo);
