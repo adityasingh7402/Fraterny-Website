@@ -177,8 +177,8 @@ export const STORAGE_KEYS = {
 export const getUserLocationFlag = async (): Promise<boolean> => {
   try {
     const locationData = await locationService.getUserLocation();
-    console.log('🔍 getUserLocationFlag - Raw location data:', locationData);
-    console.log('🔍 getUserLocationFlag - isIndia result:', locationData.isIndia);
+    //console.log('🔍 getUserLocationFlag - Raw location data:', locationData);
+    //console.log('🔍 getUserLocationFlag - isIndia result:', locationData.isIndia);
     return locationData.isIndia;
   } catch (error) {
     console.error('Failed to get location flag:', error);

@@ -110,50 +110,90 @@ export function QuestNavigation({
     const startTimeValue = startTime || new Date().toISOString();
     const durationMinutes = (new Date().getTime() - new Date(startTimeValue).getTime()) / (1000 * 60);
     
-    let previousTimestamp: string | null = null;
-    const responses = allQuestions?.map((question, index) => {
-      const response = workingSession?.responses?.[question.id];
-      const sectionId = question?.sectionId || '';
-      const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
+    // let previousTimestamp: string | null = null;
+    // const responses = allQuestions?.map((question, index) => {
+    //   const response = workingSession?.responses?.[question.id];
+    //   const sectionId = question?.sectionId || '';
+    //   const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
       
-      if (response) {
-        let timeTaken = null;
-        if (previousTimestamp) {
-          const currentTime = new Date(response.timestamp).getTime();
-          const prevTime = new Date(previousTimestamp).getTime();
-          const diffSeconds = Math.round((currentTime - prevTime) / 1000);
-          timeTaken = `${diffSeconds}s`;
-        }
-        previousTimestamp = response.timestamp;
+    //   if (response) {
+    //     let timeTaken = null;
+    //     if (previousTimestamp) {
+    //       const currentTime = new Date(response.timestamp).getTime();
+    //       const prevTime = new Date(previousTimestamp).getTime();
+    //       const diffSeconds = Math.round((currentTime - prevTime) / 1000);
+    //       timeTaken = `${diffSeconds}s`;
+    //     }
+    //     previousTimestamp = response.timestamp;
         
-        return {
-          qno: index + 1,
-          question_id: question.id,
-          question_text: question?.text || '',
-          answer: response.response,
-          section_id: sectionId,
-          section_name: sectionName,
-          metadata: {
-            tags: response.tags || [],
-            time_taken: timeTaken || (question?.type === 'date_input' ? '1s' : undefined)
-          }
-        };
-      } else {
-        return {
-          qno: index + 1,
-          question_id: question.id,
-          question_text: question?.text || '',
-          answer: "I preferred not to response for this question",
-          section_id: sectionId,
-          section_name: sectionName,
-          metadata: {
-            tags: [],
-            time_taken: '1s'
-          }
-        };
-      }
-    }) || [];
+    //     return {
+    //       qno: index + 1,
+    //       question_id: question.id,
+    //       question_text: question?.text || '',
+    //       answer: response.response,
+    //       section_id: sectionId,
+    //       section_name: sectionName,
+    //       metadata: {
+    //         tags: response.tags || [],
+    //         time_taken: timeTaken || (question?.type === 'date_input' ? '1s' : undefined)
+    //       }
+    //     };
+    //   } else {
+    //     return {
+    //       qno: index + 1,
+    //       question_id: question.id,
+    //       question_text: question?.text || '',
+    //       answer: "I preferred not to response for this question",
+    //       section_id: sectionId,
+    //       section_name: sectionName,
+    //       metadata: {
+    //         tags: [],
+    //         time_taken: '1s'
+    //       }
+    //     };
+    //   }
+    // }) || [];
     
+    const responses = allQuestions?.map((question, index) => {
+  const response = workingSession?.responses?.[question.id];
+  const sectionId = question?.sectionId || '';
+  const sectionName = sections?.find(s => s.id === sectionId)?.title || '';
+  
+  if (response) {
+    // Use accumulated view time from new timing system
+    const timeTaken = response.totalViewTimeSeconds && response.totalViewTimeSeconds > 0
+      ? `${response.totalViewTimeSeconds}s`
+      : (question?.type === 'date_input' ? '30s' : '1s');
+    
+    return {
+      qno: index + 1,
+      question_id: question.id,
+      question_text: question?.text || '',
+      answer: response.response,
+      section_id: sectionId,
+      section_name: sectionName,
+      metadata: {
+        tags: response.tags || [],
+        time_taken: timeTaken
+      }
+    };
+  } else {
+    return {
+      qno: index + 1,
+      question_id: question.id,
+      question_text: question?.text || '',
+      answer: "I preferred not to response for this question",
+      section_id: sectionId,
+      section_name: sectionName,
+      metadata: {
+        tags: [],
+        time_taken: '1s'
+      }
+    };
+  }
+    }) || [];
+
+
     const tagCounts: Record<string, number> = {};
     responses.forEach(response => {
       if (response.metadata.tags) {
@@ -646,6 +686,13 @@ const handlePrevious = () => {
 //     console.log('📊 Submission data created:', submissionData);
 // };
 
+// const handleConfirmSubmission = async () => {
+//  // just log the submission data for now
+//       const submissionData = formatSubmissionData();
+//     console.log('📊 Submission data created:', submissionData);
+
+// }
+
 const handleConfirmSubmission = async () => {
   if (hasStartedSubmission || isSubmitting || isSubmitted) {
     console.log('Submission already in progress, ignoring click');
@@ -660,7 +707,7 @@ const handleConfirmSubmission = async () => {
     
     // Format submission data
     const submissionData = formatSubmissionData();
-    console.log('📊 Submission data created:', submissionData ? 'SUCCESS' : 'FAILED');
+    console.log('📊 Submission data created:', submissionData );
     
     if (!submissionData) {
       throw new Error('No submission data available');
@@ -668,7 +715,6 @@ const handleConfirmSubmission = async () => {
 
     const sessionId = submissionData.assessment_metadata.session_id;
     const testid = submissionData?.user_data?.testid || '';
-    console.log('🆔 Session ID:', sessionId, 'Test ID:', testid);
     posthog.capture('confirm_button_clicked', {
       testid: testid,
       user_id: auth.user?.id || 'anonymous',
