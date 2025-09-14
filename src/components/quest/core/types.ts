@@ -100,8 +100,9 @@ export interface QuestContextActions {
   skipQuestion: () => void;
   goToQuestion: (questionIndex: number) => void;
   editResponse: (questionId: string) => void;
-   trackQuestionView: (questionId: string) => void;
+  trackQuestionView: (questionId: string) => void;
   stopQuestionTracking: () => void;
+  accumulateQuestionTime: (questionId: string, durationSeconds: number) => void;
 }
 
 export interface QuestionSection {

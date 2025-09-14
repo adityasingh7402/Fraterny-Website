@@ -81,7 +81,7 @@ class LocationService {
           });
           
           clearTimeout(timeoutId);
-          console.log('✅ Service responded:', service, 'Status:', response.status);
+          // console.log('✅ Service responded:', service, 'Status:', response.status);
 
           if (!response.ok) continue;
 
@@ -135,11 +135,11 @@ class LocationService {
         console.warn('Failed to cache location data:', error);
       }
 
-      console.log('🌍 Location Detection Results:');
-      console.log('- Country:', locationData.country);
-      console.log('- Country Code:', locationData.countryCode);
-      console.log('- IP Address:', locationData.ip);
-      console.log('- Is India:', locationData.isIndia);
+      // console.log('🌍 Location Detection Results:');
+      // console.log('- Country:', locationData.country);
+      // console.log('- Country Code:', locationData.countryCode);
+      // console.log('- IP Address:', locationData.ip);
+      // console.log('- Is India:', locationData.isIndia);
       return locationData;
 
     } catch (error) {
