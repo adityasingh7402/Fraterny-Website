@@ -986,6 +986,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   const [questionViewTimes, setQuestionViewTimes] = useState<Record<string, number>>({});
   const [deviceIdentifier, setDeviceIdentifier] = useState<any>(null);
   const [hasSubmittedToAPI, setHasSubmittedToAPI] = useState(false);
+  const [hasAttemptedFinishWithIncomplete, setHasAttemptedFinishWithIncomplete] = useState(false);
 
 
   const navigate = useNavigate();
@@ -1868,6 +1869,8 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
 
   trackQuestionView,        // ADD THIS LINE
   stopQuestionTracking,
+  hasAttemptedFinishWithIncomplete,
+  setHasAttemptedFinishWithIncomplete,
   }), [
     session,
     currentQuestion,

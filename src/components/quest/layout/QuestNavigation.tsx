@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { usePostHog } from 'posthog-js/react';
+import IncompleteQuestionsModal from '../components/IncompleteQuestionsModal';
 
 interface QuestNavigationProps {
   showPrevious?: boolean;
@@ -44,7 +45,10 @@ export function QuestNavigation({
   currentSectionId,
   finishQuest,
   trackQuestionView,
-  stopQuestionTracking
+  stopQuestionTracking,
+  goToQuestion,
+  hasAttemptedFinishWithIncomplete,
+  setHasAttemptedFinishWithIncomplete
   } = useQuest();
 
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -52,6 +56,9 @@ export function QuestNavigation({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasStartedSubmission, setHasStartedSubmission] = useState(false);
+  // Modal state for incomplete questions
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+  const [incompleteInfo, setIncompleteInfo] = useState<{ count: number; sectionName?: string; sectionId?: string; indexInSection?: number } | null>(null);
   const auth = useAuth();
   const navigate = useNavigate();
   const posthog = usePostHog();
@@ -295,11 +302,15 @@ const checkForUnfinishedQuestions = () => {
     const firstUnfinishedQuestion = unfinishedQuestions[0];
     const sectionId = firstUnfinishedQuestion?.sectionId;
     const sectionName = sections?.find(s => s.id === sectionId)?.title || 'Unknown Section';
+    // find index within its section
+    const indexInSection = sections.find(s => s.id === sectionId)?.questions.findIndex(q => q.id === firstUnfinishedQuestion.id) ?? 0;
     
     return {
       hasUnfinished: true,
       sectionName: sectionName,
-      count: unfinishedQuestions.length
+      count: unfinishedQuestions.length,
+      firstSectionId: sectionId,
+      firstIndexInSection: indexInSection
     };
   }
   
@@ -553,12 +564,17 @@ if (isLastQuestionInSection) {
       console.log('🔍 Unfinished questions check:', unfinishedCheck);
             
       if (unfinishedCheck.hasUnfinished) {
-        toast.error(`Please complete all questions before finishing the assessment.`,
-          {
-            position: 'top-center',
-          }
-        );
-        return; // Don't proceed - THIS PREVENTS THE CONFIRMATION DIALOG
+        // Mark that user has attempted to finish with incomplete questions
+        setHasAttemptedFinishWithIncomplete(true);
+        // Open modal instead of only showing toast
+        setIncompleteInfo({
+          count: unfinishedCheck.count,
+          sectionName: unfinishedCheck.sectionName,
+          sectionId: (unfinishedCheck as any).firstSectionId,
+          indexInSection: (unfinishedCheck as any).firstIndexInSection,
+        });
+        setShowIncompleteModal(true);
+        return; // Don't proceed
       }
       
       setShowConfirmation(true); // Only show if all questions are answered
@@ -569,6 +585,23 @@ if (isLastQuestionInSection) {
   } else {
     nextQuestion();
 }
+};
+
+// Navigate to the first incomplete question captured in state
+const goToFirstIncomplete = () => {
+  if (!incompleteInfo?.sectionId || incompleteInfo.indexInSection == null) {
+    setShowIncompleteModal(false);
+    return;
+  }
+  const targetSectionId = incompleteInfo.sectionId;
+  const targetIndex = incompleteInfo.indexInSection;
+  // Change section, then move to the question index
+  changeSection(targetSectionId);
+  // Delay navigating to question index slightly to allow section change state to apply
+  setTimeout(() => {
+    goToQuestion(targetIndex);
+  }, 100);
+  setShowIncompleteModal(false);
 };
 
 const handlePrevious = () => {
@@ -896,6 +929,15 @@ const handleCancelSubmission = () => {
         </motion.div>
       </div>
     )}
+    
+    {/* Incomplete questions modal */}
+    <IncompleteQuestionsModal
+      isOpen={showIncompleteModal}
+      onClose={() => setShowIncompleteModal(false)}
+      onGoToIncomplete={goToFirstIncomplete}
+      incompleteCount={incompleteInfo?.count || 0}
+      sectionName={incompleteInfo?.sectionName}
+    />
     </>
   );
   };
