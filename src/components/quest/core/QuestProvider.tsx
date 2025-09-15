@@ -1909,6 +1909,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   trackQuestionView,        // ADD THIS LINE
   stopQuestionTracking,
   hasAttemptedFinishWithIncomplete,
+  accumulateQuestionTime,
   setHasAttemptedFinishWithIncomplete,
   }), [
     session,
