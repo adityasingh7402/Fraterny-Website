@@ -50,7 +50,15 @@ export function ProgressBar({
   }, [isDrawerOpen]);
 
   // Get sections from the quest context
-  const { sections, currentSectionId, currentQuestion, session, changeSection, allQuestions, submitResponse } = useQuest();
+  const { sections, currentSectionId, currentQuestion, session, changeSection, allQuestions, submitResponse, hasAttemptedFinishWithIncomplete } = useQuest();
+  
+  // Helper function to check if a section has incomplete questions
+  const sectionHasIncompleteQuestions = (sectionId: string): boolean => {
+    if (!session?.responses || !allQuestions) return false;
+    
+    const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
+    return sectionQuestions.some(q => !session.responses || !session.responses[q.id]);
+  };
   
   // Find current section
   const currentSection = sections.find(section => section.id === currentSectionId);
@@ -339,7 +347,9 @@ const getCurrentSectionProgress = () => {
                   onClick={handleDrawerToggle}
                   className="w-28 min-w-28 h-10 bg-white rounded-[50px] border-[1.50px] border-neutral-400 items-center flex justify-center px-4 hover:bg-gray-50 transition-colors duration-200 group"
                 >
-                  <div className="text-center justify-start text-sky-800 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px]  mr-2">
+                  <div className={`text-center justify-start text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] mr-2 ${
+                    (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(currentSectionId)) ? 'text-red-600' : 'text-sky-800'
+                  }`}>
                     {currentSection?.title || 'Section'}
                   </div>
                   <ChevronDown 
@@ -358,7 +368,9 @@ const getCurrentSectionProgress = () => {
               </div>
               
               {/* Question Counter */}
-              <div className="text-neutral-500 text-xl font-normal font-['Gilroy-Regular']">
+              <div className={`text-xl font-normal font-['Gilroy-Regular'] ${
+                (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(currentSectionId)) ? 'text-red-600' : 'text-neutral-500'
+              }`}>
                 {questionIndexInSection + 1} / {questionsInSection}
               </div>
             </div>

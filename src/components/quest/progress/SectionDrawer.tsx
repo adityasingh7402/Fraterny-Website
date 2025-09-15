@@ -145,7 +145,15 @@ export function SectionDrawer({
   onClose,
   onSectionSelect
 }: SectionDrawerProps) {
-  const { sections, currentSectionId } = useQuest();
+  const { sections, currentSectionId, session, allQuestions, hasAttemptedFinishWithIncomplete } = useQuest();
+  
+  // Helper function to check if a section has incomplete questions
+  const sectionHasIncompleteQuestions = (sectionId: string): boolean => {
+    if (!session?.responses || !allQuestions) return false;
+    
+    const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
+    return sectionQuestions.some(q => !session.responses || !session.responses[q.id]);
+  };
 
   // Handle section selection
   const handleSectionClick = (sectionId: string) => {
@@ -190,7 +198,9 @@ export function SectionDrawer({
                   onClick={() => handleSectionClick(section.id)}
                   className="w-full px-4 py-2 text-center hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${getSectionColor(index)}`}>
+                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${
+                    (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id)) ? 'text-red-600' : getSectionColor(index)
+                  }`}>
                     {section.title}
                   </div>
                 </button>
