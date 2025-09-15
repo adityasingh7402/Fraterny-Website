@@ -198,7 +198,7 @@ useEffect(() => {
 }, []);
 
 // Conditional button text
-const buttonText = hasUnfinishedQuest ? "Resume" : "Get Started";
+const buttonText = hasUnfinishedQuest ? "Resume" : "Get";
   
 const handleStart = async () => {
   if (!isTermsAccepted) {
