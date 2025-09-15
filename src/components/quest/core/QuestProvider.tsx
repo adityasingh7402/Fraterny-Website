@@ -1111,6 +1111,47 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   // Generate a session ID (temporary - will be from backend)
   const generateSessionId = () => `session_${Date.now()}`;
   
+  // Accumulate time spent on a question from mount/unmount tracking
+  const accumulateQuestionTime = (questionId: string, durationSeconds: number) => {
+    setSession(prev => {
+      if (!prev) return null;
+      
+      const existingResponse = prev.responses?.[questionId];
+      if (existingResponse) {
+        // Add to existing accumulated time (don't overwrite!)
+        const currentTotal = existingResponse.totalViewTimeSeconds || 0;
+        const newTotal = currentTotal + durationSeconds;
+        return {
+          ...prev,
+          responses: {
+            ...prev.responses,
+            [questionId]: {
+              ...existingResponse,
+              totalViewTimeSeconds: newTotal
+            }
+          }
+        };
+      } else {
+        // Create a placeholder response for timing-only
+        return {
+          ...prev,
+          responses: {
+            ...(prev.responses || {}),
+            [questionId]: {
+              questionId,
+              response: '',
+              timestamp: new Date().toISOString(),
+              totalViewTimeSeconds: durationSeconds
+            }
+          }
+        };
+      }
+    });
+    
+    console.log(`📊 Question ${questionId} accumulated +${durationSeconds}s (total will be updated)`);
+  };
+
+
 
   const startQuest = async (sectionId?: string): Promise<QuestSession | null> => {
     
@@ -1861,8 +1902,6 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     skipQuestion,
     goToQuestion,
     editResponse,
-    
-
      getTotalQuestionsInAssessment,
   getCurrentGlobalQuestionIndex,
   isLastQuestionInEntireAssessment,

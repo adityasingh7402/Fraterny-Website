@@ -11,6 +11,7 @@ import { getWordValidationStatus, getWordValidationMessage } from '../utils/ques
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { useAuth } from '../../../contexts/AuthContext';
 import { CityAutocomplete } from '../responses/CityAutocomplete';
+import { useQuestionTiming } from '../hooks/useQuestionTiming';
 
 /**
  * Base question card component
@@ -34,16 +35,13 @@ export function QuestionCard({
   className = ''
 }: QuestionCardProps) {
   // State for the current response
-
-  console.log('🔍 QuestionCard loading for:', question.id);
-  console.log('🔍 previousResponse:', previousResponse);
-  console.log('🔍 previousResponse.response:', previousResponse?.response);
   
   //const [response, setResponse] = useState<string>(previousResponse?.response || '');
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
    const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
+   useQuestionTiming(question.id);
   const { user } = useAuth(); // Add this line
   //const [selectedCity, setSelectedCity] = useState<string>('');
 
