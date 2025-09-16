@@ -387,63 +387,91 @@ const handleNext = async () => {
       return selectedTags;
     };
 
-    // if (currentQuestion.type === 'text_input') {
-    //   const currentTextarea = document.querySelector('textarea');
-    //   if (currentTextarea && currentTextarea.value) {
-    //     // Get the selected tags
-    //     const selectedTags = getSelectedTagsFromQuestionCard();
-        
-    //     // console.log('💾 Navigation saving text response with tags:', {
-    //     //   questionId: currentQuestion.id,
-    //     //   response: currentTextarea.value,
-    //     //   tags: selectedTags
-    //     // });
-        
-    //     // Submit response with tags
-    //     await submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
-    //   }
-    // } 
+    const getAnonymousModeFromDOM = (): boolean => {
+      const toggleButton = document.querySelector('[data-anonymous-mode]');
+      return toggleButton?.getAttribute('data-anonymous-mode') === 'true';
+    }; 
+
     if (currentQuestion.type === 'text_input') {
-      const currentTextarea = document.querySelector('textarea');
-      if (currentTextarea && currentTextarea.value) {
-        const selectedTags = getSelectedTagsFromQuestionCard();
-        
-        // Check if this question has city autocomplete enabled
-        if (currentQuestion.enableCityAutocomplete) {
-          // Read both city and text
-          const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
-          const selectedCity = cityInput?.value || '';
-          
-          if (selectedCity) {
-            // Save as JSON with both city and text
-            const combinedResponse = JSON.stringify({
-              selectedCity: selectedCity,
-              details: currentTextarea.value
-            });
-            submitResponse(currentQuestion.id, combinedResponse, selectedTags);
-          } else {
-            // No city selected, save just text
-            submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
-          }
-        } else {
-          // Regular text question, save just text
-          submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
-        }
-      }
-    } else if (currentQuestion.type === 'multiple_choice') {
-      // Handle multiple choice questions
-      const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
-      if (selectedRadio) {
-        const selectedTags = getSelectedTagsFromQuestionCard();
-        
-        console.log('💾 Navigation saving multiple choice response with tags:', {
-          questionId: currentQuestion.id,
-          response: selectedRadio.value,
-          tags: selectedTags
+  const currentTextarea = document.querySelector('textarea');
+  if (currentTextarea && currentTextarea.value) {
+    const selectedTags = getSelectedTagsFromQuestionCard();
+    
+    // Determine field name based on question type
+    const getFieldName = () => {
+      if (currentQuestion.id === 'q1_1') return 'name';
+      if (currentQuestion.id === 'q1_2') return 'email';
+      if (currentQuestion.id === 'q1_3') return 'age';
+      if (currentQuestion.id === 'q1_5') return 'details';
+      return 'details'; // fallback
+    };
+    
+    const fieldName = getFieldName();
+    
+    if (currentQuestion.allowAnonymous) {
+      // All anonymous-enabled questions (name, email, location)
+      const isAnonymousMode = getAnonymousModeFromDOM();
+      
+      if (isAnonymousMode) {
+        const anonymousResponse = JSON.stringify({
+          isAnonymous: true,
+          selectedCity: "",
+          [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
         });
+        submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
+      } else if (currentQuestion.enableCityAutocomplete) {
+        // Location question with city
+        const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+        const selectedCity = cityInput?.value || '';
         
-        submitResponse(currentQuestion.id, selectedRadio.value, selectedTags);
+        const combinedResponse = JSON.stringify({
+          selectedCity: selectedCity,
+          [fieldName]: currentTextarea.value,
+          isAnonymous: false
+        });
+        submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+      } else {
+        // Name/email questions without city
+        const textOnlyResponse = JSON.stringify({
+          selectedCity: "",
+          [fieldName]: currentTextarea.value,
+          isAnonymous: false
+        });
+        submitResponse(currentQuestion.id, textOnlyResponse, selectedTags);
       }
+    } else if (currentQuestion.enableCityAutocomplete) {
+      // Regular city autocomplete without anonymous mode
+      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+      const selectedCity = cityInput?.value || '';
+      
+      if (selectedCity) {
+        const combinedResponse = JSON.stringify({
+          selectedCity: selectedCity,
+          details: currentTextarea.value
+        });
+        submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+      } else {
+        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+      }
+    } else {
+      // Regular text questions without any special features
+      submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+    }
+  }
+} else if (currentQuestion.type === 'multiple_choice') {
+          // Handle multiple choice questions
+          const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
+          if (selectedRadio) {
+            const selectedTags = getSelectedTagsFromQuestionCard();
+            
+            console.log('💾 Navigation saving multiple choice response with tags:', {
+              questionId: currentQuestion.id,
+              response: selectedRadio.value,
+              tags: selectedTags
+            });
+            
+            submitResponse(currentQuestion.id, selectedRadio.value, selectedTags);
+          }
     }
     else if (currentQuestion.type === 'ranking') {
       // Handle ranking questions - SIMPLE APPROACH
@@ -671,35 +699,79 @@ const handlePrevious = () => {
       return selectedTags;
     };
 
+    const getAnonymousModeFromDOM = (): boolean => {
+      const toggleButton = document.querySelector('[data-anonymous-mode]');
+      return toggleButton?.getAttribute('data-anonymous-mode') === 'true';
+    };
+
     // Save current response before going back (copy from handleNext)
-    if (currentQuestion.type === 'text_input') {
-  const currentTextarea = document.querySelector('textarea');
-  if (currentTextarea && currentTextarea.value) {
-    const selectedTags = getSelectedTagsFromQuestionCard();
-    
-    // Check if this question has city autocomplete enabled
-    if (currentQuestion.enableCityAutocomplete) {
-      // Read both city and text
-      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
-      const selectedCity = cityInput?.value || '';
-      
-      if (selectedCity) {
-        // Save as JSON with both city and text
-        const combinedResponse = JSON.stringify({
-          selectedCity: selectedCity,
-          details: currentTextarea.value
-        });
-        submitResponse(currentQuestion.id, combinedResponse, selectedTags);
-      } else {
-        // No city selected, save just text
-        submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+     if (currentQuestion.type === 'text_input') {
+      const currentTextarea = document.querySelector('textarea');
+      if (currentTextarea && currentTextarea.value) {
+        const selectedTags = getSelectedTagsFromQuestionCard();
+        
+        // Determine field name based on question type
+        const getFieldName = () => {
+          if (currentQuestion.id === 'q1_1') return 'name';
+          if (currentQuestion.id === 'q1_2') return 'email';
+          if (currentQuestion.id === 'q1_3') return 'age';
+          if (currentQuestion.id === 'q1_5') return 'details';
+          return 'details'; // fallback
+        };
+        
+        const fieldName = getFieldName();
+        
+        if (currentQuestion.allowAnonymous) {
+          // All anonymous-enabled questions (name, email, location)
+          const isAnonymousMode = getAnonymousModeFromDOM();
+          
+          if (isAnonymousMode) {
+            const anonymousResponse = JSON.stringify({
+              isAnonymous: true,
+              selectedCity: "",
+              [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+            });
+            submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
+          } else if (currentQuestion.enableCityAutocomplete) {
+            // Location question with city
+            const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+            const selectedCity = cityInput?.value || '';
+            
+            const combinedResponse = JSON.stringify({
+              selectedCity: selectedCity,
+              [fieldName]: currentTextarea.value,
+              isAnonymous: false
+            });
+            submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+          } else {
+            // Name/email questions without city
+            const textOnlyResponse = JSON.stringify({
+              selectedCity: "",
+              [fieldName]: currentTextarea.value,
+              isAnonymous: false
+            });
+            submitResponse(currentQuestion.id, textOnlyResponse, selectedTags);
+          }
+        } else if (currentQuestion.enableCityAutocomplete) {
+          // Regular city autocomplete without anonymous mode
+          const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+          const selectedCity = cityInput?.value || '';
+          
+          if (selectedCity) {
+            const combinedResponse = JSON.stringify({
+              selectedCity: selectedCity,
+              details: currentTextarea.value
+            });
+            submitResponse(currentQuestion.id, combinedResponse, selectedTags);
+          } else {
+            submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+          }
+        } else {
+          // Regular text questions without any special features
+          submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
+        }
       }
-    } else {
-      // Regular text question, save just text
-      submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
     }
-  }
-} 
     else if (currentQuestion.type === 'multiple_choice') {
       const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
       if (selectedRadio) {
