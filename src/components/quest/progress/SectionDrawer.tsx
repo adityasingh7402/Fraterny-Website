@@ -196,13 +196,16 @@ export function SectionDrawer({
               <div key={section.id}>
                 <button
                   onClick={() => handleSectionClick(section.id)}
-                  className="w-full px-4 py-2 text-center hover:bg-gray-50 transition-colors duration-150"
+                  className="relative w-full px-4 py-2 text-center hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${
-                    (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id)) ? 'text-red-600' : getSectionColor(index)
-                  }`}>
+                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${getSectionColor(index)}`}>
                     {section.title}
                   </div>
+                  
+                  {/* Red dot indicator for incomplete sections */}
+                  {hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id) && (
+                    <div className="absolute top-1 right-1 w-2 h-2 opacity-60 bg-red-600 rounded-full"></div>
+                  )}
                 </button>
                 
                 {/* Separator line (except for last item) */}
