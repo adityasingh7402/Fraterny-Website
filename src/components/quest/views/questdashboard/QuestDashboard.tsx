@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, Download, Calendar, ExternalLink, FileText, AlertCircle, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, Home, FileText, CreditCard, Lightbulb, TrendingUp, User, Calendar, ExternalLink, LogOut, Plus, X } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -88,7 +88,7 @@ const MOCK_DATA: DashboardTest[] = [
 ];
 
 const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [data, setData] = useState<DashboardTest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,11 +97,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const [priceDisplay, setPriceDisplay] = useState('Loading...');
   const [originalPrice, setOriginalPrice] = useState('');
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigate = useNavigate();
   const { userId } = useParams();
-
-  
 
   // Format date helper function
   const formatDate = (dateString: string): string => {
@@ -123,7 +122,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     
     try {
       if (USE_MOCK_DATA) {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         return MOCK_DATA;
       } else {
         const response = await axios.get<DashboardApiResponse>(
@@ -137,64 +136,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     }
   };
 
-  // Send email via backend API
-  const sendReportEmail = async (testData: DashboardTest): Promise<EmailApiResponse> => {
-    try {
-      console.log( {
-          user_name: user?.user_metadata?.first_name || 'User',
-          user_email: user?.email || 'one@gmail.com',
-          test_date: formatDate(testData.testtaken),
-          session_id: testData.sessionid,
-          pdf_link: testData.quest_pdf,
-          user_id: testData.userid,
-          test_id: testData.testid
-        })
-      const response = await axios.post<EmailApiResponse>(
-        'https://api.fraterny.in/send-report-email', // Your backend endpoint
-        {
-          user_name: user?.user_metadata?.first_name || 'User',
-          user_email: user?.email || 'one@gmail.com',
-          test_date: formatDate(testData.testtaken),
-          session_id: testData.sessionid,
-          pdf_link: testData.quest_pdf,
-          user_id: testData.userid,
-          test_id: testData.testid
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log(`Email response from backend:`, response);
-      return response.data;
-    } catch (error: any) {
-      console.error('Email API error:', error);
-      
-      if (error.code === 'ECONNABORTED') {
-        return {
-          success: false,
-          error: 'Email sending timeout - please try again'
-        };
-      } else if (error.response?.status === 429) {
-        return {
-          success: false,
-          error: 'Too many email requests - please wait a moment'
-        };
-      } else if (error.response?.status >= 500) {
-        return {
-          success: false,
-          error: 'Server error - please try again later'
-        };
-      } else {
-        return {
-          success: false,
-          error: error.response?.data?.error || 'Failed to send email'
-        };
-      }
-    }
-  };
-
   // SINGLE useEffect to fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -203,12 +144,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         setError(null);
 
         if (USE_MOCK_DATA) {
-          // Mock data approach
           console.log('Using mock data for dashboard');
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
           setData(MOCK_DATA);
         } else {
-          // Real API approach
           if (!userId) {
             setError('User not authenticated');
             return;
@@ -221,7 +160,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
               headers: {
                 'Content-Type': 'application/json',
               },
-              
             }
           );
           console.log('Dashboard data response:', response.data);
@@ -237,7 +175,6 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         if (USE_MOCK_DATA) {
           setError('Failed to load mock data');
         } else {
-          // Handle different types of API errors
           if (err.code === 'ECONNABORTED') {
             setError('Request timeout - please try again');
           } else if (err.response?.status === 404) {
@@ -254,88 +191,21 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     };
 
     fetchDashboardData();
-  }, [userId]); // Only depend on user.id
-
-  // Handle payment result updates
-  // useEffect(() => {
-  //   const handlePaymentResult = async () => {
-  //     try {
-  //       // Check for payment results from PaymentService
-  //       const paymentResult = await PaymentService.handleAuthReturn();
-        
-  //       if (paymentResult) {
-  //         if (paymentResult.success) {
-  //           toast.success('Payment successful! Your report is now unlocked.');
-            
-  //           // Refresh dashboard data to get updated payment status
-  //           if (user?.id) {
-  //             const updatedData = await fetchUpdatedDashboardData();
-  //             if (updatedData) {
-  //               setData(updatedData);
-  //             }
-  //           }
-            
-  //         } else {
-  //           toast.error('Payment failed. Please try again.');
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error handling payment result:', error);
-  //     }
-  //   };
-
-  //   handlePaymentResult();
-  // }, [userId]);
+  }, [userId]);
 
   // Handle download actions
   const handleFreeReport = (testData: DashboardTest) => {
     navigate(`/quest-result/result/${testData.userid}/${testData.sessionid}/${testData.testid}`);
   };
   
-  useEffect(() => {
-    const loadPricing = async () => {
-      try {
-        setIsLoadingPrice(true);
-        console.log('💰 Loading location-based pricing...');
-        
-        const isIndia = await getUserLocationFlag();
-        console.log('🌍 Location result for pricing:', isIndia);
-        
-        if (isIndia) {
-          setPriceDisplay('₹950');
-          setOriginalPrice('₹1200');
-        } else {
-          setPriceDisplay('$20');
-          setOriginalPrice('$25');
-        }
-        
-        console.log('✅ Pricing loaded successfully');
-      } catch (error) {
-        console.error('❌ Failed to load pricing:', error);
-        // Fallback to default pricing
-        setPriceDisplay('₹950');
-        setOriginalPrice('₹1200');
-      } finally {
-        setIsLoadingPrice(false);
-      }
-    };
-
-    loadPricing();
-  }, []);
-
-  
-  
   const handlePaidReport = async (testData: DashboardTest) => {
-    // If payment is done and PDF is ready, download directly
     if (testData.ispaymentdone === "success" && testData.quest_status === "generated") {
       try {
-        // Create a temporary link element to trigger download
         const link = document.createElement('a');
         link.href = testData.quest_pdf;
         link.download = `Quest-Report-${formatDate(testData.testtaken)}.pdf`;
         link.target = '_blank';
         
-        // Trigger the download
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -343,20 +213,17 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         toast.success('Downloading your PDF report!');
       } catch (error) {
         console.error('PDF download error:', error);
-        // Fallback to opening in new tab
         window.open(testData.quest_pdf, '_blank');
         toast.success('Opening your PDF report!');
       }
       return;
     }
 
-    // If payment is done but PDF still generating, show appropriate message
     if (testData.ispaymentdone === "success" && testData.quest_status === "working") {
       toast.info('Your PDF is still being generated. Please check back in 15 minutes.');
       return;
     }
 
-    // If payment not done, proceed with payment flow
     if (testData.ispaymentdone !== "success") {
       try {
         setPaymentLoading(testData.sessionid);
@@ -369,13 +236,12 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           session_id: testData.sessionid,
           test_id: testData.testid,
           user_state: user?.id ? 'logged_in' : 'anonymous',
-          payment_amount: 95000, // Same as result page for now
-          pricing_tier: 'early' // Same as result page for now
+          payment_amount: 95000,
+          pricing_tier: 'early'
         });
         
         if (paymentResult.success) {
           toast.success('Payment successful!');
-          // Refresh data to show updated payment status
           const updatedData = await fetchUpdatedDashboardData();
           if (updatedData) {
             setData(updatedData);
@@ -392,16 +258,60 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       return;
     }
 
-    // Fallback for any other case
     toast.error('Unable to process request. Please try again.');
   };
 
+  // Get user's first name or fallback
+  const getUserName = () => {
+    return user?.user_metadata?.first_name || user?.user_metadata?.name || 'User';
+  };
 
+  // Get latest assessment data for insights
+  const getLatestAssessment = () => {
+    if (data && data.length > 0) {
+      return data.sort((a, b) => new Date(b.testtaken).getTime() - new Date(a.testtaken).getTime())[0];
+    }
+    return null;
+  };
+
+  // Calculate completion percentage
+  const getCompletionPercentage = () => {
+    const paidTests = data.filter(test => test.ispaymentdone === 'success').length;
+    const totalTests = data.length;
+    if (totalTests === 0) return 0;
+    return Math.round((paidTests / totalTests) * 100);
+  };
+
+  // Handle menu actions
+  const handleNewAssessment = () => {
+    setIsMenuOpen(false);
+    navigate('/assessment');
+  };
+
+  const handleSignOut = async () => {
+    setIsMenuOpen(false);
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast.error('Failed to sign out');
+    }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
           <p className="text-gray-700 font-medium">Loading your dashboard...</p>
@@ -413,162 +323,258 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // Error state
   if (error) {
     return (
-      <div className={`p-6 ${className} bg-[#004A7F] text-white h-screen `}>
-        <div className="text-center py-12">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
-          <p className="text-white mb-4">{error}</p>
+          <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => navigate('/quest')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Homepage
+            Back to Quest
           </button>
         </div>
       </div>
     );
   }
 
-  // Empty state
-  if (data && data.length === 0) {
-    return (
-      <div className={`p-6 ${className}`}>
-        <div className="text-center py-12">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Tests Found</h3>
-          <p className="text-gray-600">You haven't taken any tests yet.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={`p-6 ${className} bg-[#004A7F] text-white h-auto min-h-screen`}>
-      <div className='flex flex-col items-center justify-center w-full mb-8'
-      onClick={() => navigate('/quest')}>
-        <div className='text-6xl font-normal font-["Gilroy-Bold"] tracking-tighter'>
-          QUEST
-        </div>
-        <div className='text-sm font-normal font-["Gilroy-Regular"] tracking-[0.1rem] pl-0 mt-[-6px]'>
-          BY FRATERNY
-        </div>
-      </div>
-      
+    <div className="min-h-screen bg-gray-100 font-poppins relative">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-['Gilroy-Bold'] text-white mb-2">Test Dashboard</h1>
-        <p className="font-['Gilroy-semiBold'] text-white">View and download your assessment reports</p>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col gap-2">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date Taken
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Free Report
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Paid Report
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {(data || []).map((test, index) => (
-                <motion.tr
-                  key={test.testid}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  {/* Date Taken */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {formatDate(test.testtaken)}
-                    </div>
-                  </td>
-
-                  {/* Free Report */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleFreeReport(test)}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-black hover:bg-gray-100 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View
-                    </button>
-                  </td>
-
-                  {/* Paid Report */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {test.ispaymentdone !== "success" ? (
-                      // State 1: Payment not done - show unlock button
-                      <button
-                        onClick={() => {
-                          // Track unlock CTA click
-                          googleAnalytics.trackPdfUnlockCTAFromDashboard({
-                            session_id: test.sessionid,
-                            test_id: test.testid,
-                            user_state: user?.id ? 'logged_in' : 'anonymous'
-                          });
-                          handlePaidReport(test);
-                        }}
-                        disabled={paymentLoading === test.sessionid}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-white/10 backdrop-blur-sm hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          backdropFilter: 'blur(4px)',
-                        }}
-                      >
-                        {paymentLoading === test.sessionid ? (
-                          <>
-                            <div className="w-4 h-4 mr-2 animate-spin border-2 border-gray-500 border-t-transparent rounded-full"></div>
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="w-4 h-4 mr-2" />
-                            Unlock
-                          </>
-                        )}
-                      </button>
-                    ) : test.quest_status === "working" ? (
-                      // State 2: Payment done but PDF still generating
-                      <div className="inline-flex items-center px-3 py-2 text-sm text-orange-600 bg-orange-50 rounded-md">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span className="text-xs">PDF generating, check after 15 mins</span>
-                      </div>
-                    ) : test.quest_status === "generated" ? (
-                      // State 3: Payment done and PDF ready
-                      <button
-                        onClick={() => handlePaidReport(test)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Get Your PDF
-                      </button>
-                    ) : (
-                      // Fallback: Payment done but PDF status unknown - show email option
-                      <div className="inline-flex items-center px-3 py-2 text-sm text-orange-600 bg-orange-50 rounded-md">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span className="text-xs">PDF generating, check after 15 mins</span>
-                      </div>
-                    )}
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+      <header className="bg-gradient-to-br from-cyan-600 to-blue-800 text-white p-6 pb-16 rounded-b-3xl relative z-10">
+        <div className="flex justify-between items-center mb-10">
+          <div onClick={() => navigate('/quest')} className="cursor-pointer">
+            <h1 className="text-2xl font-bold">QUEST</h1>
+            <p className="text-xs">BY FRATERNY</p>
+          </div>
+          <button 
+            onClick={toggleMenu}
+            className="text-white hover:text-gray-200 transition-colors relative z-50"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
         </div>
-      </div>
+        <div className="flex items-center">
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold">Hello, {getUserName()}!</h2>
+            <p className="text-sm mt-1">Explore your journey of self-discovery.</p>
+          </div>
+          <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center border-4 border-white shadow-lg">
+            {user?.user_metadata?.avatar_url ? (
+              <img 
+                alt={`${getUserName()}'s avatar`} 
+                className="w-full h-full rounded-full object-cover" 
+                src={user.user_metadata.avatar_url}
+              />
+            ) : (
+              <User className="w-12 h-12 text-gray-400" />
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Sliding Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeMenu}
+              className="fixed inset-0 bg-black bg-opacity-50"
+              style={{ zIndex: 40 }}
+            />
+            
+            {/* Sliding Menu */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+              className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl flex flex-col"
+              style={{ zIndex: 50 }}
+            >
+              {/* Menu Header */}
+              <div className="bg-gradient-to-r from-cyan-600 to-blue-800 text-white p-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold">Menu</h2>
+                    <p className="text-sm opacity-90">Hello, {getUserName()}!</p>
+                  </div>
+                  <button 
+                    onClick={closeMenu}
+                    className="text-white hover:text-gray-200 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Menu Items */}
+              <div className="flex-1 p-6">
+                <div className="space-y-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleNewAssessment}
+                    className="w-full flex items-center p-4 text-left bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors group"
+                  >
+                    <div className="bg-blue-100 p-2 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors">
+                      <Plus className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">New Assessment</h3>
+                      <p className="text-sm text-gray-500">Start a new psychology assessment</p>
+                    </div>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSignOut}
+                    className="w-full flex items-center p-4 text-left bg-gray-50 hover:bg-red-50 rounded-lg transition-colors group"
+                  >
+                    <div className="bg-red-100 p-2 rounded-lg mr-4 group-hover:bg-red-200 transition-colors">
+                      <LogOut className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Sign out</h3>
+                      <p className="text-sm text-gray-500">Sign out of your account</p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+              
+              {/* User Info Footer */}
+              <div className="p-6 border-t border-gray-100">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    {user?.user_metadata?.avatar_url ? (
+                      <img 
+                        alt={`${getUserName()}'s avatar`} 
+                        className="w-full h-full rounded-full object-cover" 
+                        src={user.user_metadata.avatar_url}
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-blue-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{getUserName()}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <main className="px-6 -mt-8 relative z-20">
+        {/* Assessment Journeys Card */}
+        <div className="bg-white rounded-xl shadow-md p-4 mb-8">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-800">Your Assessment Journeys</h3>
+            <button 
+              onClick={() => data.length > 0 ? handleFreeReport(getLatestAssessment()!) : navigate('/assessment')}
+              className="bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-gray-300 transition-colors"
+            >
+              {data.length > 0 ? 'New Result' : 'Start Assessment'}
+            </button>
+          </div>
+          <div className="w-1/3 border-b-2 border-blue-600 mt-2"></div>
+        </div>
+
+        {/* Insights Section */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Your Insights at a Glance</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {/* Creative Thinker Card */}
+            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
+              <Lightbulb className="w-12 h-12 mb-2 text-yellow-500" />
+              <h4 className="font-bold text-sm text-gray-800">Creative Thinker</h4>
+              <p className="text-xs text-gray-500 mt-1">Based on your latest assessment</p>
+            </div>
+
+            {/* Areas for Growth Card */}
+            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
+              <TrendingUp className="w-12 h-12 mb-2 text-blue-500" />
+              <h4 className="font-bold text-sm text-gray-800">Areas for Growth</h4>
+              <p className="text-xs text-gray-500 mt-1">Public Speaking & Collaboration</p>
+              <p className="text-xs text-gray-400 mt-1">Unlock your full potential</p>
+            </div>
+
+            {/* Progress Card */}
+            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
+              <div className="w-12 h-12 mb-2 text-green-500">
+                🏃‍♂️
+              </div>
+              <h4 className="font-bold text-sm text-gray-800">Your Progress</h4>
+              <div className="relative w-16 h-16 my-2">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path 
+                    className="text-gray-200" 
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="3"
+                  />
+                  <path 
+                    className="text-orange-500" 
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeDasharray={`${getCompletionPercentage()}, 100`} 
+                    strokeLinecap="round" 
+                    strokeWidth="3"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-800">{getCompletionPercentage()}%</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Personality Profile Mapped</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Explore All Insights Button */}
+        <div className="mb-24">
+          <button 
+            onClick={() => data.length > 0 && getLatestAssessment() ? handleFreeReport(getLatestAssessment()!) : navigate('/assessment')}
+            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+          >
+            {data.length > 0 ? 'Explore All Insights' : 'Start Your First Assessment'}
+          </button>
+        </div>
+      </main>
+
+      {/* Bottom Navigation */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-t flex justify-around py-3 border-t">
+        <div className="text-center text-blue-600 cursor-pointer">
+          <Home className="w-6 h-6 mx-auto" />
+          <p className="text-xs font-medium">Home</p>
+        </div>
+        <div 
+          className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+          onClick={() => navigate(`/assessment-list/${userId}`)}
+        >
+          <FileText className="w-6 h-6 mx-auto" />
+          <p className="text-xs font-medium">Assessment</p>
+        </div>
+        <div 
+          className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+          onClick={() => navigate(`/payment-history/${userId}`)}
+        >
+          <CreditCard className="w-6 h-6 mx-auto" />
+          <p className="text-xs font-medium">Payment</p>
+        </div>
+      </footer>
     </div>
   );
 };
-
 export default QuestDashboard;

@@ -61,6 +61,8 @@ const QuestResultIndex = lazy(() => import('./pages/quest-page/QuestResultIndex'
 import QuestLandingPage from './pages/quest-landing-page';
 import QuestDashboard from './components/quest/views/questdashboard/QuestDashboard';
 import QuestPaidFeedback from './components/quest/views/QuestPaidFeedback';
+import AssessmentList from './components/quest/views/AssessmentList';
+import PaymentHistory from './components/quest/views/PaymentHistory';
 
 // PERFORMANCE-OPTIMIZED SUSPENSE WRAPPER
 const createSuspenseWrapper = (fallbackComponent?: React.ComponentType) => 
@@ -153,6 +155,8 @@ const router = createBrowserRouter([
       { path: 'quest-index', element: createSuspenseWrapper(QuestResultLoading)(<QuestResultIndex />) },
       { path: 'quest', element: <QuestLandingPage /> },
       { path: 'quest-dashboard/:userId', element: <QuestDashboard /> },
+      { path: 'assessment-list/:userId', element: <AssessmentList /> },
+      { path: 'payment-history/:userId', element: <PaymentHistory /> },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
