@@ -20,7 +20,7 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'personal_info',
         sectionId: 'section_1',
-        placeholder: 'Your name helps us to give proper salutation in the report',
+        placeholder: 'Your name',
         allowAnonymous: true,
       },
       {
@@ -41,7 +41,7 @@ export const questSections: QuestionSection[] = [
         category: 'personal_info',
         sectionId: 'section_1',
         placeholder: 'To understand: 1. Which life stage you are in. 2. To compare your mental age with your actual age which tells us how you approach your life philosophy.',
-        allowAnonymous: true,
+        //allowAnonymous: true,
       },
       {
         id: 'q1_4',
@@ -59,7 +59,7 @@ export const questSections: QuestionSection[] = [
         type: 'text_input',
         category: 'personal_info',
         sectionId: 'section_1',
-        placeholder: 'Improve accuracy by giving more details.  You can write multiple locations and timelines.',
+        placeholder: 'Give more context to your upbringing in different locations.  You can write multiple locations and timelines.',
         enableCityAutocomplete: true,
         allowAnonymous: true, 
       }
