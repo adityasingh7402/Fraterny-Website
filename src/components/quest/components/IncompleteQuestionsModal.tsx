@@ -57,8 +57,8 @@ export function IncompleteQuestionsModal({
             {/* Content */}
             <div className="px-6 pb-6">
               <div className="space-y-4">
-                <p className="text-gray-700 font-['Gilroy-Regular']">
-                  You have <span className="font-bold text-amber-600">{incompleteCount}</span> unanswered questions.
+                <p className="text-gray-700 text-xl font-['Gilroy-Regular']">
+                  You have <span className="font-bold text-amber-600 font-['Gilroy-Bold']">{incompleteCount}</span> unanswered questions.
                 </p>
                 
                 <div className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
@@ -72,7 +72,7 @@ export function IncompleteQuestionsModal({
               <div className="flex justify-start space-x-3">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-semiBold'] tracking-[-2px]"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-Regular'] tracking-[-2px]"
                 >
                   Close
                 </button>

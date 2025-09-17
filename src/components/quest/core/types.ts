@@ -120,4 +120,6 @@ export interface QuestContextValue extends QuestContextState, QuestContextAction
   allQuestions: Question[];
   changeSection: (sectionId: string) => void;
   finishSection: () => boolean;
+  hasAttemptedFinishWithIncomplete: boolean;
+  setHasAttemptedFinishWithIncomplete: (value: boolean) => void;
 }

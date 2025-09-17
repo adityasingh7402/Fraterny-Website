@@ -152,7 +152,54 @@ export function SectionDrawer({
     if (!session?.responses || !allQuestions) return false;
     
     const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
-    return sectionQuestions.some(q => !session.responses || !session.responses[q.id]);
+    return sectionQuestions.some(question => {
+      const response = session?.responses?.[question.id];
+      
+      // If no response in session, check if current question has DOM value  
+      if (!response && question.id === allQuestions?.find(q => q.id === question.id)?.id) {
+        // For simplicity, we'll assume no current DOM value for non-current questions
+        return true; // No response = incomplete
+      }
+      
+      // If no response in session
+      if (!response) {
+        return true; // No response = incomplete
+      }
+      
+      // Check if response is just an empty string or whitespace
+      const responseText = response.response?.trim();
+      if (!responseText || responseText === '') {
+        return true; // Empty response = incomplete
+      }
+      
+      // Check if response is the placeholder text (means user didn't actually answer)
+      if (responseText === "I preferred not to response for this question") {
+        return true; // Placeholder response = incomplete
+      }
+      
+      // Special handling for ranking questions
+      if (question.type === 'ranking') {
+        try {
+          const rankingData = JSON.parse(responseText);
+          
+          // Check if user actually ranked items (not just default order)
+          const hasRealRanking = rankingData.isUserRanked === true;
+          
+          // Check if user provided explanation
+          const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+          
+          // Ranking question is complete only if user ranked items OR provided explanation
+          if (!hasRealRanking && !hasExplanation) {
+            return true; // No ranking and no explanation = incomplete
+          }
+        } catch (e) {
+          // If can't parse ranking data, consider it incomplete
+          return true;
+        }
+      }
+      
+      return false; // Has real response = complete
+    });
   };
 
   // Handle section selection

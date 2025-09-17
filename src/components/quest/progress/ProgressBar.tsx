@@ -1,4 +1,3 @@
-// src/components/quest/progress/ProgressBar.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
@@ -57,7 +56,62 @@ export function ProgressBar({
     if (!session?.responses || !allQuestions) return false;
     
     const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
-    return sectionQuestions.some(q => !session.responses || !session.responses[q.id]);
+    return sectionQuestions.some(question => {
+      const response = session?.responses?.[question.id];
+      
+      // If no response in session, check if current question has DOM value
+      if (!response && question.id === currentQuestion?.id) {
+        // Check current DOM state for this question with proper type casting
+        const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
+        const currentInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+        const currentRadio = document.querySelector(`input[name="question-${question.id}"]:checked`) as HTMLInputElement;
+        
+        const hasCurrentValue = (currentTextarea && currentTextarea.value.trim()) || 
+                               (currentInput && currentInput.value.trim()) || 
+                               currentRadio;
+        
+        return !hasCurrentValue; // Has current value = not incomplete
+      }
+      
+      // If no response in session
+      if (!response) {
+        return true; // No response = incomplete
+      }
+      
+      // Check if response is just an empty string or whitespace
+      const responseText = response.response?.trim();
+      if (!responseText || responseText === '') {
+        return true; // Empty response = incomplete
+      }
+      
+      // Check if response is the placeholder text (means user didn't actually answer)
+      if (responseText === "I preferred not to response for this question") {
+        return true; // Placeholder response = incomplete
+      }
+      
+      // Special handling for ranking questions
+      if (question.type === 'ranking') {
+        try {
+          const rankingData = JSON.parse(responseText);
+          
+          // Check if user actually ranked items (not just default order)
+          const hasRealRanking = rankingData.isUserRanked === true;
+          
+          // Check if user provided explanation
+          const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+          
+          // Ranking question is complete only if user ranked items OR provided explanation
+          if (!hasRealRanking && !hasExplanation) {
+            return true; // No ranking and no explanation = incomplete
+          }
+        } catch (e) {
+          // If can't parse ranking data, consider it incomplete
+          return true;
+        }
+      }
+      
+      return false; // Has real response = complete
+    });
   };
   
   // Find current section
@@ -110,7 +164,6 @@ const totalProgressPercentage = getTotalQuestionsCount() > 0
   ? ((getCurrentGlobalQuestionIndex() + 1) / getTotalQuestionsCount()) * 100 
   : 0;
   
-
   const questionIndexInSection = getQuestionIndexInSection();
   
   
@@ -154,8 +207,15 @@ const getCurrentSectionProgress = () => {
   if (!currentSection) return 0;
   const questionsInCurrentSection = currentSection.questions.length;
   const answeredInCurrentSection = questionIndexInSection;
-  return (answeredInCurrentSection / questionsInCurrentSection) * 100;
+  // Add 1 to include the current question as "in progress" or completed
+  return ((answeredInCurrentSection + 1) / questionsInCurrentSection) * 100;
 };
+
+// Calculate section-aware progress (now that helper functions are defined)
+const completedSections = getCompletedSectionsCount();
+const currentSectionProgress = getCurrentSectionProgress();
+const segmentWidth = 100 / sections.length;
+const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSectionProgress / 100) * segmentWidth);
   
   // Determine progress bar color based on percentage
   // const getProgressColor = (): string => {
@@ -278,43 +338,85 @@ const getCurrentSectionProgress = () => {
               style={{ width: `${totalProgressPercentage}%`, backgroundColor: progressColor }}
             />
           </div> */}
-          <div className="w-full h-2 flex items-center">
+          {/* Single continuous progress bar */}
+          <div className="w-full h-2 bg-gray-200 rounded-r-full relative overflow-hidden">
+            {/* Use pre-calculated section-aware progress */}
+            <motion.div
+                  className="h-full bg-gradient-to-r from-sky-600 to-sky-400 rounded-r-full relative overflow-hidden"
+                  style={{ width: `${sectionAwareProgress}%` }}
+                  animate={{ 
+                    width: `${sectionAwareProgress}%`,
+                    boxShadow: sectionAwareProgress > 0 && sectionAwareProgress < 100
+                      ? '0 0 10px rgba(14, 165, 233, 0.4), 0 0 20px rgba(14, 165, 233, 0.2)'
+                      : sectionAwareProgress === 100
+                      ? '0 2px 4px rgba(0, 0, 0, 0.1)'
+                      : 'none'
+                  }}
+                  initial={{ width: '0%' }}
+                  transition={{ 
+                    duration: 0.8, 
+                    ease: "easeOut",
+                    boxShadow: { duration: 0.3 }
+                  }}
+                >
+                  {/* Shimmer effect for active progress */}
+                  {sectionAwareProgress > 0 && sectionAwareProgress < 100 && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
+                      animate={{
+                        x: ['-100%', '100%'],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                    />
+                  )}
+                </motion.div>
+            
+            {/* Section dividers */}
             {sections.map((section, index) => {
-              const isCompleted = index < getCompletedSectionsCount();
-              const isCurrent = index === getCompletedSectionsCount();
-              const segmentWidth = 100 / sections.length;
+              if (index === sections.length - 1) return null; // Don't show divider after last section
               
-              let fillWidth = 0;
-              if (isCompleted) {
-                fillWidth = 100;
-              } else if (isCurrent) {
-                fillWidth = getCurrentSectionProgress();
-              }
+              const dividerPosition = ((index + 1) / sections.length) * 100;
               
               return (
-                <React.Fragment key={section.id}>
-                  <div style={{ width: `${segmentWidth}%` }} className="h-full">
-                    <motion.div
-                      className="h-full"
-                      style={{ 
-                        width: `${fillWidth}%`,
-                        backgroundColor: getSectionColor(index)
-                      }}
-                      animate={{ width: `${fillWidth}%` }}
-                      initial={{ width: '0%' }}
-                    />
-                  </div>
-                  
-                  {/* Add separator after each segment except the last one */}
-                  {/* {index < sections.length - 1 && (
-                    <div className="w-2.5 h-2.5 bg-zinc-300" />
-                  )} */}
-                  {index < getCompletedSectionsCount() && (
-                    <div className="w-2.5 h-2.5 bg-zinc-300" />
-                  )}
-                </React.Fragment>
+                <div
+                  key={`divider-${index}`}
+                  className="absolute top-0 bottom-0 w-px bg-white opacity-50"
+                  style={{ left: `${dividerPosition}%` }}
+                />
               );
             })}
+            
+            {/* Completion checkmarks for each section */}
+            {sections.map((section, index) => {
+              const isCompleted = index < getCompletedSectionsCount();
+              const sectionCenterPosition = ((index + 0.5) / sections.length) * 100;
+              
+              if (!isCompleted) return null;
+              
+              return (
+                <motion.div
+                  key={`check-${index}`}
+                  className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 cursor-pointer"
+                  style={{ left: `${sectionCenterPosition}%` }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 0.3 }}
+                  onClick={() => handleSectionSelect(section.id)}
+                >
+                  <div className="w-3 h-3 text-white flex items-center justify-center hover:scale-110 transition-transform">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </motion.div>
+              );
+            })}
+            
+            
           </div>
           
           {/* Milestone indicators */}

@@ -1490,6 +1490,8 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     isIndia: true,
     isLoading: true
   });
+  
+  const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
 
   const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
   const getEffectiveUserId = () => {
@@ -1592,6 +1594,45 @@ useEffect(() => {
 
   loadPricing();
 }, []);
+
+// Cleanup localStorage when results page loads successfully
+useEffect(() => {
+  // Only clean up once when component mounts and has valid parameters
+  if (!hasCleanedStorage && userId && sessionId && testId) {
+    console.log('🧹 QuestResult: Cleaning up localStorage on results page load');
+    
+    // Clear quest session data (questions, progress, etc.)
+    localStorage.removeItem('fraterny_quest_session');
+    console.log('✅ Cleared fraterny_quest_session');
+    
+    // Clear quest tags if any exist
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('quest_tags_')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    if (keysToRemove.length > 0) {
+      console.log(`✅ Cleared ${keysToRemove.length} quest tag entries`);
+    }
+    
+    // IMPORTANT: Also clear questSessionId and testid to allow fresh assessments
+    // These are no longer needed once we're on the results page with proper URL params
+    localStorage.removeItem('questSessionId');
+    localStorage.removeItem('testid');
+    console.log('✅ Cleared questSessionId and testid for fresh assessment capability');
+    
+    // Also clear any device backup data
+    localStorage.removeItem('fraterny_device_backup');
+    console.log('✅ Cleared device backup data');
+    
+    setHasCleanedStorage(true);
+    console.log('🎉 Complete localStorage cleanup - user can now start fresh assessments');
+  }
+}, [userId, sessionId, testId, hasCleanedStorage]);
 
   // const handleSignIn = async () => {
   //       if (user?.id) { 
