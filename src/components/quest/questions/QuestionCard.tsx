@@ -45,8 +45,16 @@ export function QuestionCard({
   const { user } = useAuth(); // Add this line
   //const [selectedCity, setSelectedCity] = useState<string>('');
 
+// Parse previous response to separate city and text OR handle ranking data
 const [response, setResponse] = useState<string>(() => {
   if (previousResponse?.response) {
+    // For ranking questions, pass the full JSON response
+    if (question.type === 'ranking') {
+      console.log('🔄 Restoring ranking response:', previousResponse.response);
+      return previousResponse.response;
+    }
+    
+    // For text questions with city data
     try {
       // Try to parse as JSON with proper field mapping
       const parsed = JSON.parse(previousResponse.response);

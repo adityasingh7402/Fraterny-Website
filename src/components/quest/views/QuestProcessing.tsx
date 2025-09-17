@@ -421,7 +421,6 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
             console.log('✅ Analysis complete! Navigating to results...');
             setResultStatus('ready');
             setIsPolling(false);
-            localStorage.removeItem('fraterny_quest_session');
             
             setTimeout(() => {
               if (isActive) {

@@ -17,6 +17,7 @@ import {
   Eye,
   MessageCircle
 } from 'lucide-react';
+import { QuestLoading } from './QuestLoading';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -84,6 +85,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
   const [error, setError] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
+  const [navigationLoading, setNavigationLoading] = useState(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -264,30 +266,36 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
     toast.error('Unable to process request. Please try again.');
   };
 
-  // Loading state
+  // Navigation loading state
+  if (navigationLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading payment history...</p>
+          <div className="flex justify-center gap-1 mt-4">
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.4s'}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Data loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-poppins">
-        <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
-          <div className="flex justify-between items-center">
-            <button onClick={() => navigate(-1)} className="text-gray-600">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-semibold text-gray-800">Assessment</h1>
-            <button className="text-gray-600">
-              <Filter className="w-6 h-6" />
-            </button>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading assessments...</p>
+          <div className="flex justify-center gap-1 mt-4">
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.4s'}}></div>
           </div>
-        </header>
-        
-        <main className="p-4">
-          <div className="flex items-center justify-center py-16">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
-              <p className="text-gray-700 font-medium">Loading assessments...</p>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -295,27 +303,25 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 font-poppins">
+      <div className="min-h-screen bg-gray-50 font-['Gilroy-Regular']">
         <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
           <div className="flex justify-between items-center">
-            <button onClick={() => navigate(-1)} className="text-gray-600">
+            <button onClick={() => navigate(`/quest-dashboard/${userId}`)} className="text-gray-600">
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-xl font-semibold text-gray-800">Assessment</h1>
-            <button className="text-gray-600">
-              <Filter className="w-6 h-6" />
-            </button>
+            <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Assessment</h1>
+            <div className="w-6"></div>
           </div>
         </header>
         
         <main className="p-4">
           <div className="text-center py-16">
             <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Assessments</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">Error Loading Assessments</h3>
+            <p className="text-gray-600 font-['Gilroy-Regular'] mb-4">{error}</p>
             <button
               onClick={() => navigate('/quest')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
             >
               Back to Quest
             </button>
@@ -326,20 +332,18 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50 font-poppins">
+    <div className="relative min-h-screen bg-gray-50 font-['Gilroy-Regular']">
       {/* Header */}
       <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => navigate(`/quest-dashboard/${userId}`)} 
             className="text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">Assessment</h1>
-          <button className="text-gray-600 hover:text-gray-800 transition-colors">
-            <Filter className="w-6 h-6" />
-          </button>
+          <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Assessment</h1>
+          <div className="w-6"></div>
         </div>
       </header>
 
@@ -349,11 +353,11 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
           // Empty state
           <div className="text-center py-16">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Assessments Found</h3>
-            <p className="text-gray-600 mb-6">You haven't completed any assessments yet.</p>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">No Assessments Found</h3>
+            <p className="text-gray-600 font-['Gilroy-Regular'] mb-6">You haven't completed any assessments yet.</p>
             <button
               onClick={() => navigate('/assessment')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
             >
               Take Your First Assessment
             </button>
@@ -380,8 +384,8 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                         <IconComponent className={`w-6 h-6 ${assessmentType.iconColor}`} />
                       </div>
                       <div className="flex-1">
-                        <h2 className="font-semibold text-gray-800">{formatAssessmentName(assessment.testtaken)}</h2>
-                        <p className="text-sm text-gray-500">
+                        <h2 className="font-['Gilroy-semiBold'] text-gray-800">{formatAssessmentName(assessment.testtaken)}</h2>
+                        <p className="text-sm font-['Gilroy-Regular'] text-gray-500">
                           Completed on {formatDate(assessment.testtaken)}
                         </p>
                         
@@ -400,7 +404,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                                 handlePaidReport(assessment);
                               }}
                               disabled={paymentLoading === assessment.sessionid}
-                              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border border-gray-300 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="inline-flex items-center px-3 py-1 text-xs font-['Gilroy-semiBold'] rounded-full border border-gray-300 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {paymentLoading === assessment.sessionid ? (
                                 <>
@@ -416,7 +420,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                             </button>
                           ) : assessment.quest_status === "working" ? (
                             // State 2: Payment done but PDF still generating
-                            <div className="inline-flex items-center px-3 py-1 text-xs text-orange-600 bg-orange-50 rounded-full">
+                            <div className="inline-flex items-center px-3 py-1 text-xs font-['Gilroy-Regular'] text-orange-600 bg-orange-50 rounded-full">
                               <Clock className="w-3 h-3 mr-1" />
                               <span>PDF generating</span>
                             </div>
@@ -427,14 +431,14 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                                 e.stopPropagation();
                                 handlePaidReport(assessment);
                               }}
-                              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                              className="inline-flex items-center px-3 py-1 text-xs font-['Gilroy-semiBold'] rounded-full text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                             >
                               <Download className="w-3 h-3 mr-1" />
                               Get Your PDF
                             </button>
                           ) : (
                             // Fallback: Payment done but PDF status unknown
-                            <div className="inline-flex items-center px-3 py-1 text-xs text-orange-600 bg-orange-50 rounded-full">
+                            <div className="inline-flex items-center px-3 py-1 text-xs font-['Gilroy-Regular'] text-orange-600 bg-orange-50 rounded-full">
                               <Clock className="w-3 h-3 mr-1" />
                               <span>Processing</span>
                             </div>
@@ -462,12 +466,12 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                               e.stopPropagation();
                               handleView(assessment);
                             }}
-                            className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                            className="flex items-center w-full text-left px-4 py-2 text-sm font-['Gilroy-Regular'] text-gray-700 hover:bg-gray-100 transition-colors"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             View
                           </button>
-                          <button
+                          {/* <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleFeedback(assessment);
@@ -476,13 +480,13 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                           >
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Feedback
-                          </button>
+                          </button> */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(assessment);
                             }}
-                            className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                            className="flex items-center w-full text-left px-4 py-2 text-sm font-['Gilroy-Regular'] text-red-600 hover:bg-gray-100 transition-colors"
                           >
                             <FileText className="w-4 h-4 mr-2" />
                             Delete
@@ -505,18 +509,23 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
           onClick={() => navigate(`/quest-dashboard/${userId}`)}
         >
           <Home className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Home</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Home</p>
         </div>
         <div className="text-center text-blue-600">
           <FileText className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Assessment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Assessment</p>
         </div>
         <div 
           className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-          onClick={() => navigate(`/payment-history/${userId}`)}
+          onClick={() => {
+            setNavigationLoading(true);
+            setTimeout(() => {
+              navigate(`/payment-history/${userId}`);
+            });
+          }}
         >
           <CreditCard className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Payment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Payment</p>
         </div>
       </footer>
 

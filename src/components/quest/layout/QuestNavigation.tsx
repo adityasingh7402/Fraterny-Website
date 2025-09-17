@@ -312,31 +312,64 @@ export function QuestNavigation({
 const isFirstQuestion = isFirstQuestionInEntireAssessment();
 
 const checkForUnfinishedQuestions = () => {
-
-  // const unfinishedQuestions = allQuestions?.filter(question => {
-  //   const response = session?.responses?.[question.id];
-  //   return !response; // No response = unfinished
-  // }) || [];
-
   const unfinishedQuestions = allQuestions?.filter(question => {
-  const response = session?.responses?.[question.id];
-  
-  // If no response in session, check if current question has DOM value
-  if (!response && question.id === currentQuestion?.id) {
-    // Check current DOM state for this question with proper type casting
-    const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
-    const currentInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-    const currentRadio = document.querySelector(`input[name="question-${question.id}"]:checked`) as HTMLInputElement;
+    const response = session?.responses?.[question.id];
     
-    const hasCurrentValue = (currentTextarea && currentTextarea.value.trim()) || 
-                           (currentInput && currentInput.value.trim()) || 
-                           currentRadio;
+    // If no response in session, check if current question has DOM value
+    if (!response && question.id === currentQuestion?.id) {
+      // Check current DOM state for this question with proper type casting
+      const currentTextarea = document.querySelector('textarea') as HTMLTextAreaElement;
+      const currentInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+      const currentRadio = document.querySelector(`input[name="question-${question.id}"]:checked`) as HTMLInputElement;
+      
+      const hasCurrentValue = (currentTextarea && currentTextarea.value.trim()) || 
+                             (currentInput && currentInput.value.trim()) || 
+                             currentRadio;
+      
+      return !hasCurrentValue; // Has current value = not unfinished
+    }
     
-    return !hasCurrentValue; // Has current value = not unfinished
-  }
+    // Check if response exists and is not empty/placeholder
+    if (!response) {
+      return true; // No response = unfinished
+    }
+    
+    // Check if response is just an empty string or whitespace
+    const responseText = response.response?.trim();
+    if (!responseText || responseText === '') {
+      return true; // Empty response = unfinished
+    }
+    
+    // Check if response is the placeholder text (means user didn't actually answer)
+    if (responseText === "I preferred not to response for this question") {
+      return true; // Placeholder response = unfinished
+    }
+    
+    // Special handling for ranking questions
+    if (question.type === 'ranking') {
+      try {
+        const rankingData = JSON.parse(responseText);
+        
+        // Check if user actually ranked items (not just default order)
+        const hasRealRanking = rankingData.isUserRanked === true;
+        
+        // Check if user provided explanation
+        const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+        
+        // Ranking question is complete only if user ranked items OR provided explanation
+        if (!hasRealRanking && !hasExplanation) {
+          return true; // No ranking and no explanation = unfinished
+        }
+      } catch (e) {
+        // If can't parse ranking data, consider it unfinished
+        return true;
+      }
+    }
+    
+    return false; // Has real response = finished
+  }) || [];
   
-  return !response; // No response = unfinished
-}) || [];
+  console.log('🔍 Unfinished questions found:', unfinishedQuestions.map(q => ({ id: q.id, text: q.text?.substring(0, 50) })));
   
   if (unfinishedQuestions.length > 0) {
     const firstUnfinishedQuestion = unfinishedQuestions[0];
@@ -354,7 +387,14 @@ const checkForUnfinishedQuestions = () => {
     };
   }
   
-  return { hasUnfinished: false };
+  // Return with all properties even when no unfinished questions
+  return { 
+    hasUnfinished: false,
+    sectionName: undefined,
+    count: 0,
+    firstSectionId: undefined,
+    firstIndexInSection: undefined
+  };
 };
 
 const handleNext = async () => {
@@ -479,7 +519,7 @@ const handleNext = async () => {
       const rankingContainer = document.querySelector('.ranking-response');
       if (rankingContainer) {
         const explanationTextarea = rankingContainer.querySelector('textarea');
-        const explanation = explanationTextarea ? explanationTextarea.value : '';
+        const explanation = explanationTextarea ? explanationTextarea.value.trim() : '';
         
         // Get existing response (which has the ranking order from drag events)
         const existingResponse = session?.responses?.[currentQuestion.id]?.response;
@@ -488,45 +528,47 @@ const handleNext = async () => {
           try {
             // Parse existing response and update explanation
             const existingData = JSON.parse(existingResponse);
-            existingData.explanation = explanation;
             
-            // Get selected tags
-            const selectedTags = getSelectedTagsFromQuestionCard();
+            // Check if this is a real ranking (not just default order)
+            const hasRealRanking = existingData.rankings && 
+              existingData.rankings.length > 0 && 
+              existingData.isUserRanked; // Add this flag when user actually drags
             
-            console.log('💾 Navigation saving ranking response with tags:', {
-              questionId: currentQuestion.id,
-              data: existingData,
-              tags: selectedTags
-            });
-            
-            // Save updated response with new explanation and tags
-            submitResponse(currentQuestion.id, JSON.stringify(existingData), selectedTags);
+            // Only save if user has actually ranked items OR provided explanation
+            if (hasRealRanking || explanation) {
+              existingData.explanation = explanation;
+              
+              // Get selected tags
+              const selectedTags = getSelectedTagsFromQuestionCard();
+              
+              console.log('💾 Navigation saving ranking response with tags:', {
+                questionId: currentQuestion.id,
+                data: existingData,
+                tags: selectedTags
+              });
+              
+              // Save updated response with new explanation and tags
+              submitResponse(currentQuestion.id, JSON.stringify(existingData), selectedTags);
+            }
           } catch (e) {
-            // Fallback: create new response if parsing fails
-            const fallbackData = JSON.stringify({
-              rankings: (currentQuestion.options || []).map((text, index) => ({
-                id: `option-${index}`,
-                text: text
-              })),
-              explanation: explanation
-            });
-            
-            const selectedTags = getSelectedTagsFromQuestionCard();
-            submitResponse(currentQuestion.id, fallbackData, selectedTags);
+            // Don't create fallback - let user actually provide input
+            console.log('⚠️ Ranking response parsing failed, requiring user input');
           }
         } else if (explanation) {
-          // No existing response but has explanation - save basic structure
+          // Only save if user provided explanation (no default ranking)
           const basicData = JSON.stringify({
             rankings: (currentQuestion.options || []).map((text, index) => ({
               id: `option-${index}`,
               text: text
             })),
-            explanation: explanation
+            explanation: explanation,
+            isUserRanked: false // Mark as not user-ranked
           });
           
           const selectedTags = getSelectedTagsFromQuestionCard();
           submitResponse(currentQuestion.id, basicData, selectedTags);
         }
+        // If no explanation and no existing ranking, don't save anything
       }
     }
     else if (currentQuestion.type === 'date_input') {
@@ -803,6 +845,34 @@ const handleConfirmSubmission = async () => {
     console.log('Submission already in progress, ignoring click');
     return;
   }
+  
+  // Check if submission was already completed (stored in localStorage)
+  const existingSessionId = localStorage.getItem('questSessionId');
+  const existingTestId = localStorage.getItem('testid');
+  
+  if (existingSessionId && existingTestId) {
+    console.log('✅ Found existing submission in localStorage!');
+    console.log('   SessionId:', existingSessionId);
+    console.log('   TestId:', existingTestId);
+    
+    // Show success message
+    toast.success('Previous submission found, redirecting to processing...', {
+      position: 'top-center',
+    });
+    
+    // Get userId from auth or submission data
+    const userId = auth.user?.id || formatSubmissionData()?.user_data?.user_id || 'anonymous';
+    
+    // Navigate directly to processing page without calling API
+    setTimeout(() => {
+      const processingUrl = `/quest-result/processing/${userId}/${existingSessionId}/${existingTestId}`;
+      console.log('🧭 Navigating to existing processing:', processingUrl);
+      navigate(processingUrl);
+    }, 1000);
+    
+    return; // Exit early, don't call API again
+  }
+  
   setHasStartedSubmission(true);
   setIsSubmitting(true);
   setSubmissionError(null);

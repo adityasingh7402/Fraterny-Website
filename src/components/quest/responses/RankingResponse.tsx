@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 // ADD these imports:
 import { HonestyTag } from '../core/types';
@@ -43,11 +43,12 @@ export function RankingResponse({
   showTags = true,
 }: RankingResponseProps) {
   // Parse existing response if available
-  const parseResponse = (): { rankings: RankingOption[]; explanation: string } => {
+  const parseResponse = (): { rankings: RankingOption[]; explanation: string; isUserRanked?: boolean } => {
     if (!value) {
       return { 
         rankings: options.map((text, index) => ({ id: `option-${index}`, text })),
-        explanation: '' 
+        explanation: '',
+        isUserRanked: false
       };
     }
     
@@ -56,7 +57,8 @@ export function RankingResponse({
     } catch (e) {
       return { 
         rankings: options.map((text, index) => ({ id: `option-${index}`, text })),
-        explanation: '' 
+        explanation: '',
+        isUserRanked: false
       };
     }
   };
@@ -64,9 +66,49 @@ export function RankingResponse({
   const [state, setState] = useState(parseResponse());
   const [draggedItem, setDraggedItem] = useState<RankingOption | null>(null);
   
+  // Update state when value prop changes (e.g., when navigating back to this question)
+  useEffect(() => {
+    const parseCurrentValue = () => {
+      if (!value) {
+        return { 
+          rankings: options.map((text, index) => ({ id: `option-${index}`, text })),
+          explanation: '',
+          isUserRanked: false
+        };
+      }
+      
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return { 
+          rankings: options.map((text, index) => ({ id: `option-${index}`, text })),
+          explanation: '',
+          isUserRanked: false
+        };
+      }
+    };
+    
+    const newParsedResponse = parseCurrentValue();
+    setState(newParsedResponse);
+  }, [value, options]); // Re-run when value or options change
+  
   // Handle drag start
   const handleDragStart = (item: RankingOption) => {
     setDraggedItem(item);
+  };
+  
+  // Handle drag end - moved before handleDragOver to fix "used before defined" error
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    
+    // Update the response value with user ranking flag
+    const responseValue = JSON.stringify({ ...state, isUserRanked: true });
+    const event = {
+      target: { value: responseValue }
+    } as React.ChangeEvent<HTMLTextAreaElement>;
+    
+    onChange(event);
+    onResponse(responseValue);
   };
   
   // Handle drag over
@@ -85,22 +127,10 @@ export function RankingResponse({
     
     setState({
       ...state,
-      rankings: newRankings
+      rankings: newRankings,
+      isUserRanked: true
     });
   };
-  
-const handleDragEnd = () => {
-  setDraggedItem(null);
-  
-  // Update the response value
-  const responseValue = JSON.stringify(state);
-  const event = {
-    target: { value: responseValue }
-  } as React.ChangeEvent<HTMLTextAreaElement>;
-  
-  onChange(event);
-  onResponse(responseValue);
-};
 
 // ADD this new function:
 const moveItemUp = (index: number) => {
@@ -110,7 +140,7 @@ const moveItemUp = (index: number) => {
   // Swap with item above
   [newRankings[index], newRankings[index - 1]] = [newRankings[index - 1], newRankings[index]];
   
-  const newState = { ...state, rankings: newRankings };
+  const newState = { ...state, rankings: newRankings, isUserRanked: true };
   setState(newState);
   
   // Update response

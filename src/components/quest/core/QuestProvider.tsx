@@ -1210,6 +1210,11 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
         setSectionQuestions(getQuestionsBySection(sectionId));
       }
       
+      // Clear any old result data when starting fresh assessment
+      console.log('🧹 Clearing old result data for fresh assessment');
+      localStorage.removeItem('questSessionId');
+      localStorage.removeItem('testid');
+      
       // Create a new session (will be replaced with API call)
       const newSession: QuestSession = {
         id: generateSessionId(),
@@ -1597,13 +1602,12 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     // console.log('✅ Analysis completed successfully!');
     // console.log('📦 Server response:', response.data);
     
-    // Store data locally
+    // Store data locally for results page access
     localStorage.setItem('questSessionId', sessionId);
     localStorage.setItem('testid', testid);
 
-    // Clear auto-saved session data after successful submission
-    localStorage.removeItem('fraterny_quest_session');
-    console.log('🧹 Cleared auto-saved session data after successful submission');
+    // Note: localStorage cleanup moved to results page to prevent data loss on back navigation
+    console.log('✅ Quest data preserved for results page');
 
     const userState = auth.user ? 'logged_in' : 'anonymous';
     const startTime = session?.startedAt ? new Date(session.startedAt).getTime() : Date.now();
@@ -1697,7 +1701,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       
       localStorage.setItem('questSessionId', sessionId);
       localStorage.setItem('testid', testid);
-      localStorage.removeItem('fraterny_quest_session');
+      // Note: localStorage cleanup moved to results page
       
       const navigationData = {
         targetUrl: `/quest-result/processing/${userId}/${sessionId}/${testid}`,
