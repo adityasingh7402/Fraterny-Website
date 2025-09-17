@@ -28,7 +28,7 @@ const psychologicalFacts = [
   "Balancing literal text with implied meaning...",
   "Reviewing the quality and depth of your responses...",
   "Quantifying uncertainty where answers are ambiguous...",
-  "Searching the knowldege database for in-depth analysis...",
+  "Searching the knowledge database for in-depth analysis...",
   "Analysing the emotional tone of the answers...",
   "Mapping shifts in mood across topics...",
   "Measuring emphasis vs understatement in phrasing...",
