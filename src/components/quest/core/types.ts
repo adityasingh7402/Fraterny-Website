@@ -22,6 +22,7 @@ export interface Question {
   allowTags?: boolean;
   placeholder?: string;
   enableCityAutocomplete?: boolean;
+  allowAnonymous?: boolean;
   additionalInput?: {
     type: string;
     label: string;
