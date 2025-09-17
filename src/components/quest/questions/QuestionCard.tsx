@@ -87,7 +87,6 @@ const [response, setResponse] = useState<string>(() => {
     try {
       // Try to parse as JSON to check anonymous state
       const parsed = JSON.parse(previousResponse.response);
-      // PRIORITY: If isAnonymous field exists, ALWAYS use it
       if (parsed.hasOwnProperty('isAnonymous')) {
         return parsed.isAnonymous;
       }
@@ -102,7 +101,7 @@ const [response, setResponse] = useState<string>(() => {
       }
     }
   }
-  // DEFAULT CHANGED: Start in share mode for new questions
+  // DEFAULT CHANGED: start in non-anonymous mode
   return false;
 });
 
@@ -192,13 +191,6 @@ useEffect(() => {
     const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(getInitialTags);
 
     useEffect(() => {
-  // console.log('🔄 Response state changed:', {
-  //   questionId: question?.id,
-  //   questionType: question?.type,
-  //   newResponse: response,
-  //   timestamp: new Date().toISOString()
-  // });
-  // Add this part:
   if (question?.type === 'date_input') {
     console.log('📅 Date response stored:', response);
   }
@@ -519,7 +511,7 @@ const handleSubmit = (submittedResponse: string) => {
           const textValidation = getTextInputValidation();
           return (
             <div className="mb-6">
-              {question.enableCityAutocomplete && question.allowAnonymous && (
+              {/* {question.enableCityAutocomplete && question.allowAnonymous && (
               <div className="mb-4">
                 <label className="block text-xl font-['Gilroy-Medium'] text-gray-700 mb-2">
                   Primary City
@@ -558,33 +550,45 @@ const handleSubmit = (submittedResponse: string) => {
                   //onToggleAnonymous={() => setIsAnonymousMode(!isAnonymousMode)}
                 />
               </div>
-            )}
+            )} */}
 
-            {question.allowAnonymous && !question.enableCityAutocomplete && (
-              <motion.div 
-                className="flex items-center gap-2 mb-4"
-              >
-                <motion.button
-                  type="button"
-                  onClick={() => setIsAnonymousMode(!isAnonymousMode)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                    isAnonymousMode ? 'bg-gray-300' : 'bg-blue-500'
-                  }`}
-                  data-anonymous-mode={isAnonymousMode}
-                  animate={{ backgroundColor: isAnonymousMode ? '#D1D5DB' : '#3B82F6' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <motion.span
-                    className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
-                    animate={{ x: isAnonymousMode ? 2 : 22 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </motion.button>
-                <span className="text-sm text-gray-600">
-                  {isAnonymousMode ? 'Anonymous' : ''}
-                </span>
-              </motion.div>
-            )}
+              {question.enableCityAutocomplete && question.allowAnonymous && (
+                <div className="mb-4">
+                  <label>Primary City</label>
+                  <div className="relative">
+                    <CityAutocomplete
+                      onCitySelect={(city) => {
+                        console.log('🏙️ City selected:', city);
+                        setSelectedCity(city);
+                      }}
+                      placeholder="Start typing..."
+                      selectedCity={selectedCity}
+                      isAnonymousMode={isAnonymousMode}
+                      //onToggleAnonymous={() => setIsAnonymousMode(!isAnonymousMode)}
+                    />
+                    <motion.div 
+                      className="absolute bottom-3 right-3 flex items-center gap-2"
+                    >
+                      <motion.button
+                        type="button"
+                        onClick={() => setIsAnonymousMode(!isAnonymousMode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                          isAnonymousMode ? 'bg-gray-950' : 'bg-gray-300'
+                        }`}
+                        data-anonymous-mode={isAnonymousMode}
+                        animate={{ backgroundColor: isAnonymousMode ? '#374151' : '#D1D5DB' }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <motion.span
+                          className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
+                          animate={{ x: isAnonymousMode ? 22 : 2 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      </motion.button>
+                    </motion.div>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleFormSubmit}>
                 <div className="relative mb-[-15px]">
@@ -593,7 +597,7 @@ const handleSubmit = (submittedResponse: string) => {
                     onChange={handleInputChange}
                     placeholder={
                       question.allowAnonymous && !question.enableCityAutocomplete
-                        ? (isAnonymousMode ? question.placeholder : "")
+                        ? (isAnonymousMode ? "Anonymous mode" : question.placeholder)
                         : (question.placeholder || "Be as honest as you want to be for the best analysis")
                     }
                     className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-black text-xl font-normal font-['Gilroy-Medium'] ${
@@ -603,6 +607,32 @@ const handleSubmit = (submittedResponse: string) => {
                     }`}
                     disabled={!isActive || isAnswered || (question.allowAnonymous && !question.enableCityAutocomplete && isAnonymousMode)}
                   />
+
+                  {question.allowAnonymous && !question.enableCityAutocomplete && (
+                    <motion.div 
+                      className="absolute bottom-3 right-3 flex items-center gap-2"
+                    >
+                      <motion.button
+                        type="button"
+                        onClick={() => setIsAnonymousMode(!isAnonymousMode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                          isAnonymousMode ? 'bg-blue-500' : 'bg-gray-300'
+                        }`}
+                        data-anonymous-mode={isAnonymousMode}
+                        animate={{ backgroundColor: isAnonymousMode ? '#374151' : '#D1D5DB' }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <motion.span
+                          className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
+                          animate={{ x: isAnonymousMode ? 22 : 2 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      </motion.button>
+                      {/* <span className="text-xs text-gray-600">
+                        {isAnonymousMode ? 'Anonymous' : 'Share'}
+                      </span> */}
+                    </motion.div>
+                  )}
                 </div>
                 
                 {/* Word validation message */}
@@ -617,16 +647,6 @@ const handleSubmit = (submittedResponse: string) => {
                     {textValidation.wordMessage}
                   </motion.div>
                 )}
-                
-                {/* {question.allowTags && showTags && (isActive || (isAnswered && selectedTags.length > 0)) && (
-                  <div className="mt-4 mb-3">
-                    <AuthenticityTags 
-                      selectedTags={selectedTags}
-                      onTagSelect={handleTagSelect}
-                      disabled={isAnswered}
-                    />
-                  </div>
-                )} */}
 
                 {question.allowTags && showTags && (
                   <div className="mt-4 mb-3">

@@ -309,7 +309,7 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
         submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
       } else if (currentQuestion.enableCityAutocomplete) {
         // Location question with city
-        const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+        const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
         const selectedCity = cityInput?.value || '';
         
         const combinedResponse = JSON.stringify({
@@ -329,7 +329,7 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
       }
     } else if (currentQuestion.enableCityAutocomplete) {
       // Regular city autocomplete without anonymous mode
-      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+      const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
       const selectedCity = cityInput?.value || '';
       
       if (selectedCity) {

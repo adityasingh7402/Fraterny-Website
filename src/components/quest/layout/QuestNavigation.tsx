@@ -461,7 +461,7 @@ const handleNext = async () => {
         submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
       } else if (currentQuestion.enableCityAutocomplete) {
         // Location question with city
-        const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+        const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
         const selectedCity = cityInput?.value || '';
         
         const combinedResponse = JSON.stringify({
@@ -481,7 +481,7 @@ const handleNext = async () => {
       }
     } else if (currentQuestion.enableCityAutocomplete) {
       // Regular city autocomplete without anonymous mode
-      const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+      const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
       const selectedCity = cityInput?.value || '';
       
       if (selectedCity) {
@@ -776,7 +776,7 @@ const handlePrevious = () => {
             submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
           } else if (currentQuestion.enableCityAutocomplete) {
             // Location question with city
-            const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+            const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
             const selectedCity = cityInput?.value || '';
             
             const combinedResponse = JSON.stringify({
@@ -796,7 +796,7 @@ const handlePrevious = () => {
           }
         } else if (currentQuestion.enableCityAutocomplete) {
           // Regular city autocomplete without anonymous mode
-          const cityInput = document.querySelector('input[placeholder*="Start typing"]') as HTMLInputElement;
+          const cityInput = document.querySelector('input[placeholder*="To know the cultural context of your upbringing."]') as HTMLInputElement;
           const selectedCity = cityInput?.value || '';
           
           if (selectedCity) {

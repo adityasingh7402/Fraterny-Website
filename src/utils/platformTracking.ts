@@ -89,10 +89,10 @@ export const storePlatformInfo = (platformInfo: PlatformInfo): void => {
     sessionStorage.setItem('user_platform_info', JSON.stringify(platformInfo));
     
     // Also store in localStorage as backup (persists longer)
-    const existingInfo = localStorage.getItem('user_platform_history');
-    const history = existingInfo ? JSON.parse(existingInfo) : [];
-    history.unshift(platformInfo); // Add to beginning
-    localStorage.setItem('user_platform_history', JSON.stringify(history.slice(0, 5))); // Keep last 5
+    //const existingInfo = localStorage.getItem('user_platform_history');
+    //const history = existingInfo ? JSON.parse(existingInfo) : [];
+    //history.unshift(platformInfo); // Add to beginning
+    //localStorage.setItem('user_platform_history', JSON.stringify(history.slice(0, 5))); // Keep last 5
   } catch (error) {
     console.error('Error storing platform info:', error);
   }
