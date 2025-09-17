@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Filter, 
-  Home, 
-  FileText, 
+import {
+  ArrowLeft,
+  Filter,
+  Home,
+  FileText,
   CreditCard,
   CheckCircle,
   XCircle,
   Clock
 } from 'lucide-react';
+import { QuestLoading } from './QuestLoading';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -44,6 +45,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [navigationLoading, setNavigationLoading] = useState(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -72,15 +74,6 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
     }
   };
 
-  // Format testId as display name
-  const formatTestIdAsName = (testId: string): string => {
-    // You can customize this function to make testId more readable
-    // For now, just show the first 8 characters + '...'
-    if (testId.length > 12) {
-      return `${testId.substring(0, 12)}...`;
-    }
-    return testId;
-  };
 
   // Get payment status details
   const getPaymentStatus = (status: string) => {
@@ -141,12 +134,12 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
           },
         }
       );
-      
+
       console.log('Full API response:', response);
       console.log('Response data:', response.data);
       console.log('Is array?', Array.isArray(response.data));
       console.log('Type of response.data:', typeof response.data);
-      
+
       // Handle both single object and array responses
       if (Array.isArray(response.data)) {
         return response.data;
@@ -176,30 +169,30 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
 
         console.log('Fetching payment history from API for user:', userId);
         const paymentData = await fetchPaymentHistory();
-        
+
         console.log('API response data:', paymentData);
-        
+
         // Check if paymentData is an array before filtering
         if (Array.isArray(paymentData)) {
           // Filter out duplicate entries and entries with 'Start' status that have null values
           const uniquePayments = paymentData.filter((payment, index, self) => {
             // Make sure payment is a valid object with required properties
             if (!payment || typeof payment !== 'object') return false;
-            
+
             // Remove duplicates based on sessionId and testId
-            const isDuplicate = self.findIndex(p => 
-              p.sessionId === payment.sessionId && 
+            const isDuplicate = self.findIndex(p =>
+              p.sessionId === payment.sessionId &&
               p.testId === payment.testId &&
               p.paymentStatus === payment.paymentStatus
             ) !== index;
-            
+
             // Keep successful payments and filter out 'Start' status entries with null amounts
-            const shouldKeep = payment.paymentStatus === 'success' || 
-                             (payment.paymentStatus !== 'Start' && payment.amount !== null);
-            
+            const shouldKeep = payment.paymentStatus === 'success' ||
+              (payment.paymentStatus !== 'Start' && payment.amount !== null);
+
             return !isDuplicate && shouldKeep;
           });
-          
+
           setPayments(uniquePayments);
         } else {
           console.error('Payment data is not an array:', paymentData);
@@ -208,7 +201,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
         }
       } catch (err: any) {
         console.error('Payment history fetch error:', err);
-        
+
         if (err.code === 'ECONNABORTED') {
           setError('Request timeout - please try again');
         } else if (err.response?.status === 404) {
@@ -226,30 +219,36 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
     fetchPaymentData();
   }, [userId]);
 
-  // Loading state
+  // Navigation loading state
+  if (navigationLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading assessments...</p>
+          <div className="flex justify-center gap-1 mt-4">
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.4s'}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Data loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-poppins">
-        <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
-          <div className="flex justify-between items-center">
-            <button onClick={() => navigate(-1)} className="text-gray-600">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-semibold text-gray-800">Payment</h1>
-            <button className="text-gray-600">
-              <Filter className="w-6 h-6" />
-            </button>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading payment history...</p>
+          <div className="flex justify-center gap-1 mt-4">
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.4s'}}></div>
           </div>
-        </header>
-        
-        <main className="p-4">
-          <div className="flex items-center justify-center py-16">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
-              <p className="text-gray-700 font-medium">Loading payment history...</p>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -257,27 +256,25 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 font-poppins">
+      <div className="min-h-screen bg-gray-50 font-['Gilroy-Regular']">
         <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
           <div className="flex justify-between items-center">
-            <button onClick={() => navigate(-1)} className="text-gray-600">
+            <button onClick={() => navigate(`/quest-dashboard/${userId}`)} className="text-gray-600">
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-xl font-semibold text-gray-800">Payment</h1>
-            <button className="text-gray-600">
-              <Filter className="w-6 h-6" />
-            </button>
+            <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Payment</h1>
+            <div className="w-6"></div>
           </div>
         </header>
-        
+
         <main className="p-4">
           <div className="text-center py-16">
             <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Payment History</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">Error Loading Payment History</h3>
+            <p className="text-gray-600 font-['Gilroy-Regular'] mb-4">{error}</p>
             <button
               onClick={() => navigate('/quest')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
             >
               Back to Quest
             </button>
@@ -288,20 +285,18 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50 font-poppins">
+    <div className="relative min-h-screen bg-gray-50 font-['Gilroy-Regular']">
       {/* Header */}
       <header className="bg-white p-4 shadow-sm sticky top-0 z-10">
         <div className="flex justify-between items-center">
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(`/quest-dashboard/${userId}`)}
             className="text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">Payment</h1>
-          <button className="text-gray-600 hover:text-gray-800 transition-colors">
-            <Filter className="w-6 h-6" />
-          </button>
+          <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Payment</h1>
+          <div className="w-6"></div>
         </div>
       </header>
 
@@ -311,11 +306,11 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
           // Empty state
           <div className="text-center py-16">
             <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment History</h3>
-            <p className="text-gray-600 mb-6">You haven't made any payments yet.</p>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">No Payment History</h3>
+            <p className="text-gray-600 font-['Gilroy-Regular'] mb-6">You haven't made any payments yet.</p>
             <button
               onClick={() => navigate('/assessment')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
             >
               Take Your First Assessment
             </button>
@@ -326,7 +321,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
             {payments.map((payment, index) => {
               const statusInfo = getPaymentStatus(payment.paymentStatus);
               const StatusIcon = statusInfo.icon;
-              
+
               return (
                 <motion.div
                   key={`${payment.sessionId}-${payment.testId}-${index}`}
@@ -341,19 +336,30 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
                         <StatusIcon className={`w-6 h-6 ${statusInfo.iconColor}`} />
                       </div>
                       <div className="flex-1">
-                        <h2 className="font-semibold text-gray-800">{formatTestIdAsName(payment.testId)}</h2>
-                        <p className="text-sm text-gray-500">
-                          {payment.paymentStatus === 'success' ? 'Paid' : payment.paymentStatus === 'failed' ? 'Failed' : payment.paymentStatus === 'Start' ? 'Started' : 'Due'} 
+                        <h2 className="text-base font-['Gilroy-semiBold'] text-gray-800">
+                          {payment.paymentStatus === 'success' ? 'Paid' : payment.paymentStatus === 'failed' ? 'Failed' : payment.paymentStatus === 'Start' ? 'Started' : 'Due'}
                           {payment.paymentDate ? ` on ${formatDate(payment.paymentDate)}` : ''}
+                        </h2>
+                        <p 
+                          className=" text-xs font-['Gilroy-Regular'] text-gray-500 cursor-pointer hover:text-gray-700 transition-colors" 
+                          onClick={() => {
+                            if (payment.razorpayPaymentId) {
+                              navigator.clipboard.writeText(payment.razorpayPaymentId);
+                              toast.success('Payment ID copied to clipboard!');
+                            }
+                          }}
+                          title="Click to copy payment ID"
+                        >
+                          {payment.razorpayPaymentId}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="text-right">
-                      <p className={`font-semibold ${statusInfo.textColor}`}>
-                        {formatCurrency(payment.amount, payment.IsIndia)}
+                      <p className={`font-['Gilroy-semiBold'] ${statusInfo.textColor}`}>
+                        {formatCurrency(payment.amount ? payment.amount / 100 : null, payment.IsIndia)}
                       </p>
-                      <p className="text-xs text-gray-400">{statusInfo.statusText}</p>
+                      <p className="text-xs font-['Gilroy-Regular'] text-gray-400">{statusInfo.statusText}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -365,23 +371,28 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
 
       {/* Bottom Navigation */}
       <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-t flex justify-around py-3 border-t">
-        <div 
+        <div
           className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
           onClick={() => navigate(`/quest-dashboard/${userId}`)}
         >
           <Home className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Home</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Home</p>
         </div>
-        <div 
+        <div
           className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-          onClick={() => navigate(`/assessment-list/${userId}`)}
+          onClick={() => {
+            setNavigationLoading(true);
+            setTimeout(() => {
+              navigate(`/assessment-list/${userId}`);
+            });
+          }}
         >
           <FileText className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Assessment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Assessment</p>
         </div>
         <div className="text-center text-blue-600">
           <CreditCard className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-medium">Payment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Payment</p>
         </div>
       </footer>
     </div>

@@ -152,7 +152,54 @@ export function SectionDrawer({
     if (!session?.responses || !allQuestions) return false;
     
     const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
-    return sectionQuestions.some(q => !session.responses || !session.responses[q.id]);
+    return sectionQuestions.some(question => {
+      const response = session?.responses?.[question.id];
+      
+      // If no response in session, check if current question has DOM value  
+      if (!response && question.id === allQuestions?.find(q => q.id === question.id)?.id) {
+        // For simplicity, we'll assume no current DOM value for non-current questions
+        return true; // No response = incomplete
+      }
+      
+      // If no response in session
+      if (!response) {
+        return true; // No response = incomplete
+      }
+      
+      // Check if response is just an empty string or whitespace
+      const responseText = response.response?.trim();
+      if (!responseText || responseText === '') {
+        return true; // Empty response = incomplete
+      }
+      
+      // Check if response is the placeholder text (means user didn't actually answer)
+      if (responseText === "I preferred not to response for this question") {
+        return true; // Placeholder response = incomplete
+      }
+      
+      // Special handling for ranking questions
+      if (question.type === 'ranking') {
+        try {
+          const rankingData = JSON.parse(responseText);
+          
+          // Check if user actually ranked items (not just default order)
+          const hasRealRanking = rankingData.isUserRanked === true;
+          
+          // Check if user provided explanation
+          const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+          
+          // Ranking question is complete only if user ranked items OR provided explanation
+          if (!hasRealRanking && !hasExplanation) {
+            return true; // No ranking and no explanation = incomplete
+          }
+        } catch (e) {
+          // If can't parse ranking data, consider it incomplete
+          return true;
+        }
+      }
+      
+      return false; // Has real response = complete
+    });
   };
 
   // Handle section selection
@@ -196,13 +243,16 @@ export function SectionDrawer({
               <div key={section.id}>
                 <button
                   onClick={() => handleSectionClick(section.id)}
-                  className="w-full px-4 py-2 text-center hover:bg-gray-50 transition-colors duration-150"
+                  className="relative w-full px-4 py-2 text-center hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${
-                    (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id)) ? 'text-red-600' : getSectionColor(index)
-                  }`}>
+                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${getSectionColor(index)}`}>
                     {section.title}
                   </div>
+                  
+                  {/* Red dot indicator for incomplete sections */}
+                  {hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id) && (
+                    <div className="absolute top-1 right-1 w-2 h-2 opacity-60 bg-red-600 rounded-full"></div>
+                  )}
                 </button>
                 
                 {/* Separator line (except for last item) */}

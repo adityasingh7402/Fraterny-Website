@@ -45,64 +45,45 @@ export function IncompleteQuestionsModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors z-10"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-
             {/* Header */}
             <div className="px-6 py-6 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="w-8 h-8 text-amber-500" />
-                </div>
-                <div>
                   <h3 className="text-xl font-bold text-gray-900 font-['Gilroy-Bold']">
                     Assessment Incomplete
                   </h3>
-                  <p className="text-sm text-gray-600 font-['Gilroy-Regular'] mt-1">
-                    Please complete all questions before finishing
-                  </p>
-                </div>
               </div>
             </div>
 
             {/* Content */}
-            <div className="px-6 py-6">
+            <div className="px-6 pb-6">
               <div className="space-y-4">
-                <p className="text-gray-700 font-['Gilroy-Regular']">
-                  You have <span className="font-bold text-amber-600">{incompleteCount}</span> unanswered questions
-                  {sectionName && (
-                    <>
-                      {' '}in the "<span className="font-semibold">{sectionName}</span>" section
-                    </>
-                  )}.
+                <p className="text-gray-700 text-xl font-['Gilroy-Regular']">
+                  You have <span className="font-bold text-amber-600 font-['Gilroy-Bold']">{incompleteCount}</span> unanswered questions.
                 </p>
                 
-                <p className="text-sm text-gray-600 font-['Gilroy-Regular']">
+                <div className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-4">
                   To get the most accurate analysis, please answer all questions before submitting your assessment.
-                </p>
+                </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="px-6 py-4 bg-gray-50 flex space-x-3">
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-['Gilroy-Medium']"
-              >
-                Continue Editing
-              </button>
-              
-              <button
-                onClick={onGoToIncomplete}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-sky-600 border border-transparent rounded-lg hover:bg-sky-700 transition-colors font-['Gilroy-Medium']"
-              >
-                Go to Question
-              </button>
+            <div className="px-6 py-4 bg-gray-50">
+              <div className="flex justify-start space-x-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xl font-normal font-['Gilroy-Regular'] tracking-[-2px]"
+                >
+                  Close
+                </button>
+                
+                <button
+                  onClick={onGoToIncomplete}
+                  className="px-4 py-2 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
+                >
+                  Go to Question
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

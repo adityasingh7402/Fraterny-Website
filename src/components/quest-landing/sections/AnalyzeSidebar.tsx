@@ -15,6 +15,9 @@ interface AnalyzeSidebarProps {
   theme?: 'blue' | 'white';
   className?: string;
   onNavigateToSection?: (targetScreen: number, sectionId?: string) => void;
+  customMenuItems?: MenuItemConfig[];
+  headerTitle?: string;
+  showMobileOnly?: boolean;
 }
 
 interface MenuItemConfig {
@@ -211,7 +214,10 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   onClose,
   theme = 'blue',
   className = '',
-  onNavigateToSection
+  onNavigateToSection,
+  customMenuItems,
+  headerTitle,
+  showMobileOnly = true
 }) => {
   // console.log('🔍 AnalyzeSidebar - onNavigateToSection:', onNavigateToSection);
   const { user, isLoading, signOut } = useAuth();
@@ -219,9 +225,9 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   const userid = user?.id
   const navigate = useNavigate();
   
-  // Only render on mobile
+  // Only render on mobile by default, but allow override
   const isMobile = useIsMobile();
-  if (!isMobile) return null;
+  if (showMobileOnly && !isMobile) return null;
 
   const isAuthenticated = !!user && !isLoading;
   
@@ -255,8 +261,8 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
     onClose();
   };
 
-  const baseMenuItems = getMenuItems(isAuthenticated, user);
-  const menuItems = baseMenuItems.map(item => ({
+  const baseMenuItems = customMenuItems || getMenuItems(isAuthenticated, user);
+  const menuItems = customMenuItems ? baseMenuItems : baseMenuItems.map(item => ({
   ...item,
   action: item.id === 'home' ? () => {
             onNavigateToSection?.(0);
@@ -311,8 +317,7 @@ export const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
               <h3 className={`font-['Gilroy-medium'] text-2xl ${
                 theme === 'blue' ? 'text-white' : 'text-gray-900'
               }`}>
-                {/* {user ? user.email : 'Explore Fraterny'} */}
-                Hello Stranger
+                {headerTitle || 'Hello Stranger'}
               </h3>
               <button
                 onClick={onClose}

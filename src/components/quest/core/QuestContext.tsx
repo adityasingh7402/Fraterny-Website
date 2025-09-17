@@ -42,6 +42,9 @@ const defaultContextValue: QuestContextValue = {
   skipQuestion: () => {},           // ADD THIS
   goToQuestion: () => {},           // ADD THIS  
   editResponse: () => {},           // ADD THIS
+  hasAttemptedFinishWithIncomplete: false,
+  setHasAttemptedFinishWithIncomplete: () => {},
+  accumulateQuestionTime: () => {},
 };
 
 // Create the context
