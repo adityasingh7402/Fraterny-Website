@@ -45,13 +45,27 @@ export function QuestionCard({
   const { user } = useAuth(); // Add this line
   //const [selectedCity, setSelectedCity] = useState<string>('');
 
-  // Parse previous response to separate city and text
 const [response, setResponse] = useState<string>(() => {
   if (previousResponse?.response) {
     try {
-      // Try to parse as JSON (new format with city)
+      // Try to parse as JSON with proper field mapping
       const parsed = JSON.parse(previousResponse.response);
-      return parsed.details || '';
+      
+      // Determine field name based on question type
+      let fieldValue = '';
+      if (question.id === 'q1_1') {
+        fieldValue = parsed.name || '';
+      } else if (question.id === 'q1_2') {
+        fieldValue = parsed.email || '';
+      } else if (question.id === 'q1_3') {
+        fieldValue = parsed.age || '';
+      } else if (question.id === 'q1_5') {
+        fieldValue = parsed.details || '';
+      } else {
+        fieldValue = parsed.details || '';
+      }
+      
+      return fieldValue;
     } catch {
       // If not JSON, treat as plain text (old format)
       return previousResponse.response;
@@ -60,23 +74,94 @@ const [response, setResponse] = useState<string>(() => {
   return '';
 });
 
-const [selectedCity, setSelectedCity] = useState<string>(() => {
+  const [isAnonymousMode, setIsAnonymousMode] = useState<boolean>(() => {
   if (previousResponse?.response) {
     try {
-      // Try to parse as JSON to get city
+      // Try to parse as JSON to check anonymous state
       const parsed = JSON.parse(previousResponse.response);
-      return parsed.selectedCity || '';
+      // PRIORITY: If isAnonymous field exists, ALWAYS use it
+      if (parsed.hasOwnProperty('isAnonymous')) {
+        return parsed.isAnonymous;
+      }
+      // FALLBACK: If no isAnonymous field but selectedCity exists, user chose to share
+      if (parsed.selectedCity) {
+        return false; // Not anonymous
+      }
     } catch {
-      // If not JSON, no previous city selected
-      return '';
+      // If not JSON, check if there's any response content
+      if (previousResponse.response.trim()) {
+        return false; // User provided some answer, so not anonymous
+      }
     }
   }
-  return '';
+  // DEFAULT CHANGED: Start in share mode for new questions
+  return false;
 });
 
+
+  const [selectedCity, setSelectedCity] = useState<string>(() => {
+    if (previousResponse?.response) {
+      try {
+        // Try to parse as JSON to get city
+        const parsed = JSON.parse(previousResponse.response);
+        return parsed.selectedCity || '';
+      } catch {
+        // If not JSON, no previous city selected
+        return '';
+      }
+    }
+    return '';
+  });
+  // Remember previous text when switching to anonymous
+const [previousText, setPreviousText] = useState<string>('');
+
+  // Handle data when switching anonymous mode
 useEffect(() => {
-  console.log('🏙️ selectedCity state changed to:', selectedCity);
-}, [selectedCity]);
+  if (isAnonymousMode) {
+    // For name/email questions: save and clear text
+    if (response && !question.enableCityAutocomplete) {
+      setPreviousText(response);
+      setResponse('');
+      console.log('🧹 Saved and cleared text due to anonymous mode toggle (name/email)');
+    }
+    // For location questions: clear city but keep details text
+    if (selectedCity) {
+      setSelectedCity('');
+      console.log('🧹 Cleared city data due to anonymous mode toggle');
+    }
+    
+    // AUTO-SAVE: Immediately save anonymous response when toggling to anonymous
+    if (question.allowAnonymous) {
+      const getFieldName = () => {
+        if (question.id === 'q1_1') return 'name';
+        if (question.id === 'q1_2') return 'email';
+        if (question.id === 'q1_3') return 'age';
+        if (question.id === 'q1_5') return 'details';
+        return 'details';
+      };
+      
+      const fieldName = getFieldName();
+      const fieldValue = question.enableCityAutocomplete ? response : ""; // Keep details for location, clear for name/email
+      console.log('🚀 Auto-saving due to anonymous mode toggle:', fieldValue);
+      
+      
+      const anonymousResponse = JSON.stringify({
+        isAnonymous: true,
+        selectedCity: "",
+        [fieldName]: fieldValue
+      });
+      
+      console.log('🔄 Auto-saving anonymous response:', anonymousResponse);
+      onResponse(anonymousResponse, selectedTags);
+    }
+  } else {
+    // Restore previous text when switching back to share mode
+    if (previousText && !question.enableCityAutocomplete) {
+      setResponse(previousText);
+      console.log('🔄 Restored previous text when switching to share mode');
+    }
+  }
+}, [isAnonymousMode]);
   
 
     // First, create a memoized initial value outside of useState
@@ -110,19 +195,6 @@ useEffect(() => {
     console.log('📅 Date response stored:', response);
   }
 }, [response, question?.id]);
-  
-
-// useEffect(() => {
-//   if (question?.id && isActive) {
-//     // Track when this question becomes active
-//     trackQuestionView(question.id);
-//   }
-  
-//   return () => {
-//     // Stop tracking when component unmounts
-//     stopQuestionTracking();
-//   };
-// }, [question?.id, isActive]);
 
 useEffect(() => {
     if (question?.id && isActive) {
@@ -152,16 +224,15 @@ useEffect(() => {
     }
   }, [question?.id, isActive, session?.id, user, allQuestions, sections]);
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+// Clear city data when switching to anonymous mode
+useEffect(() => {
+  if (isAnonymousMode && selectedCity) {
+    setSelectedCity('');
+  }
+}, [isAnonymousMode]);
+
+
   const { ref, controls, variants } = useQuestAnimation({
     variant: 'questionCard',
     triggerOnce: true
@@ -191,37 +262,60 @@ useEffect(() => {
     return newTags;
   });
 };
-  
 
-
-  //   const handleSubmit = (submittedResponse: string) => {
-  //   if (!isActive) return;
-  //   // console.log('Submitting response:', submittedResponse);
-  //   console.log('🚀 handleSubmit called with:', submittedResponse);
-      
-  //   // Call the onResponse callback with the response and tags (no validation blocking)
-  //   onResponse(submittedResponse, selectedTags);
-  // };
-
-  const handleSubmit = (submittedResponse: string) => {
-  if (!isActive) return;
-  console.log('🚀 handleSubmit called with:', submittedResponse);
+//   const handleSubmit = (submittedResponse: string) => {
+//   if (!isActive) return;
+//   console.log('🚀 handleSubmit called with:', submittedResponse);
   
-  // Combine city and text response for location questions
-  let finalResponse = submittedResponse;
-  if (question.enableCityAutocomplete && selectedCity) {
-    finalResponse = JSON.stringify({
-      selectedCity: selectedCity,
-      details: submittedResponse
-    });
-    console.log('📦 SAVING city+text as:', finalResponse);
-  } else {
-    console.log('📝 SAVING text only as:', finalResponse);
-  }
+//   // Combine city and text response for location questions
+//   // let finalResponse = submittedResponse;
+//   // if (question.enableCityAutocomplete && selectedCity) {
+//   //   finalResponse = JSON.stringify({
+//   //     selectedCity: selectedCity,
+//   //     details: submittedResponse
+//   //   });
+//   //   console.log('📦 SAVING city+text as:', finalResponse);
+//   // } else {
+//   //   console.log('📝 SAVING text only as:', finalResponse);
+//   // }
+
+//   // Combine city and text response for location questions
+// let finalResponse = submittedResponse;
+// if (question.allowAnonymous) {
+//   if (isAnonymousMode) {
+//     finalResponse = JSON.stringify({
+//       isAnonymous: true,
+//       selectedCity: "",
+//       details: submittedResponse || 'User chose to remain anonymous'
+//     });
+//     console.log('📦 SAVING anonymous response as:', finalResponse);
+//   } else if (question.enableCityAutocomplete && selectedCity) {
+//     finalResponse = JSON.stringify({
+//       selectedCity: selectedCity,
+//       details: submittedResponse,
+//       isAnonymous: false
+//     });
+//     console.log('📦 SAVING city+text as:', finalResponse);
+//   } else {
+//     finalResponse = JSON.stringify({
+//       details: submittedResponse,
+//       isAnonymous: false
+//     });
+//     console.log('📦 SAVING text-only (not anonymous) as:', finalResponse);
+//   }
+// } else if (question.enableCityAutocomplete && selectedCity) {
+//   finalResponse = JSON.stringify({
+//     selectedCity: selectedCity,
+//     details: submittedResponse
+//   });
+//   console.log('📦 SAVING city+text as:', finalResponse);
+// } else {
+//   console.log('📝 SAVING text only as:', finalResponse);
+// }
   
-  // Call the onResponse callback with the response and tags
-  onResponse(finalResponse, selectedTags);
-};
+//   // Call the onResponse callback with the response and tags
+//   onResponse(finalResponse, selectedTags);
+// };
   
 //   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 //     // console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
@@ -240,9 +334,68 @@ useEffect(() => {
 //   // onResponse(newValue, selectedTags);
 // };
   
+const handleSubmit = (submittedResponse: string) => {
+  if (!isActive) return;
+  console.log('🚀 handleSubmit called with:', submittedResponse);
+  
+  // Determine field name based on question type
+  const getFieldName = () => {
+    if (question.id === 'q1_1') return 'name';
+    if (question.id === 'q1_2') return 'email';
+    if (question.id === 'q1_3') return 'age';
+    if (question.id === 'q1_5') return 'details';
+    return 'details'; // fallback
+  };
+  
+  const fieldName = getFieldName();
+  
+  // Handle different question types with anonymous support
+  let finalResponse = submittedResponse;
+  
+  if (question.allowAnonymous) {
+    if (isAnonymousMode) {
+      // Save as anonymous response
+      finalResponse = JSON.stringify({
+        isAnonymous: true,
+        selectedCity: "",
+        [fieldName]: ""
+      });
+      console.log('📦 SAVING anonymous response as:', finalResponse);
+    } else if (question.enableCityAutocomplete && selectedCity) {
+      // Location question with city
+      finalResponse = JSON.stringify({
+        selectedCity: selectedCity,
+        [fieldName]: submittedResponse,
+        isAnonymous: false
+      });
+      console.log('📦 SAVING city+text as:', finalResponse);
+    } else {
+      // Name/email questions
+      finalResponse = JSON.stringify({
+        selectedCity: "",
+        [fieldName]: submittedResponse,
+        isAnonymous: false
+      });
+      console.log('📦 SAVING name/email response as:', finalResponse);
+    }
+  } else if (question.enableCityAutocomplete && selectedCity) {
+    // Regular city autocomplete without anonymous mode
+    finalResponse = JSON.stringify({
+      selectedCity: selectedCity,
+      [fieldName]: submittedResponse
+    });
+    console.log('📦 SAVING city+text as:', finalResponse);
+  } else {
+    // Regular questions without anonymous mode
+    console.log('📝 SAVING text only as:', finalResponse);
+  }
+  
+  // Call the onResponse callback with the response and tags
+  onResponse(finalResponse, selectedTags);
+};
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   const newValue = e.target.value;
-  console.log('⌨️ Text input changed to:', newValue);
   
   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
     setResponse(newValue.substring(0, maxLength));
@@ -255,9 +408,9 @@ useEffect(() => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
   e.preventDefault();
-  console.log('📋 Form submitted!');
-  console.log('📋 response (text):', response);
-  console.log('📋 selectedCity at submit:', selectedCity);
+  // console.log('📋 Form submitted!');
+  // console.log('📋 response (text):', response);
+  // console.log('📋 selectedCity at submit:', selectedCity);
   
   if (response.trim()) {
     handleSubmit(response);
@@ -358,11 +511,34 @@ useEffect(() => {
           const textValidation = getTextInputValidation();
           return (
             <div className="mb-6">
-              {question.enableCityAutocomplete && (
+              {question.enableCityAutocomplete && question.allowAnonymous && (
               <div className="mb-4">
                 <label className="block text-xl font-['Gilroy-Medium'] text-gray-700 mb-2">
                   Primary City
                 </label>
+                <motion.div 
+                  className="flex items-center gap-2 mb-2"
+                >
+                  <motion.button
+                    type="button"
+                    onClick={() => setIsAnonymousMode(!isAnonymousMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      isAnonymousMode ? 'bg-gray-300' : 'bg-blue-500'
+                    }`}
+                    data-anonymous-mode={isAnonymousMode}
+                    animate={{ backgroundColor: isAnonymousMode ? '#D1D5DB' : '#3B82F6' }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <motion.span
+                      className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
+                      animate={{ x: isAnonymousMode ? 2 : 22 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </motion.button>
+                  <span className="text-sm text-gray-600">
+                    {isAnonymousMode ? "Anonymous" : ''}
+                  </span>
+                </motion.div>
                 <CityAutocomplete
                   onCitySelect={(city) => {
                     console.log('🏙️ City selected:', city);
@@ -370,8 +546,36 @@ useEffect(() => {
                   }}
                   placeholder="Start typing..."
                   selectedCity={selectedCity}
+                  isAnonymousMode={isAnonymousMode}
+                  //onToggleAnonymous={() => setIsAnonymousMode(!isAnonymousMode)}
                 />
               </div>
+            )}
+
+            {question.allowAnonymous && !question.enableCityAutocomplete && (
+              <motion.div 
+                className="flex items-center gap-2 mb-4"
+              >
+                <motion.button
+                  type="button"
+                  onClick={() => setIsAnonymousMode(!isAnonymousMode)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    isAnonymousMode ? 'bg-gray-300' : 'bg-blue-500'
+                  }`}
+                  data-anonymous-mode={isAnonymousMode}
+                  animate={{ backgroundColor: isAnonymousMode ? '#D1D5DB' : '#3B82F6' }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <motion.span
+                    className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
+                    animate={{ x: isAnonymousMode ? 2 : 22 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                </motion.button>
+                <span className="text-sm text-gray-600">
+                  {isAnonymousMode ? 'Anonymous' : ''}
+                </span>
+              </motion.div>
             )}
 
               <form onSubmit={handleFormSubmit}>
@@ -379,14 +583,17 @@ useEffect(() => {
                   <textarea
                     value={response}
                     onChange={handleInputChange}
-                    placeholder={question.placeholder || "Be as honest as you want to be for the best analysis"}
-                    
+                    placeholder={
+                      question.allowAnonymous && !question.enableCityAutocomplete
+                        ? (isAnonymousMode ? question.placeholder : "")
+                        : (question.placeholder || "Be as honest as you want to be for the best analysis")
+                    }
                     className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-black text-xl font-normal font-['Gilroy-Medium'] ${
                       textValidation?.wordStatus === 'error' 
                         ? '' 
                         : 'border-gray-200'
                     }`}
-                    disabled={!isActive || isAnswered}
+                    disabled={!isActive || isAnswered || (question.allowAnonymous && !question.enableCityAutocomplete && isAnonymousMode)}
                   />
                 </div>
                 
@@ -488,17 +695,6 @@ useEffect(() => {
           />
         );
       
-      // case 'ranking':
-      //   return (
-      //     <RankingResponse
-      //       options={question.options || []}
-      //       value={response}
-      //       onChange={handleInputChange}
-      //       onResponse={handleSubmit} 
-      //       disabled={!isActive || isAnswered}
-      //       className="mb-6"
-      //     />
-      //   );
       case 'ranking':
         return (
           <RankingResponse

@@ -2278,7 +2278,7 @@ useEffect(() => {
                 <div className="flex h-full flex-col justify-center gap-4">
                   <div className="text-center">
                     <div className="text-[16px] font-['Gilroy-Bold'] text-left leading-tight">
-                      You behave more like a <span className="underline">{astrology.behavioralSign}</span> than your actual sign ({astrology.actualSign}).
+                      You behave more like a <span className="underline">{astrology.behavioralSign}</span>.
                     </div>
                     <div className="text-left max-w-[320px] mt-3 opacity-90 text-lg font-['Gilroy-Regular'] leading-[1]">
                       {astrology.description}
