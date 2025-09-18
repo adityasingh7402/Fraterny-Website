@@ -43,8 +43,8 @@ export function QuestLayout({
         )}
         
         {/* Main content area */}
-        <main className="overflow-auto">
-          <QuestContainer className='px-6'>
+        <main className="flex-1 overflow-auto pb-24">
+          <QuestContainer className='px-6 min-h-full'>
             {/* Loading state */}
             {isLoading && (
               <motion.div 
@@ -76,20 +76,9 @@ export function QuestLayout({
             )}
             
             {!isLoading && !error && children}
-            {/* Main content */}
-            {/* {!isLoading && !error && children}
-            {showNavigation && session && session.status === 'in_progress' && (
-              <QuestNavigation 
-                showPrevious={true}
-                showNext={true}
-                showSkip={false}
-                showFinish={true}
-                onFinish={onFinish}
-              />
-            )} */}
           </QuestContainer>
         </main>
-        <div className='absolute bottom-4 w-full px-2'>
+        <div className='absolute bottom-0 w-full px-2 py-4 bg-white to-transparent'>
         {showNavigation && session && session.status === 'in_progress' && (
           <QuestNavigation 
             showPrevious={true}
