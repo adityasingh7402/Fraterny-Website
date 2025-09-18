@@ -115,29 +115,7 @@ export function QuestHeader({
             />
           </div>
         )}
-        
-        {/* Title and subtitle - MOVED BELOW PROGRESS BAR */}
-        {/* <div>
-          <motion.h1 
-            className="text-2xl md:text-3xl font-playfair text-navy"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {title}
-          </motion.h1>
-          
-          {subtitle && (
-            <motion.p 
-              className="text-sm text-gray-600 mt-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {subtitle}
-            </motion.p>
-          )}
-        </div> */}
+      
       </div>
     </header>
   );

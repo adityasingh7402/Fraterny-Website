@@ -31,10 +31,7 @@ export function QuestLayout({
   
   return (
     <div className='pt-0'>
-      <div className={`relative min-h-screen w-full flex flex-col ${className}`}>
-
-        {/* Background effects */}
-        {/* {showBackground && <CalmingBackground />} */}
+      <div className={`relative max-h-dvh min-h-dvh w-full flex flex-col ${className}`}>
         
         {/* Header with title and progress */}
         {showHeader && (
@@ -46,7 +43,7 @@ export function QuestLayout({
         )}
         
         {/* Main content area */}
-        <main className="pb-10">
+        <main className="overflow-auto">
           <QuestContainer className='px-6'>
             {/* Loading state */}
             {isLoading && (
@@ -78,8 +75,9 @@ export function QuestLayout({
               </motion.div>
             )}
             
-            {/* Main content */}
             {!isLoading && !error && children}
+            {/* Main content */}
+            {/* {!isLoading && !error && children}
             {showNavigation && session && session.status === 'in_progress' && (
               <QuestNavigation 
                 showPrevious={true}
@@ -88,14 +86,21 @@ export function QuestLayout({
                 showFinish={true}
                 onFinish={onFinish}
               />
-            )}
+            )} */}
           </QuestContainer>
         </main>
-        
-        {/* Navigation controls */}
-        {/* {showNavigation && session && (
-          <QuestNavigation />
-        )} */}
+        <div className='absolute bottom-4 w-full px-2'>
+        {showNavigation && session && session.status === 'in_progress' && (
+          <QuestNavigation 
+            showPrevious={true}
+            showNext={true}
+            showSkip={false}
+            showFinish={true}
+            onFinish={onFinish}
+          />
+        )}
+        </div>
+      
       </div>
     </div>
   );
