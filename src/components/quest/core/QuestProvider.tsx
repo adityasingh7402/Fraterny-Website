@@ -1825,11 +1825,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   };
 
   const changeSection = (newSectionId: string) => {
-    // console.log('🔀 changeSection called with:', newSectionId);
-    
-    // Validate that the section exists
     const targetSection = questSections.find(s => s.id === newSectionId);
-    // console.log('🎯 Target section found:', !!targetSection, targetSection?.title);
     
     if (!targetSection) {
       console.warn(`❌ Section ${newSectionId} not found`);
@@ -1841,25 +1837,12 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       // console.log('⚠️ Already in target section - no change needed');
       return;
     }
-
-    // console.log('📍 Changing from section:', currentSectionId, 'to:', newSectionId);
-
-    // Update current section
     setCurrentSectionId(newSectionId);
-    // console.log('✅ Current section ID updated');
-    
-    // Reset to first question of the new section
     setSession(prev => {
       if (!prev) {
         console.log('❌ No previous session state');
         return null;
       }
-      
-      // console.log('📝 Updating session state:');
-      // console.log('   Previous question index:', prev.currentQuestionIndex);
-      // console.log('   Previous section ID:', prev.sectionId);
-      // console.log('   New question index: 0');
-      // console.log('   New section ID:', newSectionId);
       
       const newState = {
         ...prev,

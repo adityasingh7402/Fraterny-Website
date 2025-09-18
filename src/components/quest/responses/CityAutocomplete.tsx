@@ -114,7 +114,7 @@ useEffect(() => {
         onChange={handleInputChange}
         placeholder={isAnonymousMode 
           ? "Anonymous mode" 
-          : "To know the cultural context of your upbringing. e.g. City, Country"
+          : "City, Country"
         }
         disabled={isAnonymousMode}
         className="p-3 pb-10 bg-white rounded-lg border border-zinc-400 h-full w-full justify-start text-black text-xl font-normal font-['Gilroy-Medium'] placeholder:text-xl placeholder:text-wrap placeholder:leading-tight placeholder:align-top placeholder:pt-0"

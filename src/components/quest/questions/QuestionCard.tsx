@@ -12,6 +12,7 @@ import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { useAuth } from '../../../contexts/AuthContext';
 import { CityAutocomplete } from '../responses/CityAutocomplete';
 import { useQuestionTiming } from '../hooks/useQuestionTiming';
+import { X, Info  } from 'lucide-react';
 
 /**
  * Base question card component
@@ -40,7 +41,9 @@ export function QuestionCard({
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
-   const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
+  const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
+  const [showInfo, setShowInfo] = useState(false);
+
    useQuestionTiming(question.id);
   const { user } = useAuth(); // Add this line
   //const [selectedCity, setSelectedCity] = useState<string>('');
@@ -58,6 +61,8 @@ const [response, setResponse] = useState<string>(() => {
     try {
       // Try to parse as JSON with proper field mapping
       const parsed = JSON.parse(previousResponse.response);
+      console.log('🔄 Restoring parsed response:', parsed);
+      
       
       // Determine field name based on question type
       let fieldValue = '';
@@ -65,8 +70,8 @@ const [response, setResponse] = useState<string>(() => {
         fieldValue = parsed.name || '';
       } else if (question.id === 'q1_2') {
         fieldValue = parsed.email || '';
-      } else if (question.id === 'q1_3') {
-        fieldValue = parsed.age || '';
+      } else if (question.id === 'q1_3') {        
+        fieldValue = String(parsed) ?? '';
       } else if (question.id === 'q1_5') {
         fieldValue = parsed.details || '';
       } else {
@@ -75,7 +80,6 @@ const [response, setResponse] = useState<string>(() => {
       
       return fieldValue;
     } catch {
-      // If not JSON, treat as plain text (old format)
       return previousResponse.response;
     }
   }
@@ -444,28 +448,6 @@ const handleSubmit = (submittedResponse: string) => {
       case 'multiple_choice':
         return (
           <div className="grid grid-cols-2 gap-1 mb-6">
-            {/* {question.options?.map((option, index) => {
-              const isSelected = currentSelection === option;
-              return (
-                <motion.button
-                  key={index}
-                  onClick={() => {
-                    setCurrentSelection(option);
-                    handleSubmit(option);
-                  }}
-                  // whileHover={{ backgroundColor: '#E2EFFF', borderColor: '#84ADDF', color: '#004A7F' }}
-                  className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index===4 ? 'col-span-2' : ''}`}
-                  style={{
-                      backgroundColor: isSelected ? (index === 0 ? '#D1F2D1' : (index === 1 ? '#BAE6FD' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#FECACA' : '#E5E7EB')))) : (index === 0 ? '#E8F5E8' : (index === 1 ? '#E0F2FE' : (index === 2 ? '#EDE9FE' : (index === 3 ? '#FEE2E2' : '#F3F4F6')))),
-                      borderColor: isSelected ? (index === 0 ? '#65A30D' : (index === 1 ? '#0284C7' : (index === 2 ? '#7C3AED' : (index === 3 ? '#DC2626' : '#6B7280')))) : (index === 0 ? '#9CA3AF' : (index === 1 ? '#93C5FD' : (index === 2 ? '#6B7280' : (index === 3 ? '#F87171' : '#9CA3AF')))),
-                      color: index === 0 ? '#2A7F00' : (index === 1 ? '#004A7F' : (index === 2 ? '#50007F' : (index === 3 ? '#A4080B' : '#374151')))
-                  }}
-                  disabled={!isActive || isAnswered}
-                >
-                  {option}
-                </motion.button>
-              );
-            })} */}
             {question.options?.map((option, index) => {
           const isSelected = currentSelection === option;
           
@@ -476,11 +458,6 @@ const handleSubmit = (submittedResponse: string) => {
                 setCurrentSelection(option);
                 handleSubmit(option);
               }}
-              // whileHover={{ 
-              //   backgroundColor: index === 0 ? '#D1F2D1' : (index === 1 ? '#FECACA' : (index === 2 ? '#DDD6FE' : (index === 3 ? '#BAE6FD' : '#E5E7EB'))), 
-              //   borderColor: index === 0 ? '#65A30D' : (index === 1 ? '#DC2626' : (index === 2 ? '#7C3AED' : (index === 3 ? '#0284C7' : '#6B7280'))), 
-              //   color: index === 0 ? '#2A7F00' : (index === 1 ? '#A4080B' : (index === 2 ? '#50007F' : (index === 3 ? '#004A7F' : '#374151')))
-              // }}
               className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index === 4 ? 'col-span-2' : ''}`}
               style={{
                 // Background Color Logic
@@ -511,46 +488,6 @@ const handleSubmit = (submittedResponse: string) => {
           const textValidation = getTextInputValidation();
           return (
             <div className="mb-6">
-              {/* {question.enableCityAutocomplete && question.allowAnonymous && (
-              <div className="mb-4">
-                <label className="block text-xl font-['Gilroy-Medium'] text-gray-700 mb-2">
-                  Primary City
-                </label>
-                <motion.div 
-                  className="flex items-center gap-2 mb-2"
-                >
-                  <motion.button
-                    type="button"
-                    onClick={() => setIsAnonymousMode(!isAnonymousMode)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                      isAnonymousMode ? 'bg-gray-300' : 'bg-blue-500'
-                    }`}
-                    data-anonymous-mode={isAnonymousMode}
-                    animate={{ backgroundColor: isAnonymousMode ? '#D1D5DB' : '#3B82F6' }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <motion.span
-                      className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
-                      animate={{ x: isAnonymousMode ? 2 : 22 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  </motion.button>
-                  <span className="text-sm text-gray-600">
-                    {isAnonymousMode ? "Anonymous" : ''}
-                  </span>
-                </motion.div>
-                <CityAutocomplete
-                  onCitySelect={(city) => {
-                    console.log('🏙️ City selected:', city);
-                    setSelectedCity(city);
-                  }}
-                  placeholder="Start typing..."
-                  selectedCity={selectedCity}
-                  isAnonymousMode={isAnonymousMode}
-                  //onToggleAnonymous={() => setIsAnonymousMode(!isAnonymousMode)}
-                />
-              </div>
-            )} */}
 
               {question.enableCityAutocomplete && question.allowAnonymous && (
                 <div className="mb-4">
@@ -760,12 +697,51 @@ const handleSubmit = (submittedResponse: string) => {
     >      
       {/* Question Text */}
       <div className="mb-4">
-        <div className="justify-start text-neutral-950 text-4xl font-normal font-['Gilroy-Bold']">{question.text}</div>
+        <div className="justify-start text-neutral-950 text-2xl font-normal font-['Gilroy-Bold']">
+          {question.text}
+          {question.isInfo && (
+          <Info className="inline w-4 h-4 ml-2 text-black cursor-pointer" 
+            onClick={() => setShowInfo(true)} />
+          )}
+        </div>
       </div>
       
       
       {/* Question Input */}
       {renderQuestionInput()}
+
+      
+  
+      {/* Info Modal */}
+      {showInfo && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowInfo(false)} // Add this - closes on backdrop click
+        >
+          <div 
+            className="bg-white rounded-lg max-w-sm w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()} // Add this - prevents closing when clicking inside modal
+          >
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowInfo(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {/* Content */}
+            <div className="pr-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Question Purpose
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {question.infoText || "This question helps us better understand your personality and provide more accurate insights."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

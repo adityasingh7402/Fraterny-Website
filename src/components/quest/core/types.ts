@@ -27,6 +27,8 @@ export interface Question {
     type: string;
     label: string;
   };
+  isInfo?: boolean;       
+  infoText?: string;
   minLength?: number;       // Add this property
   maxLength?: number;       // Add this property
   hint?: string;            // Add this property
