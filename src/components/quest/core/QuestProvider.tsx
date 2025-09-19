@@ -1148,7 +1148,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       }
     });
     
-    console.log(`📊 Question ${questionId} accumulated +${durationSeconds}s (total will be updated)`);
+    //console.log(`📊 Question ${questionId} accumulated +${durationSeconds}s (total will be updated)`);
   };
 
 
