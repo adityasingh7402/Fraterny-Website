@@ -10,12 +10,12 @@ export function useQuestionTiming(questionId: string) {
   
   useEffect(() => {
     const startTime = Date.now();
-    console.log(`⏰ Started timing question ${questionId} at ${new Date().toLocaleTimeString()}`);
+    //console.log(`⏰ Started timing question ${questionId} at ${new Date().toLocaleTimeString()}`);
     
     return () => {
       const endTime = Date.now();
       const duration = Math.round((endTime - startTime) / 1000);
-      console.log(`⏰ Question ${questionId} ended at ${new Date().toLocaleTimeString()}, duration: ${duration}s`);
+      //console.log(`⏰ Question ${questionId} ended at ${new Date().toLocaleTimeString()}, duration: ${duration}s`);
       
       if (duration > 0) {
         accumulateQuestionTime(questionId, duration);
