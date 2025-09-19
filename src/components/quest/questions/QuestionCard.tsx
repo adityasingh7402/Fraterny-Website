@@ -731,7 +731,7 @@ const handleSubmit = (submittedResponse: string) => {
             </button>
             
             {/* Content */}
-            <div className="pr-8">
+            <div className="">
               {/* <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 Question Purpose
               </h3> */}
