@@ -23,7 +23,7 @@ export const questSections: QuestionSection[] = [
         placeholder: 'Your name',
         allowAnonymous: true,
         isInfo: true,
-        infoText: 'This is to make the experience more personalized. You can choose to remain anonymous if you prefer.'
+        infoText: 'Share your preferred name so I can address you properly. Press the toggle button below to stay Anonymous.'
       },
       {
         id: 'q1_2',
@@ -35,7 +35,7 @@ export const questSections: QuestionSection[] = [
         placeholder: 'To share a copy of the report',
         allowAnonymous: true,
         isInfo: true,
-        infoText: 'This is to send you a copy of your assessment report. You can choose to remain anonymous if you prefer.'
+        infoText: 'I require your email id to share your detailed report. You can choose to remain anonymous if you prefer. But it is not recommended.'
       },
       {
         id: 'q1_3',
@@ -47,7 +47,7 @@ export const questSections: QuestionSection[] = [
         placeholder: 'Your age',
         //allowAnonymous: true,
         isInfo: true,
-        infoText: 'This helps in tailoring the assessment to your life stage and provides insights into your life philosophy. You can choose to remain anonymous if you prefer.'
+        infoText: 'Age is important to understand the life stage you are currently in. Your life stage plays a key role in determining your priorities and future outlook. While interpreting your psychology, it will help me map and compare your actual age with your mental age. It will give me more context when I combine it with your responses to other questions.'
       },
       {
         id: 'q1_4',
@@ -58,7 +58,7 @@ export const questSections: QuestionSection[] = [
         category: 'personal_info',
         sectionId: 'section_1',
         isInfo: true,
-        infoText: 'This helps in understanding your gender identity and its impact on your life experiences.'
+        infoText: 'Your gender when combined with your cultural context, your personality traits and family dynamics can reveal details about your societal conditioning, your conformity or dissonance with societal and family norms and possible inner conflicts with your self identity.'
       },
       {
         id: 'q1_5',
@@ -71,7 +71,7 @@ export const questSections: QuestionSection[] = [
         enableCityAutocomplete: true,
         allowAnonymous: true, 
         isInfo: true,
-        infoText: 'This helps in understanding the cultural and environmental influences on your upbringing. You can choose to remain anonymous if you prefer.'
+        infoText: 'Your surroundings helps in understanding the cultural and environmental influences on your upbringing. When combined with other answers, this can provide valuable insights into your thinking patterns and behavior based on you living in a single location vs multiple locations, rural vs urban, developed country vs developing country, cosmopolitan society vs homogenous society. '
       }
     ]
   },
@@ -90,7 +90,7 @@ export const questSections: QuestionSection[] = [
         allowTags: true,
         placeholder: 'Just like you text a friend. You can write about multiple life stages if needed.',
         isInfo: true,
-        infoText: 'This helps in understanding your family dynamics and their influence on your development.'
+        infoText: 'The influence of people in your proximity when you are a child can cement your fundamental values and how you perceive the world. Your subconscious mind absorbs the most from the people who you were surrounded with when your brain was developing.'
       },
       {
         id: 'q2_2',
@@ -101,7 +101,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_2',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your family dynamics and their influence on your development.',
+        infoText: 'Everyone is destined face emotional, psychological and situational consequences of the situations that were out of their control. This question gives me more context on what’s valuable to you, your unmet desires, possible motivations and even your emotional maturity.',
         placeholder: 'You can write more than 1 thing if you want. Even a small change you would have liked is helpful.'
       },
       {
@@ -113,7 +113,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_2',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your family dynamics and their influence on your development.',
+        infoText: 'You can also write about your past self when answering this question. Conflicts and reasons of conflict with close ones can reveal several aspects of your personality and mindset, especially when cross-linked with other answers. ',
         placeholder: 'More context will increase the accuracy of my analysis.'
       }
     ]
@@ -132,7 +132,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_3',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your goals and aspirations.',
+        infoText: 'Your near term goals tells me your dominant current motivation. This question has no purpose in isolation but becomes highly relevant when cross-linked with childhood dynamics, emotional loops, identity structure, and fear-reward mapping.',
         placeholder: 'Basically what you are looking forward to achieve. You can write more than 1 thing.'
       },
       {
@@ -145,7 +145,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_3',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your core values and what drives your decisions.',
+        infoText: 'This question maps a personal value hierarchy. It helps extract your core motivations, Self-justification style, implied worldview, and internal contradictions in self-image.',
         additionalInput: {
           type: 'text_input',
           label: 'Explain why your top choice is most important to you'
@@ -159,7 +159,7 @@ export const questSections: QuestionSection[] = [
         category: 'desires',
         sectionId: 'section_3',
         isInfo: true,
-        infoText: 'This helps in understanding your desires and what you value in life.',
+        infoText: 'Don’t hold back, this is your chance to manifest your desires. To keep your answers unbiased and my analysis accurate, I will have to refrain myself from explaining how I interpret your respons.',
         allowTags: true,
         placeholder: 'Think of anything— “Ability to fly”, “Meeting with Jeff Bezos”, “CEO of Google”, “I have everything I want, I don’t need anything”, “A pet named Jaws”'
       },
@@ -172,7 +172,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_3',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your self-perception and unique strengths.',
+        infoText: 'You can write multiple things if you want. To keep your answers unbiased and my analysis accurate, I will have to refrain myself from explaining how I interpret your response.',
         placeholder: 'It can be anything— “I am better at solving Rubics Cube”, “Reading People’s emotions”, “Financial Modelling”, “Critical thinking”, “Building Profitable Businesses”, “Pokemon Go cards”'
       },
       {
@@ -184,7 +184,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_3',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your ambitions and long-term vision.',
+        infoText: 'The more details you give, the more accurate I’ll be. To keep your answers unbiased and my analysis accurate, I will have to refrain myself from explaining how I interpret your response.',
         placeholder: 'Again, Anything you can think of.'
       },
       {
@@ -196,7 +196,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_3',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your sources of inspiration and what qualities you admire.',
+        infoText: 'This question targets the ideal-self blueprint. The person chosen as a role model acts as a mirror or missing piece: either aspirational or compensatory.',
         placeholder: 'It can be a celebrity, family member, fictional character, or even a friend.'
       }
     ]
@@ -214,7 +214,7 @@ export const questSections: QuestionSection[] = [
         category: 'habits',
         sectionId: 'section_4',
         isInfo: true,
-        infoText: 'This helps in understanding your habits and their impact on your life.',
+        infoText: 'This question reveals ideological independence, moral divergence, and resistance to conformity.',
         placeholder: 'Examples: Sleeping late, overthinking, isolating, being blunt, etc.'
       },
       {
@@ -225,7 +225,7 @@ export const questSections: QuestionSection[] = [
         category: 'habits',
         sectionId: 'section_4',
         isInfo: true,
-        infoText: 'This helps in understanding your habits and their impact on your life.',
+        infoText: 'This question reveals Compulsion loops, Emotional dependencies, Subconscious trade-offs. ',
         placeholder: 'Be honest to yourself. It can be small or big.'
       },
       {
@@ -236,7 +236,7 @@ export const questSections: QuestionSection[] = [
         category: 'emotions',
         sectionId: 'section_4',
         isInfo: true,
-        infoText: 'This helps in understanding your emotional responses and how you manage them.',
+        infoText: 'Answering this question requires critical self introspection. This question has no purpose in isolation but becomes highly relevant when cross-linked with your worldview and self identity.',
         placeholder: 'Examples: Sadness, jealousy, fear, anger, softness, etc.'
       },
       {
@@ -248,7 +248,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_4',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your self-perception and areas for growth.',
+        infoText: 'This question uncovers identity alignment, internal value coherence and several other insights when cross-linked with your answers on aspirations, self image and values.',
         placeholder: 'If yes, what makes you proud? If no, what’s missing?'
       }
     ]
@@ -267,7 +267,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_5',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your self-perception and how it aligns with others\' views of you.',
+        infoText: 'This question explores the projected identity vs perceived identity gap. It brings out social awareness, emotional transparency and truth masking behavior.',
         placeholder: 'Try to guess as honestly as possible.'
       },
       {
@@ -279,7 +279,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_5',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your self-perception and how you view your own identity.',
+        infoText: 'This question tests self-concept clarity, emotional honesty, self-storytelling ability in a compressed form and several other variables when cross-linked with other answers.',
         placeholder: 'Think of how you would explain yourself to someone you are meeting for the first time. '
       },
       {
@@ -291,7 +291,7 @@ export const questSections: QuestionSection[] = [
         sectionId: 'section_5',
         allowTags: true,
         isInfo: true,
-        infoText: 'This helps in understanding your self-perception and areas where you feel misunderstood.',
+        infoText: 'This question reveals the part of the self that feels unseen, misjudged, or misunderstood. ',
         placeholder: 'Detailed answer will improve the analysis.'
       }
     ]
