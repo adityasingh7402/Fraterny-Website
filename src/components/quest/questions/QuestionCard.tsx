@@ -732,9 +732,9 @@ const handleSubmit = (submittedResponse: string) => {
             
             {/* Content */}
             <div className="pr-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              {/* <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 Question Purpose
-              </h3>
+              </h3> */}
               <p className="text-gray-600 text-sm leading-relaxed">
                 {question.infoText || "This question helps us better understand your personality and provide more accurate insights."}
               </p>
