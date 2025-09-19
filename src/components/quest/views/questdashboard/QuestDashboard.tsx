@@ -534,7 +534,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                   <p className="text-sm font-['Gilroy-Regular'] text-gray-600 mb-4 leading-relaxed">
                     {currentFunFact}
                   </p>
-                  <div className="flex items-center justify-between">
+                  {/* <div className="flex items-center justify-between">
                     <p className="text-sm font-['Gilroy-semiBold'] text-blue-600">Uncover Your Strengths</p>
                     <button
                       onClick={handleUnlockPotential}
@@ -543,7 +543,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                       <Unlock className="w-4 h-4" />
                       Unlock
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
