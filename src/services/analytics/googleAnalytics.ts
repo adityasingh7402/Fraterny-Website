@@ -75,6 +75,8 @@ class GoogleAnalyticsService {
       });
 
       this.isInitialized = true;
+      // Preserve Google Ads click ID for conversion tracking
+      this.preserveGclid();
       // console.log('✅ GA4 Quest Analytics initialized:', this.measurementId);
       
       // Process any queued events
@@ -330,6 +332,71 @@ class GoogleAnalyticsService {
     return this.measurementId;
   }
 
+  /**
+ * Preserve Google Ads click ID (gclid) for conversion tracking
+ */
+private preserveGclid(): void {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const gclid = urlParams.get('gclid');
+    
+    if (gclid) {
+      // Store gclid in both session and local storage
+      sessionStorage.setItem('gclid', gclid);
+      localStorage.setItem('gclid', gclid);
+      console.log('Google Ads click ID preserved:', gclid);
+    }
+
+    // Preserve Reddit source parameters
+    const utmSource = urlParams.get('utm_source');
+    const isFromReddit = utmSource?.toLowerCase().includes('reddit') || 
+                      document.referrer.toLowerCase().includes('reddit');
+
+    if (isFromReddit) {
+      sessionStorage.setItem('reddit_source', 'true');
+      localStorage.setItem('reddit_source', 'true');
+      console.log('Reddit traffic source preserved');
+    }
+  } catch (error) {
+    console.error('Failed to preserve gclid:', error);
+  }
+}
+
+
+/**
+ * Check if user came from Reddit traffic
+ */
+ isRedditTraffic(): boolean {
+  try {
+    // Check URL parameters for Reddit UTM
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmSource = urlParams.get('utm_source');
+    const utmMedium = urlParams.get('utm_medium');
+    
+    // Check for Reddit-specific parameters
+    if (utmSource && utmSource.toLowerCase().includes('reddit')) {
+      return true;
+    }
+    
+    // Check referrer for Reddit domains
+    const referrer = document.referrer.toLowerCase();
+    if (referrer.includes('reddit.com') || referrer.includes('redd.it')) {
+      return true;
+    }
+    
+    // Check stored Reddit parameters
+    const storedRedditSource = sessionStorage.getItem('reddit_source') || localStorage.getItem('reddit_source');
+    if (storedRedditSource) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking Reddit traffic:', error);
+    return false;
+  }
+}
+
   // ===================================
 // PAYMENT EVENT TRACKING METHODS
 // ===================================
@@ -414,6 +481,63 @@ trackPaymentCompleted(params: {
     total_duration: Math.round(params.total_duration),
     device_type: this.getDeviceType()
   });
+}
+
+
+trackGoogleAdsConversion(params: {
+  session_id: string;
+  payment_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  try {
+    const conversionId = import.meta.env.VITE_GOOGLE_ADS_CONVERSION_ID;
+    
+    if (!conversionId || !this.isInitialized) {
+      return;
+    }
+
+    window.gtag('event', 'conversion', {
+      send_to: conversionId,
+      value: params.amount,
+      currency: params.currency,
+      event_callback: function() {
+        console.log('Google Ads conversion tracked successfully');
+      }
+    });
+  } catch (error) {
+    console.error('Failed to track Google Ads conversion:', error);
+  }
+}
+
+
+/**
+ * Track Reddit conversion
+ */
+trackRedditConversion(params: {
+  session_id: string;
+  payment_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  try {
+    const conversionId = import.meta.env.VITE_REDDIT_CONVERSION_ID;
+    
+    if (!conversionId) {
+      return;
+    }
+
+    window.dataLayer.push({
+      event: "Purchase",
+      conversionId: conversionId,
+      currency: params.currency,
+      transactionValue: params.amount
+    });
+    
+    console.log('Reddit conversion tracked successfully');
+  } catch (error) {
+    console.error('Failed to track Reddit conversion:', error);
+  }
 }
 
 /**

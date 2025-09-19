@@ -248,6 +248,28 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
         if (paymentResult.success) {
           toast.success('Payment successful!');
           const updatedData = await fetchUpdatedAssessmentData();
+          // Track Google Ads conversion for dashboard payments
+          const urlParams = new URLSearchParams(window.location.search);
+          const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+          if (gclid) {
+            googleAnalytics.trackGoogleAdsConversion({
+              session_id: testData.sessionid,
+              payment_id: 'dashboard_payment',
+              amount: 950, // use dynamic pricing here
+              currency: 'INR'
+            });
+
+          // Track Reddit conversion for dashboard payments
+            if (googleAnalytics.isRedditTraffic()) {
+              googleAnalytics.trackRedditConversion({
+                session_id: testData.sessionid,
+                payment_id: 'dashboard_payment',
+                amount: 950,
+                currency: 'INR'
+              });
+            }
+          }
           if (updatedData) {
             setData(updatedData);
           }
@@ -289,7 +311,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading assessments...</p>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading previous assessments...</p>
           <div className="flex justify-center gap-1 mt-4">
             <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
             <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>

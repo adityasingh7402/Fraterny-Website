@@ -295,6 +295,29 @@ class PaymentHandlerService {
         total_duration: sessionDuration
       });
 
+      // Track Google Ads conversion only if user came from Google Ads
+      const urlParams = new URLSearchParams(window.location.search);
+      const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+      if (gclid) {
+        googleAnalytics.trackGoogleAdsConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: paymentData.razorpay_payment_id,
+          amount: orderData.amount / 100,
+          currency: orderData.currency
+        });
+      }
+
+      // Track Reddit conversion if user came from Reddit
+      if (googleAnalytics.isRedditTraffic()) {
+        googleAnalytics.trackRedditConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: paymentData.razorpay_payment_id,
+          amount: orderData.amount / 100,
+          currency: orderData.currency
+        });
+      }
+
       // Clean up session data
       sessionManager.clearAllData();
 

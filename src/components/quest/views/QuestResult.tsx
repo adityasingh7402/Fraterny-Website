@@ -1746,6 +1746,28 @@ useEffect(() => {
       setPaymentSuccess(true);
       setShowSuccessPopup(true);
       setUpsellOpen(false);
+      // Track Google Ads conversion for result page payments
+      const urlParams = new URLSearchParams(window.location.search);
+      const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+      if (gclid) {
+        googleAnalytics.trackGoogleAdsConversion({
+          session_id: sessionId!,
+          payment_id: 'result_page_payment',
+          amount: 950,
+          currency: 'INR'
+        });
+      }
+
+      // Track Reddit conversion for result page payments
+      if (googleAnalytics.isRedditTraffic()) {
+        googleAnalytics.trackRedditConversion({
+          session_id: sessionId!,
+          payment_id: 'result_page_payment',
+          amount: 950,
+          currency: 'INR'
+        });
+      }
     } else {
       const errorMessage = paymentResult.error || 'Payment failed.';
       console.error('Payment failed:', errorMessage);
@@ -1923,6 +1945,28 @@ useEffect(() => {
             setPaymentSuccess(true);
             setShowSuccessPopup(true);
             setUpsellOpen(false);
+            // Track Google Ads conversion for result page payments
+            const urlParams = new URLSearchParams(window.location.search);
+            const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+            if (gclid) {
+              googleAnalytics.trackGoogleAdsConversion({
+                session_id: sessionId!,
+                payment_id: 'result_page_payment',
+                amount: 950,
+                currency: 'INR'
+              });
+            }
+
+            // Track Reddit conversion for result page payments
+            if (googleAnalytics.isRedditTraffic()) {
+              googleAnalytics.trackRedditConversion({
+                session_id: sessionId!,
+                payment_id: 'result_page_payment',
+                amount: 950,
+                currency: 'INR'
+              });
+            }
           } else {
             const errorMessage = paymentResult.error || 'Payment failed after sign-in.';
             toast.error(errorMessage, {
