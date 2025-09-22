@@ -1105,7 +1105,18 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
   
   // Update section questions when current section changes  
   useEffect(() => {
-    setSectionQuestions(getQuestionsBySection(currentSectionId));
+    const newSectionQuestions = getQuestionsBySection(currentSectionId);
+    setSectionQuestions(newSectionQuestions);
+    // Force a re-render by updating session's sectionId if needed
+    setSession(prev => {
+      if (prev && prev.sectionId !== currentSectionId) {
+        return {
+          ...prev,
+          sectionId: currentSectionId
+        };
+      }
+      return prev;
+    });
   }, [currentSectionId]);
     
   // Generate a session ID (temporary - will be from backend)
@@ -1828,19 +1839,25 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     const targetSection = questSections.find(s => s.id === newSectionId);
     
     if (!targetSection) {
-      console.warn(`❌ Section ${newSectionId} not found`);
+      console.warn(`Section ${newSectionId} not found`);
       return;
     }
 
     // If already in the target section, do nothing
     if (currentSectionId === newSectionId) {
-      // console.log('⚠️ Already in target section - no change needed');
       return;
     }
+    
+    // Update the section ID - this should trigger the useEffect
     setCurrentSectionId(newSectionId);
+    
+    // Also immediately get and set the new questions to avoid any delay
+    const newQuestions = getQuestionsBySection(newSectionId);
+    setSectionQuestions(newQuestions);
+    
+    // Update session state
     setSession(prev => {
       if (!prev) {
-        console.log('❌ No previous session state');
         return null;
       }
       
@@ -1850,14 +1867,11 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
         sectionId: newSectionId
       };
       
-      // console.log('✅ Session state updated');
       return newState;
     });
     
     // Clear any errors
     setError(null);
-    // console.log('🧹 Errors cleared');
-    // console.log('🏁 changeSection completed');
   };
   
   // Context value

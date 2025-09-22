@@ -89,6 +89,55 @@ export function ProgressBar({
         return true; // Placeholder response = incomplete
       }
       
+      // Special handling for anonymous questions (q1_1, q1_2) - NOT q1_5
+      if (question.allowAnonymous && (question.id === 'q1_1' || question.id === 'q1_2')) {
+        try {
+          const anonymousData = JSON.parse(responseText);
+          // If user chose anonymous mode, the question is considered complete
+          if (anonymousData.isAnonymous === true) {
+            return false; // Anonymous mode = complete
+          }
+          // If not anonymous mode, check if the actual field has content
+          const fieldName = question.id === 'q1_1' ? 'name' : 'email';
+          const fieldValue = anonymousData[fieldName];
+          if (!fieldValue || fieldValue.trim() === '') {
+            return true; // No field content = incomplete
+          }
+        } catch (e) {
+          // If can't parse as JSON, treat as regular text response
+          // Fall through to other validation logic
+        }
+      }
+      
+      // Special handling for location question with anonymous mode
+      if (question.id === 'q1_5' && question.allowAnonymous && question.enableCityAutocomplete) {
+        try {
+          const locationData = JSON.parse(responseText);
+          
+          // Check if user is in anonymous mode
+          const isAnonymous = locationData.isAnonymous === true;
+          
+          if (isAnonymous) {
+            // In anonymous mode, only details field is required
+            const hasDetails = locationData.details && locationData.details.trim() !== '';
+            if (!hasDetails) {
+              return true; // No details = incomplete (even in anonymous mode)
+            }
+          } else {
+            // In non-anonymous mode, both city and details are required
+            const hasDetails = locationData.details && locationData.details.trim() !== '';
+            const hasCity = locationData.selectedCity && locationData.selectedCity.trim() !== '';
+            
+            if (!hasDetails || !hasCity) {
+              return true; // Missing city or details = incomplete
+            }
+          }
+        } catch (e) {
+          // If can't parse location data, consider it incomplete
+          return true;
+        }
+      }
+      
       // Special handling for ranking questions
       if (question.type === 'ranking') {
         try {
@@ -282,7 +331,7 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
 
     if (currentQuestion.type === 'text_input') {
   const currentTextarea = document.querySelector('textarea');
-  if (currentTextarea && currentTextarea.value) {
+  if (currentTextarea) {
     const selectedTags = getSelectedTagsFromQuestionCard();
     
     // Determine field name based on question type
@@ -304,7 +353,7 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
         const anonymousResponse = JSON.stringify({
           isAnonymous: true,
           selectedCity: "",
-          [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+          [fieldName]: currentTextarea.value  // Keep textarea value even in anonymous mode
         });
         submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
       } else if (currentQuestion.enableCityAutocomplete) {

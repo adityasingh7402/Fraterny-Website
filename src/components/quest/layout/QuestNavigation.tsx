@@ -59,11 +59,23 @@ export function QuestNavigation({
   // Modal state for incomplete questions
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [incompleteInfo, setIncompleteInfo] = useState<{ count: number; sectionName?: string; sectionId?: string; indexInSection?: number } | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<{ sectionId: string; questionIndex: number } | null>(null);
   const auth = useAuth();
   const navigate = useNavigate();
   const posthog = usePostHog();
 
-  
+  // Handle pending navigation after section change
+  React.useEffect(() => {
+    // Only proceed if we have pending navigation and the questions array is not empty
+    // (which indicates the section change has completed)
+    if (pendingNavigation && questions.length > 0 && currentSectionId === pendingNavigation.sectionId) {
+      // Navigate to the target question
+      goToQuestion(pendingNavigation.questionIndex);
+      
+      // Clear pending navigation
+      setPendingNavigation(null);
+    }
+  }, [pendingNavigation, questions, currentSectionId, goToQuestion]);
 
   const formatSubmissionData = () => {
     const fallbackSessionId = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
@@ -345,6 +357,55 @@ const checkForUnfinishedQuestions = () => {
       return true; // Placeholder response = unfinished
     }
     
+    // Special handling for anonymous questions (q1_1, q1_2) - NOT q1_5
+    if (question.allowAnonymous && (question.id === 'q1_1' || question.id === 'q1_2')) {
+      try {
+        const anonymousData = JSON.parse(responseText);
+        // If user chose anonymous mode, the question is considered complete
+        if (anonymousData.isAnonymous === true) {
+          return false; // Anonymous mode = complete
+        }
+        // If not anonymous mode, check if the actual field has content
+        const fieldName = question.id === 'q1_1' ? 'name' : 'email';
+        const fieldValue = anonymousData[fieldName];
+        if (!fieldValue || fieldValue.trim() === '') {
+          return true; // No field content = unfinished
+        }
+      } catch (e) {
+        // If can't parse as JSON, treat as regular text response
+        // Fall through to other validation logic
+      }
+    }
+    
+    // Special handling for location question with anonymous mode
+    if (question.id === 'q1_5' && question.allowAnonymous && question.enableCityAutocomplete) {
+      try {
+        const locationData = JSON.parse(responseText);
+        
+        // Check if user is in anonymous mode
+        const isAnonymous = locationData.isAnonymous === true;
+        
+        if (isAnonymous) {
+          // In anonymous mode, only details field is required
+          const hasDetails = locationData.details && locationData.details.trim() !== '';
+          if (!hasDetails) {
+            return true; // No details = unfinished (even in anonymous mode)
+          }
+        } else {
+          // In non-anonymous mode, both city and details are required
+          const hasDetails = locationData.details && locationData.details.trim() !== '';
+          const hasCity = locationData.selectedCity && locationData.selectedCity.trim() !== '';
+          
+          if (!hasDetails || !hasCity) {
+            return true; // Missing city or details = unfinished
+          }
+        }
+      } catch (e) {
+        // If can't parse location data, consider it unfinished
+        return true;
+      }
+    }
+    
     // Special handling for ranking questions
     if (question.type === 'ranking') {
       try {
@@ -375,8 +436,20 @@ const checkForUnfinishedQuestions = () => {
     const firstUnfinishedQuestion = unfinishedQuestions[0];
     const sectionId = firstUnfinishedQuestion?.sectionId;
     const sectionName = sections?.find(s => s.id === sectionId)?.title || 'Unknown Section';
+    
+    // DEBUG: Log detailed navigation info
+    console.log('🎯 Navigation Debug:', {
+      firstUnfinishedQuestionId: firstUnfinishedQuestion.id,
+      sectionId: sectionId,
+      sectionName: sectionName
+    });
+    
     // find index within its section
-    const indexInSection = sections.find(s => s.id === sectionId)?.questions.findIndex(q => q.id === firstUnfinishedQuestion.id) ?? 0;
+    const targetSection = sections.find(s => s.id === sectionId);
+    console.log('🎯 Target section questions:', targetSection?.questions.map(q => q.id));
+    
+    const indexInSection = targetSection?.questions.findIndex(q => q.id === firstUnfinishedQuestion.id) ?? 0;
+    console.log('🎯 Calculated indexInSection:', indexInSection, 'for question:', firstUnfinishedQuestion.id);
     
     return {
       hasUnfinished: true,
@@ -434,7 +507,7 @@ const handleNext = async () => {
 
     if (currentQuestion.type === 'text_input') {
   const currentTextarea = document.querySelector('textarea');
-  if (currentTextarea && currentTextarea.value) {
+  if (currentTextarea) {
     const selectedTags = getSelectedTagsFromQuestionCard();
     
     // Determine field name based on question type
@@ -456,7 +529,7 @@ const handleNext = async () => {
         const anonymousResponse = JSON.stringify({
           isAnonymous: true,
           selectedCity: "",
-          [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+          [fieldName]: currentTextarea.value  // Keep textarea value even in anonymous mode
         });
         submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
       } else if (currentQuestion.enableCityAutocomplete) {
@@ -703,15 +776,28 @@ const goToFirstIncomplete = () => {
     setShowIncompleteModal(false);
     return;
   }
+  
   const targetSectionId = incompleteInfo.sectionId;
   const targetIndex = incompleteInfo.indexInSection;
-  // Change section, then move to the question index
-  changeSection(targetSectionId);
-  // Delay navigating to question index slightly to allow section change state to apply
-  setTimeout(() => {
-    goToQuestion(targetIndex);
-  }, 100);
+  
+  // Close modal first
   setShowIncompleteModal(false);
+  
+  // Try to change section and navigate
+  if (currentSectionId === targetSectionId) {
+    // Already in the right section, navigate directly
+    goToQuestion(targetIndex);
+  } else {
+    // Need to change section first
+    // Store the target index in state first so we don't lose it during the section change
+    setPendingNavigation({
+      sectionId: targetSectionId,
+      questionIndex: targetIndex
+    });
+    
+    // Change section first
+    changeSection(targetSectionId);
+  }
 };
 
 const handlePrevious = () => {
@@ -749,7 +835,7 @@ const handlePrevious = () => {
     // Save current response before going back (copy from handleNext)
      if (currentQuestion.type === 'text_input') {
       const currentTextarea = document.querySelector('textarea');
-      if (currentTextarea && currentTextarea.value) {
+      if (currentTextarea) {
         const selectedTags = getSelectedTagsFromQuestionCard();
         
         // Determine field name based on question type
@@ -771,7 +857,7 @@ const handlePrevious = () => {
             const anonymousResponse = JSON.stringify({
               isAnonymous: true,
               selectedCity: "",
-              [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+              [fieldName]: currentTextarea.value  // Keep textarea value even in anonymous mode
             });
             submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
           } else if (currentQuestion.enableCityAutocomplete) {
