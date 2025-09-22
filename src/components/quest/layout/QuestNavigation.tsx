@@ -456,7 +456,7 @@ const handleNext = async () => {
         const anonymousResponse = JSON.stringify({
           isAnonymous: true,
           selectedCity: "",
-          [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+          [fieldName]: currentTextarea.value  // Keep textarea value even in anonymous mode
         });
         submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
       } else if (currentQuestion.enableCityAutocomplete) {
@@ -771,7 +771,7 @@ const handlePrevious = () => {
             const anonymousResponse = JSON.stringify({
               isAnonymous: true,
               selectedCity: "",
-              [fieldName]: currentQuestion.enableCityAutocomplete ? currentTextarea.value : ""
+              [fieldName]: currentTextarea.value  // Keep textarea value even in anonymous mode
             });
             submitResponse(currentQuestion.id, anonymousResponse, selectedTags);
           } else if (currentQuestion.enableCityAutocomplete) {
