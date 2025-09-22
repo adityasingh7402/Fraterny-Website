@@ -491,7 +491,7 @@ const handleSubmit = (submittedResponse: string) => {
 
               {question.enableCityAutocomplete && question.allowAnonymous && (
                 <div className="mb-4">
-                  <label>Primary City</label>
+                  {/* <label>Primary City</label> */}
                   <div className="relative">
                     <CityAutocomplete
                       onCitySelect={(city) => {
