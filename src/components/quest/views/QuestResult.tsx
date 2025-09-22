@@ -1008,8 +1008,9 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
         <img 
           src={logo} 
           alt="Logo" 
-          className="w-20 h-14 transition-all duration-300" 
+          className="w-20 h-14 transition-all duration-300 cursor-pointer hover:opacity-80" 
           style={{ filter: colors.logoFilter }}
+          onClick={() => window.location.href = '/quest'}
         />
           <button
             onClick={onSignIn}
