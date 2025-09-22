@@ -2480,7 +2480,7 @@ useEffect(() => {
               sub="Start today; 60-minute cap" 
               shareText={actionItem} 
               themeKey="work" 
-              customClass="pt-20 overflow-y-auto"
+              customClass="pt-20 pb-24 overflow-y-auto"
               sessionId={sessionId}
               testId={testId}
             >
