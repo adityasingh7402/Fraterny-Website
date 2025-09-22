@@ -503,7 +503,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Feedback
                           </button> */}
-                          <button
+                          {/* <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(assessment);
@@ -512,7 +512,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                           >
                             <FileText className="w-4 h-4 mr-2" />
                             Delete
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </div>

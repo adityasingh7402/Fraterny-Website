@@ -492,7 +492,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       />
 
       {/* Main Content */}
-      <main className="px-6 -mt-8 relative z-20">
+      <main className="px-6 -mt-8 relative z-10">
         {/* Assessment Journeys Card */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-8">
           <div className="flex justify-between items-center">
@@ -508,14 +508,14 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         </div>
 
         {/* Insights Section */}
-        <section className="mb-8">
+        <section className="mb-24">
           <h3 className="text-xl font-['Gilroy-Bold'] text-gray-800 mb-4">Your Insights at a Glance</h3>
           <div className="grid grid-cols-2 gap-4">
             {/* Creative Thinker Card */}
-            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
+            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px] overflow-hidden">
               <Lightbulb className="w-12 h-12 mb-2 text-yellow-500" />
               <h4 className="font-['Gilroy-Bold'] text-sm text-gray-800">Creative Thinker</h4>
-              <p className="text-xs font-['Gilroy-Regular'] text-gray-500 mt-1">Creative thinking often leads to innovative solutions and unique perspectives.</p>
+              <p className="text-xs font-['Gilroy-Regular'] text-gray-500 mt-1 overflow-hidden text-ellipsis">Creative thinking often leads to innovative solutions and unique perspectives.</p>
             </div>
 
             {/* Areas for Growth Card */}
@@ -534,7 +534,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                   <p className="text-sm font-['Gilroy-Regular'] text-gray-600 mb-4 leading-relaxed">
                     {currentFunFact}
                   </p>
-                  {/* <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <p className="text-sm font-['Gilroy-semiBold'] text-blue-600">Uncover Your Strengths</p>
                     <button
                       onClick={handleUnlockPotential}
@@ -543,7 +543,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                       <Unlock className="w-4 h-4" />
                       Unlock
                     </button>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             </div>
@@ -594,7 +594,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-t flex justify-around py-3 border-t">
+      <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-t flex justify-around py-3 border-t z-50">
         <div className="text-center text-blue-600 cursor-pointer">
           <Home className="w-6 h-6 mx-auto" />
           <p className="text-xs font-['Gilroy-semiBold']">Home</p>
