@@ -56,6 +56,9 @@ export function QuestNavigation({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasStartedSubmission, setHasStartedSubmission] = useState(false);
+  // Simple delay for Next and Previous buttons (700ms to prevent duplicate answers)
+  const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
+  const [previousButtonDisabled, setPreviousButtonDisabled] = useState(false);
   // Modal state for incomplete questions
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [incompleteInfo, setIncompleteInfo] = useState<{ count: number; sectionName?: string; sectionId?: string; indexInSection?: number } | null>(null);
@@ -471,6 +474,18 @@ const checkForUnfinishedQuestions = () => {
 };
 
 const handleNext = async () => {
+  // Simple 700ms delay to prevent rapid clicking duplicate answers
+  if (nextButtonDisabled) {
+    console.log('⏱️ Next button is disabled, please wait...');
+    return;
+  }
+  
+  // Disable button for 700ms
+  setNextButtonDisabled(true);
+  setTimeout(() => {
+    setNextButtonDisabled(false);
+  }, 700);
+  
   if (currentQuestion) {
     
     const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
@@ -801,6 +816,18 @@ const goToFirstIncomplete = () => {
 };
 
 const handlePrevious = () => {
+  // Simple 700ms delay to prevent rapid clicking duplicate answers
+  if (previousButtonDisabled) {
+    console.log('⏱️ Previous button is disabled, please wait...');
+    return;
+  }
+  
+  // Disable button for 700ms
+  setPreviousButtonDisabled(true);
+  setTimeout(() => {
+    setPreviousButtonDisabled(false);
+  }, 700);
+  
   if (currentQuestion) {
     // Copy the exact same response-saving logic from handleNext()
     const getSelectedTagsFromQuestionCard = (): HonestyTag[] => {
@@ -1041,14 +1068,16 @@ const handleCancelSubmission = () => {
             animate="animate"
             whileTap="tap"
             onClick={handlePrevious}
-            disabled={isFirstQuestion}
+            disabled={isFirstQuestion || previousButtonDisabled}
             className={` ${
               isFirstQuestion
                 ? 'hidden'
-                : 'w-[70px] h-14 bg-white rounded-full border-2 border-neutral-400 justify-center items-center flex'
+                : previousButtonDisabled
+                  ? 'w-[70px] h-14 bg-gray-300 rounded-full border-2 border-gray-400 justify-center items-center flex cursor-not-allowed opacity-50'
+                  : 'w-[70px] h-14 bg-white rounded-full border-2 border-neutral-400 justify-center items-center flex'
             }`}
           >
-              <ChevronLeft className={`w-5 h-5 ${isFirstQuestion ? 'hidden' : 'block'}`} />
+              <ChevronLeft className={`w-5 h-5 ${isFirstQuestion ? 'hidden' : 'block'} ${previousButtonDisabled ? 'text-gray-500' : ''}`} />
           </motion.button>
         )}
 
@@ -1059,15 +1088,23 @@ const handleCancelSubmission = () => {
             animate="animate"
             whileTap="tap"
             onClick={handleNext}
+            disabled={nextButtonDisabled}
             className={`px-4 py-2 text-white text-sm font-medium transition-colors ${
-              isLastQuestion && showFinish
-                ? 'w-4/5 h-14 bg-gradient-to-br from-sky-800 to-sky-400 rounded-[36px] border-2 border-blue-950'
-                : 'w-full h-14 bg-gradient-to-br from-sky-800 to-sky-400 rounded-[36px] border-2 border-blue-950'
+              nextButtonDisabled 
+                ? 'w-full h-14 bg-gray-400 rounded-[36px] border-2 border-gray-500 cursor-not-allowed opacity-50'
+                : isLastQuestion && showFinish
+                  ? 'w-4/5 h-14 bg-gradient-to-br from-sky-800 to-sky-400 rounded-[36px] border-2 border-blue-950'
+                  : 'w-full h-14 bg-gradient-to-br from-sky-800 to-sky-400 rounded-[36px] border-2 border-blue-950'
             }`}
           >
             <div className='flex gap-1 justify-center items-center'>
               <div className="w-auto justify-center text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-[-2px]">
-              {isLastQuestion && showFinish ? 'Finish' : 'Next'}
+              {nextButtonDisabled 
+                ? 'Wait...' 
+                : isLastQuestion && showFinish 
+                  ? 'Finish' 
+                  : 'Next'
+              }
               </div>
               <div className='h-full flex items-center justify-center pt-1'>
                 <ChevronRight className='w-[1.5] h-[3]'/>

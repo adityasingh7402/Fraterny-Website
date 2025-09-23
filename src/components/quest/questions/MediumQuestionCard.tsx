@@ -11,6 +11,7 @@ export function MediumQuestionCard(props: DifficultyQuestionCardProps) {
   return (
     <QuestionCard
       {...props}
+      key={props.question.id} // Force re-mount when question changes
       className={`${props.className || ''}`}
     />
   );
