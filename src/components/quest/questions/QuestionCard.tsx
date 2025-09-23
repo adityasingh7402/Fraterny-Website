@@ -35,6 +35,14 @@ export function QuestionCard({
   showTags = true,
   className = ''
 }: QuestionCardProps) {
+  // Debug: Log when component receives previousResponse
+  console.log('📝 QuestionCard received props:', {
+    questionId: question.id,
+    hasPreviousResponse: !!previousResponse,
+    previousResponseData: previousResponse?.response,
+    previousTags: previousResponse?.tags
+  });
+  
   // State for the current response
   
   //const [response, setResponse] = useState<string>(previousResponse?.response || '');
@@ -57,29 +65,35 @@ const [response, setResponse] = useState<string>(() => {
       return previousResponse.response;
     }
     
-    // For text questions with city data
-    try {
-      // Try to parse as JSON with proper field mapping
-      const parsed = JSON.parse(previousResponse.response);
-      console.log('🔄 Restoring parsed response:', parsed);
-      
-      
-      // Determine field name based on question type
-      let fieldValue = '';
-      if (question.id === 'q1_1') {
-        fieldValue = parsed.name || '';
-      } else if (question.id === 'q1_2') {
-        fieldValue = parsed.email || '';
-      } else if (question.id === 'q1_3') {        
-        fieldValue = String(parsed) ?? '';
-      } else if (question.id === 'q1_5') {
-        fieldValue = parsed.details || '';
-      } else {
-        fieldValue = parsed.details || '';
+    // For questions with anonymous mode or city autocomplete, parse JSON
+    if (question.allowAnonymous || question.enableCityAutocomplete) {
+      try {
+        // Try to parse as JSON with proper field mapping
+        const parsed = JSON.parse(previousResponse.response);
+        console.log('🔄 Restoring parsed response:', parsed);
+        
+        // Determine field name based on question type
+        let fieldValue = '';
+        if (question.id === 'q1_1') {
+          fieldValue = parsed.name || '';
+        } else if (question.id === 'q1_2') {
+          fieldValue = parsed.email || '';
+        } else if (question.id === 'q1_3') {        
+          fieldValue = String(parsed.age || '') || '';
+        } else if (question.id === 'q1_5') {
+          fieldValue = parsed.details || '';
+        } else {
+          fieldValue = parsed.details || '';
+        }
+        
+        return fieldValue;
+      } catch {
+        // If JSON parsing fails, return the raw response
+        return previousResponse.response;
       }
-      
-      return fieldValue;
-    } catch {
+    } else {
+      // For regular text questions without special features, return raw response
+      console.log('🔄 Restoring simple text response:', previousResponse.response);
       return previousResponse.response;
     }
   }
