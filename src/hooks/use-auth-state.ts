@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 // Define admin emails in a separate array for easier management
-const ADMIN_EMAILS = ['malhotrayash1900@gmail.com']; 
+const ADMIN_EMAILS = ['malhotrayash1900@gmail.com', 'indranilmaiti1@gmail.com']; 
 
 /**
  * Hook to manage auth state with Supabase
