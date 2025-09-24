@@ -20,12 +20,16 @@ import Index from './pages/Index';
 import Auth from './pages/Auth';
 
 // SECONDARY ROUTES - Lazy load for better code splitting
-const Experience = lazy(() => import('./pages/Experience'));
-const Process = lazy(() => import('./pages/Process'));
-const Pricing = lazy(() => import('./pages/Pricing'));
-const FAQ = lazy(() => import('./pages/FAQ'));
-const Blog = lazy(() => import('./pages/Blog'));
-const BlogPost = lazy(() => import('./pages/BlogPost'));
+// const Experience = lazy(() => import('./pages/Experience'));
+// const Process = lazy(() => import('./pages/Process'));
+// const Pricing = lazy(() => import('./pages/Pricing'));
+// const FAQ = lazy(() => import('./pages/FAQ'));
+import Experience from './pages/Experience';
+import Process from './pages/Process';
+import Pricing from './pages/Pricing';
+import FAQ from './pages/FAQ';
+import BlogPost from './pages/BlogPost';
+import Blog from './pages/Blog';
 
 // LEGAL PAGES - Lazy load (rarely accessed)
 // const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
@@ -44,11 +48,16 @@ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import QuestResult from './components/quest/views/QuestResult';
 
 // ADMIN ROUTES - Heavily lazy loaded and chunk-separated
-const Dashboard = lazy(() => import('./pages/admin/dashboard'));
-const AdminBlog = lazy(() => import('./pages/admin/blog'));
-const Analytics = lazy(() => import('./pages/admin/Analytics'));
-const AdminImages = lazy(() => import('./pages/admin/images'));
-const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
+// const Dashboard = lazy(() => import('./pages/admin/dashboard'));
+// const AdminBlog = lazy(() => import('./pages/admin/blog'));
+// const Analytics = lazy(() => import('./pages/admin/Analytics'));
+// const AdminImages = lazy(() => import('./pages/admin/images'));
+// const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
+import Dashboard from './pages/admin/dashboard';
+import AdminBlog from './pages/admin/blog';
+import Analytics from './pages/admin/Analytics';
+import AdminImages from './pages/admin/images';
+import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 
 // PROFILE ROUTES - Lazy loaded with optimized chunks
 const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
