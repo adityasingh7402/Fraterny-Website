@@ -576,8 +576,8 @@ const sendFeedback = async () => {
     if (reacted === "down") reaction = "dislike";
     
     console.log("Sending feedback:", { sessionId, testId, feedback, sectionId });
-    
-    const reactions = await axios.post('https://api.fraterny.in/api/quest/feedback', {
+
+    const reactions = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
       sessionId,
       testId,
       reaction,
@@ -603,7 +603,7 @@ const sendReaction = async (reactionType: "like" | "dislike") => {
   try {
     console.log("Sending reaction:", { sessionId, testId, reactionType, sectionId });
 
-    const res = await axios.post('https://api.fraterny.in/api/quest/like_feedback', {
+    const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/like_feedback`, {
       sessionId,
       testId,
       reaction: reactionType,
@@ -1657,7 +1657,7 @@ useEffect(() => {
         const email = user?.email || '';
         //console.log('User signed in:', user.user_metadata.full_name, user.email);
         console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
-        const response = await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
           sessionId,
           testId,
           userId,
@@ -1715,7 +1715,7 @@ useEffect(() => {
           : 'User';
         const email = user?.email || '';
         console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
-        const response  = await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+        const response  = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
           sessionId,
           testId,
           userId,
@@ -1822,7 +1822,7 @@ useEffect(() => {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `https://api.fraterny.in/api/report/${userId}/${sessionId}/${testId}`, 
+          `${import.meta.env.VITE_BACKEND_URL}/api/report/${userId}/${sessionId}/${testId}`, 
           {
             headers: { 'Content-Type': 'application/json' },
           }
@@ -1883,7 +1883,7 @@ useEffect(() => {
         console.log('Associating session with user:', { sessionId, testId, userId, username, email });
         try {
           // Call API to associate anonymous data with authenticated user
-          const response =await axios.post('https://api.fraterny.in/api/saveusingsignin', {
+          const response =await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
             sessionId,
             testId,
             userId,

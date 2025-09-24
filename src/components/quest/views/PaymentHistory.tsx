@@ -125,7 +125,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
   const fetchPaymentHistory = async (): Promise<PaymentTransaction[]> => {
     try {
       const response = await axios.get(
-        `https://api.fraterny.in/api/payment-history/${userId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/payment-history/${userId}`,
         {
           headers: {
             'Content-Type': 'application/json',
