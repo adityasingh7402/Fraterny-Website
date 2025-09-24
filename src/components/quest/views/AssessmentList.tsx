@@ -123,7 +123,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
     
     try {
       const response = await axios.get<DashboardApiResponse>(
-        `https://api.fraterny.in/api/userdashboard/${userId}`
+        `${import.meta.env.VITE_BACKEND_URL}/api/userdashboard/${userId}`
       );
       return response.data.data;
     } catch (error) {
@@ -146,7 +146,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
 
         console.log('Fetching assessment data from API for user:', userId);
         const response = await axios.get<DashboardApiResponse>(
-          `https://api.fraterny.in/api/userdashboard/${userId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/userdashboard/${userId}`,
           {
             headers: {
               'Content-Type': 'application/json',

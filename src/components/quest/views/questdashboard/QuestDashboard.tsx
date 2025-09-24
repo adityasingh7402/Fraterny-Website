@@ -152,7 +152,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
         return MOCK_DATA;
       } else {
         const response = await axios.get<DashboardApiResponse>(
-          `https://api.fraterny.in/api/userdashboard/${userId}`
+          `${import.meta.env.VITE_BACKEND_URL}/api/userdashboard/${userId}`
         );
         return response.data.data;
       }
@@ -181,7 +181,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
 
           console.log('Fetching dashboard data from API for user:', userId);
           const response = await axios.get<DashboardApiResponse>(
-            `https://api.fraterny.in/api/userdashboard/${userId}`,
+            `${import.meta.env.VITE_BACKEND_URL}/api/userdashboard/${userId}`,
             {
               headers: {
                 'Content-Type': 'application/json',

@@ -106,7 +106,7 @@ export function useQuestRecovery() {
       setState(prev => ({ ...prev, deviceInfo: identifier }));
 
       // Call recovery API
-      const response = await axios.post('https://api.fraterny.in/api/quest/recover', {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/recover`, {
         ip: identifier.ip,
         deviceHash: identifier.deviceHash,
         userId: user?.id

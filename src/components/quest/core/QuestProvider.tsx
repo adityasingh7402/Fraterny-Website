@@ -1570,9 +1570,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       timestamp: new Date().toISOString()
     });
     console.log('posthog event captured: api_request_started..', requestStartTime);
-    
-    
-    const response = await axios.post("https://api.fraterny.in/api/agent", submissionData, {
+
+
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/agent`, submissionData, {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -1684,7 +1684,7 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       timestamp: new Date().toISOString()
     });
 
-    const statusResponse = await fetch(`https://api.fraterny.in/api/status/${testid}`);
+    const statusResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/status/${testid}`);
     const statusData = await statusResponse.json();
     
     if (statusData.status === 'processing' || statusData.status === 'ready') {
