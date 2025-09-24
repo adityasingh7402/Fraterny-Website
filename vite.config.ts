@@ -6,8 +6,10 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "localhost", // Security fix: was "::" (exposed to all interfaces)
+    host: true, // Enable network access - allows access from any device on your network
     port: 8080,
+    strictPort: false, // Will try another port if 8080 is busy
+    open: false, // Set to true if you want browser to open automatically
   },
   plugins: [
     react(),

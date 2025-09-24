@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import img from '../../../../public/Vector.svg';
 import {useIsMobile} from '../../quest/views/questbouncing/use-mobile';
 import { Link } from 'react-router-dom';
+import BrowserPopup from '../BrowserPopup';
 
 interface HeroProps {
   onAnalyzeClick?: () => void;
@@ -42,7 +43,11 @@ const Hero: React.FC<HeroProps> = ({
 
   if (isMobile) {
     return(
-    <section className='w-screen border-2-red-500 h-full relative'>
+    <>
+      {/* Browser Detection Popup */}
+      <BrowserPopup />
+      
+      <section className='w-screen border-2-red-500 h-full relative'>
 
       <motion.div 
         layoutId='bg'
@@ -145,10 +150,15 @@ const Hero: React.FC<HeroProps> = ({
       </div>
 
     </section>
+    </>
     )
   }
   return (
-    <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
+    <>
+      {/* Browser Detection Popup */}
+      <BrowserPopup />
+      
+      <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
       <div className=' flex flex-col w-full items-center justify-center'>
         <div className='flex gap-2'>
           <motion.div 
@@ -189,7 +199,7 @@ const Hero: React.FC<HeroProps> = ({
         <div className='text-white text-[25px] font-normal font-["Gilroy-Regular"] mt-2'>Scan the QR code to get started on your mobile.</div>
       </div>
     </section>
-   
+    </>
   );
 };
 
