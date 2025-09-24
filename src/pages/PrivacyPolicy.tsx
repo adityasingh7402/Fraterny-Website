@@ -204,8 +204,10 @@ const PrivacyPolicy = () => {
 
             <h3 className="text-navy font-playfair text-2xl font-semibold mt-8 mb-4">f. Technical & Usage Information</h3>
             <ul className="list-disc pl-6 mb-8">
-              <li className="mb-2">Device type, IP address, browser details</li>
-              <li className="mb-2">Website navigation, page views, clicks, time spent</li>
+              <li className="mb-2">Device type, IP address, browser details, operating system</li>
+              <li className="mb-2">IP address for assessment validation, session recovery, and geographic verification</li>
+              <li className="mb-2">Device fingerprinting data (screen resolution, timezone, language settings, platform information) combined with IP address to create unique device identifiers for assessment integrity</li>
+              <li className="mb-2">Location data derived from IP address for service eligibility verification</li>
               <li className="mb-2">Cookies and similar technologies (see Section 7)</li>
             </ul>
 

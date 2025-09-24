@@ -98,11 +98,10 @@ const BrowserPopup: React.FC<BrowserPopupProps> = ({ onClose }) => {
                 {/* Title and Description */}
                 <div className="text-center mb-8">
                   <h2 className="text-4xl font-normal font-['Gilroy-Bold'] text-white mb-3">
-                    Open in Your Browser
+                    Open in Default Browser
                   </h2>
-                  <p className="text-white/80 text-xl font-['Gilroy-Regular'] leading-relaxed">
-                    For the best Quest experience with all features working perfectly, 
-                    please open this in your default browser.
+                  <p className="text-white/80 text-xl font-['Gilroy-Regular']">
+                    For the best Quest Experience, we recommend using your default browser.
                   </p>
                 </div>
 
@@ -118,7 +117,7 @@ const BrowserPopup: React.FC<BrowserPopupProps> = ({ onClose }) => {
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-400 transition-transform group-hover:scale-110" />
                     <div className="relative bg-gradient-to-r from-blue-500/90 to-cyan-400/90 backdrop-blur-sm px-6 py-4 flex items-center justify-center gap-3">
                       <span className="text-white font-[600] text-xl font-['Gilroy-Bold']">
-                        Open in Browser
+                        Open Browser
                       </span>
                       <ExternalLink size={20} className="text-white" />
                     </div>
@@ -129,7 +128,7 @@ const BrowserPopup: React.FC<BrowserPopupProps> = ({ onClose }) => {
                     onClick={handleCopyLink}
                     className="px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 font-['Gilroy-semiBold'] text-lg hover:bg-white/20 transition-colors"
                   >
-                    Copy Link Instead
+                    Copy URL
                   </button>
 
                   {/* Continue anyway link */}
@@ -137,7 +136,7 @@ const BrowserPopup: React.FC<BrowserPopupProps> = ({ onClose }) => {
                     onClick={handleClose}
                     className="text-white/60 text-base underline hover:text-white/80 transition-colors mt-2 font-['Gilroy-Regular']"
                   >
-                    Continue in {appName} anyway
+                    Continue on {appName}
                   </button>
                 </div>
               </div>
