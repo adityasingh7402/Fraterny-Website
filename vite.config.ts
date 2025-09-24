@@ -130,7 +130,6 @@ export default defineConfig(({ mode }) => ({
     ],
     exclude: [
       // Exclude admin-heavy dependencies from dev optimization
-      'recharts'
     ]
   },
 }));

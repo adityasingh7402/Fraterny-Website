@@ -135,3 +135,64 @@ const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
 };
 
 export default TextEditor;
+
+
+
+// import React, { useRef, useEffect } from 'react';
+
+// interface TextEditorProps {
+//   content: string;
+//   onChange: (value: string) => void;
+// }
+
+// const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
+//   const editorRef = useRef<any>(null);
+//   const initialized = useRef(false);
+
+//   useEffect(() => {
+//     if (initialized.current) return;
+    
+//     // Load TinyMCE from CDN
+//     const script = document.createElement('script');
+//     script.src = `https://cdn.tiny.cloud/1/${import.meta.env.VITE_TINYMCE_API_KEY}/tinymce/6/tinymce.min.js`;
+//     script.onload = () => {
+//       (window as any).tinymce.init({
+//         target: editorRef.current,
+//         height: 200,
+//         menubar: false,
+//         plugins: 'lists link code',
+//         toolbar: 'bold italic underline | alignleft aligncenter alignright | bullist numlist | link',
+//         setup: (editor: any) => {
+//           editor.on('input change', () => {
+//             onChange(editor.getContent());
+//           });
+//         }
+//       });
+//     };
+//     document.head.appendChild(script);
+//     initialized.current = true;
+
+//     return () => {
+//       if ((window as any).tinymce) {
+//         (window as any).tinymce.remove();
+//       }
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     if ((window as any).tinymce && editorRef.current) {
+//       const editor = (window as any).tinymce.get(editorRef.current.id);
+//       if (editor && editor.getContent() !== content) {
+//         editor.setContent(content);
+//       }
+//     }
+//   }, [content]);
+
+//   return (
+//     <div className="w-full border rounded-lg overflow-hidden">
+//       <div ref={editorRef} />
+//     </div>
+//   );
+// };
+
+// export default TextEditor;

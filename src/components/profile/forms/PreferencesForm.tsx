@@ -4,7 +4,7 @@ import { useProfileEdit } from '@/hooks/useProfileEdit';
 import { useProfileData } from '@/hooks/useProfileData';
 import { UserPreferences } from '@/types/profile';
 import { useToast } from '@/hooks/use-toast';
-import { debounce } from 'lodash';
+//import debounce from 'lodash/debounce';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -159,7 +159,7 @@ export function PreferencesForm({ className }: PreferencesFormProps) {
           className="space-y-6"
         >
           {/* Notification Section */}
-          <motion.div variants={itemVariants} className="space-y-4">
+          <motion.div className="space-y-4">
             <h3 className="text-sm font-medium">Notifications</h3>
             
             <div className="flex items-center justify-between">
@@ -192,7 +192,7 @@ export function PreferencesForm({ className }: PreferencesFormProps) {
           </motion.div>
           
           {/* Privacy Section */}
-          <motion.div variants={itemVariants} className="space-y-4 pt-2">
+          <motion.div className="space-y-4 pt-2">
             <h3 className="text-sm font-medium">Privacy & Data</h3>
             
             <div className="flex items-center justify-between">
