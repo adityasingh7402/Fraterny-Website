@@ -68,9 +68,9 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
                     <ResponsiveImage
                       dynamicKey={post.image_key}
                       alt={post.title}
-                      size="small"
+                      sizes="small"
                       className="w-full h-full object-cover"
-                      src="" // Provide empty string as src since we're using dynamicKey
+                      // src="" // Provide empty string as src since we're using dynamicKey
                     />
                   </div>
                 ) : (

@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/services/images';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
 import TextEditor from '@/components/blog/TextEditor';
+import { BlogFormValues } from '../types';
 
 const CATEGORIES = [
   'News',
@@ -26,7 +27,7 @@ type BlogFormProps = {
     published: boolean;
     image_key?: string | null;
   };
-  setFormValues: (values: any) => void;
+  setFormValues: (values: BlogFormValues | ((prev: BlogFormValues) => BlogFormValues)) => void;
   setEditingId: (id: string | null) => void;
   onSuccess: () => void;
 };
@@ -36,8 +37,9 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? e.target.checked : undefined;
     setFormValues(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -61,7 +63,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
     }));
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -103,7 +105,7 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -187,8 +189,8 @@ const BlogForm = ({ editingId, formValues, setFormValues, setEditingId, onSucces
                   dynamicKey={formValues.image_key}
                   alt={formValues.title || "Blog featured image"}
                   className="w-full h-full object-cover"
-                  size="medium"
-                  src=""
+                  sizes="medium"
+                  // src=""
                 />
                 <button
                   type="button"
