@@ -517,6 +517,11 @@ const sectionTheme = (key: string) => {
       return { bg: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 100%)`, text: tokens.textDark };
     case "work":
       return { bg: `linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(72,185,216,0.95) 100%)`, text: tokens.textLight };
+    case "pdf-report":
+      return {
+        bg: `linear-gradient(135deg, rgba(12,69,240,0.95) 0%, rgba(65,217,255,0.9) 50%, rgba(72,185,216,0.95) 100%)`,
+        text: tokens.textLight
+      };
     default:
       return { bg: `#FFFFFF`, text: tokens.textDark };
   }
@@ -941,7 +946,7 @@ const CirclePercent: React.FC<CirclePercentProps> = ({ percent }) => {
 };
 
 const getAuthBannerColors = (sectionIndex: number) => {
-  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
   const currentSection = sectionKeys[sectionIndex];
   
   switch (currentSection) {
@@ -961,6 +966,7 @@ const getAuthBannerColors = (sectionIndex: number) => {
     case "films":
     case "astrology":
     case "work":
+    case "pdf-report":
     default:
       // Dark sections - use light colors
       return {
@@ -984,7 +990,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
   const colors = getAuthBannerColors(activeIndex);
   
   const getGlassBackground = (index: number) => {
-    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
     const currentSection = sectionKeys[index];
     
     if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books") {
@@ -1493,8 +1499,9 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   });
   
   const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
+  const [seconds, setSeconds] = useState(30 * 60); // 30 minutes countdown for PDF promotion
 
-  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
   const getEffectiveUserId = () => {
     return user?.id || userId;
   };
@@ -1528,6 +1535,14 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     const t = setTimeout(() => setTip(null), 2000);
     return () => clearTimeout(t);
   }, [tip]);
+
+  // Countdown timer for PDF promotion
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((prevSeconds) => (prevSeconds > 0 ? prevSeconds - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -2488,6 +2503,119 @@ useEffect(() => {
                 <div className="rounded-2xl bg-white/10 p-4 text-2xl leading-6">
                   <div className="font-['Gilroy-Regular'] mb-10 text-left leading-snug">{actionItem}</div>
                   <div className="opacity-95 text-xl font-['Gilroy-semiBold']">One small step could change your direction forever.</div>
+                </div>
+              </div>
+            </SectionFrame>
+
+            {/* PDF Report Preview Section */}
+            <SectionFrame 
+              id="pdf-report" 
+              title="Your Complete PDF Report" 
+              sub="35+ Pages of Deep Analysis" 
+              shareText="Check out my complete personality analysis from Fraterny!" 
+              themeKey="pdf-report" 
+              customClass="pt-16 pb-24 overflow-y-auto"
+              sessionId={sessionId}
+              testId={testId}
+            >
+              <div className="relative">
+                {/* PDF Content Preview */}
+                <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                  {/* Visible Content */}
+                  <div className="space-y-4">
+                    <div className="text-white/90">
+                      <p className="text-lg font-['Gilroy-semiBold'] mb-3">Personal Analysis Summary:</p>
+                      <div className="space-y-2 text-sm font-['Gilroy-Regular'] leading-relaxed">
+                        <p>• Your cognitive processing style indicates a {mindCard?.name || 'unique'} archetype with strong analytical capabilities</p>
+                        <p>• Primary strength lies in {mindStats[0]?.label || 'self-awareness'} at {mindStats[0]?.value || '75'}% capacity</p>
+                        <p>• Your decision-making framework prioritizes logic over emotion in 73% of scenarios</p>
+                        <p>• Interpersonal dynamics suggest optimal performance in small, focused teams</p>
+                        <p>• Risk tolerance profile indicates calculated approach with {mindStats[3]?.value || '65'}% appetite for strategic risks</p>
+                        <p>• Mental energy peaks during {Math.random() > 0.5 ? 'morning' : 'evening'} hours for deep work</p>
+                        <p>• Your learning style favors visual-kinesthetic combination for maximum retention</p>
+                        <p>• Stress response patterns show resilience through structured problem-solving</p>
+                        <p>• Creative potential highest when working within defined constraints</p>
+                        <p>• Leadership style tends toward {Math.random() > 0.5 ? 'collaborative' : 'directive'} approach in group settings</p>
+                      </div>
+                    </div>
+                    
+                    {/* Blurred Content */}
+                    <div className="relative mt-6">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-300/50 to-blue-400/80 z-10 rounded-xl"></div>
+                      <div className="filter blur-[6px] opacity-60 space-y-2 text-sm font-['Gilroy-Regular'] text-white/80">
+                        <p>• Communication preferences align with direct, outcome-focused exchanges...</p>
+                        <p>• Emotional regulation demonstrates above-average stability in high-pressure...</p>
+                        <p>• Innovation potential maximized through cross-disciplinary exploration...</p>
+                        <p>• Time management optimized through batching similar cognitive tasks...</p>
+                        <p>• Conflict resolution style emphasizes finding mutual ground through...</p>
+                        <p>• Professional growth trajectory suggests natural progression toward...</p>
+                        <p>• Relationship patterns indicate preference for depth over breadth...</p>
+                        <p>• Motivation drivers primarily intrinsic with focus on mastery...</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Unlock Overlay */}
+                  <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-cyan-600/95 via-cyan-700/80 to-transparent pt-20 pb-6 px-6 rounded-b-2xl">
+                    <div className="text-center">
+                      <div className="mb-4">
+                        <Sparkles className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+                        <p className="text-white text-lg font-['Gilroy-semiBold']">Unlock Your Complete Analysis</p>
+                        <p className="text-white/90 text-sm font-['Gilroy-Regular'] mt-1">Get instant access to all 35+ pages</p>
+                      </div>
+                      
+                      {/* Pricing and Timer */}
+                      <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4 mb-4 border border-white/25">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <span className="text-3xl font-['Gilroy-Bold'] text-white">
+                            {pricing.isLoading ? '...' : pricing.main}
+                          </span>
+                          <span className="text-lg font-['Gilroy-Regular'] line-through text-white/60">
+                            {pricing.isLoading ? '...' : pricing.original}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1 text-sm text-yellow-400">
+                          <Clock className="h-4 w-4" />
+                          <span className="font-['Gilroy-semiBold']">Offer ends in {formatTime(seconds)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Unlock Button - BLACK */}
+                      <motion.button
+                        onClick={() => setUpsellOpen(true)}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-black text-white rounded-xl py-4 px-6 font-['Gilroy-Bold'] text-lg shadow-2xl hover:bg-gray-900 transition-all"
+                        style={{
+                          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                        }}
+                      >
+                        Unlock Full PDF Report
+                      </motion.button>
+                      
+                      <p className="text-white/50 text-xs font-['Gilroy-Regular'] mt-3">
+                        Instant download • Lifetime access • 100% Refundable
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Additional Features List */}
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  {[
+                    "Mind Blueprint",
+                    "Growth Roadmap",
+                    "Career Insights",
+                    "Relationship Guide",
+                    "Stress Management",
+                    "Success Patterns"
+                  ].map((feature, i) => (
+                    <div key={i} className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10">
+                      <div className="flex items-center gap-2">
+                        <BookmarkPlus className="h-4 w-4 text-blue-400" />
+                        <span className="text-white/80 text-sm font-['Gilroy-Regular']">{feature}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </SectionFrame>
