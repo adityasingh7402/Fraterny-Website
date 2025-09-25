@@ -209,7 +209,7 @@ const depthFeatures = [
   { 
     icon: <FileCheck className="w-6 h-6" />, 
     title: "Signature Nights", 
-    description: "Sunsets, deep talks, challenges and parties—memory-making that doubles as social-skill practice.",
+    description: "Sunsets, deep talks, challenges and parties - making memories that doubles social-skill practice.",
     dynamicKey: "depth-frameworks",
     imageSrc: {
       mobile: "/images/depth/frameworks-mobile.webp",
@@ -242,7 +242,7 @@ const depthFeatures = [
   { 
     icon: <ChefHat className="w-6 h-6" />, 
     title: "Great Food, Good Coffee and more", 
-    description: "Caffeine is the my fuel for clear thinking.",
+    description: "Caffeine is my fuel for clear thinking.",
     dynamicKey: "depth-food",
     imageSrc: {
       mobile: "/images/depth/food-mobile.webp",
@@ -263,7 +263,7 @@ const depthFeatures = [
   },
   { 
     icon: <Brain className="w-6 h-6" />, 
-    title: "Soft Skills", 
+    title: "Life Skills", 
     description: "Critical Thinking, Effective Communication and Empathy. Everyone has principles, no one offers practice",
     dynamicKey: "depth-soft-skills",
     imageSrc: {
