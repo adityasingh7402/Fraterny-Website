@@ -2514,108 +2514,300 @@ useEffect(() => {
               sub="35+ Pages of Deep Analysis" 
               shareText="Check out my complete personality analysis from Fraterny!" 
               themeKey="pdf-report" 
-              customClass="pt-16 pb-24 overflow-y-auto"
+              customClass="pt-16 pb-8"
               sessionId={sessionId}
               testId={testId}
             >
-              <div className="relative">
-                {/* PDF Content Preview */}
-                <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                  {/* Visible Content */}
-                  <div className="space-y-4">
-                    <div className="text-white/90">
-                      <p className="text-lg font-['Gilroy-semiBold'] mb-3">Personal Analysis Summary:</p>
-                      <div className="space-y-2 text-sm font-['Gilroy-Regular'] leading-relaxed">
-                        <p>• Your cognitive processing style indicates a {mindCard?.name || 'unique'} archetype with strong analytical capabilities</p>
-                        <p>• Primary strength lies in {mindStats[0]?.label || 'self-awareness'} at {mindStats[0]?.value || '75'}% capacity</p>
-                        <p>• Your decision-making framework prioritizes logic over emotion in 73% of scenarios</p>
-                        <p>• Interpersonal dynamics suggest optimal performance in small, focused teams</p>
-                        <p>• Risk tolerance profile indicates calculated approach with {mindStats[3]?.value || '65'}% appetite for strategic risks</p>
-                        <p>• Mental energy peaks during {Math.random() > 0.5 ? 'morning' : 'evening'} hours for deep work</p>
-                        <p>• Your learning style favors visual-kinesthetic combination for maximum retention</p>
-                        <p>• Stress response patterns show resilience through structured problem-solving</p>
-                        <p>• Creative potential highest when working within defined constraints</p>
-                        <p>• Leadership style tends toward {Math.random() > 0.5 ? 'collaborative' : 'directive'} approach in group settings</p>
-                      </div>
-                    </div>
-                    
-                    {/* Blurred Content */}
-                    <div className="relative mt-6">
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-300/50 to-blue-400/80 z-10 rounded-xl"></div>
-                      <div className="filter blur-[6px] opacity-60 space-y-2 text-sm font-['Gilroy-Regular'] text-white/80">
-                        <p>• Communication preferences align with direct, outcome-focused exchanges...</p>
-                        <p>• Emotional regulation demonstrates above-average stability in high-pressure...</p>
-                        <p>• Innovation potential maximized through cross-disciplinary exploration...</p>
-                        <p>• Time management optimized through batching similar cognitive tasks...</p>
-                        <p>• Conflict resolution style emphasizes finding mutual ground through...</p>
-                        <p>• Professional growth trajectory suggests natural progression toward...</p>
-                        <p>• Relationship patterns indicate preference for depth over breadth...</p>
-                        <p>• Motivation drivers primarily intrinsic with focus on mastery...</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Unlock Overlay */}
-                  <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-cyan-600/95 via-cyan-700/80 to-transparent pt-20 pb-6 px-6 rounded-b-2xl">
-                    <div className="text-center">
-                      <div className="mb-4">
-                        <Sparkles className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                        <p className="text-white text-lg font-['Gilroy-semiBold']">Unlock Your Complete Analysis</p>
-                        <p className="text-white/90 text-sm font-['Gilroy-Regular'] mt-1">Get instant access to all 35+ pages</p>
-                      </div>
-                      
-                      {/* Pricing and Timer */}
-                      <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4 mb-4 border border-white/25">
-                        <div className="flex items-center justify-center gap-3 mb-2">
-                          <span className="text-3xl font-['Gilroy-Bold'] text-white">
-                            {pricing.isLoading ? '...' : pricing.main}
-                          </span>
-                          <span className="text-lg font-['Gilroy-Regular'] line-through text-white/60">
-                            {pricing.isLoading ? '...' : pricing.original}
-                          </span>
+            <div className="relative">
+                {/* PDF-like fixed page sizing + mobile scaling */}
+                <style>
+                  {`
+                  .pdf-viewport { height: calc(100dvh - 280px); overflow: auto; }
+                  .pdf-scale { width: 794px; margin: 0 auto; transform-origin: top center; }
+                  @media (max-width: 820px) { .pdf-scale { transform: scale(calc(100vw / 794)); } }
+                  .pdf-container { width: 794px; max-width: 794px; margin: 0 auto 80px; background: #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+                  .page { width: 794px; min-height: 1123px; box-sizing: border-box; page-break-inside: avoid; }
+                  `}
+                </style>
+
+                {/* PDF Document Preview Container - fixed width, scales on mobile */}
+                <div className="pdf-viewport">
+                  <div className="pdf-scale">
+                    <div className="pdf-container">
+                      {/* PDF Pages Container */}
+                      <div className="space-y-0">
+                        
+                        {/* Page 1: Introduction */}
+                        <div 
+                          className="page w-full flex flex-col justify-start items-center text-center p-8 relative overflow-hidden"
+                          style={{ 
+                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          <div className="font-['Gilroy-Bold'] text-5xl mb-2 flex items-center justify-center">
+                            <img src={logo} alt="Quest Logo" className="w-20 h-20 mr-4" />
+                            Quest
+                          </div>
+                          
+                          <h1 className="font-['Gilroy-Bold'] text-4xl leading-relaxed mb-8">
+                            Your <strong>In-Depth Personality & Mindset</strong> Report
+                          </h1>
+                         
+                          <h2 className="font-['Gilroy-Bold'] text-2xl mb-4">
+                            <strong>A Note Before We Begin</strong>
+                          </h2>
+                          <p className="font-['Gilroy-Light'] text-lg text-left max-w-2xl mb-6">
+                            <b>{mindCard?.name || 'Sample Name'}</b>,
+                            This report is not a personality test report, but a conversation about you, built from your own words, thoughts, and habits. Think of this as holding up a mirror that goes beyond surface reflection, revealing how your identity, emotions, and choices are interconnected with the larger story of who you are becoming.
+                          </p>
+                          <div className="text-left max-w-2xl">
+                            <p className="font-['Gilroy-Light'] text-lg mb-4">
+                              <b>This report has 3 major features:</b>
+                            </p>
+                            <ul className="space-y-3 text-left font-['Gilroy-Italic'] text-base">
+                              <li><b>Brain Mapping:</b> <i>The better you map your brain, the smarter you play life.</i></li>
+                              <li><b>Content Operating System:</b> <i>This is your personal library of perspectives and growth fuel.</i></li>
+                              <li><b>Future Compass:</b> <i>Your future is a direct reflection of the systems you build today.</i></li>
+                            </ul>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-center gap-1 text-sm text-yellow-400">
-                          <Clock className="h-4 w-4" />
-                          <span className="font-['Gilroy-semiBold']">Offer ends in {formatTime(seconds)}</span>
+
+                        {/* Page 2: Index Page 1 */}
+                        <div 
+                          className="page w-full p-6 relative overflow-hidden"
+                          style={{ 
+                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          <header className="mb-8">
+                            <div className="text-white text-sm mb-2">Quest by Fraterny · Index</div>
+                            <h1 className="font-['Gilroy-Bold'] text-3xl mb-4">What You'll Explore Inside</h1>
+                            <p className="text-lg max-w-3xl">A clean map of your report. Skim the highlights, jump to what matters, and come back to the rest any time.</p>
+                          </header>
+                          
+                          {/* Brain Mapping Card */}
+                          <div 
+                            className="rounded-2xl border border-blue-300/50 mb-6"
+                            style={{ 
+                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
+                            }}
+                          >
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+                              <div className="pr-2">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">01</div>
+                                  <div className="font-bold text-xl">Brain Mapping</div>
+                                </div>
+                                <p className="text-sm">A deep dive into your personality, emotions, habits, and hidden drivers—your mental blueprint.</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                {[
+                                  'Your Core Identity', 'Your Emotional Blueprint', 'Your Values Hierarchy', 'Your Ambitions & Aspirations',
+                                  'Your Emotional Self-Analysis', 'Most Valuable Strengths', 'Behavioural Loops', 'Social Persona vs Inner Self',
+                                  'Psychological Archetype', 'What Drives You'
+                                ].map((item, idx) => (
+                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
+                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
+                                    <span className="text-sm">{item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content OS Card */}
+                          <div 
+                            className="rounded-2xl border border-blue-300/50"
+                            style={{ 
+                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
+                            }}
+                          >
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+                              <div className="pr-2">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">02</div>
+                                  <div className="font-bold text-xl">Content Operating System</div>
+                                </div>
+                                <p className="text-sm">Your curated library of ideas, role models, and content designed to sharpen and inspire you.</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                {[
+                                  'Celebrities You\'re Most Alike', 'Must-Watch Videos for You', 'Creators You Should Actively Follow',
+                                  'Mentors for You to Absorb', 'Books You\'re Most Likely to Finish', 'Movies That Challenge Your Mindset',
+                                  'Bio-Worthy Quotes'
+                                ].map((item, idx) => (
+                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
+                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
+                                    <span className="text-sm">{item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="absolute bottom-3 left-0 right-0 px-6">
+                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
+                            <div className="flex justify-between text-xs text-blue-200">
+                              <span>Tip: Use your PDF viewer's sidebar bookmarks or the section headings to jump quickly.</span>
+                              <span>Quest · Premium Psychoanalysis Experience</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Page 3: Index Page 2 */}
+                        <div 
+                          className="page w-full p-6 relative overflow-hidden"
+                          style={{ 
+                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          {/* Future Compass Card */}
+                          <div 
+                            className="rounded-2xl border border-blue-300/50 mb-6 mt-12"
+                            style={{ 
+                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
+                            }}
+                          >
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+                              <div className="pr-2">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">04</div>
+                                  <div className="font-bold text-xl">Closing Section</div>
+                                </div>
+                                <p className="text-sm">A final reflection and concrete next step to tie everything together.</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                {[
+                                  'Final Reflection', 'Next Step'
+                                ].map((item, idx) => (
+                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
+                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
+                                    <span className="text-sm">{item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="absolute bottom-3 left-0 right-0 px-6">
+                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
+                            <div className="flex justify-between text-xs text-blue-200">
+                              <span>Tip: Use your PDF viewer's sidebar bookmarks or the section headings to jump quickly.</span>
+                              <span>Quest · Premium Psychoanalysis Experience</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Page 4: Brain Cover Page */}
+                        <div 
+                          className="page w-full flex items-center justify-center relative overflow-hidden"
+                          style={{ 
+                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          <div className="text-8xl font-['Gilroy-Bold'] opacity-20">🧠</div>
+                        </div>
+
+                        {/* Page 5: Brain Mapping Sample */}
+                        <div 
+                          className="page w-full p-8 relative overflow-hidden"
+                          style={{ 
+                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          <main className="max-w-full">
+                            <h2 className="text-4xl font-['Gilroy-Bold'] mb-6">
+                              <span className="text-white">1.</span> Your Core Identity
+                            </h2>
+                            
+                            <p className="text-white text-xl font-['Gilroy-Light'] leading-relaxed mb-8">
+                              You are someone who <strong>thrives on meaningful connections</strong> and finds energy in helping others achieve their potential. Your identity is built around being a <strong>catalyst for positive change</strong> - whether that's in your professional environment, personal relationships, or community involvement.
+                            </p>
+
+                            <h3 className="text-2xl font-['Gilroy-Bold'] text-white mb-6">Core Identity Markers</h3>
+                            
+                            <ul className="space-y-3 mb-8">
+                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
+                                <span className="mr-2">•</span>
+                                <span><strong>Empathetic Leader</strong> - You naturally step into roles where you can guide and support others</span>
+                              </li>
+                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
+                                <span className="mr-2">•</span>
+                                <span><strong>Strategic Thinker</strong> - You see patterns and connections that others miss</span>
+                              </li>
+                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
+                                <span className="mr-2">•</span>
+                                <span><strong>Growth-Oriented</strong> - You're constantly seeking ways to improve yourself and your environment</span>
+                              </li>
+                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
+                                <span className="mr-2">•</span>
+                                <span><strong>Authentic Communicator</strong> - You value genuine conversations over surface-level interactions</span>
+                              </li>
+                            </ul>
+
+                            <div className="w-full bg-white/95 p-6 rounded-2xl flex flex-col relative">
+                              <span className="font-['Gilroy-Italic'] italic text-gray-600 text-sm mb-2">This is How you think</span>
+                              <div className="absolute right-6 top-4">
+                                <img src={logo} alt="Logo" className="w-12 h-12 opacity-80" />
+                              </div>
+                              <span className="text-gray-900 font-['Gilroy-semiBold'] text-lg leading-relaxed">
+                                "Before making any decision, I ask myself: <strong>How will this impact the people I care about?</strong> and <strong>Does this align with who I'm becoming?</strong> I believe that success without fulfillment is the ultimate failure."
+                              </span>
+                            </div>
+                          </main>
+                          
+                          {/* Footer */}
+                          <div className="absolute bottom-3 left-0 right-0 px-8">
+                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
+                            <div className="flex justify-between text-sm text-blue-200">
+                              <span>{mindCard?.name || 'Sample Name'}</span>
+                              <span>5</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      
-                      {/* Unlock Button - BLACK */}
-                      <motion.button
-                        onClick={() => setUpsellOpen(true)}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-black text-white rounded-xl py-4 px-6 font-['Gilroy-Bold'] text-lg shadow-2xl hover:bg-gray-900 transition-all"
-                        style={{
-                          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
-                        }}
-                      >
-                        Unlock Full PDF Report
-                      </motion.button>
-                      
-                      <p className="text-white/50 text-xs font-['Gilroy-Regular'] mt-3">
-                        Instant download • Lifetime access • 100% Refundable
-                      </p>
                     </div>
                   </div>
                 </div>
-                
-                {/* Additional Features List */}
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  {[
-                    "Mind Blueprint",
-                    "Growth Roadmap",
-                    "Career Insights",
-                    "Relationship Guide",
-                    "Stress Management",
-                    "Success Patterns"
-                  ].map((feature, i) => (
-                    <div key={i} className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                      <div className="flex items-center gap-2">
-                        <BookmarkPlus className="h-4 w-4 text-blue-400" />
-                        <span className="text-white/80 text-sm font-['Gilroy-Regular']">{feature}</span>
-                      </div>
+
+                {/* Unlock Overlay - Full Width at Bottom (sticks to section) */}
+                <div className="absolute inset-x-0 bottom-0">
+                  {/* Pricing Box - Full Width */}
+                  <div className="bg-blue-600/95 backdrop-blur-sm p-4">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <span className="text-4xl font-['Gilroy-Bold'] text-white">
+                        {pricing.symbol}{pricing.isLoading ? '...' : pricing.main.replace(pricing.symbol, '')}
+                      </span>
+                      <span className="text-xl font-['Gilroy-Regular'] line-through text-white/50">
+                        {pricing.isLoading ? '...' : pricing.original}
+                      </span>
                     </div>
-                  ))}
+                    <div className="flex items-center justify-center gap-1 text-sm text-yellow-300">
+                      <Clock className="h-4 w-4" />
+                      <span className="font-['Gilroy-Regular']">Offer ends in {formatTime(seconds)}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Unlock Button - Full Width BLACK at Bottom */}
+                  <motion.button
+                    onClick={() => setUpsellOpen(true)}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-black text-white py-4 font-['Gilroy-Bold'] text-base hover:bg-gray-900 transition-all"
+                  >
+                    Unlock Full PDF Report
+                  </motion.button>
+                </div>
+                
+                {/* Page Indicator */}
+                <div className="mt-4 text-center">
+                  <p className="text-white/70 text-sm font-['Gilroy-Regular']">Showing 5 pages of 35+ page report</p>
                 </div>
               </div>
             </SectionFrame>
@@ -2756,6 +2948,3 @@ useEffect(() => {
 };
 
 export default QuestResult;
-
-
-
