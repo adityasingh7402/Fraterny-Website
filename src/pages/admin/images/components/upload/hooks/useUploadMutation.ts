@@ -17,14 +17,16 @@ export const useUploadImageMutation = (onSuccess?: () => void) => {
       key: string, 
       description: string, 
       alt_text: string, 
-      category?: string 
+      category?: string,
+      seoMetadata?: any
     }) => {
       return uploadImage(
         data.file, 
         data.key, 
         data.description, 
         data.alt_text, 
-        data.category
+        data.category,
+        data.seoMetadata
       );
     },
     onSuccess: async (_, variables) => {

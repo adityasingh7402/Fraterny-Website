@@ -155,7 +155,7 @@ const router = createBrowserRouter([
       { path: 'pricing', element: <Pricing /> },
       { path: 'faq', element: <FAQ /> },
       { path: 'blog', element: <Blog /> },
-      { path: 'blog/:id', element: <BlogPost /> },
+      { path: 'blog/:slug', element: <BlogPost /> },
 
 
       // QUEST ROUTES - Lazy loaded with custom loading
@@ -199,7 +199,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-console.log('🌍 Initializing location detection...');
+//console.log('🌍 Initializing location detection...');
 getUserLocationFlag()
   .then((isIndia) => {
     console.log('✅ Location detection initialized. User in India:', isIndia);

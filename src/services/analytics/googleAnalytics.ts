@@ -97,28 +97,58 @@ class GoogleAnalyticsService {
     }
   }
 
-  private sendEvent(eventName: string, parameters: any): void {
-    if (!this.isInitialized) {
-      // Queue event if GA4 not ready
-      this.eventQueue.push({ eventName, parameters });
-      return;
-    }
+  // private sendEvent(eventName: string, parameters: any): void {
+  //   if (!this.isInitialized) {
+  //     // Queue event if GA4 not ready
+  //     this.eventQueue.push({ eventName, parameters });
+  //     return;
+  //   }
 
-    try {
-      window.gtag('event', eventName, {
-        ...parameters,
-        // Add timestamp for all events
-        timestamp: Date.now(),
-        // Add page info
-        page_location: window.location.href,
-        page_title: document.title
-      });
+  //   try {
+  //     window.gtag('event', eventName, {
+  //       ...parameters,
+  //       // Add timestamp for all events
+  //       timestamp: Date.now(),
+  //       // Add page info
+  //       page_location: window.location.href,
+  //       page_title: document.title
+  //     });
       
-      // console.log(`📊 GA4 Event: ${eventName}`, parameters);
-    } catch (error) {
-      console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
-    }
+  //     // console.log(`📊 GA4 Event: ${eventName}`, parameters);
+  //   } catch (error) {
+  //     console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
+  //   }
+  // }
+
+  private sendEvent(eventName: string, parameters: any): void {
+  if (!this.isInitialized) {
+    // Queue event if GA4 not ready
+    this.eventQueue.push({ eventName, parameters });
+    return;
   }
+
+  try {
+    // Get platform info for UTM tracking
+    const platformInfo = this.getStoredPlatformInfo();
+    
+    window.gtag('event', eventName, {
+      ...parameters,
+      // Add UTM parameters to every event
+      campaign_source: platformInfo.source,
+      campaign_medium: platformInfo.medium,
+      campaign_name: platformInfo.campaign,
+      traffic_platform: platformInfo.platform,
+      // Existing fields
+      timestamp: Date.now(),
+      page_location: window.location.href,
+      page_title: document.title
+    });
+    
+    // console.log(`📊 GA4 Event: ${eventName}`, parameters);
+  } catch (error) {
+    console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
+  }
+}
 
   private getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
     const userAgent = navigator.userAgent;
@@ -126,6 +156,31 @@ class GoogleAnalyticsService {
     const isTablet = /iPad|Android(?!.*Mobile)/i.test(userAgent);
     return isTablet ? 'tablet' : (isMobile ? 'mobile' : 'desktop');
   }
+
+  private getStoredPlatformInfo(): any {
+  try {
+    const stored = sessionStorage.getItem('user_platform_info');
+    if (stored) {
+      const platformInfo = JSON.parse(stored);
+      return {
+        source: platformInfo.source || 'direct',
+        medium: platformInfo.medium || '(none)',
+        campaign: platformInfo.campaign || '(none)',
+        platform: platformInfo.platform || 'direct'
+      };
+    }
+  } catch (error) {
+    console.log('Error getting platform info:', error);
+  }
+  
+  // Fallback if no stored info
+  return {
+    source: 'direct',
+    medium: '(none)',
+    campaign: '(none)',
+    platform: 'direct'
+  };
+}
 
   // ===================================
   // QUEST EVENT TRACKING METHODS

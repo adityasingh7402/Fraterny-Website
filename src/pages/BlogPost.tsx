@@ -7,13 +7,192 @@ import ResponsiveImage from '../components/ui/ResponsiveImage';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import CommentSection from '../components/blog/CommentSection';
 import NewsletterSignup from '../components/blog/NewsletterSignup';
+import { setMeta } from '@/utils/seo';
+import { generateImageStructuredData, insertStructuredData } from '@/utils/seo/index';
+import {getImageDataForSEO} from '@/services/images/services/seoService';
+
 
 const BlogPost = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   
-  const { useBlogPost } = useReactQueryBlogPosts();
-  const { data: post, isLoading, error } = useBlogPost(id);
+  const { useBlogPostBySlug } = useReactQueryBlogPosts();
+  const { data: post, isLoading, error } = useBlogPostBySlug(slug);
+
+
+  // SEO Meta Tags
+    useEffect(() => {
+      if (post) {
+        const canonical = `${window.location.origin}/blog/${post.slug}`;
+        const metaDescription = post.meta_description || post.excerpt || `${post.content.replace(/<[^>]*>/g, '').substring(0, 150)}...`;
+        const seoTitle = post.seo_title || post.title;
+        
+        setMeta({
+          title: `${seoTitle}`,
+          description: metaDescription,
+          canonical: canonical,
+          robots: "index, follow"
+        });
+        
+        // Set Open Graph meta tags
+        const setOpenGraphMeta = () => {
+          // OG Title
+          let ogTitle = document.querySelector('meta[property="og:title"]') as HTMLMetaElement;
+          if (!ogTitle) {
+            ogTitle = document.createElement('meta');
+            ogTitle.setAttribute('property', 'og:title');
+            document.head.appendChild(ogTitle);
+          }
+          ogTitle.content = seoTitle;
+          
+          // OG Description  
+          let ogDesc = document.querySelector('meta[property="og:description"]') as HTMLMetaElement;
+          if (!ogDesc) {
+            ogDesc = document.createElement('meta');
+            ogDesc.setAttribute('property', 'og:description');
+            document.head.appendChild(ogDesc);
+          }
+          ogDesc.content = metaDescription;
+          
+          // OG URL
+          let ogUrl = document.querySelector('meta[property="og:url"]') as HTMLMetaElement;
+          if (!ogUrl) {
+            ogUrl = document.createElement('meta');
+            ogUrl.setAttribute('property', 'og:url');
+            document.head.appendChild(ogUrl);
+          }
+          ogUrl.content = canonical;
+        };
+        
+        setOpenGraphMeta();
+
+        // Set meta keywords
+        if (post.meta_keywords && post.meta_keywords.length > 0) {
+          let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
+          if (!metaKeywords) {
+            metaKeywords = document.createElement('meta');
+            metaKeywords.name = 'keywords';
+            document.head.appendChild(metaKeywords);
+          }
+          metaKeywords.content = post.meta_keywords.join(', ');
+        }
+      }
+    }, [post, slug]);
+  
+    // Structured Data (JSON-LD)
+    useEffect(() => {
+      if (post) {
+        const structuredData: any = {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": post.seo_title || post.title,
+          "description": post.meta_description || post.excerpt,
+          "datePublished": post.created_at,
+          "dateModified": post.updated_at,
+          "author": {
+            "@type": "Organization",
+            "name": "Fraterny"
+          },
+          "publisher": {
+            "@type": "Organization", 
+            "name": "Fraterny"
+          },
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `${window.location.origin}/blog/${post.slug}`
+          },
+          "url": `${window.location.origin}/blog/${post.slug}`,
+          "articleSection": post.category,
+          "keywords": post.meta_keywords?.join(", ") || ""
+        };
+  
+        // Add image if available
+        // if (post.image_key) {
+        //   structuredData.image = {
+        //     "@type": "ImageObject",
+        //     "url": `${window.location.origin}/api/images/${post.image_key}`,
+        //     "description": post.featured_image_alt || post.title
+        //   };
+        // }
+
+        // Add image with enhanced SEO data if available
+        if (post.image_key) {
+          // This will be enhanced with our SEO service
+          structuredData.image = {
+            "@type": "ImageObject",
+            "url": `${window.location.origin}/api/images/${post.image_key}`,
+            "description": post.featured_image_alt || post.title
+            // SEO metadata will be added automatically by our ResponsiveImage component
+          };
+        }
+  
+        // Remove existing structured data
+        const existingScript = document.querySelector('script[type="application/ld+json"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+  
+        // Add new structured data
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify(structuredData);
+        document.head.appendChild(script);
+      }
+  
+      // Cleanup on unmount
+      return () => {
+        const script = document.querySelector('script[type="application/ld+json"]');
+        if (script) {
+          script.remove();
+        }
+      };
+    }, [post, slug]);
+
+    // Enhanced image SEO data
+useEffect(() => {
+  const enhanceImageSEO = async () => {
+    if (post?.image_key) {
+      try {
+        const imageData = await getImageDataForSEO(post.image_key);
+        if (imageData && imageData.seo) {
+          // Generate and insert image-specific structured data
+          const imageStructuredData = generateImageStructuredData(
+            `${window.location.origin}/api/images/${post.image_key}`,
+            {
+              alt_text: imageData.alt_text,
+              description: imageData.description,
+              width: imageData.width,
+              height: imageData.height,
+              seo: imageData.seo
+            }
+          );
+          
+          insertStructuredData(imageStructuredData, 'blog-image-schema');
+          
+          // Add image-specific Open Graph tags
+          if (imageData.seo.ogTitle || imageData.seo.ogDescription) {
+            const setImageOGTags = () => {
+              if (imageData.seo.ogTitle) {
+                let ogImageAlt = document.querySelector('meta[property="og:image:alt"]') as HTMLMetaElement;
+                if (!ogImageAlt) {
+                  ogImageAlt = document.createElement('meta');
+                  ogImageAlt.setAttribute('property', 'og:image:alt');
+                  document.head.appendChild(ogImageAlt);
+                }
+                ogImageAlt.content = imageData.seo.ogTitle;
+              }
+            };
+            setImageOGTags();
+          }
+        }
+      } catch (error) {
+        console.error('Error enhancing image SEO:', error);
+      }
+    }
+  };
+
+  enhanceImageSEO();
+}, [post?.image_key]);
   
   useEffect(() => {
     if (error) {
@@ -86,6 +265,9 @@ const BlogPost = () => {
                 className="w-full h-auto"
                 loading="eager"
                 priority={true}
+                seoEnhanced={true}
+                showCaption={true}
+                includeSchema={true}
               />
             </div>
           )}
@@ -105,7 +287,7 @@ const BlogPost = () => {
             {post && <div dangerouslySetInnerHTML={{ __html: post.content }} />}
           </div>
           
-          {id && <CommentSection postId={id} />}
+          {post?.id && <CommentSection postId={post.id} />}
         </div>
       </article>
       

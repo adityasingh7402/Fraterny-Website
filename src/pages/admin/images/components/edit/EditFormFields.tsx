@@ -1,5 +1,6 @@
 
 import { WebsiteImage, IMAGE_CATEGORIES } from '@/services/images';
+import SEOFieldsSection from '../upload/SEOFieldsSection';
 
 interface EditFormFieldsProps {
   editForm: {
