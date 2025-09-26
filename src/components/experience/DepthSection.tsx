@@ -175,8 +175,8 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 const depthFeatures = [
   { 
     icon: <Code className="w-6 h-6" />, 
-    title: "Ingrained House Code", 
-    description: "Crafted house rules to boost engagement, clarity of thought and productivity",
+    title: "Quest Entry", 
+    description: "Begin with Quest by Fraterny. Your profile casts you into a tailored archetype for the week.",
     dynamicKey: "depth-house-code",
     imageSrc: {
       mobile: "/images/depth/house-code-mobile.webp",
@@ -186,8 +186,8 @@ const depthFeatures = [
   },
   { 
     icon: <Brain className="w-6 h-6" />, 
-    title: "Startup Simulations", 
-    description: "Building a startup from ground up in a team environment",
+    title: "Ingrained House Code", 
+    description: "Psychology-backed house rules to boost engagement, clarity of thought and productivity",
     dynamicKey: "depth-startup",
     imageSrc: {
       mobile: "/images/depth/startup-mobile.webp", 
@@ -197,8 +197,8 @@ const depthFeatures = [
   },
   { 
     icon: <BookOpen className="w-6 h-6" />, 
-    title: "Learning Experience", 
-    description: "Business Knowledge is not even a unique proposition, its a given",
+    title: "Archetype Role-Play", 
+    description: "Embody your assigned character in real situations, improv activities, debates, poker, parties and live it fully.",
     dynamicKey: "depth-learning",
     imageSrc: {
       mobile: "/images/depth/learning-mobile.webp",
@@ -208,8 +208,8 @@ const depthFeatures = [
   },
   { 
     icon: <FileCheck className="w-6 h-6" />, 
-    title: "Curated frameworks & templates", 
-    description: "Carefully crafted Frameworks for personal and career growth",
+    title: "Signature Nights", 
+    description: "Sunsets, deep talks, challenges and parties - making memories that doubles social-skill practice.",
     dynamicKey: "depth-frameworks",
     imageSrc: {
       mobile: "/images/depth/frameworks-mobile.webp",
@@ -220,7 +220,7 @@ const depthFeatures = [
   { 
     icon: <Users className="w-6 h-6" />, 
     title: "Group Think", 
-    description: "Collaborative thinking and team activities to broaden your perspective",
+    description: "Collaborative thinking and team activities to broaden your mindset",
     dynamicKey: "depth-group-think",
     imageSrc: {
       mobile: "/images/depth/group-think-mobile.webp",
@@ -230,8 +230,8 @@ const depthFeatures = [
   },
   { 
     icon: <Heart className="w-6 h-6" />, 
-    title: "Lifelong memories", 
-    description: "Feel amazing while on the grind",
+    title: "Squad Dynamics", 
+    description: "Groups engineered from Quest results to maximize bonding, chemistry and perspective shifts.",
     dynamicKey: "depth-memories",
     imageSrc: {
       mobile: "/images/depth/memories-mobile.webp",
@@ -242,7 +242,7 @@ const depthFeatures = [
   { 
     icon: <ChefHat className="w-6 h-6" />, 
     title: "Great Food, Good Coffee and more", 
-    description: "Caffeine is the secret of my energy",
+    description: "Caffeine is my fuel for clear thinking.",
     dynamicKey: "depth-food",
     imageSrc: {
       mobile: "/images/depth/food-mobile.webp",
@@ -253,7 +253,7 @@ const depthFeatures = [
   { 
     icon: <Users2 className="w-6 h-6" />, 
     title: "Post Program Community", 
-    description: "Fraterny is not a one week experience, it is a constantly growing ecosystem.",
+    description: "The villa ends; the tribe continues—alumni circles, challenges and collabs by matching archetypes.",
     dynamicKey: "depth-community",
     imageSrc: {
       mobile: "/images/depth/community-mobile.webp",
@@ -263,7 +263,7 @@ const depthFeatures = [
   },
   { 
     icon: <Brain className="w-6 h-6" />, 
-    title: "Soft Skills", 
+    title: "Life Skills", 
     description: "Critical Thinking, Effective Communication and Empathy. Everyone has principles, no one offers practice",
     dynamicKey: "depth-soft-skills",
     imageSrc: {
