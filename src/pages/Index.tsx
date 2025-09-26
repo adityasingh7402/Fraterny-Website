@@ -4,7 +4,7 @@ import HeroSection from '../components/home/HeroSection';
 import Footer from '../components/Footer';
 import { initializeLightweightAnalytics, updateDaysLeftSimple } from '@/utils/lightweightAnalytics';
 import { useReactQueryWebsiteSettings } from '@/hooks/useReactQueryWebsiteSettings';
-import { setMeta } from "@/utils/seo";
+import { setMeta, clearDynamicMetaTags } from "@/utils/seo";
 
 // Lazy load components that are below the fold
 const NavalQuoteSection = lazy(() => import('../components/home/NavalQuoteSection'));
@@ -21,13 +21,30 @@ const LoadingFallback = () => (
 
 const Index = () => {
     useEffect(() => {
-    setMeta({
-      title: "Fraterny — Where Ambition Finds its Tribe",
-      description:
-        "Fraterny builds tools and experiences for ambitious people. Take Quest — a 15-minute self-awareness test or Register for Fratvilla experience.",
-      canonical: "https://fraterny.in/"
-    });
-  }, []);
+  // Clear any existing dynamic meta tags first
+  clearDynamicMetaTags();
+  
+  const homeTitle = "Fraterny — Where Ambition Finds its Tribe";
+  const homeDescription = "Fraterny builds tools and experiences for ambitious people. Take Quest — a 15-minute self-awareness test or Register for Fratvilla experience.";
+  const homeCanonical = "https://fraterny.in";
+  const homeImage = "https://fraterny.in/og-image.png"; // You can update this to your preferred home page image
+  
+  setMeta({
+    title: homeTitle,
+    description: homeDescription,
+    canonical: homeCanonical,
+    robots: "index, follow",
+    ogTitle: homeTitle,
+    ogDescription: homeDescription,
+    ogImage: homeImage,
+    ogUrl: homeCanonical
+  });
+
+  // Cleanup function
+  return () => {
+    clearDynamicMetaTags();
+  };
+}, []);
 
   // Get settings for registration date
   // const { settings, isLoading } = useReactQueryWebsiteSettings();
