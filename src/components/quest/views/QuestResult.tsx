@@ -3,19 +3,21 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Share2, 
-  ThumbsUp, 
-  ThumbsDown, 
-  Clock, 
-  Quote, 
-  Film, 
-  Sparkles, 
-  X, 
+import {
+  Share2,
+  ThumbsUp,
+  ThumbsDown,
+  Clock,
+  Quote,
+  Film,
+  Sparkles,
+  X,
   BookOpen,
   Paperclip,
   BookmarkPlus,
-  ChevronsUp 
+  ChevronsUp,
+  Star,
+  Send
 } from "lucide-react";
 
 import imgicon from '../../../../public/message.png'
@@ -25,6 +27,13 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PaymentService, sessionManager } from '@/services/payments';
+import {
+  unifiedPaymentService,
+  processPaymentWithGateway,
+  getBothGatewayPricing,
+  type PaymentGateway,
+  type UnifiedPricingData
+} from '../../../services/payments/unifiedPaymentService';
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
@@ -117,6 +126,19 @@ interface PricingData {
   isLoading: boolean;
 }
 
+// Extended pricing data for dual gateways
+interface DualGatewayPricingData {
+  razorpay: PricingData;
+  paypal: {
+    main: string;
+    original: string;
+    currency: string;
+    amount: number;
+    isIndia: boolean;
+  };
+  isLoading: boolean;
+}
+
 // Design Tokens
 const tokens = {
   textDark: "#0A0A0A",
@@ -160,7 +182,7 @@ const MOCK_RESULT_DATA: ResultData = {
       scores: ["82/100", "76/100", "71/100", "65/100"],
       insights: [
         "High self-reflection and emotional intelligence",
-        "Prefers small, high-trust team environments", 
+        "Prefers small, high-trust team environments",
         "Approaches conflict with diplomatic solutions",
         "Calculated risk-taker with thorough analysis"
       ]
@@ -217,13 +239,15 @@ const MOCK_RESULT_DATA: ResultData = {
 interface UpsellSheetProps {
   open: boolean;
   onClose: () => void;
-  onPayment: () => Promise<void>;
+  onPayment: (gateway: PaymentGateway) => Promise<void>;
   paymentLoading: boolean;
-  pricing: PricingData;
+  pricing: DualGatewayPricingData;
 }
 
 const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, paymentLoading, pricing }) => {
   const [trial, setTrial] = useState(true);
+  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway>('razorpay');
+  const [showGatewaySelection, setShowGatewaySelection] = useState(false);
 
   const [seconds, setSeconds] = useState(30 * 60);
   useEffect(() => {
@@ -231,9 +255,9 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
     return () => clearInterval(t);
   }, []);
 
-   const handlePaymentClick = async () => {
+  const handlePaymentClick = async () => {
     try {
-      await onPayment();
+      await onPayment(selectedGateway);
     } catch (error) {
       console.error('Payment error in UpsellSheet:', error);
     }
@@ -281,11 +305,11 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 <div className="text-[12px] opacity-95"><span>Ends in {formatTime(seconds)}</span></div>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-[24px] font-['Gilroy-Regular'] font-[400] text-white">
-                      {pricing.isLoading ? '...' : pricing.main}
-                    </span>
-                    <span className="text-[18px] font-['Gilroy-Regular'] line-through text-gray-800">
-                      {pricing.isLoading ? '...' : pricing.original}
-                    </span>
+                    {pricing.isLoading ? '...' : (selectedGateway === 'razorpay' ? pricing.razorpay.main : pricing.paypal.main)}
+                  </span>
+                  <span className="text-[18px] font-['Gilroy-Regular'] line-through text-gray-800">
+                    {pricing.isLoading ? '...' : (selectedGateway === 'razorpay' ? pricing.razorpay.original : pricing.paypal.original)}
+                  </span>
                 </div>
               </motion.div>
               <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
@@ -295,18 +319,68 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 </button>
               </div>
             </div>
+
+            {/* Payment Gateway Selection */}
+            <div className="px-4 pb-4 pt-6">
+              <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
+                Choose Payment Method
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Razorpay Option */}
+                <button
+                  onClick={() => setSelectedGateway('razorpay')}
+                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'razorpay'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">💳</span>
+                    <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                      Razorpay
+                    </span>
+                  </div>
+                  <div className="text-[12px] text-gray-600 text-left">
+                    Cards, UPI, Net Banking
+                  </div>
+                </button>
+
+                {/* PayPal Option */}
+                <button
+                  onClick={() => setSelectedGateway('paypal')}
+                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'paypal'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🌐</span>
+                      <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                        PayPal
+                      </span>
+                    </div>
+                    <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
+                  </div>
+                  <div className="text-[12px] text-gray-600 text-left">
+                    PayPal Balance, Cards
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="sticky bottom-0 mt-5 border-t" style={{ borderColor: tokens.border }}>
               <div className="px-4 py-3">
-                <button 
+                <button
                   onClick={handlePaymentClick}
                   disabled={paymentLoading}
-                  className="w-full rounded-xl px-4 py-3 text-[16px] font-[600] font-['Gilroy-Bold'] tracking-tight text-white disabled:opacity-50" 
+                  className="w-full rounded-xl px-4 py-3 text-[16px] font-[600] font-['Gilroy-Bold'] tracking-tight text-white disabled:opacity-50"
                   style={{ background: tokens.textDark }}
                 >
                   {paymentLoading ? 'Processing...' : 'Continue'}
                 </button>
                 <div className="pt-2 text-center text-[12px]" style={{ color: tokens.muted }}>
-                  Fully Refundable. T&C apply. 
+                  Fully Refundable. T&C apply.
                 </div>
               </div>
             </div>
@@ -319,7 +393,7 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
 
 interface StickyCTAProps {
   onOpen: () => void;
-  pricing: PricingData;
+  pricing: DualGatewayPricingData;
 }
 
 const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
@@ -338,7 +412,7 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
   //       console.log('💰 StickyCTA: Loading location-based pricing...');
   //       const isIndia = await getUserLocationFlag();
   //       console.log('🌍 StickyCTA: Location result:', isIndia);
-        
+
   //       if (isIndia) {
   //         setPriceDisplay('₹950');
   //         setOriginalPrice('₹1200');
@@ -346,7 +420,7 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
   //         setPriceDisplay('$20');
   //         setOriginalPrice('$25');
   //       }
-        
+
   //       console.log('✅ StickyCTA: Pricing updated');
   //     } catch (error) {
   //       console.error('❌ StickyCTA: Failed to load pricing:', error);
@@ -373,10 +447,10 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
             {/* <span className="text-[20px] font-[800]">₹950</span>
             <span className="text-[12px] line-through" style={{ color: tokens.muted }}>₹1200</span> */}
             <span className="text-[20px] font-[800]">
-              {pricing.isLoading ? '...' : pricing.main}
+              {pricing.isLoading ? '...' : pricing.razorpay.main}
             </span>
             <span className="text-[12px] line-through" style={{ color: tokens.muted }}>
-              {pricing.isLoading ? '...' : pricing.original}
+              {pricing.isLoading ? '...' : pricing.razorpay.original}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-1 text-[12px]" aria-live="polite" style={{ color: tokens.muted }}>
@@ -413,21 +487,21 @@ const formatTime = (s: number): string => {
 
 const validateResultData = (data: any): ResultData => {
   // console.log('🔍 Validating result data:', data);
-  
+
   // Handle both cases where Mind Card might be missing or have different property names
   const mindCardData = data.results?.["Mind Card"];
-  
+
   const validated: ResultData = {
     session_id: data.session_id || 'unknown',
     user_id: data.user_id,
     completion_date: data.completion_date || new Date().toISOString(),
     results: {
       "section 1": data.results?.["section 1"] || '',
-      
+
       // Enhanced Mind Card validation with fallbacks for API inconsistencies
       "Mind Card": mindCardData ? {
         name: mindCardData.personality_type || "The Architect",
-        personality: mindCardData.personlity || mindCardData.personality || "#Game-Styled Mindcard", 
+        personality: mindCardData.personlity || mindCardData.personality || "#Game-Styled Mindcard",
         description: mindCardData.description || "A methodical thinker who builds systems and seeks elegant solutions.",
         // Handle both 'attribute' and 'attributes' from API
         attributes: mindCardData.attribute || mindCardData.attributes || ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
@@ -437,13 +511,13 @@ const validateResultData = (data: any): ResultData => {
         insights: mindCardData.insight || mindCardData.insights || ["Analysis in progress...", "Analysis in progress...", "Analysis in progress...", "Analysis in progress..."]
       } : {
         name: "User",
-        personality: "#Game-Styled Mindcard", 
+        personality: "#Game-Styled Mindcard",
         description: "Loading analysis...",
         attributes: ["self awareness", "collaboration", "conflict navigation", "risk appetite"],
         scores: ["50/100", "50/100", "50/100", "50/100"],
         insights: ["Analysis in progress...", "Analysis in progress...", "Analysis in progress...", "Analysis in progress..."]
       },
-      
+
       // Ensure all arrays have fallbacks to prevent .map() errors
       findings: Array.isArray(data.results?.findings) ? data.results.findings : [],
       quotes: Array.isArray(data.results?.quotes) ? data.results.quotes : [],
@@ -458,7 +532,7 @@ const validateResultData = (data: any): ResultData => {
       actionItem: data.results?.actionItem || ''
     }
   };
-  
+
   // console.log('✅ Validated result data:', validated);
   return validated;
 };
@@ -469,7 +543,7 @@ async function shareText(title: string, text: string): Promise<boolean> {
       await navigator.share({ title, text });
       return true;
     }
-  } catch {}
+  } catch { }
   try {
     await navigator.clipboard.writeText(`${title}\n\n${text}`);
     return true;
@@ -517,6 +591,11 @@ const sectionTheme = (key: string) => {
       return { bg: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 100%)`, text: tokens.textDark };
     case "work":
       return { bg: `linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(72,185,216,0.95) 100%)`, text: tokens.textLight };
+    case "pdf-report":
+      return {
+        bg: `linear-gradient(135deg, rgba(12,69,240,0.95) 0%, rgba(65,217,255,0.9) 50%, rgba(72,185,216,0.95) 100%)`,
+        text: tokens.textLight
+      };
     default:
       return { bg: `#FFFFFF`, text: tokens.textDark };
   }
@@ -549,9 +628,9 @@ interface SectionActionsProps {
   title: string;
   share: string;
   textColor: string;
-   inputClassName?: string;
-    buttonClassName?: string; 
-    sessionId?: string;
+  inputClassName?: string;
+  buttonClassName?: string;
+  sessionId?: string;
   testId?: string;
   sectionId?: string;
   onToast?: (msg: string) => void;
@@ -565,55 +644,55 @@ const SectionActions: React.FC<SectionActionsProps> = ({ title, share, textColor
 
   // Replace the existing sendFeedback function with this updated version:
 
-const sendFeedback = async () => {
-  console.log("sendFeedback called with:", { sessionId, testId, sectionId });
-  // if (!sessionId || !testId || !sectionId) return;
-  
-  try {
-    // Determine reaction value based on reacted state
-    let reaction = "none";
-    if (reacted === "up") reaction = "like";
-    if (reacted === "down") reaction = "dislike";
-    
-    console.log("Sending feedback:", { sessionId, testId, feedback, sectionId });
+  const sendFeedback = async () => {
+    console.log("sendFeedback called with:", { sessionId, testId, sectionId });
+    // if (!sessionId || !testId || !sectionId) return;
 
-    const reactions = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
-      sessionId,
-      testId,
-      reaction,
-      feedback,
-      sectionId: sectionId
-    });
+    try {
+      // Determine reaction value based on reacted state
+      let reaction = "none";
+      if (reacted === "up") reaction = "like";
+      if (reacted === "down") reaction = "dislike";
 
-    console.log("Feedback response:", reactions);
-    toast.success("Thank you for the feedback",{
-      position: "top-right"
-    });
-  } catch (error) {
-    toast.error("Failed to send feedback",{
-      position: "top-right"
-    });
-  }
-};
+      console.log("Sending feedback:", { sessionId, testId, feedback, sectionId });
+
+      const reactions = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
+        sessionId,
+        testId,
+        reaction,
+        feedback,
+        sectionId: sectionId
+      });
+
+      console.log("Feedback response:", reactions);
+      toast.success("Thank you for the feedback", {
+        position: "top-right"
+      });
+    } catch (error) {
+      toast.error("Failed to send feedback", {
+        position: "top-right"
+      });
+    }
+  };
 
 
-const sendReaction = async (reactionType: "like" | "dislike") => {
-  console.log("sendReaction called with:", { sessionId, testId, sectionId, reactionType });
-  
-  try {
-    console.log("Sending reaction:", { sessionId, testId, reactionType, sectionId });
+  const sendReaction = async (reactionType: "like" | "dislike") => {
+    console.log("sendReaction called with:", { sessionId, testId, sectionId, reactionType });
 
-    const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/like_feedback`, {
-      sessionId,
-      testId,
-      reaction: reactionType,
-      sectionId: sectionId
-    });
-    console.log("Reaction response:", res);
-  } catch (error) {
-    console.error("Failed to send reaction:", error);
-  }
-};
+    try {
+      console.log("Sending reaction:", { sessionId, testId, reactionType, sectionId });
+
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/like_feedback`, {
+        sessionId,
+        testId,
+        reaction: reactionType,
+        sectionId: sectionId
+      });
+      console.log("Reaction response:", res);
+    } catch (error) {
+      console.error("Failed to send reaction:", error);
+    }
+  };
 
 
 
@@ -646,134 +725,134 @@ const sendReaction = async (reactionType: "like" | "dislike") => {
           </button> */}
 
           <div className="flex items-center gap-2">
-          <motion.button
-            onClick={() => {
-              const newReaction = reacted === "up" ? null : "up";
-              setReacted(newReaction);
-              if (newReaction === "up") {
-                sendReaction("like");
-              }
-            }}
-            className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {/* Background fill animation */}
-            <motion.div
-              className="absolute inset-0"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: reacted === "up" ? 1 : 0,
-                opacity: reacted === "up" ? 0.3 : 0,
+            <motion.button
+              onClick={() => {
+                const newReaction = reacted === "up" ? null : "up";
+                setReacted(newReaction);
+                if (newReaction === "up") {
+                  sendReaction("like");
+                }
               }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 20,
-              }}
-              style={{ borderRadius: "inherit" }}
-            />
-            
-            {/* Icon with animation */}
-            <motion.div
-              animate={{
-                rotate: reacted === "up" ? [0, -10, 10, 0] : 0,
-                scale: reacted === "up" ? [1, 1.2, 1] : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: "easeOut"
-              }}
+              className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <ThumbsUp 
-                className="h-4 w-4 relative z-10" 
-                fill={reacted === "up" ? "currentColor" : "none"}
-                style={{
-                  transition: "fill 0.3s ease"
-                }}
-              />
-            </motion.div>
-            
-            {/* Ripple effect */}
-            {reacted === "up" && (
+              {/* Background fill animation */}
               <motion.div
-                className="absolute inset-0 border-2 border-green-400 rounded-full"
-                initial={{ scale: 0.8, opacity: 0.8 }}
-                animate={{ scale: 2, opacity: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="absolute inset-0"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: reacted === "up" ? 1 : 0,
+                  opacity: reacted === "up" ? 0.3 : 0,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+                style={{ borderRadius: "inherit" }}
               />
-            )}
-          </motion.button>
 
-          <motion.button
-            onClick={() => {
-              const newReaction = reacted === "down" ? null : "down";
-              setReacted(newReaction);
-              if (newReaction === "down") {
-                sendReaction("dislike");
-              }
-            }}
-            className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {/* Background fill animation */}
-            <motion.div
-              className="absolute inset-0"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: reacted === "down" ? 1 : 0,
-                opacity: reacted === "down" ? 0.3 : 0,
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 20,
-              }}
-              style={{ borderRadius: "inherit" }}
-            />
-            
-            {/* Icon with animation */}
-            <motion.div
-              animate={{
-                rotate: reacted === "down" ? [0, 10, -10, 0] : 0,
-                scale: reacted === "down" ? [1, 1.2, 1] : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: "easeOut"
-              }}
-            >
-              <ThumbsDown 
-                className="h-4 w-4 relative z-10" 
-                fill={reacted === "down" ? "currentColor" : "none"}
-                style={{
-                  transition: "fill 0.3s ease"
-                }}
-              />
-            </motion.div>
-            
-            {/* Ripple effect */}
-            {reacted === "down" && (
+              {/* Icon with animation */}
               <motion.div
-                className="absolute inset-0 border-2 border-red-400 rounded-full"
-                initial={{ scale: 0.8, opacity: 0.8 }}
-                animate={{ scale: 2, opacity: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                animate={{
+                  rotate: reacted === "up" ? [0, -10, 10, 0] : 0,
+                  scale: reacted === "up" ? [1, 1.2, 1] : 1,
+                }}
+                transition={{
+                  duration: 0.5,
+                  ease: "easeOut"
+                }}
+              >
+                <ThumbsUp
+                  className="h-4 w-4 relative z-10"
+                  fill={reacted === "up" ? "currentColor" : "none"}
+                  style={{
+                    transition: "fill 0.3s ease"
+                  }}
+                />
+              </motion.div>
+
+              {/* Ripple effect */}
+              {reacted === "up" && (
+                <motion.div
+                  className="absolute inset-0 border-2 border-green-400 rounded-full"
+                  initial={{ scale: 0.8, opacity: 0.8 }}
+                  animate={{ scale: 2, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              )}
+            </motion.button>
+
+            <motion.button
+              onClick={() => {
+                const newReaction = reacted === "down" ? null : "down";
+                setReacted(newReaction);
+                if (newReaction === "down") {
+                  sendReaction("dislike");
+                }
+              }}
+              className="flex items-center gap-1 rounded-full px-3 py-1 text-[12px] relative overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {/* Background fill animation */}
+              <motion.div
+                className="absolute inset-0"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: reacted === "down" ? 1 : 0,
+                  opacity: reacted === "down" ? 0.3 : 0,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+                style={{ borderRadius: "inherit" }}
               />
-            )}
-          </motion.button>
-          <button
-          onClick={onShare}
-          className="rounded-full px-3 active:scale-95 font-['Gilroy-Regular'] tracking-tighter"
-          style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
-          aria-label="Share"
-        >
-          Share
-        </button>
-        </div>
+
+              {/* Icon with animation */}
+              <motion.div
+                animate={{
+                  rotate: reacted === "down" ? [0, 10, -10, 0] : 0,
+                  scale: reacted === "down" ? [1, 1.2, 1] : 1,
+                }}
+                transition={{
+                  duration: 0.5,
+                  ease: "easeOut"
+                }}
+              >
+                <ThumbsDown
+                  className="h-4 w-4 relative z-10"
+                  fill={reacted === "down" ? "currentColor" : "none"}
+                  style={{
+                    transition: "fill 0.3s ease"
+                  }}
+                />
+              </motion.div>
+
+              {/* Ripple effect */}
+              {reacted === "down" && (
+                <motion.div
+                  className="absolute inset-0 border-2 border-red-400 rounded-full"
+                  initial={{ scale: 0.8, opacity: 0.8 }}
+                  animate={{ scale: 2, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              )}
+            </motion.button>
+            <button
+              onClick={onShare}
+              className="rounded-full px-3 active:scale-95 font-['Gilroy-Regular'] tracking-tighter"
+              style={{ background: "rgba(255,255,255,0.25)", color: textColor }}
+              aria-label="Share"
+            >
+              Share
+            </button>
+          </div>
         </div>
         {/* <button
           onClick={onShare}
@@ -788,7 +867,7 @@ const sendReaction = async (reactionType: "like" | "dislike") => {
       <AnimatePresence initial={false}>
         {feedbackOpen && (
           <motion.form
-           onSubmit={(e) => {
+            onSubmit={(e) => {
               e.preventDefault();
               sendFeedback();
               setFeedback("");
@@ -846,8 +925,8 @@ interface SectionFrameProps {
   themeKey: string;
   customClass?: string;
   inputClassName?: string;
-   buttonClassName?: string; 
-   sessionId?: string;    // Add this
+  buttonClassName?: string;
+  sessionId?: string;    // Add this
   testId?: string;       // Add this
   children: React.ReactNode;
   onToast?: (msg: string) => void;
@@ -877,7 +956,10 @@ const SectionFrame: React.FC<SectionFrameProps> = ({ id, title, sub, shareText, 
         <motion.div className="flex-1 overflow-y-auto" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
           {children}
         </motion.div>
-        <SectionActions title={title} share={shareText} textColor={text} onToast={onToast} inputClassName={inputClassName} buttonClassName={buttonClassName} sessionId={sessionId} testId={testId} sectionId={id} />
+        {/* Hide SectionActions in PDF section */}
+        {id !== "pdf-report" && (
+          <SectionActions title={title} share={shareText} textColor={text} onToast={onToast} inputClassName={inputClassName} buttonClassName={buttonClassName} sessionId={sessionId} testId={testId} sectionId={id} />
+        )}
       </div>
     </section>
   );
@@ -941,12 +1023,12 @@ const CirclePercent: React.FC<CirclePercentProps> = ({ percent }) => {
 };
 
 const getAuthBannerColors = (sectionIndex: number) => {
-  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
   const currentSection = sectionKeys[sectionIndex];
-  
+
   switch (currentSection) {
     case "quotes":
-    case "subjects": 
+    case "subjects":
     case "books":
       // Light sections - use dark colors
       return {
@@ -961,6 +1043,7 @@ const getAuthBannerColors = (sectionIndex: number) => {
     case "films":
     case "astrology":
     case "work":
+    case "pdf-report":
     default:
       // Dark sections - use light colors
       return {
@@ -982,11 +1065,11 @@ interface AuthBannerProps {
 
 const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paymentLoading, activeIndex = 0 }) => {
   const colors = getAuthBannerColors(activeIndex);
-  
+
   const getGlassBackground = (index: number) => {
-    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
     const currentSection = sectionKeys[index];
-    
+
     if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books") {
       return 'rgba(255,255,255,0.15)';
     } else {
@@ -995,30 +1078,30 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
   };
 
   return (
-    <div 
-      className={`fixed top-0 left-0 right-0 z-[60] px-4 transition-all duration-300 py-0`} 
-      style={{ 
-        backdropFilter: 'blur(16px)', 
-        WebkitBackdropFilter: 'blur(16px)', 
-        background: getGlassBackground(activeIndex) 
+    <div
+      className={`fixed top-0 left-0 right-0 z-[60] px-4 transition-all duration-300 py-0`}
+      style={{
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        background: getGlassBackground(activeIndex)
       }}
     >
       <div className="max-w-md flex items-center justify-between">
         {/* Dynamic logo color */}
-        <img 
-          src={logo} 
-          alt="Logo" 
-          className="w-20 h-14 transition-all duration-300 cursor-pointer hover:opacity-80" 
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-20 h-14 transition-all duration-300 cursor-pointer hover:opacity-80"
           style={{ filter: colors.logoFilter }}
           onClick={() => window.location.href = '/quest'}
         />
-          <button
-            onClick={onSignIn}
-            className={`font-['Gilroy-Regular'] tracking-tight px-4 py-1 rounded-lg shadow-md transition-all duration-300 ${colors.buttonText} ${colors.buttonBorder}`}
-            style={{ background: colors.buttonBg }}
-          >
-            {user ? 'Dashboard' : 'Save'}
-          </button>
+        <button
+          onClick={onSignIn}
+          className={`font-['Gilroy-Regular'] tracking-tight px-4 py-1 rounded-lg shadow-md transition-all duration-300 ${colors.buttonText} ${colors.buttonBorder}`}
+          style={{ background: colors.buttonBg }}
+        >
+          {user ? 'Dashboard' : 'Save'}
+        </button>
       </div>
     </div>
   );
@@ -1074,99 +1157,99 @@ const PaymentSuccessMessage: React.FC<PaymentSuccessMessageProps> = ({ userId })
 };
 
 interface InsightModalProps {
-  insight: {index: number, text: string} | null;
+  insight: { index: number, text: string } | null;
   onClose: () => void;
   attribute: string;
 }
 
 const InsightModal: React.FC<InsightModalProps> = ({ insight, onClose, attribute }) => {
- if (!insight) return null;
+  if (!insight) return null;
 
- // Get the same styling as the corresponding Mind Card
- const getCardStyling = (index: number) => {
-   const styles = [
-     { 
-       bg: "bg-red-800", 
-       decorative: (
-         <div className="w-40 h-40 absolute top-0 left-0 opacity-20">
-           <div className="w-40 h-28 left-0 top-0 absolute bg-red-400" />
-           <div className="w-5 h-5 left-[50px] top-[140px] absolute bg-red-400" />
-           <div className="w-5 h-5 left-[90px] top-[140px] absolute bg-red-400" />
-           <div className="w-5 h-5 left-[130px] top-[140px] absolute bg-red-400" />
-           <div className="w-5 h-5 left-[10px] top-[140px] absolute bg-red-400" />
-         </div>
-       )
-     },
-     { 
-       bg: "bg-purple-900", 
-       decorative: (
-         <div className="absolute inset-0 opacity-20">
-           <div className="w-28 h-11 absolute right-[20px] bottom-[40px] bg-purple-100" />
-           <div className="w-16 h-24 absolute right-[50px] top-[30px] bg-purple-100" />
-           <div className="w-16 h-24 absolute right-[10px] top-[20px] bg-purple-100" />
-         </div>
-       )
-     },
-     { 
-       bg: "bg-stone-400", 
-       decorative: (
-         <div className="w-20 h-32 absolute right-[20px] top-[24px] opacity-20 bg-green-100" />
-       )
-     },
-     { 
-       bg: "bg-sky-500", 
-       decorative: (
-         <div className="w-36 h-32 absolute right-[10px] top-[21px] opacity-20 bg-sky-100" />
-       )
-     }
-   ];
-   return styles[index] || styles[0];
- };
+  // Get the same styling as the corresponding Mind Card
+  const getCardStyling = (index: number) => {
+    const styles = [
+      {
+        bg: "bg-red-800",
+        decorative: (
+          <div className="w-40 h-40 absolute top-0 left-0 opacity-20">
+            <div className="w-40 h-28 left-0 top-0 absolute bg-red-400" />
+            <div className="w-5 h-5 left-[50px] top-[140px] absolute bg-red-400" />
+            <div className="w-5 h-5 left-[90px] top-[140px] absolute bg-red-400" />
+            <div className="w-5 h-5 left-[130px] top-[140px] absolute bg-red-400" />
+            <div className="w-5 h-5 left-[10px] top-[140px] absolute bg-red-400" />
+          </div>
+        )
+      },
+      {
+        bg: "bg-purple-900",
+        decorative: (
+          <div className="absolute inset-0 opacity-20">
+            <div className="w-28 h-11 absolute right-[20px] bottom-[40px] bg-purple-100" />
+            <div className="w-16 h-24 absolute right-[50px] top-[30px] bg-purple-100" />
+            <div className="w-16 h-24 absolute right-[10px] top-[20px] bg-purple-100" />
+          </div>
+        )
+      },
+      {
+        bg: "bg-stone-400",
+        decorative: (
+          <div className="w-20 h-32 absolute right-[20px] top-[24px] opacity-20 bg-green-100" />
+        )
+      },
+      {
+        bg: "bg-sky-500",
+        decorative: (
+          <div className="w-36 h-32 absolute right-[10px] top-[21px] opacity-20 bg-sky-100" />
+        )
+      }
+    ];
+    return styles[index] || styles[0];
+  };
 
- const cardStyle = getCardStyling(insight.index);
+  const cardStyle = getCardStyling(insight.index);
 
- return (
-   <AnimatePresence>
-     <motion.div 
-       className="fixed inset-0 z-[70]" 
-       initial={{ opacity: 0 }} 
-       animate={{ opacity: 1 }} 
-       exit={{ opacity: 0 }}
-     >
-       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-       <motion.div
-         className={`absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] min-h-[280px] rounded-[20px] ${cardStyle.bg} overflow-hidden relative`}
-         initial={{ y: "50%", opacity: 0, scale: 0.9 }}
-         animate={{ y: "-50%", opacity: 1, scale: 1 }}
-         exit={{ y: "50%", opacity: 0, scale: 0.9 }}
-         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-       >
-         {/* Decorative Elements */}
-         {/* {cardStyle.decorative} */}
-         
-         {/* Close Button */}
-         <button 
-           aria-label="Close" 
-           onClick={onClose} 
-           className="absolute right-4 top-4 rounded-full p-2 bg-white/20 hover:bg-white/30 transition-colors"
-           style={{ zIndex: 20 }}
-         >
-           <X className="h-5 w-5 text-white" />
-         </button>
-         
-         {/* Content */}
-         <div className="relative z-10 p-6 pt-16">
-           {/* <div className="text-4xl font-['Gilroy-Bold'] mb-4 text-white opacity-90">
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-[70]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <motion.div
+          className={`absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] min-h-[280px] rounded-[20px] ${cardStyle.bg} overflow-hidden relative`}
+          initial={{ y: "50%", opacity: 0, scale: 0.9 }}
+          animate={{ y: "-50%", opacity: 1, scale: 1 }}
+          exit={{ y: "50%", opacity: 0, scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
+          {/* Decorative Elements */}
+          {/* {cardStyle.decorative} */}
+
+          {/* Close Button */}
+          <button
+            aria-label="Close"
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-full p-2 bg-white/20 hover:bg-white/30 transition-colors"
+            style={{ zIndex: 20 }}
+          >
+            <X className="h-5 w-5 text-white" />
+          </button>
+
+          {/* Content */}
+          <div className="relative z-10 p-6 pt-16">
+            {/* <div className="text-4xl font-['Gilroy-Bold'] mb-4 text-white opacity-90">
              {attribute}
            </div> */}
-           <div className="text-4xl font-['Gilroy-Regular'] leading-tight text-white">
-             {insight.text}
-           </div>
-         </div>
-       </motion.div>
-     </motion.div>
-   </AnimatePresence>
- );
+            <div className="text-4xl font-['Gilroy-Regular'] leading-tight text-white">
+              {insight.text}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
 interface FilmModalProps {
@@ -1179,10 +1262,10 @@ const FilmModal: React.FC<FilmModalProps> = ({ film, onClose }) => {
 
   return (
     <AnimatePresence>
-      <motion.div 
-        className="fixed inset-0 z-[70]" 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        className="fixed inset-0 z-[70]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1194,19 +1277,19 @@ const FilmModal: React.FC<FilmModalProps> = ({ film, onClose }) => {
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
           {/* Close Button */}
-          <button 
-            aria-label="Close" 
-            onClick={onClose} 
+          <button
+            aria-label="Close"
+            onClick={onClose}
             className="absolute right-4 top-4 rounded-full p-2 bg-black hover:bg-white/30 transition-colors z-20"
           >
             <X className="h-5 w-5 text-white" />
           </button>
-          
+
           {/* Film Image */}
           <div className="w-full h-48 bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
             {film.imageUrl ? (
-              <img 
-                src={film.imageUrl} 
+              <img
+                src={film.imageUrl}
                 alt={film.title}
                 className="w-full h-full object-cover"
               />
@@ -1214,7 +1297,7 @@ const FilmModal: React.FC<FilmModalProps> = ({ film, onClose }) => {
               <Film className="h-16 w-16 text-white/60" />
             )}
           </div>
-          
+
           {/* Content */}
           <div className="p-6">
             <h3 className="text-2xl font-['Gilroy-Bold'] text-white mb-4">
@@ -1231,7 +1314,7 @@ const FilmModal: React.FC<FilmModalProps> = ({ film, onClose }) => {
 };
 
 interface AstrologyModalProps {
-  prediction: {title: string, likelihood: number, reason: string} | null;
+  prediction: { title: string, likelihood: number, reason: string } | null;
   onClose: () => void;
 }
 
@@ -1240,10 +1323,10 @@ const AstrologyModal: React.FC<AstrologyModalProps> = ({ prediction, onClose }) 
 
   return (
     <AnimatePresence>
-      <motion.div 
-        className="fixed inset-0 z-[70]" 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        className="fixed inset-0 z-[70]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1255,14 +1338,14 @@ const AstrologyModal: React.FC<AstrologyModalProps> = ({ prediction, onClose }) 
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
           {/* Close Button */}
-          <button 
-            aria-label="Close" 
-            onClick={onClose} 
+          <button
+            aria-label="Close"
+            onClick={onClose}
             className="absolute right-4 top-4 rounded-full p-2 bg-white/20 hover:bg-white/30 transition-colors z-20"
           >
             <X className="h-5 w-5 text-white" />
           </button>
-          
+
           {/* Content */}
           <div className="p-6 pt-16">
             {/* Percentage Circle */}
@@ -1271,12 +1354,12 @@ const AstrologyModal: React.FC<AstrologyModalProps> = ({ prediction, onClose }) 
                 {prediction.likelihood}%
               </div>
             </div>
-            
+
             {/* Prediction Title */}
             <h3 className="text-xl font-['Gilroy-Bold'] text-white mb-4 text-center">
               {prediction.title}
             </h3>
-            
+
             {/* Why Explanation */}
             <div className="text-white/90">
               <p className="text-sm font-['Gilroy-semiBold'] mb-2 text-purple-200">Why:</p>
@@ -1301,10 +1384,10 @@ const BookModal: React.FC<BookModalProps> = ({ book, onClose }) => {
 
   return (
     <AnimatePresence>
-      <motion.div 
-        className="fixed inset-0 z-[70]" 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        className="fixed inset-0 z-[70]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1316,19 +1399,19 @@ const BookModal: React.FC<BookModalProps> = ({ book, onClose }) => {
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
           {/* Close Button */}
-          <button 
-            aria-label="Close" 
-            onClick={onClose} 
+          <button
+            aria-label="Close"
+            onClick={onClose}
             className="absolute right-4 top-4 rounded-full p-2 bg-white/20 hover:bg-white/30 transition-colors z-20"
           >
             <X className="h-5 w-5 text-white" />
           </button>
-          
+
           {/* Book Icon */}
           <div className="w-full h-32 bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
             <BookOpen className="h-16 w-16 text-white/80" />
           </div>
-          
+
           {/* Content */}
           <div className="p-6">
             <h3 className="text-3xl font-['Gilroy-Bold'] text-white">
@@ -1375,24 +1458,188 @@ const PaymentSuccessPopup: React.FC<PaymentSuccessPopupProps> = ({ open, onClose
             exit={{ opacity: 0, scale: 0.9 }}
             className="bg-white rounded-xl p-6 max-w-md w-full mx-4 relative"
           >
-            <button 
-              aria-label="Close" 
-              onClick={onClose} 
+            <button
+              aria-label="Close"
+              onClick={onClose}
               className="absolute right-4 top-4 rounded-full p-2 hover:bg-gray-100 transition-colors"
             >
               <X className="h-5 w-5 text-gray-600" />
             </button>
-            
+
             <p className="text-gray-600 text-xl leading-6 font-['Gilroy-Regular'] mb-6 pr-8">
               Payment Recieved. I'm performing an indepth analysis to generate your Personalised PDF. It will be ready in 15 minutes. Please check your dashboard for the latest status.
             </p>
-            
+
             <button
               onClick={handleDashboardClick}
               className="px-6 py-3 text-xl font-normal font-['Gilroy-Bold'] tracking-[-1px] bg-gradient-to-br from-sky-800 to-sky-400 text-white rounded-lg hover:opacity-90 transition-colors"
             >
               Dashboard
             </button>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+interface FeedbackPopupProps {
+  open: boolean;
+  onClose: () => void;
+  onDismiss?: (hasInteracted: boolean) => void;
+  sessionId?: string;
+  testId?: string;
+}
+
+const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss, sessionId, testId }) => {
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleStarClick = (starNumber: number) => {
+    setRating(starNumber);
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error('Please select a rating', { position: "top-right" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
+        sessionId,
+        testId,
+        rating,
+        feedback,
+        sectionId: 'subjects',
+        feedbackType: 'section_rating'
+      });
+
+      console.log('Feedback submitted:', response.data);
+      toast.success('Thank you for your feedback!', { position: "top-right" });
+      
+      // Don't show star on successful submit - directly close without calling onDismiss
+      setRating(0);
+      setFeedback("");
+      onClose();
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      toast.error('Failed to submit feedback. Please try again.', { position: "top-right" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    // Always show star when user closes popup without submitting
+    // (whether they interacted or not)
+    if (onDismiss) {
+      onDismiss(true); // Always true since they didn't submit
+    }
+    
+    setRating(0);
+    setFeedback("");
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full relative shadow-2xl"
+          >
+            {/* Close Button */}
+            <button
+              aria-label="Close"
+              onClick={handleClose}
+              className="absolute right-4 top-4 rounded-full p-2 hover:bg-gray-100 transition-colors z-10"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+
+            {/* Header */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-['Gilroy-Bold'] text-gray-900 mb-2">
+                Rate This Section
+              </h3>
+              <p className="text-gray-600 font-['Gilroy-Regular'] text-sm">
+                How helpful were these subject recommendations?
+              </p>
+            </div>
+
+            {/* Star Rating */}
+            <div className="mb-6">
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <motion.button
+                    key={star}
+                    onClick={() => handleStarClick(star)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-1 transition-colors"
+                  >
+                    <Star
+                      className={`h-8 w-8 transition-colors ${star <= rating
+                        ? 'text-sky-500 fill-sky-500'
+                        : 'text-gray-300 hover:text-gray-400'
+                        }`}
+                    />
+                  </motion.button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-center text-sm text-gray-600 mt-2 font-['Gilroy-Regular']">
+                  {rating === 1 && 'Inaccurate'}
+                  {rating === 2 && 'Less Accurate'}
+                  {rating === 3 && 'Somewhat Accurate'}
+                  {rating === 4 && 'Accurate'}
+                  {rating === 5 && 'Very Accurate'}
+                </p>
+              )}
+            </div>
+
+            {/* Feedback Text */}
+            <div className="mb-6">
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Tell us more about your experience... (optional)"
+                className="w-full p-3 border border-gray-200 rounded-xl resize-none font-['Gilroy-Regular'] text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                rows={4}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <motion.button
+                onClick={handleSubmit}
+                disabled={rating === 0 || isSubmitting}
+                whileHover={rating > 0 ? { scale: 1.02 } : {}}
+                whileTap={rating > 0 ? { scale: 0.98 } : {}}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-['Gilroy-Bold'] text-sm transition-all ${rating > 0
+                  ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Submit Feedback
+                  </>
+                )}
+              </motion.button>
+            </div>
           </motion.div>
         </div>
       )}
@@ -1413,13 +1660,190 @@ interface FindingModalProps {
   selectedIndex: number;
 }
 
+// PDF Image Viewer Component with Zoom
+const PDFImageViewer: React.FC = () => {
+  const [zoom, setZoom] = useState(1);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const images = ['sample1.jpg', 'sample2.jpg', 'sample3.jpg', 'sample4.jpg', 'sample5.jpg'];
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.2, 3)); // Max zoom 3x
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.2, 0.5)); // Min zoom 0.5x
+  };
+
+  const handleReset = () => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (dragStart && zoom > 1) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDragStart(null);
+  };
+
+  return (
+    <div className="relative">
+      {/* Image Viewer Container */}
+      <div className="h-[calc(100dvh-220px)] w-full rounded-xl overflow-hidden shadow-lg bg-gray-100 relative">
+        <div
+          ref={containerRef}
+          className="w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{
+            cursor: zoom > 1 ? (dragStart ? 'grabbing' : 'grab') : 'default'
+          }}
+        >
+          <div
+            className="flex flex-col items-center transition-transform duration-200"
+            style={{
+              transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+              transformOrigin: '0 0'
+            }}
+          >
+            {images.map((image, index) => (
+              <img
+                key={index}
+                src={`/${image}`}
+                alt={`PDF Page ${index + 1}`}
+                className="w-full max-w-full h-auto select-none"
+                draggable={false}
+                onError={(e) => {
+                  console.error(`Failed to load ${image}`);
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-page.jpg'; // Fallback image
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Zoom Controls */}
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+          <motion.button
+            onClick={handleZoomIn}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+            aria-label="Zoom In"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </motion.button>
+          
+          <motion.button
+            onClick={handleZoomOut}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+            aria-label="Zoom Out"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+            </svg>
+          </motion.button>
+          
+          <motion.button
+            onClick={handleReset}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+            aria-label="Reset Zoom"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </motion.button>
+        </div>
+
+        {/* Zoom Indicator */}
+        <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-['Gilroy-Regular']">
+          {Math.round(zoom * 100)}%
+        </div>
+      </div>
+
+      {/* Unlock Overlay with Glass Effect */}
+      <div className="absolute inset-x-0 bottom-0">
+        <div className="relative rounded-t-2xl bg-blue-600/30 backdrop-blur-xl border-t border-white/20 p-6">
+          {/* Glass background elements */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-cyan-400/20 to-blue-600/20" />
+          <div className="absolute inset-0 bg-white/5" />
+
+          <div className="relative z-10">
+            {/* Pricing Section */}
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="text-4xl font-['Gilroy-Bold'] text-white">
+                ₹950
+              </span>
+              <span className="text-xl font-['Gilroy-Regular'] line-through text-white/50">
+                ₹1200
+              </span>
+            </div>
+
+            {/* Timer */}
+            <div className="flex items-center justify-center gap-1 text-sm text-yellow-300 mb-4">
+              <Clock className="h-4 w-4" />
+              <span className="font-['Gilroy-Regular']">Limited Time Offer</span>
+            </div>
+
+            {/* Centered Button */}
+            <div className="flex justify-center">
+              <motion.button
+                onClick={() => {}}
+                whileTap={{ scale: 0.98 }}
+                className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+                  boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
+                  width: '280px'
+                }}
+                aria-label="Unlock full PDF report"
+              >
+                Unlock Full PDF Report
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page Indicator */}
+      <div className="mt-4 text-center">
+        <p className="text-white/70 text-sm font-['Gilroy-Regular']">Sample PDF Report Preview</p>
+      </div>
+    </div>
+  );
+};
+
 const FindingModal: React.FC<FindingModalProps> = ({ finding, onClose, selectedIndex }) => {
   if (!finding) return null;
 
   const gradients = [
     "bg-gradient-to-b from-emerald-700 to-emerald-900",
     "bg-gradient-to-b from-indigo-700 to-indigo-900",
-    "bg-gradient-to-b from-rose-700 to-rose-900", 
+    "bg-gradient-to-b from-rose-700 to-rose-900",
     "bg-gradient-to-b from-amber-600 to-amber-800",
     "bg-gradient-to-b from-purple-700 to-purple-900"
   ];
@@ -1435,14 +1859,14 @@ const FindingModal: React.FC<FindingModalProps> = ({ finding, onClose, selectedI
           exit={{ y: "50%", opacity: 0, scale: 0.9 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
-          <button 
-            aria-label="Close" 
-            onClick={onClose} 
+          <button
+            aria-label="Close"
+            onClick={onClose}
             className="absolute right-4 top-4 rounded-full p-2 bg-white/20 hover:bg-white/30 transition-colors z-20"
           >
             <X className="h-5 w-5 text-white" />
           </button>
-          
+
           <div className="p-6 pt-16">
             <p className="text-white text-3xl font-['Gilroy-Regular'] leading-tight">
               {finding}
@@ -1454,8 +1878,8 @@ const FindingModal: React.FC<FindingModalProps> = ({ finding, onClose, selectedI
   );
 };
 
-const QuestResult: React.FC<QuestResultFullscreenProps> = ({  
-  className = '' 
+const QuestResult: React.FC<QuestResultFullscreenProps> = ({
+  className = ''
 }) => {
   const [tip, setTip] = useState<string | null>(null);
   // const [resultData] = useState<ResultData>(MOCK_RESULT_DATA);
@@ -1471,30 +1895,44 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const metaTimerRef = useRef<number | null>(null);
-  const [selectedInsight, setSelectedInsight] = useState<{index: number, text: string} | null>(null);
+  const [selectedInsight, setSelectedInsight] = useState<{ index: number, text: string } | null>(null);
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [filmModalOpen, setFilmModalOpen] = useState(false);
-  const [selectedPrediction, setSelectedPrediction] = useState<{title: string, likelihood: number, reason: string} | null>(null);
+  const [selectedPrediction, setSelectedPrediction] = useState<{ title: string, likelihood: number, reason: string } | null>(null);
   const [astrologyModalOpen, setAstrologyModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [selectedFinding, setSelectedFinding] = useState<string | null>(null);
   const [findingModalOpen, setFindingModalOpen] = useState(false);
   const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
-  // Add pricing state
-  const [pricing, setPricing] = useState<PricingData>({
-    main: '₹950',
-    original: '₹1200',
-    currency: 'INR',
-    symbol: '₹',
-    amount: 950,
-    isIndia: true,
+  const [feedbackPopupOpen, setFeedbackPopupOpen] = useState(false);
+  const [hasTriggeredFeedback, setHasTriggeredFeedback] = useState(false);
+  const [showFeedbackStar, setShowFeedbackStar] = useState(false);
+  // Add pricing state for dual gateways
+  const [pricing, setPricing] = useState<DualGatewayPricingData>({
+    razorpay: {
+      main: '₹950',
+      original: '₹1200',
+      currency: 'INR',
+      symbol: '₹',
+      amount: 950,
+      isIndia: true,
+      isLoading: true
+    },
+    paypal: {
+      main: '$20',
+      original: '$25',
+      currency: 'USD',
+      amount: 20,
+      isIndia: false
+    },
     isLoading: true
   });
-  
-  const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
 
-  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work"];
+  const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
+  const [seconds, setSeconds] = useState(30 * 60); // 30 minutes countdown for PDF promotion
+
+  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
   const getEffectiveUserId = () => {
     return user?.id || userId;
   };
@@ -1510,18 +1948,18 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   };
 
   const extractFindingPreview = (finding: string, index: number): string => {
-  // Extract key words or create shortened version
-  const words = finding.split(' ');
-  if (words.length <= 4) return finding;
-  return words.slice(0, 3).join(' ') + '...';
-};
+    // Extract key words or create shortened version
+    const words = finding.split(' ');
+    if (words.length <= 4) return finding;
+    return words.slice(0, 3).join(' ') + '...';
+  };
 
   const handleCardClick = (index: number) => {
-      const insight = mindCard?.insights[index];
-      if (insight) {
-        setSelectedInsight({ index, text: insight });
-      }
-    };
+    const insight = mindCard?.insights[index];
+    if (insight) {
+      setSelectedInsight({ index, text: insight });
+    }
+  };
 
   useEffect(() => {
     if (!tip) return;
@@ -1529,36 +1967,44 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     return () => clearTimeout(t);
   }, [tip]);
 
+  // Countdown timer for PDF promotion
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((prevSeconds) => (prevSeconds > 0 ? prevSeconds - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    
+
     const handler = () => {
       const rect = el.getBoundingClientRect();
       let best = 0;
       let bestDist = Infinity;
-      
+
       sectionIds.forEach((id, i) => {
         const s = document.getElementById(id);
         if (!s) return;
         const r = s.getBoundingClientRect();
         const dist = Math.abs(r.top - rect.top);
-        if (dist < bestDist) { 
-          bestDist = dist; 
-          best = i; 
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
         }
       });
-      
+
       setActiveIndex(best);
       setShowMeta(true);
-      
+
       if (metaTimerRef.current) window.clearTimeout(metaTimerRef.current);
       metaTimerRef.current = window.setTimeout(() => setShowMeta(false), 1500);
     };
-    
+
     el.addEventListener('scroll', handler, { passive: true });
     handler();
-    
+
     return () => {
       el.removeEventListener('scroll', handler);
       if (metaTimerRef.current) window.clearTimeout(metaTimerRef.current);
@@ -1566,74 +2012,98 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     };
   }, [sectionIds]);
 
-  // Add pricing effect
-useEffect(() => {
-  const loadPricing = async () => {
-    try {
-      console.log('💰 QuestResult: Loading location-based pricing...');
-      const isIndia = await getUserLocationFlag();
-      console.log('🌍 QuestResult: Location result:', isIndia);
-      
-      const newPricing = {
-        main: isIndia ? '₹950' : '$20',
-        original: isIndia ? '₹1200' : '$25',
-        currency: isIndia ? 'INR' : 'USD',
-        symbol: isIndia ? '₹' : '$',
-        amount: isIndia ? 950 : 20,
-        isIndia: isIndia,
-        isLoading: false
-      };
-      
-      setPricing(newPricing);
-      console.log('✅ QuestResult: Pricing updated', newPricing);
-    } catch (error) {
-      console.error('❌ QuestResult: Failed to load pricing:', error);
-      // Keep default India pricing on error
-      setPricing(prev => ({ ...prev, isLoading: false }));
+  // Auto-trigger feedback popup when user reaches subjects section
+  useEffect(() => {
+    // Subjects section is at index 5 in sectionIds array
+    if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
+      // Add a small delay to let the section settle
+      const timer = setTimeout(() => {
+        setFeedbackPopupOpen(true);
+        setHasTriggeredFeedback(true);
+      }, 1500); // 1.5 second delay
+
+      return () => clearTimeout(timer);
     }
-  };
+  }, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
 
-  loadPricing();
-}, []);
+  // Add pricing effect for dual gateways
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        console.log('💰 QuestResult: Loading pricing for both gateways...');
+        const unifiedPricingData = await getBothGatewayPricing();
+        console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
 
-// Cleanup localStorage when results page loads successfully
-useEffect(() => {
-  // Only clean up once when component mounts and has valid parameters
-  if (!hasCleanedStorage && userId && sessionId && testId) {
-    console.log('🧹 QuestResult: Cleaning up localStorage on results page load');
-    
-    // Clear quest session data (questions, progress, etc.)
-    localStorage.removeItem('fraterny_quest_session');
-    console.log('✅ Cleared fraterny_quest_session');
-    
-    // Clear quest tags if any exist
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('quest_tags_')) {
-        keysToRemove.push(key);
+        const newPricing: DualGatewayPricingData = {
+          razorpay: {
+            main: unifiedPricingData.razorpay.main,
+            original: unifiedPricingData.razorpay.original,
+            currency: unifiedPricingData.razorpay.currency,
+            symbol: unifiedPricingData.razorpay.symbol,
+            amount: unifiedPricingData.razorpay.amount,
+            isIndia: unifiedPricingData.razorpay.isIndia,
+            isLoading: false
+          },
+          paypal: {
+            main: unifiedPricingData.paypal.displayAmount,
+            original: unifiedPricingData.paypal.displayOriginal,
+            currency: unifiedPricingData.paypal.currency,
+            amount: unifiedPricingData.paypal.numericAmount,
+            isIndia: unifiedPricingData.paypal.isIndia
+          },
+          isLoading: false
+        };
+
+        setPricing(newPricing);
+        console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
+      } catch (error) {
+        console.error('❌ QuestResult: Failed to load pricing:', error);
+        // Keep default pricing on error
+        setPricing(prev => ({ ...prev, isLoading: false }));
       }
+    };
+
+    loadPricing();
+  }, []);
+
+  // Cleanup localStorage when results page loads successfully
+  useEffect(() => {
+    // Only clean up once when component mounts and has valid parameters
+    if (!hasCleanedStorage && userId && sessionId && testId) {
+      console.log('🧹 QuestResult: Cleaning up localStorage on results page load');
+
+      // Clear quest session data (questions, progress, etc.)
+      localStorage.removeItem('fraterny_quest_session');
+      console.log('✅ Cleared fraterny_quest_session');
+
+      // Clear quest tags if any exist
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('quest_tags_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      if (keysToRemove.length > 0) {
+        console.log(`✅ Cleared ${keysToRemove.length} quest tag entries`);
+      }
+
+      // IMPORTANT: Also clear questSessionId and testid to allow fresh assessments
+      // These are no longer needed once we're on the results page with proper URL params
+      localStorage.removeItem('questSessionId');
+      localStorage.removeItem('testid');
+      console.log('✅ Cleared questSessionId and testid for fresh assessment capability');
+
+      // Also clear any device backup data
+      localStorage.removeItem('fraterny_device_backup');
+      console.log('✅ Cleared device backup data');
+
+      setHasCleanedStorage(true);
+      console.log('🎉 Complete localStorage cleanup - user can now start fresh assessments');
     }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    if (keysToRemove.length > 0) {
-      console.log(`✅ Cleared ${keysToRemove.length} quest tag entries`);
-    }
-    
-    // IMPORTANT: Also clear questSessionId and testid to allow fresh assessments
-    // These are no longer needed once we're on the results page with proper URL params
-    localStorage.removeItem('questSessionId');
-    localStorage.removeItem('testid');
-    console.log('✅ Cleared questSessionId and testid for fresh assessment capability');
-    
-    // Also clear any device backup data
-    localStorage.removeItem('fraterny_device_backup');
-    console.log('✅ Cleared device backup data');
-    
-    setHasCleanedStorage(true);
-    console.log('🎉 Complete localStorage cleanup - user can now start fresh assessments');
-  }
-}, [userId, sessionId, testId, hasCleanedStorage]);
+  }, [userId, sessionId, testId, hasCleanedStorage]);
 
   // const handleSignIn = async () => {
   //       if (user?.id) { 
@@ -1645,7 +2115,7 @@ useEffect(() => {
   //       console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
   // }
 
-  
+
   // Mock API handlers (commented real implementation)
   const handleSignIn = async () => {
     try {
@@ -1665,7 +2135,7 @@ useEffect(() => {
           email
         });
         console.log('Sign-in association response:', response.data);
-        
+
       }
     } catch (error) {
       console.error('Sign-in error:', error);
@@ -1674,8 +2144,8 @@ useEffect(() => {
       });
     }
   };
-  
-  const handlePayment = async (): Promise<void> => {
+
+  const handlePayment = async (selectedGateway: PaymentGateway = 'razorpay'): Promise<void> => {
     // Track payment initiation
     googleAnalytics.trackPaymentInitiated({
       session_id: sessionId!,
@@ -1685,171 +2155,171 @@ useEffect(() => {
       pricing_tier: 'early'
     });
 
-  if (!sessionId || !testId) {
-    toast.error('Missing user information. Please try again.', {
-      position: "top-right"
-    });
-    console.error('Missing URL parameters:', { sessionId, testId });
-    return;
-  }
-
-  // If user not authenticated, store payment intent and trigger sign-in
-  if (!user?.id) {
-    try {
-      // Store payment context using sessionManager
-      sessionManager.createPaymentContext(sessionId, testId);
-      sessionManager.createSessionData(sessionId, testId, true);
-      
-      setPaymentLoading(true);
-      toast.success('Signing in to continue payment...', {
+    if (!sessionId || !testId) {
+      toast.error('Missing user information. Please try again.', {
         position: "top-right"
       });
-      
-      // Trigger Google sign-in (redirect-based)
-      await signInWithGoogle();
-      // send userdata to the backend to associate the session
-      if (user?.id) {
-        const userId = user?.id
-        const username = user?.user_metadata?.first_name
-          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
-          : 'User';
-        const email = user?.email || '';
-        console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
-        const response  = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
-          sessionId,
-          testId,
-          userId,
-          username,
-          email
-        });
-        console.log('Sign-in association response during payment:', response.data);
-      }
-      return;
-    } catch (error) {
-      console.error('Failed to initiate auth flow:', error);
-      toast.error('Failed to start sign-in. Please try again.', {
-        position: "top-right"
-      });
-      setPaymentLoading(false);
+      console.error('Missing URL parameters:', { sessionId, testId });
       return;
     }
-  }
-  
-  // User is authenticated, proceed with payment
-  setPaymentLoading(true);
-  try {
-    console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
-    
-    const paymentResult = await PaymentService.startPayment(sessionId, testId);
-    
-    if (paymentResult.success) {
-      toast.success('Payment successful!');
-      setPaymentSuccess(true);
-      setShowSuccessPopup(true);
-      setUpsellOpen(false);
-      // Track Google Ads conversion for result page payments
-      const urlParams = new URLSearchParams(window.location.search);
-      const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
 
-      if (gclid) {
-        googleAnalytics.trackGoogleAdsConversion({
-          session_id: sessionId!,
-          payment_id: 'result_page_payment',
-          amount: 950,
-          currency: 'INR'
+    // If user not authenticated, store payment intent and trigger sign-in
+    if (!user?.id) {
+      try {
+        // Store payment context using sessionManager
+        sessionManager.createPaymentContext(sessionId, testId);
+        sessionManager.createSessionData(sessionId, testId, true);
+
+        setPaymentLoading(true);
+        toast.success('Signing in to continue payment...', {
+          position: "top-right"
+        });
+
+        // Trigger Google sign-in (redirect-based)
+        await signInWithGoogle();
+        // send userdata to the backend to associate the session
+        if (user?.id) {
+          const userId = user?.id
+          const username = user?.user_metadata?.first_name
+            ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
+            : 'User';
+          const email = user?.email || '';
+          console.log('Associating session with user after sign-in:', { sessionId, testId, userId, username, email });
+          const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
+            sessionId,
+            testId,
+            userId,
+            username,
+            email
+          });
+          console.log('Sign-in association response during payment:', response.data);
+        }
+        return;
+      } catch (error) {
+        console.error('Failed to initiate auth flow:', error);
+        toast.error('Failed to start sign-in. Please try again.', {
+          position: "top-right"
+        });
+        setPaymentLoading(false);
+        return;
+      }
+    }
+
+    // User is authenticated, proceed with payment
+    setPaymentLoading(true);
+    try {
+      console.log('Payment attempt with:', { selectedGateway, sessionId, testId, userId: user?.id });
+
+      const paymentResult = await unifiedPaymentService.processPayment(selectedGateway, sessionId, testId);
+
+      if (paymentResult.success) {
+        toast.success('Payment successful!');
+        setPaymentSuccess(true);
+        setShowSuccessPopup(true);
+        setUpsellOpen(false);
+        // Track Google Ads conversion for result page payments
+        const urlParams = new URLSearchParams(window.location.search);
+        const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+        if (gclid) {
+          googleAnalytics.trackGoogleAdsConversion({
+            session_id: sessionId!,
+            payment_id: 'result_page_payment',
+            amount: 950,
+            currency: 'INR'
+          });
+        }
+
+        // Track Reddit conversion for result page payments
+        if (googleAnalytics.isRedditTraffic()) {
+          googleAnalytics.trackRedditConversion({
+            session_id: sessionId!,
+            payment_id: 'result_page_payment',
+            amount: 950,
+            currency: 'INR'
+          });
+        }
+      } else {
+        const errorMessage = paymentResult.error || 'Payment failed.';
+        console.error('Payment failed:', errorMessage);
+        toast.error(errorMessage, {
+          position: "top-right"
         });
       }
+    } catch (error: any) {
+      console.error('Payment error:', error);
 
-      // Track Reddit conversion for result page payments
-      if (googleAnalytics.isRedditTraffic()) {
-        googleAnalytics.trackRedditConversion({
-          session_id: sessionId!,
-          payment_id: 'result_page_payment',
-          amount: 950,
-          currency: 'INR'
-        });
+      let errorMessage = 'Payment failed. Please try again.';
+
+      if (error.message) {
+        if (error.message.includes('Network error')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('Server error')) {
+          errorMessage = 'Server error. Please try again in a few moments.';
+        } else if (error.message.includes('Authentication')) {
+          errorMessage = 'Authentication required. Please sign in and try again.';
+        }
       }
-    } else {
-      const errorMessage = paymentResult.error || 'Payment failed.';
-      console.error('Payment failed:', errorMessage);
+
       toast.error(errorMessage, {
         position: "top-right"
       });
+    } finally {
+      setPaymentLoading(false);
     }
-  } catch (error: any) {
-    console.error('Payment error:', error);
-    
-    let errorMessage = 'Payment failed. Please try again.';
-    
-    if (error.message) {
-      if (error.message.includes('Network error')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.message.includes('Server error')) {
-        errorMessage = 'Server error. Please try again in a few moments.';
-      } else if (error.message.includes('Authentication')) {
-        errorMessage = 'Authentication required. Please sign in and try again.';
-      }
-    }
-    
-    toast.error(errorMessage, {
-     position: "top-right"
-   });
-  } finally {
-    setPaymentLoading(false);
-  }
-};
+  };
 
   const handleCloseSuccessPopup = () => {
     setShowSuccessPopup(false);
   };
 
-//   useEffect(() => {
-//   console.log('Payment flow state:', {
-//     user: user?.id,
-//     sessionId,
-//     testId,
-//     paymentLoading,
-//     paymentSuccess,
-//     upsellOpen
-//   });
-// }, [user?.id, sessionId, testId, paymentLoading, paymentSuccess, upsellOpen]);
+  //   useEffect(() => {
+  //   console.log('Payment flow state:', {
+  //     user: user?.id,
+  //     sessionId,
+  //     testId,
+  //     paymentLoading,
+  //     paymentSuccess,
+  //     upsellOpen
+  //   });
+  // }, [user?.id, sessionId, testId, paymentLoading, paymentSuccess, upsellOpen]);
 
 
 
-// fetch result from the database
+  // fetch result from the database
   useEffect(() => {
     const fetchResultData = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/report/${userId}/${sessionId}/${testId}`, 
+          `${import.meta.env.VITE_BACKEND_URL}/api/report/${userId}/${sessionId}/${testId}`,
           {
             headers: { 'Content-Type': 'application/json' },
           }
         );
         // console.log('API response:', response.data);
-        
+
         const analysisData = response.data;
         // console.log('result from the backend:', analysisData)
         if (typeof analysisData.results === 'string') {
-        try {
-          // console.log('Parsing results string...');
-          analysisData.results = JSON.parse(analysisData.results);
-          // console.log('Successfully parsed results:', analysisData.results);
-        } catch (parseError) {
-          console.error('JSON parse error:', parseError);
-          // Try minimal cleaning for the typo
           try {
-            const cleanedResults = analysisData.results.replace('"personlity":', '"personality":');
-            analysisData.results = JSON.parse(cleanedResults);
-            console.log('Successfully parsed with typo fix');
-          } catch (finalError) {
-            console.error('Complete parsing failure:', finalError);
-            analysisData.results = {};
+            // console.log('Parsing results string...');
+            analysisData.results = JSON.parse(analysisData.results);
+            // console.log('Successfully parsed results:', analysisData.results);
+          } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            // Try minimal cleaning for the typo
+            try {
+              const cleanedResults = analysisData.results.replace('"personlity":', '"personality":');
+              analysisData.results = JSON.parse(cleanedResults);
+              console.log('Successfully parsed with typo fix');
+            } catch (finalError) {
+              console.error('Complete parsing failure:', finalError);
+              analysisData.results = {};
+            }
           }
         }
-      }
-        
+
         const validatedData = validateResultData(analysisData);
         // console.log('validated data:', validatedData)
         setResultData(validatedData);
@@ -1883,7 +2353,7 @@ useEffect(() => {
         console.log('Associating session with user:', { sessionId, testId, userId, username, email });
         try {
           // Call API to associate anonymous data with authenticated user
-          const response =await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
+          const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/saveusingsignin`, {
             sessionId,
             testId,
             userId,
@@ -1899,14 +2369,14 @@ useEffect(() => {
           // NEW: Track user conversion in GA4
           if (sessionId) {
             // Count questions completed (we don't have exact count here, so estimate)
-            const estimatedQuestionsCompleted = questionSummary.totalQuestions; 
+            const estimatedQuestionsCompleted = questionSummary.totalQuestions;
             googleAnalytics.trackUserConversion({
               session_id: sessionId,
               conversion_point: 'quest_result_page',
               questions_completed_as_anonymous: estimatedQuestionsCompleted
             });
           }
-          
+
         } catch (error) {
           console.error('Failed to associate anonymous data:', error);
           toast.error('Failed to save your result. Please try again.', {
@@ -1917,96 +2387,97 @@ useEffect(() => {
         navigate(newUrl, { replace: true });
       }
     };
-    
+
     associateDataAndNavigate();
   }, [user?.id, userId, sessionId, testId, navigate]);
 
   useEffect(() => {
-  // Only check payment context if we're on the NEW URL (post-navigation)
-  if (user?.id && userId === user.id && sessionId && testId) {
-    const resumeResult = sessionManager.resumePaymentFlow();
-    
-    if (resumeResult.canResume) {
-      // Show preparation toast
-      toast.info('We are preparing your order...', {
-        position: "top-right",
-        duration: 3000 // Keep it visible for 3 seconds
-      });
-      
-      sessionManager.clearPaymentContext();
-      
-      // Small delay to show the toast before payment window
-      setTimeout(async () => {
-        setPaymentLoading(true);
-        try {
-          const paymentResult = await PaymentService.startPayment(sessionId, testId);
-          
-          if (paymentResult.success) {
-            toast.success('Payment successful!');
-            setPaymentSuccess(true);
-            setShowSuccessPopup(true);
-            setUpsellOpen(false);
-            // Track Google Ads conversion for result page payments
-            const urlParams = new URLSearchParams(window.location.search);
-            const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+    // Only check payment context if we're on the NEW URL (post-navigation)
+    if (user?.id && userId === user.id && sessionId && testId) {
+      const resumeResult = sessionManager.resumePaymentFlow();
 
-            if (gclid) {
-              googleAnalytics.trackGoogleAdsConversion({
-                session_id: sessionId!,
-                payment_id: 'result_page_payment',
-                amount: 950,
-                currency: 'INR'
+      if (resumeResult.canResume) {
+        // Show preparation toast
+        toast.info('We are preparing your order...', {
+          position: "top-right",
+          duration: 3000 // Keep it visible for 3 seconds
+        });
+
+        sessionManager.clearPaymentContext();
+
+        // Small delay to show the toast before payment window
+        setTimeout(async () => {
+          setPaymentLoading(true);
+          try {
+            // For resume flows, use default Razorpay gateway (TODO: store selected gateway in session)
+            const paymentResult = await unifiedPaymentService.processPayment('razorpay', sessionId, testId);
+
+            if (paymentResult.success) {
+              toast.success('Payment successful!');
+              setPaymentSuccess(true);
+              setShowSuccessPopup(true);
+              setUpsellOpen(false);
+              // Track Google Ads conversion for result page payments
+              const urlParams = new URLSearchParams(window.location.search);
+              const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+              if (gclid) {
+                googleAnalytics.trackGoogleAdsConversion({
+                  session_id: sessionId!,
+                  payment_id: 'result_page_payment',
+                  amount: 950,
+                  currency: 'INR'
+                });
+              }
+
+              // Track Reddit conversion for result page payments
+              if (googleAnalytics.isRedditTraffic()) {
+                googleAnalytics.trackRedditConversion({
+                  session_id: sessionId!,
+                  payment_id: 'result_page_payment',
+                  amount: 950,
+                  currency: 'INR'
+                });
+              }
+            } else {
+              const errorMessage = paymentResult.error || 'Payment failed after sign-in.';
+              toast.error(errorMessage, {
+                position: "top-right"
               });
             }
-
-            // Track Reddit conversion for result page payments
-            if (googleAnalytics.isRedditTraffic()) {
-              googleAnalytics.trackRedditConversion({
-                session_id: sessionId!,
-                payment_id: 'result_page_payment',
-                amount: 950,
-                currency: 'INR'
-              });
-            }
-          } else {
-            const errorMessage = paymentResult.error || 'Payment failed after sign-in.';
-            toast.error(errorMessage, {
+          } catch (error) {
+            console.error('Error auto-continuing payment:', error);
+            toast.error('Failed to continue payment after sign-in. Please try again.', {
               position: "top-right"
             });
+          } finally {
+            setPaymentLoading(false);
           }
-        } catch (error) {
-          console.error('Error auto-continuing payment:', error);
-          toast.error('Failed to continue payment after sign-in. Please try again.', {
-            position: "top-right"
-          });
-        } finally {
-          setPaymentLoading(false);
-        }
-      }, 1000); // 1 second delay to let user see the preparation message
+        }, 1000); // 1 second delay to let user see the preparation message
+      }
     }
-  }
-}, [user?.id, userId, sessionId, testId]);
+  }, [user?.id, userId, sessionId, testId]);
 
   if (!resultData) {
-  return (
-    // <div className="min-h-screen flex items-center justify-center">
-    //   <div className="text-center">
-    //     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-    //     <p className="text-gray-600">Loading your results...</p>
-    //   </div>
-    // </div>
-    <div className='h-screen bg-[#004A7F] max-h-screen relative overflow-hidden flex items-center justify-center'>
-      <div className="text-center px-4">
-        <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
-          Loading your results...
-        </h2>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+    return (
+      // <div className="min-h-screen flex items-center justify-center">
+      //   <div className="text-center">
+      //     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      //     <p className="text-gray-600">Loading your results...</p>
+      //   </div>
+      // </div>
+      <div className='h-screen bg-[#004A7F] max-h-screen relative overflow-hidden flex items-center justify-center'>
+        <div className="text-center px-4">
+          <h2 className="text-4xl font-['Gilroy-Bold'] text-white mb-4">
+            Loading your results...
+          </h2>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
 
   const mindCard = resultData.results["Mind Card"];
@@ -2030,17 +2501,17 @@ useEffect(() => {
 
   return (
     <div className={`min-h-screen w-full bg-white text-gray-900 ${className}`}>
-          {/* Auth Banner */}
-          <AuthBanner 
-            onSignIn={handleAuthAction}
-            onPayment={handlePayment}
-            user={user}
-            paymentLoading={paymentLoading}
-            activeIndex={activeIndex}
-          />
-    
-          {/* Main Content */}
-          {/* <div
+      {/* Auth Banner */}
+      <AuthBanner
+        onSignIn={handleAuthAction}
+        onPayment={handlePayment}
+        user={user}
+        paymentLoading={paymentLoading}
+        activeIndex={activeIndex}
+      />
+
+      {/* Main Content */}
+      {/* <div
             className="mx-auto max-w-[390px] overflow-y-auto"
             ref={containerRef}
             style={{ 
@@ -2048,137 +2519,138 @@ useEffect(() => {
               height: `calc(100vh - ${CTA_HEIGHT}px`,
             }}
           > */}
-          <div
-            className="mx-auto max-w-[390px] overflow-y-auto"
-            ref={containerRef}
-            style={{
-              // iOS-friendly height and scrolling
-              height: `calc(100dvh - ${CTA_HEIGHT}px)`,
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
-              touchAction: 'pan-y',
-              // Softer snapping -> less “bounce”
-              scrollSnapType: 'y mandatory',
-            }}
-          >
-    
-            <SectionFrame 
-              id="emotional" 
-              title="" 
-              sub="" 
-              shareText={resultData.results["section 1"] || ""} 
-              themeKey="emotional" 
-              sessionId={sessionId}
-              customClass="pt-16 pb-16 overflow-y-auto"
-             testId={testId}
-            >
-              <div className="relative w-full max-w-[480px] mx-auto pt-4">
-                <motion.h1 className="mb-5 text-left">
-                  <span className="block text-sm uppercase tracking-[0.3em] text-white/70 mb-1">Analysis Complete</span>
-                  <span className="block text-5xl font-['Gilroy-Bold'] tracking-tighter bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent">
-                    Let's explore Your Mind
-                  </span>
-                  <span className="block mt-1 w-20 h-1 bg-white/50 rounded-full"></span>
-                </motion.h1>
-    
-                <motion.div className="rounded-[28px] bg-white/10 backdrop-blur-xl ring-1 ring-white/20 p-6 text-white">
-                  <p className="text-sm text-white/80 font-['Gilroy-Regular']">Your mind, in one sentence.</p>
-                  <h2 className="mt-1 text-[44px] leading-[0.95] font-['Gilroy-Bold'] tracking-tighter">Emotional<br />Mirror</h2>
-    
-                  <div className="mt-2 rounded-3xl font-['Gilroy-Regular'] bg-white text-slate-900 p-2 shadow-[0_10px_30px_rgba(0,0,0,.12)]">
-                    <p className="text-xl leading-tight p-2">{resultData.results["section 1"]}</p>
-                  </div>
-                </motion.div>
-              </div>
-            </SectionFrame>
-    
-            {/* Mind Card Section */}
-            <SectionFrame 
-              id="mind" 
-              title="Your Mind Card" 
-              sub="Archetype & stats" 
-              shareText={`${mindCard?.name || 'Mind Card'}; ${mindStats.map(s => `${s.label} ${s.value}`).join(', ')}.`}
-              themeKey="mind" 
-              customClass="pt-16 pb-16 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <div className="grid grid-rows-[auto_1fr] gap-4">
-                {mindCard && (
-                  <>
-                    <div className="text-left">
-                      <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2 pt-2">{mindCard.name}</div>
-                      <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.personality}</div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <div  className="flex gap-4 pb-4" style={{ width: "max-content" }}>
-                        {mindStats.map((stat, i) => {
-                          const colors = [
-                            { bg: "bg-red-800", decorative: "bg-red-400" },
-                            { bg: "bg-purple-900", decorative: "bg-purple-100" },
-                            { bg: "bg-stone-400", decorative: "bg-green-100" },
-                            { bg: "bg-sky-500", decorative: "bg-sky-100" }
-                          ];
-                          
-                          return (
-                            <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden`}>
-                              
-                              {/* Title */}
-                              <div className="absolute left-[20px] top-[30px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
-                                {stat.label.split(' ').map((word, idx) => (
-                                  <div key={idx}>{word}</div>
-                                ))}
-                              </div>
+      <div
+        className="w-full overflow-y-auto"
+        ref={containerRef}
+        style={{
+          // iOS-friendly height and scrolling
+          // Dynamic height: full height in PDF section, reduced height in other sections
+          height: activeIndex === 9 ? '100dvh' : `calc(100dvh - ${CTA_HEIGHT}px)`,
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehaviorY: 'contain',
+          touchAction: 'pan-y',
+          // Softer snapping -> less "bounce"
+          scrollSnapType: 'y mandatory',
+        }}
+      >
 
-                              {/* <div className="absolute right-[0px] bottom-[10px] opacity-70">
+        <SectionFrame
+          id="emotional"
+          title=""
+          sub=""
+          shareText={resultData.results["section 1"] || ""}
+          themeKey="emotional"
+          sessionId={sessionId}
+          customClass="pt-16 pb-16 overflow-y-auto"
+          testId={testId}
+        >
+          <div className="relative w-full max-w-[480px] mx-auto pt-4">
+            <motion.h1 className="mb-5 text-left">
+              <span className="block text-sm uppercase tracking-[0.3em] text-white/70 mb-1">Analysis Complete</span>
+              <span className="block text-5xl font-['Gilroy-Bold'] tracking-tighter bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent">
+                Let's explore Your Mind
+              </span>
+              <span className="block mt-1 w-20 h-1 bg-white/50 rounded-full"></span>
+            </motion.h1>
+
+            <motion.div className="rounded-[28px] bg-white/10 backdrop-blur-xl ring-1 ring-white/20 p-6 text-white">
+              <p className="text-sm text-white/80 font-['Gilroy-Regular']">Your mind, in one sentence.</p>
+              <h2 className="mt-1 text-[44px] leading-[0.95] font-['Gilroy-Bold'] tracking-tighter">Emotional<br />Mirror</h2>
+
+              <div className="mt-2 rounded-3xl font-['Gilroy-Regular'] bg-white text-slate-900 p-2 shadow-[0_10px_30px_rgba(0,0,0,.12)]">
+                <p className="text-xl leading-tight p-2">{resultData.results["section 1"]}</p>
+              </div>
+            </motion.div>
+          </div>
+        </SectionFrame>
+
+        {/* Mind Card Section */}
+        <SectionFrame
+          id="mind"
+          title="Your Mind Card"
+          sub="Archetype & stats"
+          shareText={`${mindCard?.name || 'Mind Card'}; ${mindStats.map(s => `${s.label} ${s.value}`).join(', ')}.`}
+          themeKey="mind"
+          customClass="pt-16 pb-16 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="grid grid-rows-[auto_1fr] gap-4">
+            {mindCard && (
+              <>
+                <div className="text-left">
+                  <div className="text-teal-900 text-4xl font-normal font-['Gilroy-Bold'] leading-7 pb-2 pt-2">{mindCard.name}</div>
+                  <div className="text-white/80 text-base font-normal font-['Gilroy-Regular'] leading-tight] ">{mindCard.personality}</div>
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="flex gap-4 pb-4" style={{ width: "max-content" }}>
+                    {mindStats.map((stat, i) => {
+                      const colors = [
+                        { bg: "bg-red-800", decorative: "bg-red-400" },
+                        { bg: "bg-purple-900", decorative: "bg-purple-100" },
+                        { bg: "bg-stone-400", decorative: "bg-green-100" },
+                        { bg: "bg-sky-500", decorative: "bg-sky-100" }
+                      ];
+
+                      return (
+                        <div onClick={() => handleCardClick(i)} key={stat.label} className={`relative w-60 h-60 ${colors[i].bg} rounded-[10px] overflow-hidden`}>
+
+                          {/* Title */}
+                          <div className="absolute left-[20px] top-[30px] opacity-70 mix-blend-hard-light text-white text-3xl font-normal font-['Gilroy-Bold'] leading-9">
+                            {stat.label.split(' ').map((word, idx) => (
+                              <div key={idx}>{word}</div>
+                            ))}
+                          </div>
+
+                          {/* <div className="absolute right-[0px] bottom-[10px] opacity-70">
                                 <ChevronsUp className="h-8 w-8 text-white" />
                               </div>
                               
                               <div className="absolute left-[10px] top-[141px] opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
                                 {stat.value}%
                               </div> */}
-                              <div className="flex justify-between items-end h-full pl-4">
-                                {/* Percentage */}
-                                <div className="opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
-                                  {stat.value}%
-                                </div>
-                                {/* <div className="pb-2">
+                          <div className="flex justify-between items-end h-full pl-4">
+                            {/* Percentage */}
+                            <div className="opacity-90 text-white text-8xl font-normal font-['Gilroy-Bold'] leading-[96.45px]">
+                              {stat.value}%
+                            </div>
+                            {/* <div className="pb-2">
                                   <ChevronsUp className="h-8 w-8 text-white" />
                                 </div> */}
-                                <motion.div
-                                  animate={{ y: [0, -3, 0] }}
-                                  transition={{
-                                    duration: 2.5,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                  }}
-                                  className="pb-2"
-                                >
-                                  <ChevronsUp className="h-8 w-8 text-white" />
-                                </motion.div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </SectionFrame>
-    
-            {/* Findings Section */}
-            <SectionFrame 
-              id="findings" 
-              title="5 Unique Findings About You" 
-              sub="Thought Provoking Insights" 
-              shareText={findings.join("\n")} 
-              themeKey="findings" 
-              customClass="pt-14 pb-16 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              {/* <div className="w-full">
+                            <motion.div
+                              animate={{ y: [0, -3, 0] }}
+                              transition={{
+                                duration: 2.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                              className="pb-2"
+                            >
+                              <ChevronsUp className="h-8 w-8 text-white" />
+                            </motion.div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </SectionFrame>
+
+        {/* Findings Section */}
+        <SectionFrame
+          id="findings"
+          title="5 Unique Findings About You"
+          sub="Thought Provoking Insights"
+          shareText={findings.join("\n")}
+          themeKey="findings"
+          customClass="pt-14 pb-16 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          {/* <div className="w-full">
                 <div className="grid grid-cols-2 gap-3 auto-rows-min">
                   {findings.slice(0, 4).map((finding, i) => (
                     <div 
@@ -2199,201 +2671,201 @@ useEffect(() => {
                   )}
                 </div>
               </div> */}
-              <div className="w-full">
-                <div className="grid grid-cols-2 gap-3 auto-rows-min">
-                  {findings.slice(0, 4).map((finding, i) => (
-                    <div 
-                      key={i} 
-                      className="bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start cursor-pointer"
-                      onClick={() => {
-                        setSelectedFinding(finding);
-                        setSelectedFindingIndex(i);
-                        setFindingModalOpen(true);
-                      }}
-                    >
-                      <div className="text-white text-lg font-normal font-['Gilroy-Regular'] leading-tight">
-                        {finding.slice(0, 50).trim() + '...'}
-                      </div>
+          <div className="w-full">
+            <div className="grid grid-cols-2 gap-3 auto-rows-min">
+              {findings.slice(0, 4).map((finding, i) => (
+                <div
+                  key={i}
+                  className="bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start cursor-pointer"
+                  onClick={() => {
+                    setSelectedFinding(finding);
+                    setSelectedFindingIndex(i);
+                    setFindingModalOpen(true);
+                  }}
+                >
+                  <div className="text-white text-lg font-normal font-['Gilroy-Regular'] leading-tight">
+                    {finding.slice(0, 50).trim() + '...'}
+                  </div>
+                </div>
+              ))}
+              {findings[4] && (
+                <div
+                  className="col-span-2 bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start cursor-pointer"
+                  onClick={() => {
+                    setSelectedFinding(findings[4]);
+                    setSelectedFindingIndex(4);
+                    setFindingModalOpen(true);
+                  }}
+                >
+                  <div className="text-white text-lg font-normal font-['Gilroy-Regular'] leading-tight">
+                    {findings[4].slice(0, 100).trim() + '...'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionFrame>
+
+        {/* Quotes Section */}
+        <SectionFrame
+          id="quotes"
+          title="Philosophical Quotes That Mirrors Your Psyche"
+          sub="Save the ones that hit"
+          shareText={quotes.map((q) => `"${q.text}" — ${q.author}`).join("\n")}
+          themeKey="quotes"
+          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600"
+          customClass="pt-12 pb-24 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <ul className="grid content-center gap-3 overflow-y-auto">
+            {quotes.map((quote, i) => (
+              <li key={i} className="rounded-2xl bg-white p-3" style={{ border: `1px solid ${tokens.border}` }}>
+                <div className="flex items-start gap-2">
+                  <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <Quote className="w-full h-full" color={tokens.accent} />
+                  </div>
+                  <div>
+                    <div className="text-[15px] font-['Inter'] leading-tight">{quote.text}</div>
+                    <div className="text-[12px]" style={{ color: tokens.muted }}>— {quote.author}</div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </SectionFrame>
+
+        {/* Films Section */}
+        <SectionFrame
+          id="films"
+          title="Films That Will Hit Closer Than Expected"
+          sub="Weekend cues"
+          shareText={films.map((f) => `${f.title} — ${f.description}`).join("\n")}
+          themeKey="films"
+          customClass="pt-16 pb-16 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
+              {films.map((film, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
+                  onClick={() => {
+                    setSelectedFilm(film);
+                    setFilmModalOpen(true);
+                  }}
+                >
+                  {/* Film Card */}
+                  <div className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] overflow-hidden bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
+                    {film.imageUrl ? (
+                      // <img 
+                      //   src={film.imageUrl} 
+                      //   alt={film.title}
+                      //   className="w-full h-full object-cover"
+                      // />
+                      <>
+                        <img
+                          src={film.imageUrl}
+                          alt={film.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <img
+                          src="/filmiconsvg.svg"
+                          alt="Prediction Card"
+                          className="absolute bottom-2 left-2 h-6 w-5 z-10 drop-shadow-2xl"
+                        />
+                      </>
+                    ) : (
+                      <Film className="h-16 w-16 text-white/60" />
+                    )}
+                  </div>
+
+                  {/* Film Title */}
+                  <div className="flex gap-2">
+                    <div className="text-white w-28 text-center text-lg font-bold font-['Inter'] leading-normal">
+                      {film.title}
                     </div>
-                  ))}
-                  {findings[4] && (
-                    <div 
-                      className="col-span-2 bg-[#7dc3e4] rounded-lg p-3 min-h-[80px] flex items-start cursor-pointer"
-                      onClick={() => {
-                        setSelectedFinding(findings[4]);
-                        setSelectedFindingIndex(4);
-                        setFindingModalOpen(true);
-                      }}
-                    >
-                      <div className="text-white text-lg font-normal font-['Gilroy-Regular'] leading-tight">
-                        {findings[4].slice(0, 100).trim() + '...'}
-                      </div>
-                    </div>
-                  )}
+
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SectionFrame>
+
+        {/* Subjects Section */}
+        <SectionFrame
+          id="subjects"
+          title="Subjects You Are Mentally Built to Explore Deeper"
+          sub="Deepen the edges"
+          shareText={subjects.map(s => `${s.title}: ${s.description}`).join("; ")}
+          themeKey="subjects"
+          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600"
+          customClass="pt-12 pb-[50px] overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="grid h-full content-center gap-3">
+            {subjects.map((subject, i) => (
+              <div key={i} className="rounded-2xl bg-white p-3 text-[15px]" style={{ border: `1px solid ${tokens.border}` }}>
+                <div className="font-semibold text-gray-900">{subject.title}</div>
+                <div className="text-sm text-gray-600 mt-1">{subject.description}</div>
+                <div className="text-xs text-blue-600 mt-2">{subject.matchPercentage}% match</div>
+              </div>
+            ))}
+          </div>
+        </SectionFrame>
+
+
+        {/* Astrology Section */}
+        {astrology && (
+          <SectionFrame
+            id="astrology"
+            title="Our Take on Astrology"
+            sub="Apologies to the cosmos"
+            shareText={astrology.description}
+            themeKey="astrology"
+            customClass="pt-12 pb-16 overflow-y-auto"
+            sessionId={sessionId}
+            testId={testId}
+          >
+            <div className="flex h-full flex-col justify-center gap-4">
+              <div className="text-center">
+                <div className="text-[16px] font-['Gilroy-Bold'] text-left leading-tight">
+                  You behave more like a <span className="underline">{astrology.behavioralSign}</span>.
+                </div>
+                <div className="text-left max-w-[320px] mt-3 opacity-90 text-lg font-['Gilroy-Regular'] leading-[1]">
+                  {astrology.description}
                 </div>
               </div>
-            </SectionFrame>
-    
-            {/* Quotes Section */}
-            <SectionFrame 
-              id="quotes" 
-              title="Philosophical Quotes That Mirrors Your Psyche" 
-              sub="Save the ones that hit" 
-              shareText={quotes.map((q) => `"${q.text}" — ${q.author}`).join("\n")} 
-              themeKey="quotes" 
-               inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
-              buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-              customClass="pt-12 pb-24 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <ul className="grid content-center gap-3 overflow-y-auto">
-                {quotes.map((quote, i) => (
-                  <li key={i} className="rounded-2xl bg-white p-3" style={{ border: `1px solid ${tokens.border}` }}>
-                    <div className="flex items-start gap-2">
-                      <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center mt-0.5">
-                        <Quote className="w-full h-full" color={tokens.accent} />
-                      </div>
-                      <div>
-                        <div className="text-[15px] font-['Inter'] leading-tight">{quote.text}</div>
-                        <div className="text-[12px]" style={{ color: tokens.muted }}>— {quote.author}</div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </SectionFrame>
-    
-            {/* Films Section */}
-            <SectionFrame 
-              id="films" 
-              title="Films That Will Hit Closer Than Expected" 
-              sub="Weekend cues" 
-              shareText={films.map((f) => `${f.title} — ${f.description}`).join("\n")} 
-              themeKey="films" 
-              customClass="pt-16 pb-16 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
+
+              {/* Predictions Cards */}
               <div className="overflow-x-auto">
                 <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
-                  {films.map((film, i) => (
-                    <div 
-                      key={i} 
-                      className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
-                      onClick={() => {
-                        setSelectedFilm(film);
-                        setFilmModalOpen(true);
-                      }}
-                    >
-                      {/* Film Card */}
-                      <div className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] overflow-hidden bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
-                        {film.imageUrl ? (
-                          // <img 
-                          //   src={film.imageUrl} 
-                          //   alt={film.title}
-                          //   className="w-full h-full object-cover"
-                          // />
-                          <>
-                            <img 
-                              src={film.imageUrl} 
-                              alt={film.title}
-                              className="w-full h-full object-cover"
-                            />
-                            <img 
-                              src="/filmiconsvg.svg" 
-                              alt="Prediction Card" 
-                              className="absolute bottom-2 left-2 h-6 w-5 z-10 drop-shadow-2xl" 
-                            />
-                          </>
-                        ) : (
-                          <Film className="h-16 w-16 text-white/60" />
-                        )}
-                      </div>
-                      
-                      {/* Film Title */}
-                      <div className="flex gap-2">
-                        <div className="text-white w-28 text-center text-lg font-bold font-['Inter'] leading-normal">
-                          {film.title}
+                  {astrology.predictions.slice(0, 3).map((prediction, i) => {
+                    const colors = ["bg-purple-800", "bg-indigo-700", "bg-violet-600"];
+
+                    return (
+                      <div
+                        key={i}
+                        className={`relative w-60 h-60 ${colors[i]} rounded-[10px] overflow-hidden flex-shrink-0 cursor-pointer`}
+                        onClick={() => {
+                          setSelectedPrediction(prediction);
+                          setAstrologyModalOpen(true);
+                        }}
+                      >
+                        {/* Percentage */}
+                        <div className="absolute left-[20px] top-[10px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
+                          {prediction.likelihood}%
                         </div>
-
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SectionFrame>
-    
-            {/* Subjects Section */}
-            <SectionFrame 
-              id="subjects" 
-              title="Subjects You Are Mentally Built to Explore Deeper" 
-              sub="Deepen the edges" 
-              shareText={subjects.map(s => `${s.title}: ${s.description}`).join("; ")} 
-              themeKey="subjects" 
-              inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
-              buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-              customClass="pt-12 pb-[50px] overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <div className="grid h-full content-center gap-3">
-                {subjects.map((subject, i) => (
-                  <div key={i} className="rounded-2xl bg-white p-3 text-[15px]" style={{ border: `1px solid ${tokens.border}` }}>
-                    <div className="font-semibold text-gray-900">{subject.title}</div>
-                    <div className="text-sm text-gray-600 mt-1">{subject.description}</div>
-                    <div className="text-xs text-blue-600 mt-2">{subject.matchPercentage}% match</div>
-                  </div>
-                ))}
-              </div>
-            </SectionFrame>
-
-
-            {/* Astrology Section */}
-            {astrology && (
-              <SectionFrame 
-                id="astrology" 
-                title="Our Take on Astrology" 
-                sub="Apologies to the cosmos" 
-                shareText={astrology.description} 
-                themeKey="astrology" 
-                customClass="pt-12 pb-16 overflow-y-auto"
-                sessionId={sessionId}
-                testId={testId}
-              >
-                <div className="flex h-full flex-col justify-center gap-4">
-                  <div className="text-center">
-                    <div className="text-[16px] font-['Gilroy-Bold'] text-left leading-tight">
-                      You behave more like a <span className="underline">{astrology.behavioralSign}</span>.
-                    </div>
-                    <div className="text-left max-w-[320px] mt-3 opacity-90 text-lg font-['Gilroy-Regular'] leading-[1]">
-                      {astrology.description}
-                    </div>
-                  </div>
-                  
-                  {/* Predictions Cards */}
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
-                      {astrology.predictions.slice(0, 3).map((prediction, i) => {
-                        const colors = ["bg-purple-800", "bg-indigo-700", "bg-violet-600"];
-                        
-                        return (
-                          <div 
-                            key={i} 
-                            className={`relative w-60 h-60 ${colors[i]} rounded-[10px] overflow-hidden flex-shrink-0 cursor-pointer`}
-                            onClick={() => {
-                              setSelectedPrediction(prediction);
-                              setAstrologyModalOpen(true);
-                            }}
-                          >
-                            {/* Percentage */}
-                            <div className="absolute left-[20px] top-[10px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
-                              {prediction.likelihood}%
-                            </div>
-                            <div className="w-14 h-14 absolute right-[5px] top-[5px]">
-                              <img src="/i-card.png" alt="Prediction Card" />
-                            </div>
-                            {/* <motion.div 
+                        <div className="w-14 h-14 absolute right-[5px] top-[5px]">
+                          <img src="/i-card.png" alt="Prediction Card" />
+                        </div>
+                        {/* <motion.div 
                               className="w-14 h-14 absolute right-[5px] top-[5px]"
                               animate={{ 
                                 scale: [1, 1.05, 1],
@@ -2408,113 +2880,127 @@ useEffect(() => {
                             >
                               <img src="/i-card.png" alt="Prediction Card" />
                             </motion.div> */}
-                            
-                            {/* Title */}
-                            <div className="absolute left-[20px] bottom-[21px] text-white text-xl font-normal font-['Gilroy-Bold'] leading-6">
-                              {prediction.title.split(' ').slice(0, 3).join('  ') + ' ....'}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </SectionFrame>
-            )}
-    
-            {/* Books Section */}
-            <SectionFrame 
-              id="books" 
-              title="Books You'd Love If You Give Them a Chance" 
-              sub="3 high-yield picks" 
-              shareText={books.map((b) => `${b.title} — ${b.author}`).join("\n")}
-              inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
-              buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600" 
-              themeKey="books" 
-              customClass="pt-12 pb-12 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <div className="overflow-x-auto">
-                <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
-                  {books.map((book, i) => {
-                    const backgrounds = ["#41D9FF", "#0C45F0", "#41D9FF"];
-                    
-                    return (
-                      <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0"
-                      onClick={() => {
-                          console.log('Book clicked:', book); // Add this for debugging
-                          setSelectedBook(book);
-                          setBookModalOpen(true);
-                        }}>
-                        {/* Book Card */}
-                        <div 
-                          className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] flex items-center justify-center"
-                          style={{ backgroundColor: backgrounds[i] }}
-                        >
-                          <BookOpen className="h-20 w-20 text-white" />
-                          <BookmarkPlus  className="absolute right-2 bottom-2 h-6 w-6 text-white/70" />
-                          {/* <img src="/i-card.png" alt="Prediction Card" className="absolute right-2 bottom-2 h-6 w-6 text-white/70" /> */}
-                        </div>
-                        
-                        {/* Book Text */}
-                        <div className="w-36 text-center">
-                          <div className="text-neutral-950 text-lg font-bold font-['Inter'] leading-normal">
-                            {book.title}
-                          </div>
-                          <div className="text-gray-500 text-lg font-normal font-['Inter'] leading-normal">
-                            {book.author}
-                          </div>
+
+                        {/* Title */}
+                        <div className="absolute left-[20px] bottom-[21px] text-white text-xl font-normal font-['Gilroy-Bold'] leading-6">
+                          {prediction.title.split(' ').slice(0, 3).join('  ') + ' ....'}
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </SectionFrame>
-    
-            {/* Action Item Section */}
-            <SectionFrame 
-              id="work" 
-              title="One Thing To Work On" 
-              sub="Start today; 60-minute cap" 
-              shareText={actionItem} 
-              themeKey="work" 
-              customClass="pt-20 pb-24 overflow-y-auto"
-              sessionId={sessionId}
-              testId={testId}
-            >
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="rounded-2xl bg-white/10 p-4 text-2xl leading-6">
-                  <div className="font-['Gilroy-Regular'] mb-10 text-left leading-snug">{actionItem}</div>
-                  <div className="opacity-95 text-xl font-['Gilroy-semiBold']">One small step could change your direction forever.</div>
-                </div>
-              </div>
-            </SectionFrame>
-            
+            </div>
+          </SectionFrame>
+        )}
 
+        {/* Books Section */}
+        <SectionFrame
+          id="books"
+          title="Books You'd Love If You Give Them a Chance"
+          sub="3 high-yield picks"
+          shareText={books.map((b) => `${b.title} — ${b.author}`).join("\n")}
+          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600"
+          themeKey="books"
+          customClass="pt-12 pb-12 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
+              {books.map((book, i) => {
+                const backgrounds = ["#41D9FF", "#0C45F0", "#41D9FF"];
+
+                return (
+                  <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0"
+                    onClick={() => {
+                      console.log('Book clicked:', book); // Add this for debugging
+                      setSelectedBook(book);
+                      setBookModalOpen(true);
+                    }}>
+                    {/* Book Card */}
+                    <div
+                      className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] flex items-center justify-center"
+                      style={{ backgroundColor: backgrounds[i] }}
+                    >
+                      <BookOpen className="h-20 w-20 text-white" />
+                      <BookmarkPlus className="absolute right-2 bottom-2 h-6 w-6 text-white/70" />
+                      {/* <img src="/i-card.png" alt="Prediction Card" className="absolute right-2 bottom-2 h-6 w-6 text-white/70" /> */}
+                    </div>
+
+                    {/* Book Text */}
+                    <div className="w-36 text-center">
+                      <div className="text-neutral-950 text-lg font-bold font-['Inter'] leading-normal">
+                        {book.title}
+                      </div>
+                      <div className="text-gray-500 text-lg font-normal font-['Inter'] leading-normal">
+                        {book.author}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-    
-          {/* Progress Rail */}
-          <div className="fixed right-2 top-1/2 z-[55] -translate-y-1/2 flex flex-col items-center gap-2">
-            {sectionIds.map((id, i) => (
-              <button
-                key={id}
-                aria-label={`Jump to ${id}`}
-                onClick={() => containerRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                className="transition-all"
-                style={{ 
-                  width: 6, 
-                  height: i === activeIndex ? 20 : 6, 
-                  borderRadius: 9999, 
-                  background: i === activeIndex ? tokens.accent : 'rgba(10,10,10,0.25)' 
-                }}
-              />
-            ))}
+        </SectionFrame>
+
+        {/* Action Item Section */}
+        <SectionFrame
+          id="work"
+          title="One Thing To Work On"
+          sub="Start today; 60-minute cap"
+          shareText={actionItem}
+          themeKey="work"
+          customClass="pt-20 pb-24 overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="rounded-2xl bg-white/10 p-4 text-2xl leading-6">
+              <div className="font-['Gilroy-Regular'] mb-10 text-left leading-snug">{actionItem}</div>
+              <div className="opacity-95 text-xl font-['Gilroy-semiBold']">One small step could change your direction forever.</div>
+            </div>
           </div>
-    
-          {/* Meta Counter */}
-          {/* <AnimatePresence>
+        </SectionFrame>
+
+        {/* PDF Report Preview Section */}
+        <SectionFrame
+          id="pdf-report"
+          title="Your Complete PDF Report"
+          sub="35+ Pages of Deep Analysis"
+          shareText="Check out my complete personality analysis from Fraterny!"
+          themeKey="pdf-report"
+          customClass="pt-16 pb-8"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <PDFImageViewer />
+        </SectionFrame>
+
+
+      </div>
+
+      {/* Progress Rail */}
+      <div className="fixed right-2 top-1/2 z-[55] -translate-y-1/2 flex flex-col items-center gap-2">
+        {sectionIds.map((id, i) => (
+          <button
+            key={id}
+            aria-label={`Jump to ${id}`}
+            onClick={() => containerRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="transition-all"
+            style={{
+              width: 6,
+              height: i === activeIndex ? 20 : 6,
+              borderRadius: 9999,
+              background: i === activeIndex ? tokens.accent : 'rgba(10,10,10,0.25)'
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Meta Counter */}
+      {/* <AnimatePresence>
             {showMeta && (
               <motion.div
                 className="fixed left-3 z-[55] rounded-full px-2 py-1 text-[11px]"
@@ -2527,107 +3013,152 @@ useEffect(() => {
               </motion.div>
             )}
           </AnimatePresence> */}
-    
-    
-          {/* Orb Component */}
-          {/* <Orb onTip={() => setTip("Tap share on any section → native share or copy.")} /> */}
-    
-    
-          {/* Sticky CTA + Upsell */}
-          {paymentSuccess ? (
-            <PaymentSuccessMessage userId={userId} />
-          ) : (
-            <StickyCTA 
-              onOpen={() => {
-                if (!paymentSuccess) {
-                  // Track PDF unlock CTA click
-                  googleAnalytics.trackPdfUnlockCTA({
-                    session_id: sessionId!,
-                    test_id: testId!,
-                    user_state: user?.id ? 'logged_in' : 'anonymous'
-                  });
-                  setUpsellOpen(true);
-                }
-              }}
-              pricing={pricing}
-            />
-          )}
-          {!paymentSuccess && (
-            <UpsellSheet 
-              open={upsellOpen} 
-              onClose={() => setUpsellOpen(false)}
-              onPayment={handlePayment}
-              paymentLoading={paymentLoading}
-              pricing={pricing}
-            />
-          )}
 
-          <PaymentSuccessPopup
-            open={showSuccessPopup}
-            onClose={handleCloseSuccessPopup}
-            userId={userId}
-          />
 
-          <InsightModal 
-            insight={selectedInsight}
-            onClose={() => setSelectedInsight(null)}
-            attribute={selectedInsight ? mindStats[selectedInsight.index]?.label || '' : ''}
-          />
+      {/* Orb Component */}
+      {/* <Orb onTip={() => setTip("Tap share on any section → native share or copy.")} /> */}
 
-          <FilmModal 
-            film={selectedFilm}
-            onClose={() => {
-              setSelectedFilm(null);
-              setFilmModalOpen(false);
+
+      {/* Sticky CTA + Upsell - Hide when in PDF section */}
+      {paymentSuccess ? (
+        // Also hide PaymentSuccessMessage in PDF section
+        activeIndex !== 9 && <PaymentSuccessMessage userId={userId} />
+      ) : (
+        // Hide StickyCTA when activeIndex is 9 (pdf-report section)
+        activeIndex !== 9 && (
+          <StickyCTA
+            onOpen={() => {
+              if (!paymentSuccess) {
+                // Track PDF unlock CTA click
+                googleAnalytics.trackPdfUnlockCTA({
+                  session_id: sessionId!,
+                  test_id: testId!,
+                  user_state: user?.id ? 'logged_in' : 'anonymous'
+                });
+                setUpsellOpen(true);
+              }
             }}
+            pricing={pricing}
           />
+        )
+      )}
+      {!paymentSuccess && (
+        <UpsellSheet
+          open={upsellOpen}
+          onClose={() => setUpsellOpen(false)}
+          onPayment={handlePayment}
+          paymentLoading={paymentLoading}
+          pricing={pricing}
+        />
+      )}
 
-          <AstrologyModal 
-            prediction={selectedPrediction}
-            onClose={() => {
-              setSelectedPrediction(null);
-              setAstrologyModalOpen(false);
-            }}
-          />
+      <PaymentSuccessPopup
+        open={showSuccessPopup}
+        onClose={handleCloseSuccessPopup}
+        userId={userId}
+      />
 
-          <BookModal 
-            book={selectedBook}
-            onClose={() => {
-              setSelectedBook(null);
-              setBookModalOpen(false);
-            }}
-          />
+      <InsightModal
+        insight={selectedInsight}
+        onClose={() => setSelectedInsight(null)}
+        attribute={selectedInsight ? mindStats[selectedInsight.index]?.label || '' : ''}
+      />
 
-          <FindingModal 
-            finding={selectedFinding}
-            selectedIndex={selectedFindingIndex}
-            onClose={() => {
-              setSelectedFinding(null);
-              setFindingModalOpen(false);
+      <FilmModal
+        film={selectedFilm}
+        onClose={() => {
+          setSelectedFilm(null);
+          setFilmModalOpen(false);
+        }}
+      />
+
+      <AstrologyModal
+        prediction={selectedPrediction}
+        onClose={() => {
+          setSelectedPrediction(null);
+          setAstrologyModalOpen(false);
+        }}
+      />
+
+      <BookModal
+        book={selectedBook}
+        onClose={() => {
+          setSelectedBook(null);
+          setBookModalOpen(false);
+        }}
+      />
+
+      <FindingModal
+        finding={selectedFinding}
+        selectedIndex={selectedFindingIndex}
+        onClose={() => {
+          setSelectedFinding(null);
+          setFindingModalOpen(false);
+        }}
+      />
+
+      <FeedbackPopup
+        open={feedbackPopupOpen}
+        onClose={() => setFeedbackPopupOpen(false)}
+        onDismiss={(hasInteracted) => setShowFeedbackStar(hasInteracted)}
+        sessionId={sessionId}
+        testId={testId}
+      />
+
+      {/* Sticky Feedback Star */}
+      <AnimatePresence>
+        {showFeedbackStar && (
+          <motion.button
+            onClick={() => {
+              setShowFeedbackStar(false);
+              setFeedbackPopupOpen(true);
             }}
-          />
-    
-          {/* Tip Tooltip */}
-          <AnimatePresence>
-            {tip && (
-              <motion.div
-                className="fixed bottom-20 right-20 z-[65] rounded-2xl bg-black/80 px-3 py-2 text-[12px] text-white max-w-48"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-              >
-                {tip}
-              </motion.div>
-            )}
-          </AnimatePresence>
-    
-          {/* Bottom CTA Space */}
-          <div style={{ height: CTA_HEIGHT }} />
-        </div>
+            className="fixed right-5 bottom-16 z-[60] flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg"
+            initial={{ opacity: 0, scale: 0, rotate: -180 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              rotate: 0,
+              y: [0, -3, 0]
+            }}
+            exit={{ opacity: 0, scale: 0, rotate: 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 15,
+              y: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Give feedback"
+          >
+            <Star className="h-5 w-5 text-white fill-white" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Tip Tooltip */}
+      <AnimatePresence>
+        {tip && (
+          <motion.div
+            className="fixed bottom-20 right-20 z-[65] rounded-2xl bg-black/80 px-3 py-2 text-[12px] text-white max-w-48"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            {tip}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom CTA Space */}
+      <div style={{ height: CTA_HEIGHT }} />
+    </div>
   );
 };
 
 export default QuestResult;
-
-
-
