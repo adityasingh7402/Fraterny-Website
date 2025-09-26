@@ -5,7 +5,7 @@ import { getUserLocationFlag } from '../razorpay/config';
 export const PAYPAL_CONFIG = {
   // Production environment - live payments
   CLIENT_ID: import.meta.env.VITE_PAYPAL_CLIENT_ID || '',
-  ENVIRONMENT: 'production', // 'sandbox' for testing, 'production' for live
+  ENVIRONMENT: import.meta.env.VITE_PAYPAL_ENVIRONMENT || 'production', // 'sandbox' for testing, 'production' for live
   INTENT: 'capture', // 'capture' for immediate payment, 'authorize' for later capture
   
   // Currency will be dynamic based on location
