@@ -15,7 +15,9 @@ import {
   BookOpen,
   Paperclip,
   BookmarkPlus,
-  ChevronsUp 
+  ChevronsUp,
+  Star,
+  Send
 } from "lucide-react";
 
 import imgicon from '../../../../public/message.png'
@@ -25,6 +27,13 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PaymentService, sessionManager } from '@/services/payments';
+import { 
+  unifiedPaymentService, 
+  processPaymentWithGateway, 
+  getBothGatewayPricing,
+  type PaymentGateway,
+  type UnifiedPricingData 
+} from '../../../services/payments/unifiedPaymentService';
 import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
@@ -114,6 +123,19 @@ interface PricingData {
   symbol: string;
   amount: number;
   isIndia: boolean;
+  isLoading: boolean;
+}
+
+// Extended pricing data for dual gateways
+interface DualGatewayPricingData {
+  razorpay: PricingData;
+  paypal: {
+    main: string;
+    original: string;
+    currency: string;
+    amount: number;
+    isIndia: boolean;
+  };
   isLoading: boolean;
 }
 
@@ -217,13 +239,15 @@ const MOCK_RESULT_DATA: ResultData = {
 interface UpsellSheetProps {
   open: boolean;
   onClose: () => void;
-  onPayment: () => Promise<void>;
+  onPayment: (gateway: PaymentGateway) => Promise<void>;
   paymentLoading: boolean;
-  pricing: PricingData;
+  pricing: DualGatewayPricingData;
 }
 
 const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, paymentLoading, pricing }) => {
   const [trial, setTrial] = useState(true);
+  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway>('razorpay');
+  const [showGatewaySelection, setShowGatewaySelection] = useState(false);
 
   const [seconds, setSeconds] = useState(30 * 60);
   useEffect(() => {
@@ -233,7 +257,7 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
 
    const handlePaymentClick = async () => {
     try {
-      await onPayment();
+      await onPayment(selectedGateway);
     } catch (error) {
       console.error('Payment error in UpsellSheet:', error);
     }
@@ -279,14 +303,14 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               >
                 <div className="text-[12px] opacity-95"><span>Ends in {formatTime(seconds)}</span></div>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-[24px] font-['Gilroy-Regular'] font-[400] text-white">
-                      {pricing.isLoading ? '...' : pricing.main}
-                    </span>
-                    <span className="text-[18px] font-['Gilroy-Regular'] line-through text-gray-800">
-                      {pricing.isLoading ? '...' : pricing.original}
-                    </span>
-                </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-[24px] font-['Gilroy-Regular'] font-[400] text-white">
+                    {pricing.isLoading ? '...' : (selectedGateway === 'razorpay' ? pricing.razorpay.main : pricing.paypal.main)}
+                  </span>
+                  <span className="text-[18px] font-['Gilroy-Regular'] line-through text-gray-800">
+                    {pricing.isLoading ? '...' : (selectedGateway === 'razorpay' ? pricing.razorpay.original : pricing.paypal.original)}
+                  </span>
+              </div>
               </motion.div>
               <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
                 <div className="text-[16px]" style={{ color: tokens.textDark }}>Incorporate My Feedback</div>
@@ -295,6 +319,58 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                 </button>
               </div>
             </div>
+            
+            {/* Payment Gateway Selection */}
+            <div className="px-4 pb-4">
+              <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
+                Choose Payment Method
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Razorpay Option */}
+                <button
+                  onClick={() => setSelectedGateway('razorpay')}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    selectedGateway === 'razorpay' 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">💳</span>
+                    <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                      Razorpay
+                    </span>
+                  </div>
+                  <div className="text-[12px] text-gray-600 text-left">
+                    Cards, UPI, Net Banking
+                  </div>
+                </button>
+
+                {/* PayPal Option */}
+                <button
+                  onClick={() => setSelectedGateway('paypal')}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    selectedGateway === 'paypal' 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🌐</span>
+                      <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                        PayPal
+                      </span>
+                    </div>
+                    <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
+                  </div>
+                  <div className="text-[12px] text-gray-600 text-left">
+                    PayPal Balance, Cards
+                  </div>
+                </button>
+              </div>
+            </div>
+            
             <div className="sticky bottom-0 mt-5 border-t" style={{ borderColor: tokens.border }}>
               <div className="px-4 py-3">
                 <button 
@@ -319,7 +395,7 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
 
 interface StickyCTAProps {
   onOpen: () => void;
-  pricing: PricingData;
+  pricing: DualGatewayPricingData;
 }
 
 const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
@@ -373,10 +449,10 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
             {/* <span className="text-[20px] font-[800]">₹950</span>
             <span className="text-[12px] line-through" style={{ color: tokens.muted }}>₹1200</span> */}
             <span className="text-[20px] font-[800]">
-              {pricing.isLoading ? '...' : pricing.main}
+              {pricing.isLoading ? '...' : pricing.razorpay.main}
             </span>
             <span className="text-[12px] line-through" style={{ color: tokens.muted }}>
-              {pricing.isLoading ? '...' : pricing.original}
+              {pricing.isLoading ? '...' : pricing.razorpay.original}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-1 text-[12px]" aria-live="polite" style={{ color: tokens.muted }}>
@@ -882,7 +958,10 @@ const SectionFrame: React.FC<SectionFrameProps> = ({ id, title, sub, shareText, 
         <motion.div className="flex-1 overflow-y-auto" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
           {children}
         </motion.div>
-        <SectionActions title={title} share={shareText} textColor={text} onToast={onToast} inputClassName={inputClassName} buttonClassName={buttonClassName} sessionId={sessionId} testId={testId} sectionId={id} />
+        {/* Hide SectionActions in PDF section */}
+        {id !== "pdf-report" && (
+          <SectionActions title={title} share={shareText} textColor={text} onToast={onToast} inputClassName={inputClassName} buttonClassName={buttonClassName} sessionId={sessionId} testId={testId} sectionId={id} />
+        )}
       </div>
     </section>
   );
@@ -1406,6 +1485,163 @@ const PaymentSuccessPopup: React.FC<PaymentSuccessPopupProps> = ({ open, onClose
   );
 };
 
+interface FeedbackPopupProps {
+  open: boolean;
+  onClose: () => void;
+  sessionId?: string;
+  testId?: string;
+}
+
+const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, sessionId, testId }) => {
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleStarClick = (starNumber: number) => {
+    setRating(starNumber);
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error('Please select a rating', { position: "top-right" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
+        sessionId,
+        testId,
+        rating,
+        feedback,
+        sectionId: 'subjects',
+        feedbackType: 'section_rating'
+      });
+
+      console.log('Feedback submitted:', response.data);
+      toast.success('Thank you for your feedback!', { position: "top-right" });
+      onClose();
+      setRating(0);
+      setFeedback("");
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      toast.error('Failed to submit feedback. Please try again.', { position: "top-right" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setRating(0);
+    setFeedback("");
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full relative shadow-2xl"
+          >
+            {/* Close Button */}
+            <button 
+              aria-label="Close" 
+              onClick={handleClose} 
+              className="absolute right-4 top-4 rounded-full p-2 hover:bg-gray-100 transition-colors z-10"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+            
+            {/* Header */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-['Gilroy-Bold'] text-gray-900 mb-2">
+                Rate This Section
+              </h3>
+              <p className="text-gray-600 font-['Gilroy-Regular'] text-sm">
+                How helpful were these subject recommendations?
+              </p>
+            </div>
+
+            {/* Star Rating */}
+            <div className="mb-6">
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <motion.button
+                    key={star}
+                    onClick={() => handleStarClick(star)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-1 transition-colors"
+                  >
+                    <Star 
+                      className={`h-8 w-8 transition-colors ${
+                        star <= rating 
+                          ? 'text-sky-500 fill-sky-500' 
+                          : 'text-gray-300 hover:text-gray-400'
+                      }`}
+                    />
+                  </motion.button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-center text-sm text-gray-600 mt-2 font-['Gilroy-Regular']">
+                  {rating === 1 && 'Not helpful'}
+                  {rating === 2 && 'Somewhat helpful'}
+                  {rating === 3 && 'Helpful'}
+                  {rating === 4 && 'Very helpful'}
+                  {rating === 5 && 'Extremely helpful'}
+                </p>
+              )}
+            </div>
+
+            {/* Feedback Text */}
+            <div className="mb-6">
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Tell us more about your experience... (optional)"
+                className="w-full p-3 border border-gray-200 rounded-xl resize-none font-['Gilroy-Regular'] text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                rows={4}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <motion.button
+                onClick={handleSubmit}
+                disabled={rating === 0 || isSubmitting}
+                whileHover={rating > 0 ? { scale: 1.02 } : {}}
+                whileTap={rating > 0 ? { scale: 0.98 } : {}}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-['Gilroy-Bold'] text-sm transition-all ${
+                  rating > 0 
+                    ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Submit Feedback
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 
 interface QuestResultFullscreenProps {
   sessionId?: string;
@@ -1487,14 +1723,26 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [selectedFinding, setSelectedFinding] = useState<string | null>(null);
   const [findingModalOpen, setFindingModalOpen] = useState(false);
   const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
-  // Add pricing state
-  const [pricing, setPricing] = useState<PricingData>({
-    main: '₹950',
-    original: '₹1200',
-    currency: 'INR',
-    symbol: '₹',
-    amount: 950,
-    isIndia: true,
+  const [feedbackPopupOpen, setFeedbackPopupOpen] = useState(false);
+  const [hasTriggeredFeedback, setHasTriggeredFeedback] = useState(false);
+  // Add pricing state for dual gateways
+  const [pricing, setPricing] = useState<DualGatewayPricingData>({
+    razorpay: {
+      main: '₹950',
+      original: '₹1200',
+      currency: 'INR',
+      symbol: '₹',
+      amount: 950,
+      isIndia: true,
+      isLoading: true
+    },
+    paypal: {
+      main: '$20',
+      original: '$25',
+      currency: 'USD',
+      amount: 20,
+      isIndia: false
+    },
     isLoading: true
   });
   
@@ -1581,29 +1829,53 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     };
   }, [sectionIds]);
 
-  // Add pricing effect
+// Auto-trigger feedback popup when user reaches subjects section
+useEffect(() => {
+  // Subjects section is at index 5 in sectionIds array
+  if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
+    // Add a small delay to let the section settle
+    const timer = setTimeout(() => {
+      setFeedbackPopupOpen(true);
+      setHasTriggeredFeedback(true);
+    }, 1500); // 1.5 second delay
+    
+    return () => clearTimeout(timer);
+  }
+}, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
+
+// Add pricing effect for dual gateways
 useEffect(() => {
   const loadPricing = async () => {
     try {
-      console.log('💰 QuestResult: Loading location-based pricing...');
-      const isIndia = await getUserLocationFlag();
-      console.log('🌍 QuestResult: Location result:', isIndia);
+      console.log('💰 QuestResult: Loading pricing for both gateways...');
+      const unifiedPricingData = await getBothGatewayPricing();
+      console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
       
-      const newPricing = {
-        main: isIndia ? '₹950' : '$20',
-        original: isIndia ? '₹1200' : '$25',
-        currency: isIndia ? 'INR' : 'USD',
-        symbol: isIndia ? '₹' : '$',
-        amount: isIndia ? 950 : 20,
-        isIndia: isIndia,
+      const newPricing: DualGatewayPricingData = {
+        razorpay: {
+          main: unifiedPricingData.razorpay.main,
+          original: unifiedPricingData.razorpay.original,
+          currency: unifiedPricingData.razorpay.currency,
+          symbol: unifiedPricingData.razorpay.symbol,
+          amount: unifiedPricingData.razorpay.amount,
+          isIndia: unifiedPricingData.razorpay.isIndia,
+          isLoading: false
+        },
+        paypal: {
+          main: unifiedPricingData.paypal.displayAmount,
+          original: unifiedPricingData.paypal.displayOriginal,
+          currency: unifiedPricingData.paypal.currency,
+          amount: unifiedPricingData.paypal.numericAmount,
+          isIndia: unifiedPricingData.paypal.isIndia
+        },
         isLoading: false
       };
       
       setPricing(newPricing);
-      console.log('✅ QuestResult: Pricing updated', newPricing);
+      console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
     } catch (error) {
       console.error('❌ QuestResult: Failed to load pricing:', error);
-      // Keep default India pricing on error
+      // Keep default pricing on error
       setPricing(prev => ({ ...prev, isLoading: false }));
     }
   };
@@ -1690,7 +1962,7 @@ useEffect(() => {
     }
   };
   
-  const handlePayment = async (): Promise<void> => {
+  const handlePayment = async (selectedGateway: PaymentGateway = 'razorpay'): Promise<void> => {
     // Track payment initiation
     googleAnalytics.trackPaymentInitiated({
       session_id: sessionId!,
@@ -1753,9 +2025,9 @@ useEffect(() => {
   // User is authenticated, proceed with payment
   setPaymentLoading(true);
   try {
-    console.log('Payment attempt with:', { sessionId, testId, userId: user?.id });
+    console.log('Payment attempt with:', { selectedGateway, sessionId, testId, userId: user?.id });
     
-    const paymentResult = await PaymentService.startPayment(sessionId, testId);
+    const paymentResult = await unifiedPaymentService.processPayment(selectedGateway, sessionId, testId);
     
     if (paymentResult.success) {
       toast.success('Payment successful!');
@@ -1954,7 +2226,8 @@ useEffect(() => {
       setTimeout(async () => {
         setPaymentLoading(true);
         try {
-          const paymentResult = await PaymentService.startPayment(sessionId, testId);
+          // For resume flows, use default Razorpay gateway (TODO: store selected gateway in session)
+          const paymentResult = await unifiedPaymentService.processPayment('razorpay', sessionId, testId);
           
           if (paymentResult.success) {
             toast.success('Payment successful!');
@@ -2064,15 +2337,16 @@ useEffect(() => {
             }}
           > */}
           <div
-            className="mx-auto max-w-[390px] overflow-y-auto"
+            className="w-full overflow-y-auto"
             ref={containerRef}
             style={{
               // iOS-friendly height and scrolling
-              height: `calc(100dvh - ${CTA_HEIGHT}px)`,
+              // Dynamic height: full height in PDF section, reduced height in other sections
+              height: activeIndex === 9 ? '100dvh' : `calc(100dvh - ${CTA_HEIGHT}px)`,
               WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'contain',
               touchAction: 'pan-y',
-              // Softer snapping -> less “bounce”
+              // Softer snapping -> less "bounce"
               scrollSnapType: 'y mandatory',
             }}
           >
@@ -2518,296 +2792,80 @@ useEffect(() => {
               sessionId={sessionId}
               testId={testId}
             >
-            <div className="relative">
-                {/* PDF-like fixed page sizing + mobile scaling */}
-                <style>
-                  {`
-                  .pdf-viewport { height: calc(100dvh - 280px); overflow: auto; }
-                  .pdf-scale { width: 794px; margin: 0 auto; transform-origin: top center; }
-                  @media (max-width: 820px) { .pdf-scale { transform: scale(calc(100vw / 794)); } }
-                  .pdf-container { width: 794px; max-width: 794px; margin: 0 auto 80px; background: #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-                  .page { width: 794px; min-height: 1123px; box-sizing: border-box; page-break-inside: avoid; }
-                  `}
-                </style>
+              <div className="relative">
 
-                {/* PDF Document Preview Container - fixed width, scales on mobile */}
-                <div className="pdf-viewport">
-                  <div className="pdf-scale">
-                    <div className="pdf-container">
-                      {/* PDF Pages Container */}
-                      <div className="space-y-0">
-                        
-                        {/* Page 1: Introduction */}
-                        <div 
-                          className="page w-full flex flex-col justify-start items-center text-center p-8 relative overflow-hidden"
-                          style={{ 
-                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
-                            color: '#FFFFFF'
+                {/* PDF Viewer - Google Drive external link with default zoom */}
+                <div className="h-[calc(100dvh-220px)] w-full rounded-xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
+                  <iframe
+                    id="pdf-iframe"
+                    src="https://docs.google.com/viewer?url=https%3A//drive.google.com/uc%3Fexport%3Ddownload%26id%3D1GHK0sfnzc_035RttVVurKMx--dTMO2ik&embedded=true"
+                    className="w-full h-full border-0 bg-white"
+                    title="PDF Report Preview"
+                    style={{ 
+                      minHeight: '600px',
+                      transform: 'scale(1.2)', // Default zoom - 110%
+                      transformOrigin: 'top center'
+                    }}
+                    onLoad={() => {
+                      console.log('PDF loaded successfully with Google Drive link and default zoom');
+                    }}
+                    onError={(e) => {
+                      console.error('Google PDF viewer failed, trying Mozilla fallback with zoom');
+                      // Fallback to Mozilla PDF.js viewer with zoom
+                      const iframe = e.target as HTMLIFrameElement;
+                      iframe.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent('https://drive.google.com/uc?export=download&id=1GHK0sfnzc_035RttVVurKMx--dTMO2ik')}#zoom=110`;
+                      iframe.style.transform = 'scale(1)';
+                    }}
+                  />
+                </div>
+
+                {/* Unlock Overlay with Glass Effect */}
+                <div className="absolute inset-x-0 bottom-0">
+                  <div className="relative rounded-t-2xl bg-blue-600/30 backdrop-blur-xl border-t border-white/20 p-6">
+                    {/* Glass background elements */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-cyan-400/20 to-blue-600/20" />
+                    <div className="absolute inset-0 bg-white/5" />
+                    
+                    <div className="relative z-10">
+                      {/* Pricing Section */}
+                      <div className="flex items-center justify-center gap-3 mb-2">
+                        <span className="text-4xl font-['Gilroy-Bold'] text-white">
+                          {pricing.isLoading ? '...' : pricing.razorpay.main}
+                        </span>
+                        <span className="text-xl font-['Gilroy-Regular'] line-through text-white/50">
+                          {pricing.isLoading ? '...' : pricing.razorpay.original}
+                        </span>
+                      </div>
+                      
+                      {/* Timer */}
+                      <div className="flex items-center justify-center gap-1 text-sm text-yellow-300 mb-4">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-['Gilroy-Regular']">Offer ends in {formatTime(seconds)}</span>
+                      </div>
+                      
+                      {/* Centered Button with StickyCTA Style */}
+                      <div className="flex justify-center">
+                        <motion.button
+                          onClick={() => setUpsellOpen(true)}
+                          whileTap={{ scale: 0.98 }}
+                          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white"
+                          style={{
+                            background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+                            boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
+                            width: '280px'
                           }}
+                          aria-label="Unlock full PDF report"
                         >
-                          <div className="font-['Gilroy-Bold'] text-5xl mb-2 flex items-center justify-center">
-                            <img src={logo} alt="Quest Logo" className="w-20 h-20 mr-4" />
-                            Quest
-                          </div>
-                          
-                          <h1 className="font-['Gilroy-Bold'] text-4xl leading-relaxed mb-8">
-                            Your <strong>In-Depth Personality & Mindset</strong> Report
-                          </h1>
-                         
-                          <h2 className="font-['Gilroy-Bold'] text-2xl mb-4">
-                            <strong>A Note Before We Begin</strong>
-                          </h2>
-                          <p className="font-['Gilroy-Light'] text-lg text-left max-w-2xl mb-6">
-                            <b>{mindCard?.name || 'Sample Name'}</b>,
-                            This report is not a personality test report, but a conversation about you, built from your own words, thoughts, and habits. Think of this as holding up a mirror that goes beyond surface reflection, revealing how your identity, emotions, and choices are interconnected with the larger story of who you are becoming.
-                          </p>
-                          <div className="text-left max-w-2xl">
-                            <p className="font-['Gilroy-Light'] text-lg mb-4">
-                              <b>This report has 3 major features:</b>
-                            </p>
-                            <ul className="space-y-3 text-left font-['Gilroy-Italic'] text-base">
-                              <li><b>Brain Mapping:</b> <i>The better you map your brain, the smarter you play life.</i></li>
-                              <li><b>Content Operating System:</b> <i>This is your personal library of perspectives and growth fuel.</i></li>
-                              <li><b>Future Compass:</b> <i>Your future is a direct reflection of the systems you build today.</i></li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Page 2: Index Page 1 */}
-                        <div 
-                          className="page w-full p-6 relative overflow-hidden"
-                          style={{ 
-                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <header className="mb-8">
-                            <div className="text-white text-sm mb-2">Quest by Fraterny · Index</div>
-                            <h1 className="font-['Gilroy-Bold'] text-3xl mb-4">What You'll Explore Inside</h1>
-                            <p className="text-lg max-w-3xl">A clean map of your report. Skim the highlights, jump to what matters, and come back to the rest any time.</p>
-                          </header>
-                          
-                          {/* Brain Mapping Card */}
-                          <div 
-                            className="rounded-2xl border border-blue-300/50 mb-6"
-                            style={{ 
-                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
-                            }}
-                          >
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-                              <div className="pr-2">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">01</div>
-                                  <div className="font-bold text-xl">Brain Mapping</div>
-                                </div>
-                                <p className="text-sm">A deep dive into your personality, emotions, habits, and hidden drivers—your mental blueprint.</p>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                {[
-                                  'Your Core Identity', 'Your Emotional Blueprint', 'Your Values Hierarchy', 'Your Ambitions & Aspirations',
-                                  'Your Emotional Self-Analysis', 'Most Valuable Strengths', 'Behavioural Loops', 'Social Persona vs Inner Self',
-                                  'Psychological Archetype', 'What Drives You'
-                                ].map((item, idx) => (
-                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
-                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
-                                    <span className="text-sm">{item}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Content OS Card */}
-                          <div 
-                            className="rounded-2xl border border-blue-300/50"
-                            style={{ 
-                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
-                            }}
-                          >
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-                              <div className="pr-2">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">02</div>
-                                  <div className="font-bold text-xl">Content Operating System</div>
-                                </div>
-                                <p className="text-sm">Your curated library of ideas, role models, and content designed to sharpen and inspire you.</p>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                {[
-                                  'Celebrities You\'re Most Alike', 'Must-Watch Videos for You', 'Creators You Should Actively Follow',
-                                  'Mentors for You to Absorb', 'Books You\'re Most Likely to Finish', 'Movies That Challenge Your Mindset',
-                                  'Bio-Worthy Quotes'
-                                ].map((item, idx) => (
-                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
-                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
-                                    <span className="text-sm">{item}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Footer */}
-                          <div className="absolute bottom-3 left-0 right-0 px-6">
-                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
-                            <div className="flex justify-between text-xs text-blue-200">
-                              <span>Tip: Use your PDF viewer's sidebar bookmarks or the section headings to jump quickly.</span>
-                              <span>Quest · Premium Psychoanalysis Experience</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Page 3: Index Page 2 */}
-                        <div 
-                          className="page w-full p-6 relative overflow-hidden"
-                          style={{ 
-                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          {/* Future Compass Card */}
-                          <div 
-                            className="rounded-2xl border border-blue-300/50 mb-6 mt-12"
-                            style={{ 
-                              background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05))'
-                            }}
-                          >
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-                              <div className="pr-2">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">04</div>
-                                  <div className="font-bold text-xl">Closing Section</div>
-                                </div>
-                                <p className="text-sm">A final reflection and concrete next step to tie everything together.</p>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                {[
-                                  'Final Reflection', 'Next Step'
-                                ].map((item, idx) => (
-                                  <div key={idx} className="flex gap-2 items-start p-3 border border-white/20 rounded-xl bg-white/10">
-                                    <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1 flex-shrink-0"></div>
-                                    <span className="text-sm">{item}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Footer */}
-                          <div className="absolute bottom-3 left-0 right-0 px-6">
-                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
-                            <div className="flex justify-between text-xs text-blue-200">
-                              <span>Tip: Use your PDF viewer's sidebar bookmarks or the section headings to jump quickly.</span>
-                              <span>Quest · Premium Psychoanalysis Experience</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Page 4: Brain Cover Page */}
-                        <div 
-                          className="page w-full flex items-center justify-center relative overflow-hidden"
-                          style={{ 
-                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <div className="text-8xl font-['Gilroy-Bold'] opacity-20">🧠</div>
-                        </div>
-
-                        {/* Page 5: Brain Mapping Sample */}
-                        <div 
-                          className="page w-full p-8 relative overflow-hidden"
-                          style={{ 
-                            background: 'linear-gradient(160deg, #00BFFF 0%, #0047AB 100%)',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <main className="max-w-full">
-                            <h2 className="text-4xl font-['Gilroy-Bold'] mb-6">
-                              <span className="text-white">1.</span> Your Core Identity
-                            </h2>
-                            
-                            <p className="text-white text-xl font-['Gilroy-Light'] leading-relaxed mb-8">
-                              You are someone who <strong>thrives on meaningful connections</strong> and finds energy in helping others achieve their potential. Your identity is built around being a <strong>catalyst for positive change</strong> - whether that's in your professional environment, personal relationships, or community involvement.
-                            </p>
-
-                            <h3 className="text-2xl font-['Gilroy-Bold'] text-white mb-6">Core Identity Markers</h3>
-                            
-                            <ul className="space-y-3 mb-8">
-                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
-                                <span className="mr-2">•</span>
-                                <span><strong>Empathetic Leader</strong> - You naturally step into roles where you can guide and support others</span>
-                              </li>
-                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
-                                <span className="mr-2">•</span>
-                                <span><strong>Strategic Thinker</strong> - You see patterns and connections that others miss</span>
-                              </li>
-                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
-                                <span className="mr-2">•</span>
-                                <span><strong>Growth-Oriented</strong> - You're constantly seeking ways to improve yourself and your environment</span>
-                              </li>
-                              <li className="text-white text-lg font-['Gilroy-Italic'] flex items-start">
-                                <span className="mr-2">•</span>
-                                <span><strong>Authentic Communicator</strong> - You value genuine conversations over surface-level interactions</span>
-                              </li>
-                            </ul>
-
-                            <div className="w-full bg-white/95 p-6 rounded-2xl flex flex-col relative">
-                              <span className="font-['Gilroy-Italic'] italic text-gray-600 text-sm mb-2">This is How you think</span>
-                              <div className="absolute right-6 top-4">
-                                <img src={logo} alt="Logo" className="w-12 h-12 opacity-80" />
-                              </div>
-                              <span className="text-gray-900 font-['Gilroy-semiBold'] text-lg leading-relaxed">
-                                "Before making any decision, I ask myself: <strong>How will this impact the people I care about?</strong> and <strong>Does this align with who I'm becoming?</strong> I believe that success without fulfillment is the ultimate failure."
-                              </span>
-                            </div>
-                          </main>
-                          
-                          {/* Footer */}
-                          <div className="absolute bottom-3 left-0 right-0 px-8">
-                            <hr className="border-none h-0.5 bg-blue-300/50 mb-2" />
-                            <div className="flex justify-between text-sm text-blue-200">
-                              <span>{mindCard?.name || 'Sample Name'}</span>
-                              <span>5</span>
-                            </div>
-                          </div>
-                        </div>
+                          Unlock Full PDF Report
+                        </motion.button>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Unlock Overlay - Full Width at Bottom (sticks to section) */}
-                <div className="absolute inset-x-0 bottom-0">
-                  {/* Pricing Box - Full Width */}
-                  <div className="bg-blue-600/95 backdrop-blur-sm p-4">
-                    <div className="flex items-center justify-center gap-3 mb-2">
-                      <span className="text-4xl font-['Gilroy-Bold'] text-white">
-                        {pricing.symbol}{pricing.isLoading ? '...' : pricing.main.replace(pricing.symbol, '')}
-                      </span>
-                      <span className="text-xl font-['Gilroy-Regular'] line-through text-white/50">
-                        {pricing.isLoading ? '...' : pricing.original}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 text-sm text-yellow-300">
-                      <Clock className="h-4 w-4" />
-                      <span className="font-['Gilroy-Regular']">Offer ends in {formatTime(seconds)}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Unlock Button - Full Width BLACK at Bottom */}
-                  <motion.button
-                    onClick={() => setUpsellOpen(true)}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-black text-white py-4 font-['Gilroy-Bold'] text-base hover:bg-gray-900 transition-all"
-                  >
-                    Unlock Full PDF Report
-                  </motion.button>
-                </div>
                 
                 {/* Page Indicator */}
                 <div className="mt-4 text-center">
-                  <p className="text-white/70 text-sm font-['Gilroy-Regular']">Showing 5 pages of 35+ page report</p>
+                  <p className="text-white/70 text-sm font-['Gilroy-Regular']">Sample PDF Report Preview</p>
                 </div>
               </div>
             </SectionFrame>
@@ -2853,24 +2911,28 @@ useEffect(() => {
           {/* <Orb onTip={() => setTip("Tap share on any section → native share or copy.")} /> */}
     
     
-          {/* Sticky CTA + Upsell */}
+          {/* Sticky CTA + Upsell - Hide when in PDF section */}
           {paymentSuccess ? (
-            <PaymentSuccessMessage userId={userId} />
+            // Also hide PaymentSuccessMessage in PDF section
+            activeIndex !== 9 && <PaymentSuccessMessage userId={userId} />
           ) : (
-            <StickyCTA 
-              onOpen={() => {
-                if (!paymentSuccess) {
-                  // Track PDF unlock CTA click
-                  googleAnalytics.trackPdfUnlockCTA({
-                    session_id: sessionId!,
-                    test_id: testId!,
-                    user_state: user?.id ? 'logged_in' : 'anonymous'
-                  });
-                  setUpsellOpen(true);
-                }
-              }}
-              pricing={pricing}
-            />
+            // Hide StickyCTA when activeIndex is 9 (pdf-report section)
+            activeIndex !== 9 && (
+              <StickyCTA 
+                onOpen={() => {
+                  if (!paymentSuccess) {
+                    // Track PDF unlock CTA click
+                    googleAnalytics.trackPdfUnlockCTA({
+                      session_id: sessionId!,
+                      test_id: testId!,
+                      user_state: user?.id ? 'logged_in' : 'anonymous'
+                    });
+                    setUpsellOpen(true);
+                  }
+                }}
+                pricing={pricing}
+              />
+            )
           )}
           {!paymentSuccess && (
             <UpsellSheet 
@@ -2925,6 +2987,13 @@ useEffect(() => {
               setSelectedFinding(null);
               setFindingModalOpen(false);
             }}
+          />
+
+          <FeedbackPopup 
+            open={feedbackPopupOpen}
+            onClose={() => setFeedbackPopupOpen(false)}
+            sessionId={sessionId}
+            testId={testId}
           />
     
           {/* Tip Tooltip */}

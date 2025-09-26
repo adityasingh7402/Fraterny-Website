@@ -111,8 +111,35 @@ export interface StoredSessionData {
 // Payment flow result interfaces
 export interface PaymentResult {
   success: boolean;
-  paymentData?: RazorpayResponse;
+  paymentData?: RazorpayResponse | PayPalPaymentData;
   error?: string;
+}
+
+// PayPal specific interfaces
+export interface PayPalPaymentData {
+  paypal_order_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  payer_email?: string;
+}
+
+// Extended payment completion request for multiple gateways
+export interface UnifiedPaymentCompletionRequest extends Omit<PaymentCompletionRequest, 'paymentData'> {
+  paymentData: {
+    // Razorpay fields (optional)
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+    // PayPal fields (optional)
+    paypal_order_id?: string;
+    payer_email?: string;
+    // Common fields
+    amount: number;
+    currency: string;
+    status: 'success' | 'failed' | 'completed';
+    gateway: 'razorpay' | 'paypal';
+  };
 }
 
 // Error types
