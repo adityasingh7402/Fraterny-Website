@@ -24,9 +24,11 @@ export interface CreateOrderRequest {
   fixEmail: string;          // To fix missing email issue
   //fixName: string;           // To fix missing name issue           
   pricingTier: 'early' | 'regular';
-  amount: number;              // in paise
+  amount: number;              // in paise for INR, cents for USD
   sessionStartTime: string;    // Original session start time
   isIndia: boolean;
+  gateway: 'razorpay' | 'paypal';  // Which payment gateway to use
+  currency: string;            // INR, USD, etc.
   metadata: {
     userAgent: string;
     timestamp: string;
@@ -37,10 +39,19 @@ export interface CreateOrderRequest {
 }
 
 export interface CreateOrderResponse {
-  razorpayOrderId: string;
+  // Gateway specific order IDs (one will be populated based on gateway)
+  razorpayOrderId?: string;     // For Razorpay orders
+  paypalOrderId?: string;       // For PayPal orders
+  
+  // Common fields
   amount: number;
   currency: string;
-  paymentSessionId: string;    // Backend generated session ID
+  paymentSessionId: string;     // Backend generated session ID
+  gateway: 'razorpay' | 'paypal'; // Which gateway created this order
+  
+  // Gateway specific data
+  clientSecret?: string;        // For PayPal client-side integration
+  approvalUrl?: string;         // For PayPal redirect flow (if needed)
 }
 
 // Payment completion interfaces
