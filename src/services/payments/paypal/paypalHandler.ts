@@ -7,7 +7,8 @@ import {
 import { paymentAuthService } from '../auth/paymentAuth';
 import { sessionManager } from '../auth/sessionManager';
 import { googleAnalytics } from '../../analytics/googleAnalytics';
-import type { PaymentResult } from '../types';
+import { paymentApiService } from '../api/paymentApi';
+import type { PaymentResult, CreateOrderRequest, CreateOrderResponse, UnifiedPaymentCompletionRequest } from '../types';
 
 // PayPal SDK types
 declare global {
@@ -67,34 +68,105 @@ class PayPalHandlerService {
   private isPayPalLoaded: boolean = false;
   private isInitializing: boolean = false;
 
-  // Initialize PayPal payment flow
+  // Create PayPal order via unified API (like Razorpay)
+  private async createPayPalOrderViaAPI(
+    sessionId: string,
+    testId: string
+  ): Promise<CreateOrderResponse> {
+    try {
+      console.log('🔄 Creating PayPal order via unified API:', { sessionId, testId });
+
+      // Step 1: Check authentication
+      const authResult = await paymentAuthService.checkAuthAndRedirect(
+        sessionId,
+        testId,
+        window.location.pathname
+      );
+
+      if (authResult.needsAuth) {
+        throw new Error('AUTHENTICATION_REQUIRED');
+      }
+
+      if (!authResult.user) {
+        throw new Error('User authentication failed');
+      }
+
+      // Step 2: Get session start time
+      const sessionStartTime = sessionManager.getOrCreateSessionStartTime();
+
+      // Step 3: Get pricing data
+      const pricingData = await getPayPalPricingForLocation();
+      console.log('💰 PayPal pricing data:', pricingData);
+
+      // Step 4: Prepare order request for unified API
+      const orderRequest: CreateOrderRequest = {
+        sessionId,
+        testId,
+        userId: authResult.user.id,
+        fixEmail: authResult.user.email || '',
+        pricingTier: 'regular',
+        amount: Math.round(pricingData.numericAmount * 100), // Convert to cents for backend
+        currency: pricingData.currency,
+        gateway: 'paypal', // 🎯 KEY: Specify PayPal gateway
+        sessionStartTime,
+        isIndia: false, // PayPal is international
+        metadata: {
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          authenticationRequired: authResult.needsAuth || false,
+          isIndia: false,
+          location: 'INTL',
+        },
+      };
+
+      // Step 5: Call unified create-order API
+      console.log('📡 Calling unified create-order API for PayPal...');
+      const orderResponse = await paymentApiService.createOrder(orderRequest);
+
+      console.log('✅ PayPal order created via unified API:', orderResponse);
+      return orderResponse;
+
+    } catch (error) {
+      console.error('❌ Error creating PayPal order via unified API:', error);
+      throw error;
+    }
+  }
+
+  // Initialize PayPal payment flow using unified API
   async initiatePayPalPayment(
     sessionId: string,
     testId: string
   ): Promise<PaymentResult> {
     try {
-      console.log('Initiating PayPal payment flow:', { sessionId, testId });
+      console.log('🚀 Initiating PayPal payment via unified API:', { sessionId, testId });
 
-      // Step 1: Ensure PayPal SDK is loaded
+      // Step 1: Create order via unified API
+      const orderData = await this.createPayPalOrderViaAPI(sessionId, testId);
+      console.log('📦 PayPal order data from unified API:', orderData);
+
+      // Step 2: Ensure PayPal SDK is loaded
       await this.ensurePayPalLoaded();
 
-      // Step 2: Check authentication
-      const user = await paymentAuthService.getCurrentUser();
-      if (!user) {
-        throw new Error('User authentication required for PayPal payment');
-      }
-
-      // Step 3: Get pricing based on location
+      // Step 3: Get pricing data for UI display
       const pricingData = await getPayPalPricingForLocation();
-      console.log('PayPal pricing data:', pricingData);
+      console.log('💰 PayPal pricing data:', pricingData);
 
-      // Step 4: Create PayPal payment (returns promise that resolves when payment completes)
-      const paymentResult = await this.createPayPalPayment(sessionId, testId, pricingData, user);
+      // Step 4: Track payment initiation
+      googleAnalytics.trackPaymentInitiated({
+        session_id: sessionId,
+        test_id: testId,
+        user_state: 'authenticated',
+        payment_amount: orderData.amount,
+        pricing_tier: 'regular'
+      });
+
+      // Step 5: Create PayPal payment UI with unified API order
+      const paymentResult = await this.createPayPalPaymentWithOrder(sessionId, testId, orderData, pricingData);
 
       return paymentResult;
 
     } catch (error) {
-      console.error('PayPal payment initiation failed:', error);
+      console.error('❌ PayPal payment initiation failed:', error);
       return this.handlePayPalError(error);
     }
   }
@@ -172,7 +244,196 @@ class PayPalHandlerService {
     }
   }
 
-  // Create PayPal payment and handle the flow
+  // Create PayPal payment using unified API order (NEW METHOD)
+  private async createPayPalPaymentWithOrder(
+    sessionId: string,
+    testId: string,
+    orderData: CreateOrderResponse,
+    pricingData: any
+  ): Promise<PaymentResult> {
+    return new Promise((resolve) => {
+      try {
+        if (!window.paypal) {
+          throw new Error('PayPal SDK not loaded');
+        }
+
+        // Create a container for PayPal buttons
+        const containerId = 'paypal-button-container';
+        let container = document.getElementById(containerId);
+        
+        if (!container) {
+          container = document.createElement('div');
+          container.id = containerId;
+          container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 300px;';
+          document.body.appendChild(container);
+
+          // Add close button
+          const closeButton = document.createElement('button');
+          closeButton.innerHTML = '×';
+          closeButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666;';
+          closeButton.onclick = () => {
+            this.cleanup();
+            resolve({
+              success: false,
+              error: PAYPAL_ERROR_MESSAGES.PAYMENT_CANCELLED,
+            });
+          };
+          container.appendChild(closeButton);
+
+          // Add title
+          const title = document.createElement('h3');
+          title.textContent = 'Complete payment with PayPal';
+          title.style.cssText = 'margin: 0 0 15px 0; font-family: Arial, sans-serif; color: #333;';
+          container.appendChild(title);
+
+          // Add amount display
+          const amountDisplay = document.createElement('div');
+          amountDisplay.textContent = `Amount: ${pricingData.displayAmount}`;
+          amountDisplay.style.cssText = 'margin-bottom: 15px; font-size: 16px; font-weight: bold; color: #333;';
+          container.appendChild(amountDisplay);
+
+          // PayPal button container
+          const buttonContainer = document.createElement('div');
+          buttonContainer.id = 'paypal-buttons';
+          container.appendChild(buttonContainer);
+        }
+
+        // Initialize PayPal buttons with unified API order
+        const paypalButtons = window.paypal.Buttons({
+          style: {
+            layout: PAYPAL_CONFIG.LAYOUT,
+            color: PAYPAL_CONFIG.COLOR,
+            shape: PAYPAL_CONFIG.SHAPE,
+            label: PAYPAL_CONFIG.LABEL,
+          },
+          
+          // Use the order ID from unified API
+          createOrder: () => {
+            console.log('🎯 Using PayPal order ID from unified API:', orderData.paypalOrderId);
+            
+            googleAnalytics.trackPaymentModalOpened({
+              session_id: sessionId,
+              order_id: orderData.paypalOrderId || 'paypal_order_pending',
+              amount: orderData.amount,
+              currency: orderData.currency
+            });
+
+            // Return the order ID created by our unified API
+            return orderData.paypalOrderId;
+          },
+
+          // Handle approval and complete via unified API
+          onApprove: async (data: any, actions: any) => {
+            console.log('✅ PayPal payment approved:', data);
+            
+            try {
+              // Step 1: Capture the payment (PayPal side)
+              const orderDetails: PayPalOrderData = await actions.order.capture();
+              console.log('✅ PayPal payment captured:', orderDetails);
+
+              // Step 2: Complete payment via unified API
+              await this.completePayPalPaymentViaAPI(orderData, orderDetails, sessionId, testId);
+
+              // Track successful payment
+              googleAnalytics.trackPaymentSuccess({
+                session_id: sessionId,
+                payment_id: orderDetails.id,
+                order_id: orderDetails.id,
+                amount: orderData.amount
+              });
+
+              this.cleanup();
+              
+              resolve({
+                success: true,
+                paymentData: {
+                  paypal_order_id: orderDetails.id,
+                  amount: pricingData.numericAmount,
+                  currency: pricingData.currency,
+                  status: orderDetails.status,
+                  payer_email: orderDetails.payer?.email_address,
+                },
+              });
+
+            } catch (captureError) {
+              console.error('❌ PayPal capture/completion error:', captureError);
+              
+              googleAnalytics.trackPaymentFailed({
+                session_id: sessionId,
+                failure_reason: 'PayPal capture/completion failed',
+                error_code: 'PAYPAL_CAPTURE_ERROR',
+                amount: orderData.amount
+              });
+
+              this.cleanup();
+              
+              resolve({
+                success: false,
+                error: PAYPAL_ERROR_MESSAGES.CAPTURE_FAILED,
+              });
+            }
+          },
+
+          // Handle errors
+          onError: (err: any) => {
+            console.error('❌ PayPal payment error:', err);
+            
+            googleAnalytics.trackPaymentFailed({
+              session_id: sessionId,
+              failure_reason: 'PayPal payment error',
+              error_code: err.code || 'PAYPAL_ERROR',
+              amount: orderData.amount
+            });
+
+            this.cleanup();
+            
+            resolve({
+              success: false,
+              error: PAYPAL_ERROR_MESSAGES.PAYMENT_FAILED,
+            });
+          },
+
+          // Handle cancellation
+          onCancel: (data: any) => {
+            console.log('⚠️ PayPal payment cancelled:', data);
+            
+            googleAnalytics.trackPaymentCancelled({
+              session_id: sessionId,
+              cancel_reason: 'user_cancelled_paypal',
+              amount: orderData.amount
+            });
+
+            this.cleanup();
+            
+            resolve({
+              success: false,
+              error: PAYPAL_ERROR_MESSAGES.PAYMENT_CANCELLED,
+            });
+          },
+        });
+
+        // Render PayPal buttons
+        paypalButtons.render('#paypal-buttons').catch((renderError: any) => {
+          console.error('Error rendering PayPal buttons:', renderError);
+          this.cleanup();
+          resolve({
+            success: false,
+            error: PAYPAL_ERROR_MESSAGES.SCRIPT_LOAD_FAILED,
+          });
+        });
+
+      } catch (error) {
+        console.error('Error creating PayPal payment:', error);
+        this.cleanup();
+        resolve({
+          success: false,
+          error: PAYPAL_ERROR_MESSAGES.ORDER_CREATION_FAILED,
+        });
+      }
+    });
+  }
+
+  // OLD METHOD - Create PayPal payment and handle the flow
   private async createPayPalPayment(
     sessionId: string,
     testId: string,
@@ -374,7 +635,102 @@ class PayPalHandlerService {
     });
   }
 
-  // Handle successful PayPal payment
+  // Complete PayPal payment via unified API (NEW METHOD)
+  private async completePayPalPaymentViaAPI(
+    orderResponse: CreateOrderResponse,
+    paypalOrderData: PayPalOrderData,
+    sessionId: string,
+    testId: string
+  ): Promise<void> {
+    try {
+      console.log('📡 Completing PayPal payment via unified API...');
+
+      // Get session data
+      const sessionData = sessionManager.getSessionData();
+      if (!sessionData) {
+        throw new Error('Session data not found');
+      }
+
+      // Calculate timing data
+      const authDuration = paymentAuthService.calculateAuthenticationDuration();
+      const sessionDuration = sessionManager.getSessionDuration();
+
+      // Prepare completion data for unified API
+      const completionData: UnifiedPaymentCompletionRequest = {
+        userId: sessionData.originalSessionId, // Use the user ID from session
+        originalSessionId: sessionData.originalSessionId,
+        testId: sessionData.testId,
+        paymentSessionId: orderResponse.paymentSessionId,
+        gateway: 'paypal', // 🎯 Specify PayPal gateway
+        orderid: paypalOrderData.id, // PayPal order ID
+        paymentData: {
+          // Map PayPal data to expected format
+          razorpay_order_id: paypalOrderData.id, // Use PayPal order ID
+          razorpay_payment_id: paypalOrderData.id, // Use PayPal order ID
+          razorpay_signature: 'paypal_signature', // Placeholder for PayPal
+          amount: orderResponse.amount,
+          currency: orderResponse.currency,
+          status: 'success',
+          gateway: 'paypal'
+        },
+        metadata: {
+          pricingTier: 'regular',
+          sessionStartTime: sessionData.sessionStartTime,
+          paymentStartTime: new Date().toISOString(),
+          paymentCompletedTime: new Date().toISOString(),
+          authenticationFlow: sessionData.authenticationRequired,
+          userAgent: navigator.userAgent,
+          timingData: {
+            sessionToPaymentDuration: sessionDuration,
+            authenticationDuration: authDuration || undefined,
+          },
+        },
+      };
+
+      // Send completion data to unified API
+      console.log('📡 Sending PayPal completion to unified API:', completionData);
+      await paymentApiService.completePayment(completionData);
+      console.log('✅ PayPal payment completion sent to unified API successfully');
+
+      // Track completion analytics
+      googleAnalytics.trackPaymentCompleted({
+        session_id: sessionData.originalSessionId,
+        payment_id: paypalOrderData.id,
+        verification_success: true,
+        total_duration: sessionDuration
+      });
+
+      // Track conversions if applicable
+      const urlParams = new URLSearchParams(window.location.search);
+      const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
+
+      if (gclid) {
+        googleAnalytics.trackGoogleAdsConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: paypalOrderData.id,
+          amount: orderResponse.amount / 100, // Convert from cents
+          currency: orderResponse.currency
+        });
+      }
+
+      if (googleAnalytics.isRedditTraffic()) {
+        googleAnalytics.trackRedditConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: paypalOrderData.id,
+          amount: orderResponse.amount / 100, // Convert from cents
+          currency: orderResponse.currency
+        });
+      }
+
+      console.log('🎉 PayPal payment completion processed successfully via unified API');
+
+    } catch (error) {
+      console.error('❌ Error completing PayPal payment via unified API:', error);
+      throw error; // Re-throw to handle in caller
+    }
+  }
+
+  // OLD METHOD - Handle successful PayPal payment
   private async handlePayPalSuccess(
     orderData: PayPalOrderData,
     sessionId: string,
@@ -395,19 +751,21 @@ class PayPalHandlerService {
       const authDuration = paymentAuthService.calculateAuthenticationDuration();
       const sessionDuration = sessionManager.getSessionDuration();
 
-      // Prepare completion data for backend (similar to Razorpay)
+      // Prepare completion data for backend (matching backend PaymentCompletionRequest)
       const completionData = {
         userId,
         originalSessionId: sessionData.originalSessionId,
         testId: sessionData.testId,
-        paymentSessionId: sessionId, // Use current session ID
+        paymentSessionId: sessionId,
+        gateway: 'paypal', // ✅ Required by backend
+        orderid: orderData.id, // ✅ Required by backend for PayPal
         paymentData: {
-          paypal_order_id: orderData.id,
-          amount: pricingData.numericAmount * 100, // Convert to cents
+          razorpay_order_id: orderData.id, // ✅ Backend expects this field name
+          razorpay_payment_id: orderData.id, // ✅ Use PayPal order ID
+          razorpay_signature: 'paypal_signature', // ✅ Placeholder for PayPal
+          amount: pricingData.numericAmount * 100,
           currency: pricingData.currency,
-          status: 'completed',
-          gateway: 'paypal',
-          payer_email: orderData.payer?.email_address,
+          status: 'success', // ✅ Backend expects 'success' not 'completed'
         },
         metadata: {
           pricingTier: 'regular',
@@ -424,12 +782,17 @@ class PayPalHandlerService {
         },
       };
 
-      // For now, we'll log this data. In a real implementation, 
-      // you'd send this to your backend API
+      // Send completion data to unified backend API
       console.log('PayPal payment completion data:', completionData);
       
-      // TODO: Send to backend
-      // await paymentApiService.completePayment(completionData);
+      // ✅ FIXED: Actually send to backend
+      try {
+        await paymentApiService.completePayment(completionData);
+        console.log('✅ PayPal payment completion sent to backend successfully');
+      } catch (backendError) {
+        console.error('❌ Failed to send PayPal completion to backend:', backendError);
+        // Don't throw here as payment was successful from PayPal's perspective
+      }
 
       // Track completion
       googleAnalytics.trackPaymentCompleted({
