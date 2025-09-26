@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import PageHeader from './components/PageHeader';
 import BlogForm from './components/BlogForm';
 import BlogList from './components/BlogList';
-import { BlogFormValues } from './types';
+import { BlogFormValues, BlogPost } from './types';
 
 const AdminBlog = () => {
   const [formValues, setFormValues] = useState<BlogFormValues>({
@@ -15,11 +15,21 @@ const AdminBlog = () => {
     category: '',
     tags: [],
     published: true,
-    image_key: null
+    image_key: null,
+    meta_description: '',
+    meta_keywords: [],
+    slug: '',
+    seo_title: '',
+    excerpt: '',
+    featured_image_alt: '',
+    social_image_key: null,
+    reading_time: 0,
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
+
+  
 
   // Use React Query hook for fetching all blog posts (including unpublished)
   const fetchAdminBlogPosts = async () => {
@@ -29,7 +39,7 @@ const AdminBlog = () => {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as BlogPost[];
   };
 
   const { data: blogPosts, isLoading, error, refetch } = useQuery({
@@ -37,14 +47,22 @@ const AdminBlog = () => {
     queryFn: fetchAdminBlogPosts,
   });
 
-  const handleEdit = (post) => {
+  const handleEdit = (post: BlogPost) => {
     setFormValues({
       title: post.title,
       content: post.content,
       category: post.category || '',
       tags: post.tags || [],
       published: post.published,
-      image_key: post.image_key || null
+      image_key: post.image_key || null,
+      meta_description: post.meta_description || '',
+      meta_keywords: post.meta_keywords || [],
+      slug: post.slug || '',
+      seo_title: post.seo_title || '',
+      excerpt: post.excerpt || '',
+      featured_image_alt: post.featured_image_alt || '',
+      social_image_key: post.social_image_key || null,
+      reading_time: post.reading_time || 0,
     });
     setEditingId(post.id);
     setShowForm(true);
@@ -58,7 +76,15 @@ const AdminBlog = () => {
       category: '',
       tags: [],
       published: true,
-      image_key: null
+      image_key: null,
+      meta_description: '',
+      meta_keywords: [],
+      slug: '',
+      seo_title: '',
+      excerpt: '',
+      featured_image_alt: '',
+      social_image_key: null,
+      reading_time: 0,
     });
     setEditingId(null);
     setShowForm(true);
@@ -92,7 +118,7 @@ const AdminBlog = () => {
         )}
 
         <BlogList 
-          blogPosts={blogPosts}
+          blogPosts={blogPosts || null}
           isLoading={isLoading}
           error={error}
           onEdit={handleEdit}

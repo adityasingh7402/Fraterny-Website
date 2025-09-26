@@ -58,3 +58,9 @@ export * from './utils/optimizationService';
 export * from './utils/optimizationUtils';
 export * from './utils/placeholderService';
 export * from './utils/hashUtils';
+
+// Export SEO service functions
+export {
+  getImageSEOData,
+  getImageDataForSEO
+} from './services/seoService';

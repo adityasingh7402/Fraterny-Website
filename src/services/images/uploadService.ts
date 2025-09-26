@@ -19,7 +19,8 @@ export const uploadImage = async (
   key: string,
   description: string,
   alt_text: string,
-  category?: string
+  category?: string,
+  seoMetadata?: any
 ): Promise<WebsiteImage | null> => {
   try {
     console.log(`Starting upload for image with key: ${key}`);
@@ -125,7 +126,8 @@ export const uploadImage = async (
       versions: {
         desktop: Object.keys(desktopSizes),
         mobile: Object.keys(mobileSizes)
-      }
+      },
+      seo: seoMetadata || undefined
     };
     
     const { data, error: insertError } = await supabase
