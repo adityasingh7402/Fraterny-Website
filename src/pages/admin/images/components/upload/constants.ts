@@ -120,4 +120,20 @@ export const uploadFormSchema = z.object({
   description: z.string().min(1, { message: "Description is required" }),
   alt_text: z.string().min(1, { message: "Alt text is required" }),
   category: z.string().optional(),
+  // New SEO fields
+  seo_title: z.string().optional(),
+  seo_caption: z.string().optional(),
+  focus_keywords: z.string().optional(),
+  copyright: z.string().optional(),
+  image_location: z.string().optional(),
+  og_title: z.string().optional(),
+  og_description: z.string().optional(),
+  schema_type: z.string().optional(),
 });
+
+// SEO Schema Types for dropdown
+export const SEO_SCHEMA_TYPES = [
+  { value: 'ImageObject', label: 'Image Object (Default)' },
+  { value: 'Photograph', label: 'Photograph' },
+  { value: 'Artwork', label: 'Artwork' }
+];

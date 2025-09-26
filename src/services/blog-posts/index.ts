@@ -174,12 +174,46 @@ export type BlogPost = {
   created_at: string;
   updated_at: string;
   image_key: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string[] | null;
+  slug?: string | null;
+  seo_title?: string | null;
+  excerpt?: string | null;
+  featured_image_alt?: string | null;
+  social_image_key?: string | null;
+  reading_time?: number | null;
 };
 
 export type BlogPostsResponse = {
   posts: BlogPost[];
   total: number;
 };
+
+/**
+ * Fetches a single blog post by slug
+ */
+export const fetchBlogPostBySlug = async (slug: string): Promise<BlogPost> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('published', true)
+      .single();
+    
+    if (error) {
+      console.error(`❌ [ERROR] Error fetching post with slug ${slug}:`, error);
+      throw error;
+    }
+    
+    return data as BlogPost;
+  } catch (error) {
+    console.error(`❌ [ERROR] Error fetching post with slug ${slug}:`, error);
+    throw error;
+  }
+};
+
+
 
 /**
  * Fetches blog posts with pagination, filtering, and search

@@ -103,6 +103,7 @@ import {
   fetchBlogPostById,
   fetchBlogCategories,
   fetchBlogTags,
+  fetchBlogPostBySlug,
   BlogPost, 
   BlogPostsResponse 
 } from '@/services/blog-posts';
@@ -152,6 +153,22 @@ export const useReactQueryBlogPosts = () => {
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
   };
+
+  /**
+ * Fetch a single blog post by slug
+ */
+const useBlogPostBySlug = (slug: string | undefined) => {
+  return useQuery({
+    queryKey: ['blogPost', 'slug', slug],
+    queryFn: () => (slug ? fetchBlogPostBySlug(slug) : Promise.reject('No post slug provided')),
+    staleTime: 0,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: true,
+    enabled: !!slug, // Only run if we have a slug
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+};
 
   /**
    * Fetch all unique blog categories
@@ -266,7 +283,8 @@ export const useReactQueryBlogPosts = () => {
     useBlogTags,
     prefetchBlogPost,
     invalidateBlogPosts,
-    refetchAllBlogData
+    refetchAllBlogData,
+    useBlogPostBySlug,
   };
 };
 

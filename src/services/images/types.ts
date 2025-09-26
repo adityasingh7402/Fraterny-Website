@@ -14,6 +14,18 @@ export interface WebsiteImage {
   height?: number;
   sizes?: Record<string, string> | any; // Handle both Record type and Json from Supabase
   metadata?: Record<string, any> | Json; // Updated to accept both Record type and Json from Supabase
+  seo?: SEOMetadata;
+}
+
+export interface SEOMetadata {
+  title?: string;
+  caption?: string;
+  focusKeywords?: string[];
+  copyright?: string;
+  location?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  schemaType?: 'ImageObject' | 'Photograph' | 'Artwork';
 }
 
 // Re-export other types here if needed

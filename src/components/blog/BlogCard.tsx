@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ResponsiveImage from '../ui/ResponsiveImage';
+import { setMeta } from '@/utils/seo';
 
 export type BlogPost = {
   id: string;
@@ -13,6 +14,14 @@ export type BlogPost = {
   created_at: string;
   updated_at: string;
   image_key: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string[] | null;
+  slug?: string | null;
+  seo_title?: string | null;
+  excerpt?: string | null;
+  featured_image_alt?: string | null;
+  social_image_key?: string | null;
+  reading_time?: number | null;
 };
 
 interface BlogCardProps {
@@ -21,6 +30,8 @@ interface BlogCardProps {
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({ post, index = 0 }) => {
+
+
   // Calculate staggered delays for internal elements
   const baseDelay = index * 0.2; // Base delay based on card position
   
@@ -71,7 +82,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, index = 0 }) => {
       style={{ transformStyle: "preserve-3d" }}
     >
       <Link 
-        to={`/blog/${post.id}`}
+        to={`/blog/${post.slug}`}
         className="block h-full"
       >
         <div className="relative w-full aspect-[16/9] overflow-hidden">

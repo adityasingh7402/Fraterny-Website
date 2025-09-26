@@ -8,6 +8,7 @@ import { useUploadImageMutation } from './hooks';
 import UploadFormSubmit from './UploadFormSubmit';
 import { FileUploadSection } from './file-upload';
 import ImageDetailsForm from './ImageDetailsForm';
+import SEOFieldsSection from './SEOFieldsSection';
 
 export const UploadForm = ({ onClose }: { onClose: () => void }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -20,9 +21,17 @@ export const UploadForm = ({ onClose }: { onClose: () => void }) => {
     resolver: zodResolver(uploadFormSchema),
     defaultValues: {
       key: '',
-      description: '',
-      alt_text: '',
-      category: '',
+    description: '',
+    alt_text: '',
+    category: '',
+    seo_title: '',
+    seo_caption: '',
+    focus_keywords: '',
+    copyright: '',
+    image_location: '',
+    og_title: '',
+    og_description: '',
+    schema_type: 'ImageObject',
     },
   });
   
@@ -115,12 +124,32 @@ export const UploadForm = ({ onClose }: { onClose: () => void }) => {
       return;
     }
     
+    // Process SEO metadata
+    const seoMetadata = {
+      title: data.seo_title?.trim() || undefined,
+      caption: data.seo_caption?.trim() || undefined,
+      focusKeywords: data.focus_keywords 
+        ? data.focus_keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+        : undefined,
+      copyright: data.copyright?.trim() || undefined,
+      location: data.image_location?.trim() || undefined,
+      ogTitle: data.og_title?.trim() || undefined,
+      ogDescription: data.og_description?.trim() || undefined,
+      schemaType: data.schema_type || 'ImageObject',
+    };
+
+    // Only include SEO metadata if at least one field has data
+    const hasSeoData = Object.values(seoMetadata).some(value => 
+      value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0)
+    );
+
     mutate({
       file: fileToUpload,
       key: data.key,
       description: data.description,
       alt_text: data.alt_text,
       category: data.category,
+      seoMetadata: hasSeoData ? seoMetadata : undefined,
     });
   });
   
@@ -143,6 +172,8 @@ export const UploadForm = ({ onClose }: { onClose: () => void }) => {
             handleKeyChange={handleKeyChange}
             handleKeySelection={handleKeySelection}
           />
+
+          <SEOFieldsSection form={form} />
         </div>
         
         <UploadFormSubmit
