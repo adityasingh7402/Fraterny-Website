@@ -1667,7 +1667,7 @@ const PDFImageViewer: React.FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const images = ['sample1.jpg', 'sample2.jpg', 'sample3.jpg', 'sample4.jpg', 'sample5.jpg'];
+  const images = ['sample1.jpg', 'sample2.jpg', 'sample3.jpg', 'sample4.jpg', 'sample5.png'];
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.2, 3)); // Max zoom 3x
