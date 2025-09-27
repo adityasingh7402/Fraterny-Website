@@ -2386,9 +2386,12 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
     #     } 
             payment_id = payment_data.paymentData.paypal_order_id
             payer_id = payment_data.paymentData.payer_id
-            print(f"Here is payer id {payer_id}")
-            payment = paypalrestsdk.Payment.find(payment_id)
-            if payment.execute({"payer_id": payer_id}):
+            print(f"Here is PayPal order id {payment_id} and payer id {payer_id}")
+            
+            # PayPal Orders API - payment is already captured on frontend
+            # We just need to record the transaction since capture already happened
+            # Check if we have the required PayPal data
+            if payment_id and payment_data.paymentData.status == 'success':
                 
                 query = {
             "user_id": payment_data.userId,
@@ -2414,16 +2417,17 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
                 print(f"----- Sucessfuly Paypal Completet ------")
                 background_tasks.add_task(paid_version, payment_data.userId, payment_data.testId)
                 return ApiResponse(
-                    sucess=True,
+                    success=True,
                     data= response_data,
                     message="Successfully Payment"
                 )
             else:
+                print(f"PayPal payment validation failed - missing payment_id or status not success")
                 query = {
             "user_id": payment_data.userId,
             "payment_session_id":payment_data.paymentSessionId,
-            "order_id": payment_id,
-            "payment_id": payment_id,
+            "order_id": payment_id or "unknown",
+            "payment_id": payment_id or "unknown",
             "total_paid": payment_data.paymentData.amount,
             "status":'Failed to Complete',
             "payment_completed_time":payment_data.metadata.paymentCompletedTime,
@@ -2442,7 +2446,7 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
                 }
                 print(f"---- Failed to Complete Paypal Payment -----")
                 return ApiResponse(
-                    sucess=False,
+                    success=False,
                     data=response_data,
                     message="Payment Completion Failed"
                 )
