@@ -8,7 +8,7 @@ import { paymentAuthService } from '../auth/paymentAuth';
 import { sessionManager } from '../auth/sessionManager';
 import { googleAnalytics } from '../../analytics/googleAnalytics';
 import { paymentApiService } from '../api/paymentApi';
-import type { PaymentResult, CreateOrderRequest, CreateOrderResponse, UnifiedPaymentCompletionRequest } from '../types';
+import type { PaymentResult, CreateOrderRequest, CreateOrderResponse, PaymentCompletionRequest } from '../types';
 
 // PayPal SDK types
 declare global {
@@ -99,15 +99,21 @@ class PayPalHandlerService {
       console.log('💰 PayPal pricing data:', pricingData);
 
       // Step 4: Prepare order request for unified API
+      // Guard: ensure email is present (backend often validates as EmailStr)
+      const email = authResult.user.email;
+      if (!email || email.trim().length === 0) {
+        throw new Error('AUTHENTICATION_REQUIRED');
+      }
+
       const orderRequest: CreateOrderRequest = {
         sessionId,
         testId,
         userId: authResult.user.id,
-        fixEmail: authResult.user.email || '',
+        fixEmail: email,
         pricingTier: 'regular',
-        amount: Math.round(pricingData.numericAmount * 100), // Convert to cents for backend
+        amount: Math.round(pricingData.numericAmount * 100), // cents
         currency: pricingData.currency,
-        gateway: 'paypal', // 🎯 KEY: Specify PayPal gateway
+        gateway: 'paypal',
         sessionStartTime,
         isIndia: false, // PayPal is international
         metadata: {
@@ -150,12 +156,19 @@ class PayPalHandlerService {
       // Step 3: Get pricing data for UI display
       const pricingData = await getPayPalPricingForLocation();
       console.log('💰 PayPal pricing data:', pricingData);
+      
+      // Fallback pricing if location service fails
+      if (!pricingData || !pricingData.displayAmount) {
+        pricingData.displayAmount; // Match the backend amount
+        pricingData.numericAmount;
+        pricingData.currency;
+      }
 
       // Step 4: Track payment initiation
       googleAnalytics.trackPaymentInitiated({
         session_id: sessionId,
         test_id: testId,
-        user_state: 'authenticated',
+        user_state: 'logged_in', // Fix: use 'logged_in' instead of 'authenticated'
         payment_amount: orderData.amount,
         pricing_tier: 'regular'
       });
@@ -298,7 +311,25 @@ class PayPalHandlerService {
           container.appendChild(buttonContainer);
         }
 
-        // Initialize PayPal buttons with unified API order
+        // Check if backend provided approval URL (old PayPal REST SDK flow)
+        if (orderData.approval_url) {
+          console.log('🔄 Backend using old PayPal flow, redirecting to approval URL');
+          // Create redirect button instead of PayPal SDK buttons
+          const redirectButton = document.createElement('button');
+          redirectButton.textContent = 'Pay with PayPal';
+          redirectButton.style.cssText = 'background: #0070ba; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; width: 100%;';
+          redirectButton.onclick = () => {
+            window.location.href = orderData.approval_url;
+          };
+          
+          const buttonContainer = document.getElementById('paypal-buttons');
+          if (buttonContainer) {
+            buttonContainer.appendChild(redirectButton);
+          }
+          return;
+        }
+        
+        // Initialize PayPal buttons with unified API order (new SDK flow)
         const paypalButtons = window.paypal.Buttons({
           style: {
             layout: PAYPAL_CONFIG.LAYOUT,
@@ -307,19 +338,32 @@ class PayPalHandlerService {
             label: PAYPAL_CONFIG.LABEL,
           },
           
-          // Use the order ID from unified API
-          createOrder: () => {
-            console.log('🎯 Using PayPal order ID from unified API:', orderData.paypalOrderId);
+          // Create order dynamically (PayPal doesn't accept pre-created order IDs like Razorpay)
+          createOrder: (data: any, actions: any) => {
+            console.log('🎯 Creating PayPal order dynamically');
             
             googleAnalytics.trackPaymentModalOpened({
               session_id: sessionId,
-              order_id: orderData.paypalOrderId || 'paypal_order_pending',
+              order_id: 'paypal_order_creating',
               amount: orderData.amount,
               currency: orderData.currency
             });
 
-            // Return the order ID created by our unified API
-            return orderData.paypalOrderId;
+            // Create the order using PayPal's actions (this gets us the EC-XXX token)
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  currency_code: orderData.currency,
+                  value: (orderData.amount / 100).toFixed(2), // Convert from cents to dollars
+                },
+                description: `Fraterny Assessment Report`,
+              }],
+              application_context: {
+                brand_name: 'Fraterny',
+                shipping_preference: 'NO_SHIPPING',
+                user_action: 'PAY_NOW',
+              },
+            });
           },
 
           // Handle approval and complete via unified API
@@ -331,8 +375,9 @@ class PayPalHandlerService {
               const orderDetails: PayPalOrderData = await actions.order.capture();
               console.log('✅ PayPal payment captured:', orderDetails);
 
-              // Step 2: Complete payment via unified API
-              await this.completePayPalPaymentViaAPI(orderData, orderDetails, sessionId, testId);
+              // Step 2: Complete payment via unified API with PayPal approval data
+              // Note: data contains payerID, orderID from PayPal approval
+              await this.completePayPalPaymentViaAPI(orderData, orderDetails, sessionId, testId, data);
 
               // Track successful payment
               googleAnalytics.trackPaymentSuccess({
@@ -640,7 +685,8 @@ class PayPalHandlerService {
     orderResponse: CreateOrderResponse,
     paypalOrderData: PayPalOrderData,
     sessionId: string,
-    testId: string
+    testId: string,
+    paypalApprovalData?: any // PayPal approval data containing payerID
   ): Promise<void> {
     try {
       console.log('📡 Completing PayPal payment via unified API...');
@@ -656,22 +702,24 @@ class PayPalHandlerService {
       const sessionDuration = sessionManager.getSessionDuration();
 
       // Prepare completion data for unified API
-      const completionData: UnifiedPaymentCompletionRequest = {
+      const completionData: PaymentCompletionRequest = {
         userId: sessionData.originalSessionId, // Use the user ID from session
-        originalSessionId: sessionData.originalSessionId,
-        testId: sessionData.testId,
+        originalSessionId: sessionId, // Use passed sessionId
+        testId: testId, // Use passed testId
         paymentSessionId: orderResponse.paymentSessionId,
         gateway: 'paypal', // 🎯 Specify PayPal gateway
-        orderid: paypalOrderData.id, // PayPal order ID
+        orderid: paypalOrderData.id, // PayPal order ID for backend capture
         paymentData: {
-          // Map PayPal data to expected format
-          razorpay_order_id: paypalOrderData.id, // Use PayPal order ID
-          razorpay_payment_id: paypalOrderData.id, // Use PayPal order ID
+          // Map PayPal data to expected format (PaymentCompletionRequest)
+          razorpay_order_id: paypalOrderData.id, // PayPal order ID 
+          razorpay_payment_id: paypalOrderData.id, // PayPal order ID
           razorpay_signature: 'paypal_signature', // Placeholder for PayPal
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
-          gateway: 'paypal'
+          // PayPal-specific fields for backend (you need to add these to PaymentData model)
+          paypal_order_id: paypalOrderData.id,
+          payer_id: paypalApprovalData?.payerID || paypalApprovalData?.PayerID || 'unknown'
         },
         metadata: {
           pricingTier: 'regular',
@@ -694,7 +742,7 @@ class PayPalHandlerService {
 
       // Track completion analytics
       googleAnalytics.trackPaymentCompleted({
-        session_id: sessionData.originalSessionId,
+        session_id: sessionId, // Use passed sessionId
         payment_id: paypalOrderData.id,
         verification_success: true,
         total_duration: sessionDuration
@@ -706,7 +754,7 @@ class PayPalHandlerService {
 
       if (gclid) {
         googleAnalytics.trackGoogleAdsConversion({
-          session_id: sessionData.originalSessionId,
+          session_id: sessionId, // Use passed sessionId
           payment_id: paypalOrderData.id,
           amount: orderResponse.amount / 100, // Convert from cents
           currency: orderResponse.currency
@@ -715,7 +763,7 @@ class PayPalHandlerService {
 
       if (googleAnalytics.isRedditTraffic()) {
         googleAnalytics.trackRedditConversion({
-          session_id: sessionData.originalSessionId,
+          session_id: sessionId, // Use passed sessionId
           payment_id: paypalOrderData.id,
           amount: orderResponse.amount / 100, // Convert from cents
           currency: orderResponse.currency
@@ -752,7 +800,7 @@ class PayPalHandlerService {
       const sessionDuration = sessionManager.getSessionDuration();
 
       // Prepare completion data for backend (matching backend PaymentCompletionRequest)
-      const completionData = {
+      const completionData: PaymentCompletionRequest = {
         userId,
         originalSessionId: sessionData.originalSessionId,
         testId: sessionData.testId,
@@ -774,7 +822,6 @@ class PayPalHandlerService {
           paymentCompletedTime: new Date().toISOString(),
           authenticationFlow: sessionData.authenticationRequired,
           userAgent: navigator.userAgent,
-          paymentGateway: 'paypal',
           timingData: {
             sessionToPaymentDuration: sessionDuration,
             authenticationDuration: authDuration || undefined,
@@ -880,6 +927,7 @@ export { PayPalHandlerService };
 
 // Utility functions
 export const initiatePayPalPayment = async (sessionId: string, testId: string): Promise<PaymentResult> => {
+  console.log('🚀 Initiating PayPal payment:', { sessionId, testId });
   return paypalHandlerService.initiatePayPalPayment(sessionId, testId);
 };
 

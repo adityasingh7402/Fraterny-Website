@@ -60,6 +60,9 @@ export interface PaymentCompletionRequest {
   originalSessionId: string;   // Session before auth
   testId: string;
   paymentSessionId: string;    // From create-order response
+  // Required by backend to route logic; for Razorpay you can still pass the order id
+  gateway: 'razorpay' | 'paypal';
+  orderid: string; // For PayPal capture; set to Razorpay order id for Razorpay
   paymentData: {
     razorpay_order_id: string;
     razorpay_payment_id: string;

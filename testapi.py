@@ -28,6 +28,7 @@ from paypalserversdk.logging.configuration.api_logging_configuration import (
 from paypalserversdk.paypal_serversdk_client import PaypalServersdkClient
 from paypalserversdk.controllers.orders_controller import OrdersController
 from paypalserversdk.controllers.payments_controller import PaymentsController
+from paypalcheckoutsdk.core import LiveEnvironment, PayPalHttpClient
 from paypalserversdk.models.amount_breakdown import AmountBreakdown
 from paypalserversdk.models.amount_with_breakdown import AmountWithBreakdown
 from paypalserversdk.models.checkout_payment_intent import CheckoutPaymentIntent
@@ -1842,6 +1843,7 @@ class PaymentCompletionRequest(BaseModel):
     orderid: str
     paymentData: PaymentData
     metadata: PaymentMetadata
+    # paymentid :str 
 
 class VerifyPaymentRequest(BaseModel):
     razorpay_order_id: str
@@ -1869,16 +1871,98 @@ client = razorpay.Client(auth=(YOUR_KEY_ID,YOUR_SECRET))
 @app.get("/health")
 async def health_check():
     return {"status":"healthy","timestamp":dt.now().strftime("%Y%m%d_%H%M%S")}
+# paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+#     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
+#         o_auth_client_id=os.getenv("PAYPAL_CLIENT_ID"),
+#         o_auth_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
+#     ),
+#     logging_configuration=LoggingConfiguration(
+#         log_level=logging.INFO,
+#         # Disable masking of sensitive headers for Sandbox testing.
+#         # This should be set to True (the default if unset)in production.
+#         mask_sensitive_headers=False,
+#         request_logging_config=RequestLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#         response_logging_config=ResponseLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#     ),
+# # )
+# PAYPAL_ENVIRONMENT = os.getenv("PAYPAL_ENVIRONMENT", "sandbox").lower()  
+# print(f"Paypal Environment status {PAYPAL_ENVIRONMENT}")
+# if PAYPAL_ENVIRONMENT == "production":
+#     paypal_base_url = "https://api-m.paypal.com"
+#     mask_sensitive = True  # Enable masking in production
+# else:
+#     paypal_base_url = "https://api-m.sandbox.paypal.com"
+#     mask_sensitive = False  # Disable masking for sandbox debugging
+
+# paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+#     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
+#         o_auth_client_id=os.getenv("PAYPAL_CLIENT_ID"),
+#         o_auth_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
+#     ),
+#     base_url=paypal_base_url,
+#     logging_configuration=LoggingConfiguration(
+#         log_level=logging.INFO,
+#         mask_sensitive_headers=False,  # True in production is safer
+#         request_logging_config=RequestLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#         response_logging_config=ResponseLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#     ),
+
+# )
+
+
+import paypalrestsdk
+# import paypal_config
+
+
+PAYPAL_ENVIRONMENT = os.getenv("PAYPAL_ENVIRONMENT").lower()
+print(f"Paypal Environment status: {PAYPAL_ENVIRONMENT}")
+
+if PAYPAL_ENVIRONMENT in ["production", "live"]:
+    paypal_base_url = "https://api-m.paypal.com"
+    
+    mask_sensitive = True  # Enable masking in production/live
+
+# paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+#     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
+#         o_auth_client_id=os.getenv("PAYPAL_CLIENT_ID"),
+#         o_auth_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
+#     ),
+
+#     logging_configuration=LoggingConfiguration(
+#         log_level=logging.INFO, 
+#         mask_sensitive_headers=mask_sensitive,  # Use the correct mask flag
+#         request_logging_config=RequestLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#         response_logging_config=ResponseLoggingConfiguration(
+#             log_headers=True, log_body=True
+#         ),
+#     ),
+# )
+
+environment = LiveEnvironment(
+    client_id=os.getenv("PAYPAL_CLIENT_ID"),
+    client_secret=os.getenv("PAYPAL_CLIENT_SECRET")
+)
 paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+    # server="live",   # 👈 THIS IS THE IMPORTANT LINE
+  
     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
         o_auth_client_id=os.getenv("PAYPAL_CLIENT_ID"),
         o_auth_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
     ),
+     
     logging_configuration=LoggingConfiguration(
         log_level=logging.INFO,
-        # Disable masking of sensitive headers for Sandbox testing.
-        # This should be set to True (the default if unset)in production.
-        mask_sensitive_headers=False,
+        mask_sensitive_headers=True,
         request_logging_config=RequestLoggingConfiguration(
             log_headers=True, log_body=True
         ),
@@ -1888,6 +1972,12 @@ paypal_client: PaypalServersdkClient = PaypalServersdkClient(
     ),
 )
 
+paypalrestsdk.configure({
+    "mode": "live",  # Use "live" for production
+    "client_id": os.getenv("PAYPAL_CLIENT_ID"),
+    "client_secret": os.getenv("PAYPAL_CLIENT_SECRET")
+})
+
 
 orders_controller: OrdersController = paypal_client.orders
 payments_controller: PaymentsController = paypal_client.payments
@@ -1896,14 +1986,17 @@ payments_controller: PaymentsController = paypal_client.payments
 @app.post("/api/payments/create-order")
 def create_order(order_data : CreateOrderRequest):
     try:
+        PAYPAL_ENVIRONMENT = os.getenv("PAYPAL_ENVIRONMENT").lower() 
         print(f"API Keys {YOUR_KEY_ID} {YOUR_SECRET}")
         #client = razorpay.Client(auth=("YOUR_KEY_ID","YOUR_SECRET"))
-        
+        print(f"Paypal Environment status {PAYPAL_ENVIRONMENT}")
         client = razorpay.Client(auth=(YOUR_KEY_ID,YOUR_SECRET))
+        
         logging.info(f"Client {client}")
         receipt = generate_order_receipt(order_data.sessionId,order_data.testId)
         print(f"In create order recipt {receipt}")
         logging.info(f"In create order recipt {receipt}")   
+        print(f"PayPal Base URL being used: {paypal_base_url}")
         print(f"----- Order Data ---- {order_data}")
         if order_data.gateway =="razorpay":  # razorpay
 
@@ -1943,7 +2036,9 @@ def create_order(order_data : CreateOrderRequest):
                     "testid":order_data.testId,
                     "session_start_time": order_data.sessionStartTime,
                     "status": "Start",
-                    "IsIndia":order_data.isIndia
+                    "IsIndia":order_data.isIndia,
+                    "gateway":"Razorpay"
+
                 }
                 print(f"Here is query of db to isert for payment {query}")
                 print(data_insert(query=query,table="transaction_details"))
@@ -2010,7 +2105,9 @@ def create_order(order_data : CreateOrderRequest):
                     "testid":order_data.testId,
                     "session_start_time": order_data.sessionStartTime,
                     "status": "Start",
-                    "IsIndia":order_data.isIndia
+                    "IsIndia":order_data.isIndia,
+                    "gateway":"Razorpay"
+
                 }
                 print(f"Here is query of db to isert for payment {query}")
                 print(data_insert(query=query,table="transaction_details"))
@@ -2041,37 +2138,73 @@ def create_order(order_data : CreateOrderRequest):
 
                 # now paypal system
         else:
-            order = orders_controller.create_order(
-        {
-            "body": OrderRequest(
-                intent=CheckoutPaymentIntent.CAPTURE,
-                purchase_units=[
-                    PurchaseUnitRequest(
-                        amount=AmountWithBreakdown(
-                            currency_code="USD",
-                            value=order_data.amount,
-                            breakdown=AmountBreakdown(  
-                                item_total=Money(currency_code="USD", value=order_data.amount)
-                            ),
-                        ),
-                        items=[
-                            Item(
-                                name="Quest PDF",
-                                unit_amount=Money(currency_code="USD", value=order_data.amount),
-                                quantity="1",
-                                description="Quest Paid PDF",
-                                sku="sku01",
-                                category=ItemCategory.DIGITAL_GOODS,
-                            )
-                        ],
+            # order_data.amount = order_data.amount / 100
+            # amount_usd = round(order_data.amount / 100, 2)
+            # order_data.amount = f"{amount_usd:.2f}"  # "1.00" instead of 1.0 
 
-                    )
-                ],
+    #         print(f"Here is amount {type(order_data.amount)} and {order_data.amount}")
+    #         order = orders_controller.create_order(
+    #     {
+    #         "body": OrderRequest(
+    #             intent=CheckoutPaymentIntent.CAPTURE,
+    #             purchase_units=[
+    #                 PurchaseUnitRequest(
+    #                     amount=AmountWithBreakdown(
+    #                         currency_code="USD",
+    #                         value=order_data.amount,
+    #                         breakdown=AmountBreakdown(  
+    #                             item_total=Money(currency_code="USD", value=order_data.amount)
+    #                         ),
+    #                     ),
+    #                     items=[
+    #                         Item(
+    #                             name="Quest PDF",
+    #                             unit_amount=Money(currency_code="USD", value=order_data.amount),
+    #                             quantity="1",
+    #                             description="Quest Paid PDF",
+    #                             sku="sku01",
+    #                             category=ItemCategory.DIGITAL_GOODS,
+    #                         )
+    #                     ],
+
+    #                 )
+    #             ],
 
 
-            )
-        }
-    )
+    #         )
+    #     }
+    # )     
+            from decimal import Decimal
+            amount = f"{Decimal(order_data.amount):.2f}"  # ensures '1.00'
+            payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {"payment_method": "paypal"},
+        "redirect_urls": {
+            "return_url": "https://yourdomain.com/paypal/return",
+            "cancel_url": "https://yourdomain.com/paypal/cancel"
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": "Item",
+                    "sku": "item",
+                    "price": amount,
+                    "currency": "USD",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "total": amount,
+                "currency": "USD"
+            },
+            "description": "Payment description"
+        }]
+    })
+            print(f"Paypal Order create -------  {payment}")
+            if payment.create():
+                
+            
+                
 
         # data = {
         #     "amount": order_data.amount,  # Amount in paise
@@ -2085,25 +2218,33 @@ def create_order(order_data : CreateOrderRequest):
         #         "session_start_time": order_data.sessionStartTime,
         #     }
         # }   
-            print(f"Data create order {data}")
-            logging.info(f"Data create order {data}")
+            # print(f"Data create order {data}")
+            # logging.info(f"Data create order {data}")
         # transaction_details()
             # razorpay_order = client.order.create(data=data) 
             # print(f"Razpor pay order {razorpay_order}")
 
 
-            payment_session_id = f"ps_{order_data.sessionId}{dt.now().strftime('%Y%m%d%H%M%S')}"
+                payment_session_id = f"ps_{order_data.sessionId}{dt.now().strftime('%Y%m%d%H%M%S')}"
         # print(f"Payment sessson id {payment_session_id}")
         # logging.info(f"Payment session id {payment_session_id}")
-            response_data = {
-             "paypalOrderId":order.body.id,
-            "amount": order_data.amount,
-            "currency": "USD",
-            "paymentSessionId": payment_session_id,
-            "approvalUrl": "https://www.sandbox.paypal.com/checkoutnow?token=7T123456789012345"
-        }
+                approval_url = None
+                if hasattr(payment.body, 'links'):
+                    for link in payment.body.links:
+                        if link.rel == 'approve':
+                            approval_url = link.href
+                            break
+                print(f"Here is approveal url {approval_url}")
+                response_data = {
+                "paypalOrderId": payment.id, 
+                "gateway": "paypal",
+                "amount": order_data.amount,
+                "currency": "USD",
+                "paymentSessionId": payment_session_id,
+               "approval_url": next(link.href for link in payment.links if link.rel == "approval_url") } #payer_id
+                
 
-            query = {
+                query = {
             "user_id": order_data.userId,
             "session_id":  order_data.sessionId,
             "testid":order_data.testId,
@@ -2111,25 +2252,25 @@ def create_order(order_data : CreateOrderRequest):
             "status": "Start",
             "IsIndia":order_data.isIndia,
             "gateway": order_data.gateway,
-            "paypal_order_id": order.body.id,
+            "paypal_order_id": payment.id,
             
         }
-            print(f"Here is query of db to isert for payment {query}")
-            print(data_insert(query=query,table="transaction_details"))
-            query = {
+                print(f"Here is query of db to isert for payment {query}")
+                print(data_insert(query=query,table="transaction_details"))
+                query = {
             "payment_status": "Start"
         }
-            print(update_table_sum(table="summary_generation",test_id=order_data.testId,query=query))
-            logging.info(f"Responsde data type {type(response_data)}")
+                print(update_table_sum(table="summary_generation",test_id=order_data.testId,query=query))
+                logging.info(f"Responsde data type {type(response_data)}")
 
-            query = {
+                query = {
             "email": order_data.fixEmail
         }
-            print(f"Resposne data {response_data}")
+                print(f"Resposne data {response_data}")
        
 
-            logging.info(f"Response data {response_data}")
-            return ApiResponse(
+                logging.info(f"Response data {response_data}")
+                return ApiResponse(
             success=True,
             data=response_data,
             message="Order created successfully"
@@ -2211,37 +2352,100 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
 
         
             background_tasks.add_task(paid_version, payment_data.userId, payment_data.testId)
-        
+            response_data = {
+  "success": True,
+  "message": "Payment completed successfully",
+  "paymentId": payment_id,
+  "gateway": "razorpay"
+}
             return ApiResponse(
                 success=True,
+                data=response_data,
                 message="Payment processed successfully"
             )
         else:
 
-            order = orders_controller.capture_order(
-        {"id": payment_data.orderid, "prefer": "return=representation"}
+    #         order = orders_controller.capture_order(
+    #     {"id": payment_data.orderid, "prefer": "return=representation"}
 
-    )       
-            order_body = order.body
-            purchase_unit = order_body.purchase_units[0]
-            capture = purchase_unit.payments.captures[0]
-            query = {
+    # )       
+    #         order_body = order.body
+    #         purchase_unit = order_body.purchase_units[0]
+    #         capture = purchase_unit.payments.captures[0]
+    #         query = {
+    #         "user_id": payment_data.userId,
+    #         "payment_session_id":payment_data.paymentSessionId,
+    #         "order_id": payment_data.paymentData.razorpay_order_id,
+    #         "payment_id":capture.id,
+    #         "total_paid": capture.amount.value,
+    #         "status":capture.status,
+    #         "payment_completed_time":payment_data.metadata.paymentCompletedTime,
+    #         "session_duration":payment_data.metadata.timingData.sessionToPaymentDuration,
+    #         "date":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    #         "paypal_payment_id":capture.id
+    #     } 
+            payment_id = payment_data.paymentData.paypal_order_id
+            payer_id = payment_data.paymentData.payer_id
+            print(f"Here is payer id {payer_id}")
+            payment = paypalrestsdk.Payment.find(payment_id)
+            if payment.execute({"payer_id": payer_id}):
+                
+                query = {
             "user_id": payment_data.userId,
             "payment_session_id":payment_data.paymentSessionId,
-            "order_id": payment_data.paymentData.razorpay_order_id,
-            "payment_id":capture.id,
-            "total_paid": capture.amount.value,
-            "status":capture.status,
+            "order_id": payment_id,
+            "payment_id": payment_id,
+            "total_paid": payment_data.paymentData.amount,
+            "status":payment_data.paymentData.status,
             "payment_completed_time":payment_data.metadata.paymentCompletedTime,
             "session_duration":payment_data.metadata.timingData.sessionToPaymentDuration,
             "date":datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "paypal_payment_id":capture.id
-        }
-            print(f"Here is query in complete payment {query}")
-            print(update_table_payment(table="transaction_details",user_id=payment_data.userId,test_id=payment_data.testId,query=query)) # need to change , update based on user id but also on sesssion id
-            print(f"Payment status update in summary")
-            print(update_table_sum(table="summary_generation",test_id=payment_data.testId,query={"payment_status":payment_data.paymentData.status,"quest_status":"working"}))
-
+                  }
+                print(f"Here is query in complete payment {query}")
+                print(update_table_payment(table="transaction_details",user_id=payment_data.userId,test_id=payment_data.testId,query=query)) # need to change , update based on user id but also on sesssion id
+                print(f"Payment status update in summary")
+                print(update_table_sum(table="summary_generation",test_id=payment_data.testId,query={"payment_status":payment_data.paymentData.status,"quest_status":"working"}))
+                response_data = {
+                    "success": True,
+                    "message": "Payment completed successfully",
+                    "paymentId": payment_id,
+                    "gateway": "paypal"
+                    }               
+                print(f"----- Sucessfuly Paypal Completet ------")
+                background_tasks.add_task(paid_version, payment_data.userId, payment_data.testId)
+                return ApiResponse(
+                    sucess=True,
+                    data= response_data,
+                    message="Successfully Payment"
+                )
+            else:
+                query = {
+            "user_id": payment_data.userId,
+            "payment_session_id":payment_data.paymentSessionId,
+            "order_id": payment_id,
+            "payment_id": payment_id,
+            "total_paid": payment_data.paymentData.amount,
+            "status":'Failed to Complete',
+            "payment_completed_time":payment_data.metadata.paymentCompletedTime,
+            "session_duration":payment_data.metadata.timingData.sessionToPaymentDuration,
+            "date":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  }
+                print(f"Here is query in complete payment {query}")
+                print(update_table_payment(table="transaction_details",user_id=payment_data.userId,test_id=payment_data.testId,query=query)) # need to change , update based on user id but also on sesssion id
+                print(f"Payment status update in summary")
+                print(update_table_sum(table="summary_generation",test_id=payment_data.testId,query={"payment_status":"Failed","quest_status":"Not"}))
+                response_data = {
+  "success": False,
+  "message": "Payment Completion Failed",
+  "paymentId": payment_id,
+  "gateway": "paypal"
+                }
+                print(f"---- Failed to Complete Paypal Payment -----")
+                return ApiResponse(
+                    sucess=False,
+                    data=response_data,
+                    message="Payment Completion Failed"
+                )
 
     except Exception as e:
         query = {
@@ -2258,8 +2462,8 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
         print(f"Here is query in complete payment {query}")
         print(update_table_payment(table="transaction_details",user_id=payment_data.userId,test_id=payment_data.testId,query=query))
         print(update_table_sum(table="summary_generation",test_id=payment_data.testId,query={"payment_status":payment_data.paymentData.status,"quest_status":f"Failed due to {e}"}))
-        data = [ payment_data.paymentSessionId,payment_data.paymentData.razorpay_order_id,payment_data.paymentData.status,payment_info['amount'],payment_data.metadata.sessionStartTime, payment_data.metadata.paymentCompletedTime,"Faied"]
-        transactions_sheet_append(data=data,testid=payment_data.testId)
+       
+        background_tasks.add_task(paid_version, payment_data.userId, payment_data.testId)
         return f"Failed to complete due to {e}"
 
 
@@ -2989,7 +3193,7 @@ def fetch_and_merge(user_id: str | None = None, limit: int | None = None):
         s_res = supabase.from_("summary_question_answer").select("*").in_("user_id", user_ids).execute()
         for u in (s_res.data or []):
             sg_map[u.get("testid")] = u
-    print(f"Here summary ageneretion {sg_map}")
+   # print(f"Here summary ageneretion {sg_map}")
     # 5) merge into rows (one row per summary_generation)
     rows = []
     for sg in sgs:

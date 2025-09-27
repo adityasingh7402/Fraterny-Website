@@ -262,6 +262,8 @@ class PaymentHandlerService {
         originalSessionId: sessionData.originalSessionId,
         testId: sessionData.testId,
         paymentSessionId: orderData.paymentSessionId,
+        gateway: 'razorpay',
+        orderid: paymentData.razorpay_order_id, // populate for backend schema
         paymentData: {
           razorpay_order_id: paymentData.razorpay_order_id,
           razorpay_payment_id: paymentData.razorpay_payment_id,
