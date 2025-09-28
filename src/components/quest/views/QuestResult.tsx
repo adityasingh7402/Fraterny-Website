@@ -10,7 +10,7 @@ import {
   Clock,
   Quote,
   Film,
-  Sparkles,
+  FileText,
   X,
   BookOpen,
   Paperclip,
@@ -1661,7 +1661,18 @@ interface FindingModalProps {
 }
 
 // PDF Image Viewer Component with Zoom
-const PDFImageViewer: React.FC = () => {
+interface PDFImageViewerProps {
+  paymentSuccess: boolean;
+  onUnlockClick: () => void;
+  paymentStatus: {
+    ispaymentdone: "success" | null;
+    quest_pdf: string;
+    quest_status: "generated" | "working" | null;
+  } | null;
+  onPDFDownload: () => void;
+}
+
+const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnlockClick, paymentStatus, onPDFDownload }) => {
   const [zoom, setZoom] = useState(1);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -1805,25 +1816,54 @@ const PDFImageViewer: React.FC = () => {
 
             {/* Timer */}
             <div className="flex items-center justify-center gap-1 text-sm text-yellow-300 mb-4">
-              <Clock className="h-4 w-4" />
-              <span className="font-['Gilroy-Regular']">Limited Time Offer</span>
+              <FileText className="h-4 w-4" />
+              <span className="font-['Gilroy-Regular']">35+ Pages PDF</span>
             </div>
 
             {/* Centered Button */}
             <div className="flex justify-center">
-              <motion.button
-                onClick={() => {}}
-                whileTap={{ scale: 0.98 }}
-                className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
-                  boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
-                  width: '280px'
-                }}
-                aria-label="Unlock full PDF report"
-              >
-                Unlock Full PDF Report
-              </motion.button>
+              {paymentStatus?.ispaymentdone === "success" ? (
+                paymentStatus.quest_status === "generated" ? (
+                  // Payment done and PDF ready - show download button
+                  <motion.button
+                    onClick={onPDFDownload}
+                    whileTap={{ scale: 0.98 }}
+                    className="font-['Gilroy-semiBold'] flex items-center bg-blue-800 justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white gap-2"
+                    style={{
+                      width: '280px'
+                    }}
+                    aria-label="Download PDF report"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Get Your PDF
+                  </motion.button>
+                ) : (
+                  // Payment done but PDF still generating
+                  <div className="flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-orange-600 bg-orange-100 gap-2" style={{ width: '280px' }}>
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4a2 2 0 014-4h2a2 2 0 014 4v2a2 2 0 01-4 4h-2a2 2 0 01-4-4v-2z" />
+                    </svg>
+                    PDF Generating...
+                  </div>
+                )
+              ) : (
+                // Payment not done - show unlock button
+                <motion.button
+                  onClick={onUnlockClick}
+                  whileTap={{ scale: 0.98 }}
+                  className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white"
+                  style={{
+                    background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+                    boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
+                    width: '280px'
+                  }}
+                  aria-label="Unlock full PDF report"
+                >
+                  Unlock Full PDF Report
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -1892,6 +1932,11 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const { userId, sessionId, testId } = useParams();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [assessmentPaymentStatus, setAssessmentPaymentStatus] = useState<{
+    ispaymentdone: "success" | null;
+    quest_pdf: string;
+    quest_status: "generated" | "working" | null;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const metaTimerRef = useRef<number | null>(null);
@@ -1944,6 +1989,31 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       navigate(`/quest-dashboard/${userId}`); // or wherever your dashboard is
     } else {
       handleSignIn();
+    }
+  };
+
+  // Handle PDF download for paid assessments
+  const handlePDFDownload = () => {
+    if (!assessmentPaymentStatus?.quest_pdf) {
+      toast.error('PDF not available');
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.href = assessmentPaymentStatus.quest_pdf;
+      link.download = `Quest-Report-${sessionId}.pdf`;
+      link.target = '_blank';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Downloading your PDF report!');
+    } catch (error) {
+      console.error('PDF download error:', error);
+      window.open(assessmentPaymentStatus.quest_pdf, '_blank');
+      toast.success('Opening your PDF report!');
     }
   };
 
@@ -2013,18 +2083,19 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   }, [sectionIds]);
 
   // Auto-trigger feedback popup when user reaches subjects section
-  useEffect(() => {
-    // Subjects section is at index 5 in sectionIds array
-    if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
-      // Add a small delay to let the section settle
-      const timer = setTimeout(() => {
-        setFeedbackPopupOpen(true);
-        setHasTriggeredFeedback(true);
-      }, 1500); // 1.5 second delay
+  // COMMENTED OUT: Backend not connected yet
+  // useEffect(() => {
+  //   // Subjects section is at index 5 in sectionIds array
+  //   if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
+  //     // Add a small delay to let the section settle
+  //     const timer = setTimeout(() => {
+  //       setFeedbackPopupOpen(true);
+  //       setHasTriggeredFeedback(true);
+  //     }, 1500); // 1.5 second delay
 
-      return () => clearTimeout(timer);
-    }
-  }, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
 
   // Add pricing effect for dual gateways
   useEffect(() => {
@@ -2065,6 +2136,43 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
 
     loadPricing();
   }, []);
+
+  // Check payment status for current assessment
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      if (!userId || !sessionId || !testId) return;
+      
+      try {
+        console.log('🔍 Checking payment status for assessment:', { userId, sessionId, testId });
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/userdashboard/${userId}`
+        );
+        
+        if (response.data.status === 200) {
+          const assessments = response.data.data || [];
+          // Find the current assessment by sessionId and testId
+          const currentAssessment = assessments.find((assessment: any) => 
+            assessment.sessionid === sessionId && assessment.testid === testId
+          );
+          
+          if (currentAssessment) {
+            console.log('✅ Found current assessment payment status:', currentAssessment);
+            setAssessmentPaymentStatus({
+              ispaymentdone: currentAssessment.ispaymentdone,
+              quest_pdf: currentAssessment.quest_pdf,
+              quest_status: currentAssessment.quest_status
+            });
+          } else {
+            console.log('⚠️ Current assessment not found in dashboard data');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to check payment status:', error);
+      }
+    };
+    
+    checkPaymentStatus();
+  }, [userId, sessionId, testId]);
 
   // Cleanup localStorage when results page loads successfully
   useEffect(() => {
@@ -2975,7 +3083,16 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           sessionId={sessionId}
           testId={testId}
         >
-          <PDFImageViewer />
+          <PDFImageViewer 
+            paymentSuccess={paymentSuccess}
+            paymentStatus={assessmentPaymentStatus}
+            onPDFDownload={handlePDFDownload}
+            onUnlockClick={() => {
+              if (!paymentSuccess) {
+                setUpsellOpen(true);
+              }
+            }}
+          />
         </SectionFrame>
 
 

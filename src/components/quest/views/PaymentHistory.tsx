@@ -33,6 +33,7 @@ interface PaymentTransaction {
   paymentDate: string | null;
   razorpayOrderId?: string | null;
   razorpayPaymentId?: string | null;
+  gateway?: 'razorpay' | 'paypal' | null; // Added gateway field
 }
 
 interface PaymentHistoryProps {
@@ -63,14 +64,28 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
     }
   };
 
-  // Format currency helper function
-  const formatCurrency = (amount: number | null, isIndia: boolean | null): string => {
+  // Format currency helper function with gateway-based logic
+  const formatCurrency = (amount: number | null, isIndia: boolean | null, gateway?: 'razorpay' | 'paypal' | null): string => {
     if (amount === null) return 'N/A';
-    // Default to USD if isIndia is null or false
-    if (isIndia === true) {
-      return `₹${amount.toFixed(2)}`;
-    } else {
+    
+    // Gateway-based currency logic
+    if (gateway === 'paypal') {
+      // PayPal always shows dollar (ignore isIndia)
       return `$${amount.toFixed(2)}`;
+    } else if (gateway === 'razorpay') {
+      // Razorpay: check isIndia flag
+      if (isIndia === true) {
+        return `₹${amount.toFixed(2)}`;
+      } else {
+        return `$${amount.toFixed(2)}`;
+      }
+    } else {
+      // Default logic when gateway is not available (current behavior)
+      if (isIndia === true) {
+        return `₹${amount.toFixed(2)}`;
+      } else {
+        return `$${amount.toFixed(2)}`;
+      }
     }
   };
 
@@ -193,7 +208,19 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
             return !isDuplicate && shouldKeep;
           });
 
-          setPayments(uniquePayments);
+          // Sort payments in descending order by date (latest first)
+          const sortedPayments = uniquePayments.sort((a, b) => {
+            // Handle null paymentDate by treating them as oldest
+            if (!a.paymentDate && !b.paymentDate) return 0;
+            if (!a.paymentDate) return 1;
+            if (!b.paymentDate) return -1;
+            
+            const dateA = new Date(a.paymentDate).getTime();
+            const dateB = new Date(b.paymentDate).getTime();
+            return dateB - dateA; // Descending order (latest first)
+          });
+
+          setPayments(sortedPayments);
         } else {
           console.error('Payment data is not an array:', paymentData);
           setError('Invalid payment data received from server');
@@ -357,7 +384,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
 
                     <div className="text-right">
                       <p className={`font-['Gilroy-semiBold'] ${statusInfo.textColor}`}>
-                        {formatCurrency(payment.amount ? payment.amount / 100 : null, payment.IsIndia)}
+                        {formatCurrency(payment.amount ? payment.amount / 100 : null, payment.IsIndia, payment.gateway)}
                       </p>
                       <p className="text-xs font-['Gilroy-Regular'] text-gray-400">{statusInfo.statusText}</p>
                     </div>
