@@ -71,7 +71,7 @@ export interface PaymentCompletionRequest {
     currency: string;
     status: 'success' | 'failed';
     // Gateway-specific fields
-    signature?: string;  // Required for Razorpay, optional for PayPal
+    razorpay_signature: string;  // Required for Razorpay, optional for PayPal
     payer_id?: string;   // Optional for PayPal
     paypal_order_id?: string; // For PayPal backend compatibility
   };
