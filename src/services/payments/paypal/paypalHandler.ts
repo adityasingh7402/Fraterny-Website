@@ -91,8 +91,14 @@ class PayPalHandlerService {
         throw new Error('User authentication failed');
       }
 
-      // Step 2: Get session start time
+      // Step 2: Get session start time and ensure session data is stored
       const sessionStartTime = sessionManager.getOrCreateSessionStartTime();
+      
+      // Ensure session data is properly stored for PayPal completion
+      if (!sessionManager.getSessionData()) {
+        console.log('📦 Creating session data for PayPal order...');
+        sessionManager.createSessionData(sessionId, testId, false);
+      }
 
       // Step 3: Get pricing data
       const pricingData = await getPayPalPricingForLocation();
@@ -371,6 +377,15 @@ class PayPalHandlerService {
             console.log('✅ PayPal payment approved:', data);
             
             try {
+              // Add debug information about session state before processing
+              console.log('🔍 Debug info before PayPal completion:', {
+                sessionId,
+                testId,
+                hasSessionData: !!sessionManager.getSessionData(),
+                sessionStartTime: sessionManager.getOrCreateSessionStartTime(),
+                paypalData: data
+              });
+              
               // Step 1: Capture the payment (PayPal side)
               const orderDetails: PayPalOrderData = await actions.order.capture();
               console.log('✅ PayPal payment captured:', orderDetails);
@@ -402,6 +417,13 @@ class PayPalHandlerService {
 
             } catch (captureError) {
               console.error('❌ PayPal capture/completion error:', captureError);
+              console.error('🔍 Error details:', {
+                errorMessage: captureError instanceof Error ? captureError.message : 'Unknown error',
+                sessionId,
+                testId,
+                hasSessionData: !!sessionManager.getSessionData(),
+                sessionState: sessionManager.getPaymentFlowState()
+              });
               
               googleAnalytics.trackPaymentFailed({
                 session_id: sessionId,
@@ -414,7 +436,9 @@ class PayPalHandlerService {
               
               resolve({
                 success: false,
-                error: PAYPAL_ERROR_MESSAGES.CAPTURE_FAILED,
+                error: captureError instanceof Error && captureError.message.includes('Session data not found') 
+                  ? 'Failed to complete PayPal payment. Please contact support.' 
+                  : PAYPAL_ERROR_MESSAGES.CAPTURE_FAILED,
               });
             }
           },
@@ -691,19 +715,39 @@ class PayPalHandlerService {
     try {
       console.log('📡 Completing PayPal payment via unified API...');
 
-      // Get session data
-      const sessionData = sessionManager.getSessionData();
+      // Get session data with fallback mechanism
+      let sessionData = sessionManager.getSessionData();
       if (!sessionData) {
-        throw new Error('Session data not found');
+        console.warn('⚠️ No session data found, creating fallback session data');
+        // Create fallback session data for PayPal completion
+        sessionData = {
+          sessionStartTime: sessionManager.getOrCreateSessionStartTime(),
+          originalSessionId: sessionId,
+          testId: testId,
+          authenticationRequired: false, // User is already authenticated if we got here
+        };
+        // Store the fallback session data
+        sessionManager.createSessionData(sessionId, testId, false);
       }
 
       // Calculate timing data
       const authDuration = paymentAuthService.calculateAuthenticationDuration();
       const sessionDuration = sessionManager.getSessionDuration();
 
+      // Get current user info if available
+      let userId = sessionData.originalSessionId;
+      try {
+        const currentUser = await paymentAuthService.getCurrentUser();
+        if (currentUser?.id) {
+          userId = currentUser.id;
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not get current user, using session ID as fallback');
+      }
+
       // Prepare completion data for unified API
       const completionData: PaymentCompletionRequest = {
-        userId: sessionData.originalSessionId, // Use the user ID from session
+        userId: userId, // Use current user ID or fallback to session ID
         originalSessionId: sessionId, // Use passed sessionId
         testId: testId, // Use passed testId
         paymentSessionId: orderResponse.paymentSessionId,
@@ -736,7 +780,17 @@ class PayPalHandlerService {
       };
 
       // Send completion data to unified API
-      console.log('📡 Sending PayPal completion to unified API:', completionData);
+      console.log('📡 Sending PayPal completion to unified API:', {
+        userId: completionData.userId,
+        sessionId: completionData.originalSessionId,
+        testId: completionData.testId,
+        paymentSessionId: completionData.paymentSessionId,
+        gateway: completionData.gateway,
+        orderid: completionData.orderid,
+        paymentDataKeys: Object.keys(completionData.paymentData || {}),
+        metadataKeys: Object.keys(completionData.metadata || {})
+      });
+      
       await paymentApiService.completePayment(completionData);
       console.log('✅ PayPal payment completion sent to unified API successfully');
 
