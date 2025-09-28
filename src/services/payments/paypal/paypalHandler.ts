@@ -312,22 +312,22 @@ class PayPalHandlerService {
         }
 
         // Check if backend provided approval URL (old PayPal REST SDK flow)
-        if (orderData.approval_url) {
-          console.log('🔄 Backend using old PayPal flow, redirecting to approval URL');
-          // Create redirect button instead of PayPal SDK buttons
-          const redirectButton = document.createElement('button');
-          redirectButton.textContent = 'Pay with PayPal';
-          redirectButton.style.cssText = 'background: #0070ba; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; width: 100%;';
-          redirectButton.onclick = () => {
-            window.location.href = orderData.approval_url;
-          };
+        // if (orderData.approval_url) {
+        //   console.log('🔄 Backend using old PayPal flow, redirecting to approval URL');
+        //   // Create redirect button instead of PayPal SDK buttons
+        //   const redirectButton = document.createElement('button');
+        //   redirectButton.textContent = 'Pay with PayPal';
+        //   redirectButton.style.cssText = 'background: #0070ba; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; width: 100%;';
+        //   redirectButton.onclick = () => {
+        //     window.location.href = orderData.approval_url;
+        //   };
           
-          const buttonContainer = document.getElementById('paypal-buttons');
-          if (buttonContainer) {
-            buttonContainer.appendChild(redirectButton);
-          }
-          return;
-        }
+        //   const buttonContainer = document.getElementById('paypal-buttons');
+        //   if (buttonContainer) {
+        //     buttonContainer.appendChild(redirectButton);
+        //   }
+        //   return;
+        // }
         
         // Initialize PayPal buttons with unified API order (new SDK flow)
         const paypalButtons = window.paypal.Buttons({
