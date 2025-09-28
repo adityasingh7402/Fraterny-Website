@@ -758,6 +758,7 @@ class PayPalHandlerService {
           order_id: paypalOrderData.id, // PayPal order ID
           payment_id: paypalOrderData.id, // PayPal order ID  
           paypal_order_id: paypalOrderData.id, // For backend compatibility
+          razorpay_signature: "paypal_no_signature", // Placeholder for signature field
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
@@ -863,6 +864,7 @@ class PayPalHandlerService {
           order_id: orderData.id, // ✅ Backend expects this field name
           payment_id: orderData.id, // ✅ Use PayPal order ID
           paypal_order_id: orderData.id, // For backend compatibility
+          razorpay_signature: "paypal_no_signature",
           amount: pricingData.numericAmount * 100,
           currency: pricingData.currency,
           status: 'success', // ✅ Backend expects 'success' not 'completed'
