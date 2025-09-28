@@ -1728,7 +1728,7 @@ const PDFImageViewer: React.FC = () => {
                 key={index}
                 src={`/${image}`}
                 alt={`PDF Page ${index + 1}`}
-                className="w-full max-w-full h-auto select-none"
+                className="w-full pb-1 max-w-full h-auto select-none"
                 draggable={false}
                 onError={(e) => {
                   console.error(`Failed to load ${image}`);
@@ -3113,7 +3113,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               setShowFeedbackStar(false);
               setFeedbackPopupOpen(true);
             }}
-            className="fixed right-5 bottom-16 z-[60] flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg"
+            className="fixed right-5 bottom-20 z-[60] flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg"
             initial={{ opacity: 0, scale: 0, rotate: -180 }}
             animate={{ 
               opacity: 1, 

@@ -355,6 +355,23 @@ def fetch_summary(user_id:str): # fetch with user id of summary genration
     except Exception as e:
         return f"Failed due to {e}"
 
+
+def fetch_summary_rank(user_id:str):
+    try:
+        supabase_client: Client = create_client(API_URL, API_KEY)
+        response = (
+            supabase_client
+            .table("summary_generation")
+            .select("qualityscore")
+            .eq("user_id", user_id)
+            .order("created_at", desc=False)   # 👈 sort ascending
+            .execute()
+        )
+        return response.data
+
+    except Exception as e:
+        return {"status": "Error", "message": f"Failed due to {e}"}
+
 ## save the each question answer of user in summary_question_answer table of db
 def quest_an_saved(query:str):
     try:
@@ -637,9 +654,8 @@ def agent(query_data :json):
     }
     print(f"------ Here is query of saveing is qu an db ------- \n {query} \n\n")
     print(quest_an_saved(query=query))
-    data = [user_name,email,city,dob,mobile_no,ann,user_id,query_data['user_data']['testid'],query_data['assessment_metadata']['device_info']['type'],query_data['assessment_metadata']['device_info']['browser'],query_data['assessment_metadata']['device_info']['operating_system'],query_data['assessment_metadata']['start_time'],query_data['assessment_metadata']['completion_time'],q_time[0],q_time[1],q_time[2],q_time[3],q_time[4],q_time[5],q_time[6],q_time[7],q_time[8],q_time[9],q_time[10],q_time[11],q_time[12],q_time[13],q_time[14],q_time[15],q_time[16],q_time[17],q_time[18],q_time[19],q_time[20],"None","None",url,gender,"None","Generating","None"]
-    print(f"Appending the row here ")
-    print(user_datasheet(data=data))   # Insert the row in user data sheet first time 
+    
+      # Insert the row in user data sheet first time 
     
     # Insert the row in summary generation table
 
@@ -659,8 +675,10 @@ def agent(query_data :json):
         total_time_taken_by_agent= f"{end - start:.1f}"
 
         print(f"---- Here is total time taken by agent flow {total_time_taken_by_agent}")
+        
+        #fetch_quality_score_ase
 
-
+       # percentile = 
         url = f"https://www.fraterny.in/quest-result/result/{user_id}/{query_data['assessment_metadata']['session_id']}/{query_data['user_data']['testid']}"
         logging.info("Before correcting the resposne format")
         if result is not None and isinstance(result, str) and result.startswith("'''json") and result.endswith("'''"):
@@ -1814,10 +1832,12 @@ class CreateOrderRequest(BaseModel):
     #fixName: str
 
 class PaymentData(BaseModel):
-    razorpay_order_id: str
-    razorpay_payment_id: str
-    razorpay_signature: str
+    order_id: str
+    payment_id: str
+    razorpay_signature: Optional[str] = None  # Optional for PayPal payments
     amount: int
+    payer_id: Optional[str] = None  # Optional for Razorpay payments
+    paypal_order_id: Optional[str] = None  # Optional for Razorpay payments
     currency: str
     status: str = Field(..., pattern="^(success|failed)$")
 
@@ -1952,6 +1972,7 @@ environment = LiveEnvironment(
     client_id=os.getenv("PAYPAL_CLIENT_ID"),
     client_secret=os.getenv("PAYPAL_CLIENT_SECRET")
 )
+
 paypal_client: PaypalServersdkClient = PaypalServersdkClient(
     # server="live",   # 👈 THIS IS THE IMPORTANT LINE
   
@@ -1959,7 +1980,6 @@ paypal_client: PaypalServersdkClient = PaypalServersdkClient(
         o_auth_client_id=os.getenv("PAYPAL_CLIENT_ID"),
         o_auth_client_secret=os.getenv("PAYPAL_CLIENT_SECRET"),
     ),
-     
     logging_configuration=LoggingConfiguration(
         log_level=logging.INFO,
         mask_sensitive_headers=True,
@@ -1971,6 +1991,7 @@ paypal_client: PaypalServersdkClient = PaypalServersdkClient(
         ),
     ),
 )
+
 
 paypalrestsdk.configure({
     "mode": "live",  # Use "live" for production
@@ -2022,12 +2043,17 @@ def create_order(order_data : CreateOrderRequest):
                 payment_session_id = f"ps_{order_data.sessionId}{dt.now().strftime('%Y%m%d%H%M%S')}"
                 # print(f"Payment sessson id {payment_session_id}")
                 # logging.info(f"Payment session id {payment_session_id}")
+                # Generate unique transaction ID for tracking
+                import uuid
+                transaction_id = f"txn_{order_data.sessionId[:8]}_{dt.now().strftime('%Y%m%d%H%M%S%f')[:17]}_{str(uuid.uuid4())[:8]}"
+                
                 response_data = {
                     "razorpayOrderId": razorpay_order["id"],
                     "gateway":order_data.gateway,
                     "amount": razorpay_order["amount"],
                     "currency": razorpay_order["currency"],
-                    "paymentSessionId": payment_session_id
+                    "paymentSessionId": payment_session_id,
+                    "transactionId": transaction_id  # ✅ Add transaction ID
                 }
 
                 query = {
@@ -2037,8 +2063,8 @@ def create_order(order_data : CreateOrderRequest):
                     "session_start_time": order_data.sessionStartTime,
                     "status": "Start",
                     "IsIndia":order_data.isIndia,
-                    "gateway":"Razorpay"
-
+                    "gateway":"Razorpay",
+                    "transaction_id": transaction_id  # ✅ Add transaction ID
                 }
                 print(f"Here is query of db to isert for payment {query}")
                 print(data_insert(query=query,table="transaction_details"))
@@ -2091,12 +2117,17 @@ def create_order(order_data : CreateOrderRequest):
 #   "amount": 95000,
 #   "currency": "INR",
 #   "paymentSessionId": "payment_session_123"
+                # Generate unique transaction ID for tracking
+                import uuid
+                transaction_id = f"txn_{order_data.sessionId[:8]}_{dt.now().strftime('%Y%m%d%H%M%S%f')[:17]}_{str(uuid.uuid4())[:8]}"
+                
                 response_data = {
                     "razorpayOrderId": razorpay_order["id"],
                     "gateway":order_data.gateway,
                     "amount": razorpay_order["amount"],
                     "currency": razorpay_order["currency"],
-                    "paymentSessionId": payment_session_id
+                    "paymentSessionId": payment_session_id,
+                    "transactionId": transaction_id  # ✅ Add transaction ID
                 }
 
                 query = {
@@ -2180,8 +2211,8 @@ def create_order(order_data : CreateOrderRequest):
         "intent": "sale",
         "payer": {"payment_method": "paypal"},
         "redirect_urls": {
-            "return_url": "https://yourdomain.com/paypal/return",
-            "cancel_url": "https://yourdomain.com/paypal/cancel"
+            "return_url": "https://www.fraterny.in/quest",
+            "cancel_url": "https://www.fraterny.in/quest"
         },
         "transactions": [{
             "item_list": {
@@ -2300,14 +2331,14 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
         if payment_data.gateway =="razorpay":
 
             is_valid = verify_razorpay_signature(
-                payment_data.paymentData.razorpay_order_id,
-                payment_data.paymentData.razorpay_payment_id,
+                payment_data.paymentData.order_id,
+                payment_data.paymentData.payment_id,
                 payment_data.paymentData.razorpay_signature,
                 YOUR_SECRET
             )
             print(f"In complete payment {is_valid}")
             if not is_valid:
-                logging.warning(f"Invalid payment signature for payment: {payment_data.paymentData.razorpay_payment_id}")
+                logging.warning(f"Invalid payment signature for payment: {payment_data.paymentData.payment_id}")
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid payment signature"
@@ -2318,8 +2349,8 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
                 "original_session_id": payment_data.originalSessionId,
                 "test_id": payment_data.testId,
                  "payment_session_id": payment_data.paymentSessionId,
-                "razorpay_order_id": payment_data.paymentData.razorpay_order_id,
-                "razorpay_payment_id": payment_data.paymentData.razorpay_payment_id,
+                "razorpay_order_id": payment_data.paymentData.order_id,
+                "razorpay_payment_id": payment_data.paymentData.payment_id,
                 "amount": payment_data.paymentData.amount,
                 "currency": payment_data.paymentData.currency,
                 "status": payment_data.paymentData.status,
@@ -2334,8 +2365,8 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
             query = {
             "user_id": payment_data.userId,
             "payment_session_id":payment_data.paymentSessionId,
-            "order_id": payment_data.paymentData.razorpay_order_id,
-            "payment_id": payment_data.paymentData.razorpay_payment_id,
+            "order_id": payment_data.paymentData.order_id,
+            "payment_id": payment_data.paymentData.payment_id,
             "total_paid": payment_data.paymentData.amount,
             "status":payment_data.paymentData.status,
             "payment_completed_time":payment_data.metadata.paymentCompletedTime,
@@ -2349,13 +2380,12 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
             print(f"Pyyaymnet infomation {payment_info}")
             logging.info(f"Pyyaymnet infomation {payment_info}")
             logging.info(f"Payment completed successfully: {payment_info}")
-
         
             background_tasks.add_task(paid_version, payment_data.userId, payment_data.testId)
             response_data = {
   "success": True,
   "message": "Payment completed successfully",
-  "paymentId": payment_id,
+  "paymentId": payment_data.paymentData.razorpay_payment_id,
   "gateway": "razorpay"
 }
             return ApiResponse(
@@ -2384,14 +2414,18 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
     #         "date":datetime.datetime.now(datetime.timezone.utc).isoformat(),
     #         "paypal_payment_id":capture.id
     #     } 
-            payment_id = payment_data.paymentData.paypal_order_id
+
+            print(f"Here is payment_data {payment_data}")
+            payment_id = payment_data.paymentData.order_id
             payer_id = payment_data.paymentData.payer_id
             print(f"Here is PayPal order id {payment_id} and payer id {payer_id}")
             
             # PayPal Orders API - payment is already captured on frontend
             # We just need to record the transaction since capture already happened
             # Check if we have the required PayPal data
-            if payment_id and payment_data.paymentData.status == 'success':
+            # if payment_id and payment_data.paymentData.status == 'success':
+            payment = paypalrestsdk.Payment.find(payment_id)
+            if payment.execute({"payer_id": payer_id}):
                 
                 query = {
             "user_id": payment_data.userId,
@@ -2455,8 +2489,8 @@ async def complete_payment(payment_data: PaymentCompletionRequest, background_ta
         query = {
             "user_id": payment_data.userId,
             "payment_session_id":payment_data.paymentSessionId,
-            "order_id": payment_data.paymentData.razorpay_order_id,
-            "payment_id": payment_data.paymentData.razorpay_payment_id,
+            "order_id": payment_data.paymentData.order_id,
+            "payment_id": payment_data.paymentData.payment_id,
             "total_paid": payment_data.paymentData.amount,
             "status":payment_data.paymentData.status,
             "payment_completed_time":payment_data.metadata.paymentCompletedTime,

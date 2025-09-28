@@ -753,6 +753,7 @@ class PayPalHandlerService {
         paymentSessionId: orderResponse.paymentSessionId,
         gateway: 'paypal', // 🎯 Specify PayPal gateway
         orderid: paypalOrderData.id, // PayPal order ID for backend capture
+        transaction_id: orderResponse.transactionId, // ✅ Add transaction ID from backend
         paymentData: {
           // Map PayPal data to match backend expectations and new validation
           order_id: paypalOrderData.id, // PayPal order ID
@@ -860,6 +861,7 @@ class PayPalHandlerService {
         paymentSessionId: sessionId,
         gateway: 'paypal', // ✅ Required by backend
         orderid: orderData.id, // ✅ Required by backend for PayPal
+        // Note: transactionId not available in this old method
         paymentData: {
           order_id: orderData.id, // ✅ Backend expects this field name
           payment_id: orderData.id, // ✅ Use PayPal order ID
