@@ -17,9 +17,9 @@ class PaymentApiService {
   private axiosInstance;
 
   constructor() {
-  //   console.log('🔧 PaymentApiService - Constructor Debug:');
-  // console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
-  // console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+    console.log('🔧 PaymentApiService - Constructor Debug:');
+    console.log('API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+    console.log('import.meta.env.VITE_API_BASE_URL:', (import.meta as any).env?.VITE_API_BASE_URL);
 
     // Create axios instance with default configuration
     this.axiosInstance = axios.create({
@@ -30,7 +30,7 @@ class PaymentApiService {
       },
     });
 
-      // console.log('🔧 Axios instance baseURL:', this.axiosInstance.defaults.baseURL);
+      console.log('🔧 Axios instance baseURL:', this.axiosInstance.defaults.baseURL);
 
     // Add request interceptor for logging and auth
     this.axiosInstance.interceptors.request.use(
@@ -188,6 +188,22 @@ class PaymentApiService {
       // Server responded with error status
       const status = error.response.status;
       const data = error.response.data as any;
+
+      // Try to surface FastAPI validation errors (422) in a readable format
+      const formatValidation = (detail: any): string | undefined => {
+        try {
+          if (Array.isArray(detail)) {
+            return detail
+              .map((d) => {
+                const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
+                return `${loc}: ${d.msg}`;
+              })
+              .join('; ');
+          }
+          if (typeof detail === 'string') return detail;
+        } catch {}
+        return undefined;
+      };
       
       switch (status) {
         case 400:
@@ -198,6 +214,10 @@ class PaymentApiService {
           return new Error('Access denied');
         case 404:
           return new Error('Service not found');
+        case 422: {
+          const details = formatValidation(data?.detail);
+          return new Error(details ? `Validation error: ${details}` : 'Validation error (422)');
+        }
         case 429:
           return new Error('Too many requests. Please try again later');
         case 500:

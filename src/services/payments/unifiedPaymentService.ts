@@ -3,6 +3,7 @@ import { paypalHandlerService } from './paypal/paypalHandler';
 import { getPayPalPricingForLocation } from './paypal/config';
 import { getUserLocationFlag, getPriceForLocation } from './razorpay/config';
 import type { PaymentResult } from './types';
+import { logPaymentEnv } from './utils/envDebug';
 
 // Payment gateway options
 export type PaymentGateway = 'razorpay' | 'paypal';
@@ -82,6 +83,8 @@ class UnifiedPaymentService {
   ): Promise<PaymentResult> {
     try {
       console.log(`🚀 Processing payment via ${gateway}:`, { sessionId, testId });
+      // Log environment and config once per payment attempt
+      try { logPaymentEnv(); } catch (_) { /* no-op */ }
 
       switch (gateway) {
         case 'razorpay':

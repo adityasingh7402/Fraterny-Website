@@ -5,6 +5,7 @@ import { paymentApiService } from '../api/paymentApi';
 import { validateCreateOrderRequest } from '../utils/validation';
 import { getUserLocationFlag } from './config';
 import { getLocationBasedPricing } from './config';
+import { RAZORPAY_CONFIG, PRICING_CONFIG } from './config';
 
 // Order creation service class
 class OrderCreationService {
@@ -37,21 +38,17 @@ class OrderCreationService {
 
       // Step 3: Get location flag
       const isIndia = await getUserLocationFlag();
-      
-      // Step 4: Set hardcoded pricing based on location
-      // const hardcodedPricing = {
-      //   name: 'regular' as const,
-      //   amount: isIndia ? 100 : 2000, // ₹950 in paise for India, $20 in cents for international
-      //   description: isIndia ? 'India Pricing' : 'International Pricing'
-      // };
-      const locationPricing = getLocationBasedPricing(isIndia);
+
+      // Step 4: Choose pricing specifically for Razorpay
+      // IMPORTANT: Razorpay expects smallest unit for the selected currency and, in most setups,
+      // INR only. To avoid 422s from backend validation, force Razorpay pricing to INR.
       const hardcodedPricing = {
-        name: 'regular' as const,  // Keep this if needed for other parts of code
-        amount: locationPricing.amount,
-        description: locationPricing.description
-    };
-      
-      console.log('Hardcoded pricing:', hardcodedPricing, 'for location:', isIndia ? 'India' : 'International');
+        name: 'regular' as const,
+        amount: PRICING_CONFIG.INDIA.amount, // amount in paise
+        description: PRICING_CONFIG.INDIA.description
+      };
+
+      console.log('Razorpay pricing selected:', hardcodedPricing, '(forced INR). User location:', isIndia ? 'India' : 'International');
 
       // Step 5: Create session data first, then update with pricing
       const existingSessionData = sessionManager.getSessionData();
@@ -66,17 +63,25 @@ class OrderCreationService {
       // Step 6: Prepare metadata
       const metadata = sessionManager.prepareSessionMetadata();
 
-      // Step 7: Build order request with hardcoded pricing
+      // Guard: ensure we have a valid email for backend (often validated as EmailStr)
+      const email = authResult.user.email;
+      if (!email || email.trim().length === 0) {
+        throw new Error('AUTHENTICATION_REQUIRED');
+      }
+
+      // Step 7: Build order request with required gateway + currency
       const orderRequest: CreateOrderRequest = {
         sessionId,
         testId,
         userId: authResult.user.id,
-        fixEmail: authResult.user.email || '',
+        fixEmail: email,
         //fixName: authResult.user.full_name || 'User',
         pricingTier: hardcodedPricing.name,
         amount: hardcodedPricing.amount,
         sessionStartTime,
         isIndia: isIndia,
+        gateway: 'razorpay',
+        currency: RAZORPAY_CONFIG.CURRENCY, // 'INR'
         metadata: {
           ...metadata,
           authenticationRequired: authResult.needsAuth || false,

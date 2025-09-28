@@ -143,9 +143,23 @@ class SessionStorageManager {
     const key = 'session_start_time';
     let startTime = sessionStorage.getItem(key);
     
+    // Check if session is too old (more than 2 hours = 120 minutes)
+    if (startTime) {
+      const sessionDate = new Date(startTime);
+      const now = new Date();
+      const ageMinutes = Math.floor((now.getTime() - sessionDate.getTime()) / (60 * 1000));
+      
+      if (ageMinutes > 120) {
+        console.log(`Session expired (${ageMinutes} minutes old), creating new session`);
+        sessionStorage.removeItem(key);
+        startTime = null;
+      }
+    }
+    
     if (!startTime) {
       startTime = new Date().toISOString();
       sessionStorage.setItem(key, startTime);
+      console.log('New session created:', startTime);
     }
     
     return startTime;

@@ -145,6 +145,11 @@ export const getPayPalSDKUrl = async (): Promise<string> => {
     'intent': PAYPAL_CONFIG.INTENT,
     'components': 'buttons',
   });
+
+  // Debug: log client id masked
+  const cid = PAYPAL_CONFIG.CLIENT_ID || '';
+  const masked = cid ? `${cid.slice(0,6)}...${cid.slice(-4)}` : 'undefined';
+  console.log(`🔑 PayPal CLIENT_ID (masked): ${masked}`);
   
   // Only add disable-funding if there are items to disable
   if (PAYPAL_CONFIG.DISABLE_FUNDING.length > 0) {
