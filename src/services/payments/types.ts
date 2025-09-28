@@ -65,11 +65,9 @@ export interface PaymentCompletionRequest {
   orderid: string; // For PayPal capture; set to Razorpay order id for Razorpay
   paymentData: {
     // Razorpay fields (required for Razorpay, optional for others)
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-    // PayPal fields (optional, used when gateway is PayPal)
-    paypal_order_id?: string;
+    order_id: string;
+    payment_id: string;
+    signature: string;
     payer_id?: string;
     // Common fields
     amount: number;

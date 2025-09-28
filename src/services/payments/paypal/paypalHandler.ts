@@ -755,14 +755,12 @@ class PayPalHandlerService {
         orderid: paypalOrderData.id, // PayPal order ID for backend capture
         paymentData: {
           // Map PayPal data to expected format (PaymentCompletionRequest)
-          razorpay_order_id: paypalOrderData.id, // PayPal order ID 
-          razorpay_payment_id: paypalOrderData.id, // PayPal order ID
-          razorpay_signature: 'paypal_signature', // Placeholder for PayPal
+          order_id: paypalOrderData.id, // PayPal order ID 
+          payment_id: paypalOrderData.id, // PayPal order ID
+          signature: 'paypal_signature', // Placeholder for PayPal
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
-          // PayPal-specific fields for backend (you need to add these to PaymentData model)
-          paypal_order_id: paypalOrderData.id,
           payer_id: paypalApprovalData?.payerID || paypalApprovalData?.PayerID || 'unknown'
         },
         metadata: {
@@ -862,9 +860,9 @@ class PayPalHandlerService {
         gateway: 'paypal', // ✅ Required by backend
         orderid: orderData.id, // ✅ Required by backend for PayPal
         paymentData: {
-          razorpay_order_id: orderData.id, // ✅ Backend expects this field name
-          razorpay_payment_id: orderData.id, // ✅ Use PayPal order ID
-          razorpay_signature: 'paypal_signature', // ✅ Placeholder for PayPal
+          order_id: orderData.id, // ✅ Backend expects this field name
+          payment_id: orderData.id, // ✅ Use PayPal order ID
+          signature: 'paypal_signature', // ✅ Placeholder for PayPal
           amount: pricingData.numericAmount * 100,
           currency: pricingData.currency,
           status: 'success', // ✅ Backend expects 'success' not 'completed'
