@@ -268,10 +268,12 @@ class PaymentHandlerService {
         paymentData: {
           order_id: paymentData.razorpay_order_id,
           payment_id: paymentData.razorpay_payment_id,
-          signature: paymentData.razorpay_signature,
+          razorpay_signature: paymentData.razorpay_signature,
           amount: orderData.amount,
           currency: orderData.currency,
           status: 'success',
+          payer_id: "razorpay_no_payer",
+          paypal_order_id: "razorpay_no_paypal_order"
         },
         metadata: {
           pricingTier: sessionData.pricingSnapshot?.tier as 'early' | 'regular' || 'regular',
