@@ -127,6 +127,8 @@ class PaymentApiService {
         paymentData
       );
 
+      console.log(`Payment completion response:, ${response.data});`);
+
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to complete payment');
       }

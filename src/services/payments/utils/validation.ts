@@ -288,7 +288,7 @@ export const validatePaymentCompletionRequest = (request: PaymentCompletionReque
         errors.push('Razorpay payment ID is required');
       }
       
-      if (!paymentData.signature || typeof paymentData.signature !== 'string') {
+      if (!paymentData.razorpay_signature || typeof paymentData.razorpay_signature !== 'string') {
         errors.push('Razorpay signature is required');
       }
     } else if (request.gateway === 'paypal') {
