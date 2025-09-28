@@ -266,24 +266,49 @@ export const validatePaymentCompletionRequest = (request: PaymentCompletionReque
     errors.push(...testIdResult.errors);
   }
   
+  // Validate gateway
+  if (!request.gateway || !['razorpay', 'paypal'].includes(request.gateway)) {
+    errors.push('Gateway is required and must be either "razorpay" or "paypal"');
+  }
+  
   // Validate payment data
   if (!request.paymentData || typeof request.paymentData !== 'object') {
     errors.push('Payment data is required and must be an object');
   } else {
     const paymentData = request.paymentData;
     
-    if (!paymentData.razorpay_order_id || typeof paymentData.razorpay_order_id !== 'string') {
-      errors.push('Razorpay order ID is required');
+    // Gateway-aware validation
+    if (request.gateway === 'razorpay') {
+      // Razorpay-specific validation
+      if (!paymentData.order_id || typeof paymentData.order_id !== 'string') {
+        errors.push('Razorpay order ID is required');
+      }
+      
+      if (!paymentData.payment_id || typeof paymentData.payment_id !== 'string') {
+        errors.push('Razorpay payment ID is required');
+      }
+      
+      if (!paymentData.signature || typeof paymentData.signature !== 'string') {
+        errors.push('Razorpay signature is required');
+      }
+    } else if (request.gateway === 'paypal') {
+      // PayPal-specific validation
+      if (!paymentData.order_id || typeof paymentData.order_id !== 'string') {
+        errors.push('PayPal order ID is required');
+      }
+      
+      if (!paymentData.payment_id || typeof paymentData.payment_id !== 'string') {
+        errors.push('PayPal payment ID is required');
+      }
+      
+      // PayPal doesn't require signature
+      // payer_id is optional for PayPal validation
+      // paypal_order_id is optional but helpful for backend compatibility
+    } else {
+      errors.push('Gateway must be either "razorpay" or "paypal"');
     }
     
-    if (!paymentData.razorpay_payment_id || typeof paymentData.razorpay_payment_id !== 'string') {
-      errors.push('Razorpay payment ID is required');
-    }
-    
-    if (!paymentData.razorpay_signature || typeof paymentData.razorpay_signature !== 'string') {
-      errors.push('Razorpay signature is required');
-    }
-    
+    // Common validation for both gateways
     if (!['success', 'failed'].includes(paymentData.status)) {
       errors.push('Payment status must be either "success" or "failed"');
     }
