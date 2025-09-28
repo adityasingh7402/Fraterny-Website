@@ -754,10 +754,10 @@ class PayPalHandlerService {
         gateway: 'paypal', // 🎯 Specify PayPal gateway
         orderid: paypalOrderData.id, // PayPal order ID for backend capture
         paymentData: {
-          // Map PayPal data to expected format (PaymentCompletionRequest)
-          order_id: paypalOrderData.id, // PayPal order ID 
-          payment_id: paypalOrderData.id, // PayPal order ID
-          signature: 'paypal_signature', // Placeholder for PayPal
+          // Map PayPal data to match backend expectations and new validation
+          order_id: paypalOrderData.id, // PayPal order ID
+          payment_id: paypalOrderData.id, // PayPal order ID  
+          paypal_order_id: paypalOrderData.id, // For backend compatibility
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
@@ -862,7 +862,7 @@ class PayPalHandlerService {
         paymentData: {
           order_id: orderData.id, // ✅ Backend expects this field name
           payment_id: orderData.id, // ✅ Use PayPal order ID
-          signature: 'paypal_signature', // ✅ Placeholder for PayPal
+          paypal_order_id: orderData.id, // For backend compatibility
           amount: pricingData.numericAmount * 100,
           currency: pricingData.currency,
           status: 'success', // ✅ Backend expects 'success' not 'completed'

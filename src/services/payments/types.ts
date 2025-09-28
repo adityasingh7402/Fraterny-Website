@@ -64,15 +64,16 @@ export interface PaymentCompletionRequest {
   gateway: 'razorpay' | 'paypal';
   orderid: string; // For PayPal capture; set to Razorpay order id for Razorpay
   paymentData: {
-    // Razorpay fields (required for Razorpay, optional for others)
+    // Common fields
     order_id: string;
     payment_id: string;
-    signature: string;
-    payer_id?: string;
-    // Common fields
     amount: number;
     currency: string;
     status: 'success' | 'failed';
+    // Gateway-specific fields
+    signature?: string;  // Required for Razorpay, optional for PayPal
+    payer_id?: string;   // Optional for PayPal
+    paypal_order_id?: string; // For PayPal backend compatibility
   };
   metadata: {
     pricingTier: 'early' | 'regular';
