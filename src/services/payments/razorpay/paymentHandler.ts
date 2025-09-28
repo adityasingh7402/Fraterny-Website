@@ -265,9 +265,9 @@ class PaymentHandlerService {
         gateway: 'razorpay',
         orderid: paymentData.razorpay_order_id, // populate for backend schema
         paymentData: {
-          razorpay_order_id: paymentData.razorpay_order_id,
-          razorpay_payment_id: paymentData.razorpay_payment_id,
-          razorpay_signature: paymentData.razorpay_signature,
+          order_id: paymentData.razorpay_order_id,
+          payment_id: paymentData.razorpay_payment_id,
+          signature: paymentData.razorpay_signature,
           amount: orderData.amount,
           currency: orderData.currency,
           status: 'success',
