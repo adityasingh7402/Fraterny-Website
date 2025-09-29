@@ -48,6 +48,7 @@ export interface CreateOrderResponse {
   currency: string;
   paymentSessionId: string;     // Backend generated session ID
   gateway: 'razorpay' | 'paypal'; // Which gateway created this order
+  transactionId?: string;       // Backend generated transaction ID for tracking
   
   // Gateway specific data
   clientSecret?: string;        // For PayPal client-side integration
@@ -63,6 +64,7 @@ export interface PaymentCompletionRequest {
   // Required by backend to route logic; for Razorpay you can still pass the order id
   gateway: 'razorpay' | 'paypal';
   orderid: string; // For PayPal capture; set to Razorpay order id for Razorpay
+  transaction_id?: string;     // Backend generated transaction ID
   paymentData: {
     // Common fields
     order_id: string;

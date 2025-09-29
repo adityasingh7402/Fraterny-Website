@@ -569,8 +569,8 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
           className="absolute bottom-20 flex justify-center items-center w-full"
         >
           {/* Processing Message */}
-          <div className="text-center px-2 mt-80 pb-4">
-            <p className="text-black text-2xl font-['Gilroy-semiBold'] tracking-tighter pb-2">
+          <div className="text-center px-2 mt-80">
+            <p className="text-black font-normal text-2xl font-['Gilroy-semiBold'] tracking-tighter pb-2">
               Generating in 1-2 minutes...
             </p>
             

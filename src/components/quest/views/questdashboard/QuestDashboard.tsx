@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, Home, FileText, CreditCard, Lightbulb, TrendingUp, User, Calendar, ExternalLink, LogOut, Plus, X, Brain, Unlock, LayoutDashboard, HelpCircle } from 'lucide-react';
+import { Menu, Home, FileText, CreditCard, Lightbulb, TrendingUp, User, Calendar, ExternalLink, LogOut, Plus, X, Brain, Unlock, LayoutDashboard, HelpCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -190,7 +190,14 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           );
           console.log('Dashboard data response:', response.data);
           if (response.data.status === 200) {
-            setData(response.data.data || []);
+            const assessmentData = response.data.data || [];
+            // Sort assessments in descending order by date (latest first)
+            const sortedData = assessmentData.sort((a: DashboardTest, b: DashboardTest) => {
+              const dateA = new Date(a.testtaken).getTime();
+              const dateB = new Date(b.testtaken).getTime();
+              return dateB - dateA; // Descending order (latest first)
+            });
+            setData(sortedData);
           } else {
             setError('There is an error in fetching your data. Please visit us again in sometime.');
           }
@@ -301,9 +308,52 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   // Get latest assessment data for insights
   const getLatestAssessment = () => {
     if (data && data.length > 0) {
-      return data.sort((a, b) => new Date(b.testtaken).getTime() - new Date(a.testtaken).getTime())[0];
+      // Data is already sorted, so just return the first item
+      return data[0];
     }
     return null;
+  };
+
+  // Get button content based on latest assessment payment status
+  const getButtonContent = () => {
+    const latestAssessment = getLatestAssessment();
+    
+    if (!latestAssessment) {
+      return {
+        text: 'Start Assessment',
+        icon: <Plus className="w-4 h-4" />,
+        className: 'from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600'
+      };
+    }
+    
+    if (latestAssessment.ispaymentdone === "success") {
+      if (latestAssessment.quest_status === "generated") {
+        // Payment done and PDF ready
+        return {
+          text: 'Get Your PDF',
+          icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          ),
+          className: 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+        };
+      } else {
+        // Payment done but PDF generating
+        return {
+          text: 'Processing',
+          icon: <Clock className="w-4 h-4" />,
+          className: 'from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+        };
+      }
+    } else {
+      // Payment not done
+      return {
+        text: 'Unlock',
+        icon: <Unlock className="w-4 h-4" />,
+        className: 'from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600'
+      };
+    }
   };
 
   // Calculate completion percentage
@@ -388,14 +438,45 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     setIsMenuOpen(false);
   };
 
-  // Handle unlock potential button
+  // Handle unlock potential button with different logic based on state
   const handleUnlockPotential = () => {
     const latestAssessment = getLatestAssessment();
-    if (latestAssessment) {
-      navigate(`/quest-result/result/${latestAssessment.userid}/${latestAssessment.sessionid}/${latestAssessment.testid}`);
+    
+    if (!latestAssessment) {
+      // No assessments - go to quest page to start new assessment
+      navigate('/quest');
+      return;
+    }
+    
+    if (latestAssessment.ispaymentdone === "success") {
+      if (latestAssessment.quest_status === "generated") {
+        // Payment done and PDF ready - download PDF directly
+        try {
+          const link = document.createElement('a');
+          link.href = latestAssessment.quest_pdf;
+          link.download = `Quest-Report-${formatDate(latestAssessment.testtaken)}.pdf`;
+          link.target = '_blank';
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success('Downloading your PDF report!');
+        } catch (error) {
+          console.error('PDF download error:', error);
+          window.open(latestAssessment.quest_pdf, '_blank');
+          toast.success('Opening your PDF report!');
+        }
+        return;
+      } else {
+        // Payment done but PDF still generating - do nothing
+        toast.info('Your PDF is still being generated. Please check back in 15 minutes.');
+        return;
+      }
     } else {
-      // If no assessments, redirect to start new assessment
-      navigate('/assessment');
+      // Payment not done - navigate to result page
+      navigate(`/quest-result/result/${latestAssessment.userid}/${latestAssessment.sessionid}/${latestAssessment.testid}`);
+      return;
     }
   };
 
@@ -538,10 +619,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                     <p className="text-sm font-['Gilroy-semiBold'] text-blue-600">Uncover Your Strengths</p>
                     <button
                       onClick={handleUnlockPotential}
-                      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-['Gilroy-semiBold'] rounded-full hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 shadow-sm flex items-center gap-2"
+                      className={`px-4 py-2 bg-gradient-to-r ${getButtonContent().className} text-white text-sm font-['Gilroy-semiBold'] rounded-full transition-all duration-200 transform hover:scale-105 shadow-sm flex items-center justify-center gap-2 min-w-[120px]`}
                     >
-                      <Unlock className="w-4 h-4" />
-                      Unlock
+                      {getButtonContent().icon && getButtonContent().icon}
+                      <span>{getButtonContent().text}</span>
                     </button>
                   </div>
                 </div>
