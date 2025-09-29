@@ -1489,9 +1489,10 @@ interface FeedbackPopupProps {
   onDismiss?: (hasInteracted: boolean) => void;
   sessionId?: string;
   testId?: string;
+  userId?: string;
 }
 
-const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss, sessionId, testId }) => {
+const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss, sessionId, testId, userId }) => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1501,32 +1502,46 @@ const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss,
   };
 
   const handleSubmit = async () => {
-    if (rating === 0) {
-      toast.error('Please select a rating', { position: "top-right" });
+    // Allow submission even without rating, as per backend requirements
+    if (rating === 0 && !feedback.trim()) {
+      toast.error('Please provide either a rating or feedback', { position: "top-right" });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quest/feedback`, {
-        sessionId,
-        testId,
-        rating,
-        feedback,
-        sectionId: 'subjects',
-        feedbackType: 'section_rating'
-      });
+      // Prepare data in the format expected by backend
+      const requestData = {
+        user_id: userId || null,
+        testId: testId || null, // Backend expects "testId"
+        feedback: feedback.trim() || null, // Send null if empty, as per backend requirement
+        rating: rating || null
+      };
 
-      console.log('Feedback submitted:', response.data);
-      toast.success('Thank you for your feedback!', { position: "top-right" });
+      console.log('Submitting overall feedback:', requestData);
       
-      // Don't show star on successful submit - directly close without calling onDismiss
-      setRating(0);
-      setFeedback("");
-      onClose();
-    } catch (error) {
-      console.error('Failed to submit feedback:', error);
-      toast.error('Failed to submit feedback. Please try again.', { position: "top-right" });
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/overall_feedback/`, requestData);
+
+      console.log('Overall feedback response:', response.data);
+      
+      // Check backend response format
+      if (response.data.status === 200) {
+        toast.success(response.data.message || 'Thank you for your feedback!', { position: "top-right" });
+        
+        // Don't show star on successful submit - directly close without calling onDismiss
+        setRating(0);
+        setFeedback("");
+        onClose();
+      } else {
+        // Handle backend error response
+        toast.error(response.data.message || 'Failed to submit feedback', { position: "top-right" });
+      }
+    } catch (error: any) {
+      console.error('Failed to submit overall feedback:', error);
+      
+      // Handle axios error response
+      const errorMessage = error.response?.data?.message || 'Failed to submit feedback. Please try again.';
+      toast.error(errorMessage, { position: "top-right" });
     } finally {
       setIsSubmitting(false);
     }
@@ -1619,10 +1634,10 @@ const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss,
             <div className="flex justify-end">
               <motion.button
                 onClick={handleSubmit}
-                disabled={rating === 0 || isSubmitting}
-                whileHover={rating > 0 ? { scale: 1.02 } : {}}
-                whileTap={rating > 0 ? { scale: 0.98 } : {}}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-['Gilroy-Bold'] text-sm transition-all ${rating > 0
+                disabled={(rating === 0 && !feedback.trim()) || isSubmitting}
+                whileHover={(rating > 0 || feedback.trim()) ? { scale: 1.02 } : {}}
+                whileTap={(rating > 0 || feedback.trim()) ? { scale: 0.98 } : {}}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-['Gilroy-Bold'] text-sm transition-all ${(rating > 0 || feedback.trim())
                   ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
@@ -1842,9 +1857,6 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
                 ) : (
                   // Payment done but PDF still generating
                   <div className="flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-orange-600 bg-orange-100 gap-2" style={{ width: '280px' }}>
-                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4a2 2 0 014-4h2a2 2 0 014 4v2a2 2 0 01-4 4h-2a2 2 0 01-4-4v-2z" />
-                    </svg>
                     PDF Generating...
                   </div>
                 )
@@ -2083,19 +2095,18 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   }, [sectionIds]);
 
   // Auto-trigger feedback popup when user reaches subjects section
-  // COMMENTED OUT: Backend not connected yet
-  // useEffect(() => {
-  //   // Subjects section is at index 5 in sectionIds array
-  //   if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
-  //     // Add a small delay to let the section settle
-  //     const timer = setTimeout(() => {
-  //       setFeedbackPopupOpen(true);
-  //       setHasTriggeredFeedback(true);
-  //     }, 1500); // 1.5 second delay
+  useEffect(() => {
+    // Subjects section is at index 5 in sectionIds array
+    if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
+      // Add a small delay to let the section settle
+      const timer = setTimeout(() => {
+        setFeedbackPopupOpen(true);
+        setHasTriggeredFeedback(true);
+      }, 1500); // 1.5 second delay
 
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
+      return () => clearTimeout(timer);
+    }
+  }, [activeIndex, hasTriggeredFeedback, feedbackPopupOpen]);
 
   // Add pricing effect for dual gateways
   useEffect(() => {
@@ -3220,6 +3231,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         onDismiss={(hasInteracted) => setShowFeedbackStar(hasInteracted)}
         sessionId={sessionId}
         testId={testId}
+        userId={getEffectiveUserId()}
       />
 
       {/* Sticky Feedback Star */}
