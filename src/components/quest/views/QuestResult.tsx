@@ -88,6 +88,8 @@ interface ResultData {
   session_id: string;
   user_id?: string;
   completion_date: string;
+  perecentile?: string;
+  qualityscore?: string;
   results: {
     "section 1"?: string;
     "Mind Card"?: MindCardData;
@@ -394,40 +396,76 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
 interface StickyCTAProps {
   onOpen: () => void;
   pricing: DualGatewayPricingData;
+  percentile?: string;
+  qualityScore?: string;
 }
 
-const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
+// Footer component for PDF section
+interface PDFSectionFooterProps {
+  percentile?: string;
+  qualityScore?: string;
+}
+
+const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, qualityScore }) => {
+  const navigate = useNavigate();
+
+  const handleNewAssessment = () => {
+    navigate('/assessment');
+  };
+
+  return (
+    <div
+      className="absolute bottom-0 left-0 right-0"
+      style={{
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        borderTop: `1px solid ${tokens.border}`,
+        boxShadow: "0 -6px 18px rgba(10,10,10,0.06)",
+        height: CTA_HEIGHT,
+      }}
+    >
+      <div className="flex h-full items-center justify-between px-4" style={{ color: tokens.textDark }}>
+        <div className="flex flex-col flex-1 mr-3">
+          <div className="text-[16px] font-[800] leading-tight mb-1">
+            Your Introspection Score - {qualityScore || '85'}
+          </div>
+          <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
+            You were better than {percentile || '80%'} users
+          </div>
+        </div>
+
+        <motion.button
+          onClick={handleNewAssessment}
+          whileTap={{ scale: 0.98 }}
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-[700] text-white whitespace-nowrap"
+          style={{
+            background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+            boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
+            minWidth: '140px'
+          }}
+          aria-label="New Assessment"
+        >
+          Restart Test
+        </motion.button>
+      </div>
+    </div>
+  );
+};
+
+const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qualityScore }) => {
   const [seconds, setSeconds] = useState(30 * 60);
-  // const [priceDisplay, setPriceDisplay] = useState('₹950');
-  // const [originalPrice, setOriginalPrice] = useState('₹1200');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, []);
 
-  //   useEffect(() => {
-  //   const loadPricing = async () => {
-  //     try {
-  //       console.log('💰 StickyCTA: Loading location-based pricing...');
-  //       const isIndia = await getUserLocationFlag();
-  //       console.log('🌍 StickyCTA: Location result:', isIndia);
-
-  //       if (isIndia) {
-  //         setPriceDisplay('₹950');
-  //         setOriginalPrice('₹1200');
-  //       } else {
-  //         setPriceDisplay('$20');
-  //         setOriginalPrice('$25');
-  //       }
-
-  //       console.log('✅ StickyCTA: Pricing updated');
-  //     } catch (error) {
-  //       console.error('❌ StickyCTA: Failed to load pricing:', error);
-  //     }
-  //   };
-  //   loadPricing();
-  // }, []);
+  // Function to navigate to new assessment page
+  const handleNewAssessment = () => {
+    navigate('/assessment');
+  };
 
   return (
     <div
@@ -441,35 +479,28 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing }) => {
         height: CTA_HEIGHT,
       }}
     >
-      <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-3" style={{ color: tokens.textDark }}>
-        <div className="flex flex-col">
-          <div className="flex items-baseline gap-2">
-            {/* <span className="text-[20px] font-[800]">₹950</span>
-            <span className="text-[12px] line-through" style={{ color: tokens.muted }}>₹1200</span> */}
-            <span className="text-[20px] font-[800]">
-              {pricing.isLoading ? '...' : pricing.razorpay.main}
-            </span>
-            <span className="text-[12px] line-through" style={{ color: tokens.muted }}>
-              {pricing.isLoading ? '...' : pricing.razorpay.original}
-            </span>
+      <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-4" style={{ color: tokens.textDark }}>
+        <div className="flex flex-col flex-1 mr-3">
+          <div className="text-[16px] font-[800] leading-tight mb-1">
+            Your Introspection Score - {qualityScore || '85'}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-[12px]" aria-live="polite" style={{ color: tokens.muted }}>
-            <Clock className="h-4 w-4" color={tokens.accent} />
-            <span>Ends in {formatTime(seconds)}</span>
+          <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
+            You were better than {percentile || '80%'} users
           </div>
         </div>
 
         <motion.button
-          onClick={onOpen}
+          onClick={handleNewAssessment}
           whileTap={{ scale: 0.98 }}
-          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 min-w-[180px] text-[14px] font-[700] text-white"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-[700] text-white whitespace-nowrap"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
-            boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
+            boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
+            minWidth: '140px'
           }}
-          aria-label="Unlock full PDF report"
+          aria-label="New Assessment"
         >
-          Unlock Full PDF Report
+          Restart Test
         </motion.button>
       </div>
 
@@ -1581,7 +1612,7 @@ const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss,
             {/* Header */}
             <div className="mb-6">
               <h3 className="text-2xl font-['Gilroy-Bold'] text-gray-900 mb-2">
-                Rate This Section
+                Rate my Accuracy
               </h3>
               <p className="text-gray-600 font-['Gilroy-Regular'] text-sm">
                 How helpful were these subject recommendations?
@@ -3090,19 +3121,27 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           sub="35+ Pages of Deep Analysis"
           shareText="Check out my complete personality analysis from Fraterny!"
           themeKey="pdf-report"
-          customClass="pt-16 pb-8"
+          customClass="pt-16 relative"
           sessionId={sessionId}
           testId={testId}
         >
-          <PDFImageViewer 
-            paymentSuccess={paymentSuccess}
-            paymentStatus={assessmentPaymentStatus}
-            onPDFDownload={handlePDFDownload}
-            onUnlockClick={() => {
-              if (!paymentSuccess) {
-                setUpsellOpen(true);
-              }
-            }}
+          <div style={{ paddingBottom: CTA_HEIGHT }}>
+            <PDFImageViewer 
+              paymentSuccess={paymentSuccess}
+              paymentStatus={assessmentPaymentStatus}
+              onPDFDownload={handlePDFDownload}
+              onUnlockClick={() => {
+                if (!paymentSuccess) {
+                  setUpsellOpen(true);
+                }
+              }}
+            />
+          </div>
+          
+          {/* Footer for PDF section - non-sticky */}
+          <PDFSectionFooter 
+            percentile={resultData?.perecentile}
+            qualityScore={resultData?.qualityscore}
           />
         </SectionFrame>
 
@@ -3167,6 +3206,8 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               }
             }}
             pricing={pricing}
+            percentile={resultData?.perecentile}
+            qualityScore={resultData?.qualityscore}
           />
         )
       )}
