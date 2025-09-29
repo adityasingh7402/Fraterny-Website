@@ -428,7 +428,7 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
       <div className="flex h-full items-center justify-between px-4" style={{ color: tokens.textDark }}>
         <div className="flex flex-col flex-1 mr-3">
           <div className="text-[16px] font-[800] leading-tight mb-1">
-            Your Introspection Score - {qualityScore || '85'}
+            Your Depth Score - {qualityScore || '85'}
           </div>
           <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
             You were better than {percentile || '80%'} users
@@ -482,7 +482,7 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
       <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-4" style={{ color: tokens.textDark }}>
         <div className="flex flex-col flex-1 mr-3">
           <div className="text-[16px] font-[800] leading-tight mb-1">
-            Your Introspection Score - {qualityScore || '85'}
+            Your Depth Score - {qualityScore || '85'}
           </div>
           <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
             You were better than {percentile || '80%'} users
