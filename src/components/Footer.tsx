@@ -253,6 +253,7 @@ const Footer = () => {
                 y: footerAnimation.isInView ? 0 : 10
               }}
               transition={{ delay: 0.3, duration: 0.5 }}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               Shared Ambitions
             </motion.p>
@@ -270,6 +271,7 @@ const Footer = () => {
                 y: footerAnimation.isInView ? 0 : 20
               }}
               transition={{ delay: 0.2, duration: 0.5 }}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               Navigate
             </motion.h3>
@@ -286,7 +288,8 @@ const Footer = () => {
               animate={footerAnimation.isInView ? "visible" : "hidden"}
             >
               {[
-                { href: "/experience", text: "Experience" },
+                { href: "/experience", text: "FratVilla" },
+                { href: "/quest", text: "Quest" },
                 { href: "/process", text: "Process" },
                 { href: "/faq", text: "FAQ" }
               ].map((link, index) => (
@@ -296,6 +299,7 @@ const Footer = () => {
                     className="text-gray-400 hover:text-white transition-colors"
                     variants={linkVariants}
                     whileHover="hover"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {link.text}
                   </motion.a>
@@ -316,6 +320,7 @@ const Footer = () => {
                 y: footerAnimation.isInView ? 0 : 20
               }}
               transition={{ delay: 0.3, duration: 0.5 }}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               Connect
             </motion.h3>
@@ -400,6 +405,7 @@ const Footer = () => {
                   <Link 
                     to={link.to} 
                     className="text-gray-400 hover:text-white transition-colors"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     <motion.span
                       variants={linkVariants}
@@ -419,7 +425,7 @@ const Footer = () => {
             variants={footerAnimation.childVariants}
           >
             <motion.a 
-              href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
+              href="/quest" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium"
@@ -428,8 +434,9 @@ const Footer = () => {
               whileTap="tap"
               initial="hidden"
               animate={footerAnimation.isInView ? "visible" : "hidden"}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
-              Apply Now
+              Start Quest
             </motion.a>
           </motion.div>
         </motion.div>
@@ -449,12 +456,14 @@ const Footer = () => {
             <motion.p 
               className="py-[9px] text-lg text-slate-50"
               variants={copyrightAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               FRATERNY
             </motion.p>
             <motion.p 
               className="text-gray-400"
               variants={copyrightAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link> / <Link to="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link> / <Link to="/refund-policy" className="hover:text-white transition-colors">Refund & Cancellation Policy</Link>
             </motion.p>
@@ -462,6 +471,7 @@ const Footer = () => {
           <motion.p 
             className="text-gray-400"
             variants={copyrightAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             All Rights Reserved 2025
           </motion.p>

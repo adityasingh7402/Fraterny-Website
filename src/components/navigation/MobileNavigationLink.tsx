@@ -32,11 +32,10 @@ const MobileNavigationLink = ({
         rel={external ? "noopener noreferrer" : undefined}
         className={
           `block w-full text-center mt-2
-          bg-terracotta text-white text-lg font-semibold tracking-wide
+         text-white text-lg font-semibold tracking-wide
           rounded-xl py-4 min-h-[44px] px-4 shadow-lg shadow-terracotta/25
           transition-all duration-200
           focus:outline-none focus:ring-2 focus:ring-terracotta
-          hover:bg-terracotta/90
           active:scale-98
           `
         }

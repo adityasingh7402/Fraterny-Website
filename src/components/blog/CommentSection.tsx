@@ -170,7 +170,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         <Button 
           type="submit" 
           disabled={isSubmitting}
-          className="bg-terracotta hover:bg-terracotta/90 text-white"
+          className="bg-black hover:bg-black/90 text-white"
         >
           {isSubmitting ? 'Posting...' : 'Post Comment'}
         </Button>

@@ -169,18 +169,21 @@ const HeroSection = () => {
             >
               <motion.span
                 variants={titleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Where{' '}
               </motion.span>
               <motion.span 
-                className="font-extrabold text-terracotta"
+                className="font-extrabold"
                 variants={titleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
               >
                 Ambition
               </motion.span>
               <br />
               <motion.span
                 variants={titleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Finds Its Tribe
               </motion.span>
@@ -197,6 +200,7 @@ const HeroSection = () => {
             <motion.p 
               className="text-left sm:text-center md:text-center lg:text-center xl:text-left sm:text-lg md:text-xl text-gray-200 text-base mb-5"
               variants={subtitleAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
             >
               Surround yourself with the right people
             </motion.p>
@@ -209,7 +213,7 @@ const HeroSection = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}  // Simple 1s delay, 0.5s fade
           >
-            <motion.a 
+            {/* <motion.a 
               href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit" 
               target="_blank" 
               rel="noopener noreferrer" 
@@ -220,7 +224,7 @@ const HeroSection = () => {
                 size={20} 
                 className="transition-transform group-hover:translate-x-1" 
               />
-            </motion.a>
+            </motion.a> */}
           </motion.div>
           
           {/* Countdown with fade-up animation */}
@@ -242,6 +246,7 @@ const HeroSection = () => {
               <motion.p 
                 className="text-sm md:text-base text-gray-300 mb-1"
                 variants={counterAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Villa Registrations close in:
               </motion.p>

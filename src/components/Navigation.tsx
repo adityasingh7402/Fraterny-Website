@@ -14,7 +14,8 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'The Experience', href: '/experience' },
+    { name: 'FratVilla', href: '/experience' },
+    { name: 'Quest', href: '/quest' },
     { name: 'Process', href: '/process' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Blog', href: '/blog' },
@@ -90,11 +91,10 @@ const Navigation = () => {
         className={navClasses}
         initial="hidden"
         animate="visible"
-        variants={navVariants}
       >
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between">
-            <motion.div variants={logoVariants}>
+            <motion.div>
               <Logo isPastHero={isPastHero} />
             </motion.div>
             <div className="w-10 h-10"></div> {/* Empty placeholder for loading state */}
@@ -109,7 +109,6 @@ const Navigation = () => {
       className={navClasses}
       initial="hidden"
       animate="visible"
-      variants={navVariants}
     >
       <div className="px-4 sm:px-6">
         <div className="flex items-center justify-between">

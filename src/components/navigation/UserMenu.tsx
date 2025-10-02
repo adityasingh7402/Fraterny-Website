@@ -44,7 +44,7 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
           className="flex items-center space-x-2 focus:outline-none"
           aria-label="User menu"
         >
-          <div className={`w-10 h-10 rounded-full bg-terracotta flex items-center justify-center ${isScrolled ? 'text-white' : 'text-navy'}`}>
+          <div className={`w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center ${isScrolled ? 'text-navy' : 'text-navy'}`}>
             {user?.user_metadata?.first_name ? (
               <span className="text-white font-medium">
                 {user.user_metadata.first_name.charAt(0)}
@@ -81,7 +81,7 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
 
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="text-red-600 cursor-pointer"
+          className=" cursor-pointer"
           disabled={loading}
         >
           <LogOut size={16} className="mr-2" />

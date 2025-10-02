@@ -130,6 +130,7 @@ const HowItWorksSection = () => {
           <motion.h2 
             className="text-center text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-16"
             variants={titleAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             How to Get an Invite?
           </motion.h2>
@@ -168,14 +169,13 @@ const HowItWorksSection = () => {
                 <motion.div 
                   className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy text-white relative overflow-hidden"
                   whileHover={{
-                    backgroundColor: "#E07A5F", // terracotta color
                     boxShadow: "0 10px 25px rgba(224, 122, 95, 0.3)"
                   }}
                   transition={{ duration: 0.3 }}
                 >
                   {/* Background pulse effect */}
                   <motion.div
-                    className="absolute inset-0 bg-terracotta rounded-full"
+                    className="absolute inset-0 rounded-full"
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ 
                       scale: [0, 1.2, 0],
@@ -210,6 +210,7 @@ const HowItWorksSection = () => {
                     delay: 0.4 + (index * 0.15),
                     duration: 0.5
                   }}
+                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
                 >
                   {Step.title}
                 </motion.h3>
@@ -225,6 +226,7 @@ const HowItWorksSection = () => {
                     delay: 0.5 + (index * 0.15),
                     duration: 0.5
                   }}
+                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                 >
                   {Step.description}
                 </motion.p>
@@ -270,12 +272,13 @@ const HowItWorksSection = () => {
             >
               <Link 
                 to="/process" 
-                className="px-6 py-3 bg-navy text-white rounded-lg transition-all duration-300 hover:bg-terracotta hover:scale-105 hover:shadow-lg inline-block group"
+                className="px-6 py-3 bg-navy text-white rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg inline-block group"
               >
                 <motion.span
                   className="flex items-center gap-2"
                   whileHover={{ x: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                 >
                   Know More
                   <motion.svg

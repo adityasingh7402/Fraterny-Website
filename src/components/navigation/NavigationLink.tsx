@@ -28,7 +28,7 @@ const NavigationLink = forwardRef<HTMLAnchorElement, NavigationLinkProps>(
         ref={ref}
         className={`
           ${isScrolled ? 'text-navy' : 'text-white'} 
-          hover:text-terracotta 
+          hover:text-black
           transition-colors duration-200
           px-3 py-2
           inline-flex
@@ -41,6 +41,7 @@ const NavigationLink = forwardRef<HTMLAnchorElement, NavigationLinkProps>(
         onMouseEnter={e => onMouseEnter && onMouseEnter(e, index)}
         onMouseLeave={e => onMouseLeave && onMouseLeave(e, index)}
         data-nav-index={index}
+        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
       >
         {children}
       </a>
