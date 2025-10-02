@@ -17,7 +17,8 @@ import {
   BookmarkPlus,
   ChevronsUp,
   Star,
-  Send
+  Send,
+  Gem
 } from "lucide-react";
 
 import imgicon from '../../../../public/message.png'
@@ -88,7 +89,7 @@ interface ResultData {
   session_id: string;
   user_id?: string;
   completion_date: string;
-  perecentile?: string;
+  pecentile?: string;
   qualityscore?: string;
   results: {
     "section 1"?: string;
@@ -271,22 +272,40 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
         <motion.div className="fixed inset-0 z-[70]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/35" onClick={onClose} />
           <motion.div
-            className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-[390px] rounded-t-[28px] bg-white"
-            style={{ boxShadow: "0 -12px 32px rgba(0,0,0,0.15)", border: `1px solid ${tokens.border}` }}
+            className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-[390px] rounded-t-[28px] bg-white flex flex-col"
+            style={{ 
+              boxShadow: "0 -12px 32px rgba(0,0,0,0.15)", 
+              border: `1px solid ${tokens.border}`,
+              maxHeight: 'calc(100vh - 2rem)',
+              minHeight: '60vh'
+            }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
           >
-            <div className="relative px-4 pt-4">
-              <button aria-label="Close" onClick={onClose} className="absolute left-2 top-2 rounded-full p-2">
+            {/* Fixed Header with Close Button */}
+            <div className="flex-shrink-0 relative px-4 pt-4 pb-2">
+              <button 
+                aria-label="Close" 
+                onClick={onClose} 
+                className="absolute right-4 top-4 rounded-full p-2 bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              >
                 <X className="h-5 w-5" color={tokens.textDark} />
               </button>
-              <div className="pb-2 pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
+              <div className="pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
                 Download your 35+ page <span className="font-['Gilroy-Black']">Personalised PDF Report</span>
               </div>
-              <div className="mb-3 text-[14px] font-['Gilroy-Regular']" style={{ color: tokens.muted }}> Powered by Fraterny’s advanced AI model </div>
-              <ul className="grid gap-2 pb-3">
+              <div className="mb-3 text-[14px] font-['Gilroy-Regular']" style={{ color: tokens.muted }}> Powered by Fraterny's advanced AI model </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4" style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}>
+              <ul className="grid gap-2 pb-4">
                 {["A Deep-Dive Mindset Analysis", "Detailed Mental Blueprint", "Personalized Content Operating System ", "You VS Future You", "Curated Action & Growth Plan"].map((t, i) => (
                   <li key={i} className="flex items-center gap-2 text-[14px] font-['Gilroy-semiBold']">
                     <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: i === 0 ? "#FF3B6B" : tokens.accent }} />
@@ -296,10 +315,9 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                   </li>
                 ))}
               </ul>
-            </div>
-            <div className="px-4">
+
               <motion.div
-                className="relative rounded-2xl p-4 text-white"
+                className="relative rounded-2xl p-4 text-white mb-4"
                 style={{ background: "linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(65,217,255,1) 45%, rgba(72,185,216,1) 100%)" }}
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -314,64 +332,66 @@ const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayment, pay
                   </span>
                 </div>
               </motion.div>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
+
+              <div className="mb-4 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
                 <div className="text-[16px]" style={{ color: tokens.textDark }}>Incorporate My Feedback</div>
                 <button aria-label="toggle trial" onClick={() => setTrial((t) => !t)} className="relative h-6 w-11 rounded-full" style={{ background: trial ? tokens.accent : "#D1D5DB", boxShadow: "0 10px 30px rgba(12,69,240,0.06)" }}>
                   <span className="absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform" style={{ transform: `translateX(${trial ? 20 : 0}px)` }} />
                 </button>
               </div>
-            </div>
 
-            {/* Payment Gateway Selection */}
-            <div className="px-4 pb-4 pt-6">
-              <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
-                Choose Payment Method
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Razorpay Option */}
-                <button
-                  onClick={() => setSelectedGateway('razorpay')}
-                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'razorpay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">💳</span>
-                    <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
-                      Razorpay
-                    </span>
-                  </div>
-                  <div className="text-[12px] text-gray-600 text-left">
-                    Cards, UPI, Net Banking
-                  </div>
-                </button>
-
-                {/* PayPal Option */}
-                <button
-                  onClick={() => setSelectedGateway('paypal')}
-                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'paypal'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🌐</span>
+              {/* Payment Gateway Selection */}
+              <div className="pb-4">
+                <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
+                  Choose Payment Method
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Razorpay Option */}
+                  <button
+                    onClick={() => setSelectedGateway('razorpay')}
+                    className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'razorpay'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">💳</span>
                       <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
-                        PayPal
+                        Razorpay
                       </span>
                     </div>
-                    <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
-                  </div>
-                  <div className="text-[12px] text-gray-600 text-left">
-                    PayPal Balance, Cards
-                  </div>
-                </button>
+                    <div className="text-[12px] text-gray-600 text-left">
+                      Cards, UPI, Net Banking
+                    </div>
+                  </button>
+
+                  {/* PayPal Option */}
+                  <button
+                    onClick={() => setSelectedGateway('paypal')}
+                    className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'paypal'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🌐</span>
+                        <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                          PayPal
+                        </span>
+                      </div>
+                      <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
+                    </div>
+                    <div className="text-[12px] text-gray-600 text-left">
+                      PayPal Balance, Cards
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="sticky bottom-0 mt-5 border-t" style={{ borderColor: tokens.border }}>
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 border-t bg-white" style={{ borderColor: tokens.border }}>
               <div className="px-4 py-3">
                 <button
                   onClick={handlePaymentClick}
@@ -406,8 +426,10 @@ interface PDFSectionFooterProps {
   qualityScore?: string;
 }
 
+
 const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, qualityScore }) => {
   const navigate = useNavigate();
+  console.log("your result",percentile, qualityScore)
 
   const handleNewAssessment = () => {
     navigate('/assessment');
@@ -417,32 +439,51 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
     <div
       className="absolute bottom-0 left-0 right-0"
       style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        background: "#FFFFFF",
         borderTop: `1px solid ${tokens.border}`,
-        boxShadow: "0 -6px 18px rgba(10,10,10,0.06)",
-        height: CTA_HEIGHT,
+        boxShadow: "0 -6px 18px rgba(10,10,10,0.08)",
+        height: 65,
+        minHeight: 65,
+        // Prevent overscroll issues
+        overscrollBehavior: 'none',
       }}
     >
-      <div className="flex h-full items-center justify-between px-4" style={{ color: tokens.textDark }}>
-        <div className="flex flex-col flex-1 mr-3">
-          <div className="text-[16px] font-[800] leading-tight mb-1">
-            Your Depth Score - {qualityScore || '85'}
+      <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
+        {/* Left Section - Gem Icon */}
+        <div className="flex flex-col items-center justify-center min-h-[60px]">
+          <Gem 
+            className="h-7 w-7 mb-2" 
+            style={{ color: tokens.accent }}
+            fill={tokens.accent}
+          />
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.accent }}>
+            TOP {percentile || '80'}%
           </div>
-          <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
-            You were better than {percentile || '80%'} users
+        </div>
+        
+        {/* Center Section - Score Info */}
+        <div className="flex flex-col justify-center items-center min-h-[60px] mx-4">
+          <div className="flex items-baseline gap-2">
+            <div className="text-4xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
+              {qualityScore || '85'}
+            </div>
+            <div className="text-lg font-bold" style={{ color: tokens.muted }}>
+              /100
+            </div>
+          </div>
+          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.muted }}>
+            Your Score
           </div>
         </div>
 
+        {/* Right Section - Restart Button */}
         <motion.button
           onClick={handleNewAssessment}
           whileTap={{ scale: 0.98 }}
-          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-[700] text-white whitespace-nowrap"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-8 py-3 text-sm font-[700] text-white whitespace-nowrap"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
-            minWidth: '140px'
           }}
           aria-label="New Assessment"
         >
@@ -471,40 +512,58 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     <div
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        background: "#FFFFFF",
         borderTop: `1px solid ${tokens.border}`,
-        boxShadow: "0 -6px 18px rgba(10,10,10,0.06)",
-        height: CTA_HEIGHT,
+        boxShadow: "0 -6px 18px rgba(10,10,10,0.08)",
+        height: 65,
+        minHeight: 65,
+        // Prevent overscroll issues
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'none',
       }}
     >
-      <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-4" style={{ color: tokens.textDark }}>
-        <div className="flex flex-col flex-1 mr-3">
-          <div className="text-[16px] font-[800] leading-tight mb-1">
-            Your Depth Score - {qualityScore || '85'}
+      <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
+        {/* Left Section - Gem Icon */}
+        <div className="flex flex-col items-center justify-center min-h-[60px]">
+          <Gem 
+            className="h-7 w-7 mb-2" 
+            style={{ color: tokens.accent }}
+            fill={tokens.accent}
+          />
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.accent }}>
+            TOP {percentile || '80'}%
           </div>
-          <div className="text-[11px] leading-tight" style={{ color: tokens.muted }}>
-            You were better than {percentile || '80%'} users
+        </div>
+        
+        {/* Center Section - Score Info */}
+        <div className="flex flex-col justify-center items-center min-h-[60px] mx-4">
+          <div className="flex items-baseline gap-2">
+            <div className="text-4xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
+              {qualityScore || '85'}
+            </div>
+            <div className="text-lg font-bold" style={{ color: tokens.muted }}>
+              /100
+            </div>
+          </div>
+          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.muted }}>
+            Your Score
           </div>
         </div>
 
+        {/* Right Section - Restart Button */}
         <motion.button
           onClick={handleNewAssessment}
           whileTap={{ scale: 0.98 }}
-          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-[700] text-white whitespace-nowrap"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-8 py-3 text-sm font-[700] text-white whitespace-nowrap"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
-            minWidth: '140px'
           }}
           aria-label="New Assessment"
         >
           Restart Test
         </motion.button>
       </div>
-
-      <div className="absolute left-0 right-0 bottom-0 h-[2px]" style={{ background: `linear-gradient(90deg, ${tokens.accent} 0%, ${tokens.accent2} 50%, ${tokens.accent3} 100%)` }} />
     </div>
   );
 };
@@ -526,6 +585,9 @@ const validateResultData = (data: any): ResultData => {
     session_id: data.session_id || 'unknown',
     user_id: data.user_id,
     completion_date: data.completion_date || new Date().toISOString(),
+    // Extract root-level properties from API response
+    pecentile: data.pecentile,
+    qualityscore: data.qualityscore,
     results: {
       "section 1": data.results?.["section 1"] || '',
 
@@ -624,8 +686,8 @@ const sectionTheme = (key: string) => {
       return { bg: `linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(72,185,216,0.95) 100%)`, text: tokens.textLight };
     case "pdf-report":
       return {
-        bg: `linear-gradient(135deg, rgba(12,69,240,0.95) 0%, rgba(65,217,255,0.9) 50%, rgba(72,185,216,0.95) 100%)`,
-        text: tokens.textLight
+        bg: `linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 50%, rgba(241,245,249,0.95) 100%)`,
+        text: tokens.textDark
       };
     default:
       return { bg: `#FFFFFF`, text: tokens.textDark };
@@ -981,7 +1043,9 @@ const SectionFrame: React.FC<SectionFrameProps> = ({ id, title, sub, shareText, 
       )}
       <div className="mx-auto relative z-[1] flex h-full max-w-[390px] flex-col px-4 py-6">
         <div className="mb-1 text-sm font-normal font-['Inter'] uppercase leading-tight tracking-[4.20px]">{sub || ""}</div>
-        <div className="mb-4 text-5xl font-normal font-['Gilroy-Bold'] leading-10">
+        <div className={`mb-4 font-normal font-['Gilroy-Bold'] leading-10 ${
+          id === "pdf-report" ? "text-4xl" : "text-5xl"
+        }`}>
           {title}
         </div>
         <motion.div className="flex-1 overflow-y-auto" variants={sectionVariants} initial="hidden" whileInView="show" viewport={{ amount: 0.25 }}>
@@ -1061,6 +1125,7 @@ const getAuthBannerColors = (sectionIndex: number) => {
     case "quotes":
     case "subjects":
     case "books":
+    case "pdf-report":
       // Light sections - use dark colors
       return {
         logoFilter: "invert(0)", // Dark logo
@@ -1074,7 +1139,6 @@ const getAuthBannerColors = (sectionIndex: number) => {
     case "films":
     case "astrology":
     case "work":
-    case "pdf-report":
     default:
       // Dark sections - use light colors
       return {
@@ -1101,8 +1165,8 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
     const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
     const currentSection = sectionKeys[index];
 
-    if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books") {
-      return 'rgba(255,255,255,0.15)';
+    if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books" || currentSection === "pdf-report") {
+      return 'rgba(255,255,255,0.25)';
     } else {
       return 'rgba(255,255,255,0.1)';
     }
@@ -1842,12 +1906,11 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
         </div>
       </div>
 
-      {/* Unlock Overlay with Glass Effect */}
+      {/* Unlock Overlay with Blue Gradient */}
       <div className="absolute inset-x-0 bottom-0">
-        <div className="relative rounded-t-2xl bg-blue-600/30 backdrop-blur-xl border-t border-white/20 p-6">
-          {/* Glass background elements */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-cyan-400/20 to-blue-600/20" />
-          <div className="absolute inset-0 bg-white/5" />
+        <div className="relative rounded-t-2xl border-t border-blue-300/30 p-6" style={{
+          background: 'linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(72,185,216,0.95) 100%)'
+        }}>
 
           <div className="relative z-10">
             {/* Pricing Section */}
@@ -1855,14 +1918,14 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
               <span className="text-4xl font-['Gilroy-Bold'] text-white">
                 ₹950
               </span>
-              <span className="text-xl font-['Gilroy-Regular'] line-through text-white/50">
+              <span className="text-xl font-['Gilroy-Regular'] line-through text-white/70">
                 ₹1200
               </span>
             </div>
 
             {/* Timer */}
-            <div className="flex items-center justify-center gap-1 text-sm text-yellow-300 mb-4">
-              <FileText className="h-4 w-4" />
+            <div className="flex items-center justify-center gap-1 text-sm text-white/90 mb-4">
+              <FileText className="h-4 w-4 text-white/90" />
               <span className="font-['Gilroy-Regular']">35+ Pages PDF</span>
             </div>
 
@@ -1874,7 +1937,7 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
                   <motion.button
                     onClick={onPDFDownload}
                     whileTap={{ scale: 0.98 }}
-                    className="font-['Gilroy-semiBold'] flex items-center bg-blue-800 justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white gap-2"
+                    className="font-['Gilroy-semiBold'] flex items-center bg-black justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white gap-2"
                     style={{
                       width: '280px'
                     }}
@@ -1887,7 +1950,7 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
                   </motion.button>
                 ) : (
                   // Payment done but PDF still generating
-                  <div className="flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-orange-600 bg-orange-100 gap-2" style={{ width: '280px' }}>
+                  <div className="flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white bg-white/20 gap-2" style={{ width: '280px' }}>
                     PDF Generating...
                   </div>
                 )
@@ -1896,10 +1959,10 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
                 <motion.button
                   onClick={onUnlockClick}
                   whileTap={{ scale: 0.98 }}
-                  className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-white"
+                  className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-full px-6 py-2.5 text-[14px] font-[700] text-black"
                   style={{
-                    background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
-                    boxShadow: "0 10px 20px rgba(12,69,240,0.20)",
+                    background: 'rgba(255,255,255,0.95)',
+                    boxShadow: "0 10px 20px rgba(255,255,255,0.20)",
                     width: '280px'
                   }}
                   aria-label="Unlock full PDF report"
@@ -1914,7 +1977,7 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
 
       {/* Page Indicator */}
       <div className="mt-4 text-center">
-        <p className="text-white/70 text-sm font-['Gilroy-Regular']">Sample PDF Report Preview</p>
+        <p className="text-gray-600 text-sm font-['Gilroy-Regular']">Sample PDF Report Preview</p>
       </div>
     </div>
   );
@@ -1936,7 +1999,7 @@ const FindingModal: React.FC<FindingModalProps> = ({ finding, onClose, selectedI
       <motion.div className="fixed inset-0 z-[70]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
         <motion.div
-          className={`absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] min-h-[280px] rounded-[20px] bg-[#7dc3e4] overflow-hidden`}
+          className="absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-[350px] max-h-[calc(100vh-4rem)] min-h-[280px] rounded-[20px] bg-[#7dc3e4] flex flex-col"
           initial={{ y: "50%", opacity: 0, scale: 0.9 }}
           animate={{ y: "-50%", opacity: 1, scale: 1 }}
           exit={{ y: "50%", opacity: 0, scale: 0.9 }}
@@ -1950,7 +2013,10 @@ const FindingModal: React.FC<FindingModalProps> = ({ finding, onClose, selectedI
             <X className="h-5 w-5 text-white" />
           </button>
 
-          <div className="p-6 pt-16">
+          <div className="flex-1 overflow-y-auto p-6 pt-16" style={{
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain'
+          }}>
             <p className="text-white text-3xl font-['Gilroy-Regular'] leading-tight">
               {finding}
             </p>
@@ -2447,7 +2513,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             headers: { 'Content-Type': 'application/json' },
           }
         );
-        // console.log('API response:', response.data);
+        console.log('API response:', response.data);
 
         const analysisData = response.data;
         // console.log('result from the backend:', analysisData)
@@ -2650,7 +2716,15 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   }) || [];
 
   return (
-    <div className={`min-h-screen w-full bg-white text-gray-900 ${className}`}>
+    <div 
+      className={`min-h-screen w-full bg-white text-gray-900 ${className}`}
+      style={{
+        // Prevent any background bleed-through during overscroll
+        background: '#ffffff',
+        overscrollBehavior: 'none',
+        position: 'relative'
+      }}
+    >
       {/* Auth Banner */}
       <AuthBanner
         onSignIn={handleAuthAction}
@@ -2677,10 +2751,15 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           // Dynamic height: full height in PDF section, reduced height in other sections
           height: activeIndex === 9 ? '100dvh' : `calc(100dvh - ${CTA_HEIGHT}px)`,
           WebkitOverflowScrolling: 'touch',
-          overscrollBehaviorY: 'contain',
+          overscrollBehaviorY: 'none',
+          overscrollBehaviorX: 'none',
+          overscrollBehavior: 'none',
           touchAction: 'pan-y',
           // Softer snapping -> less "bounce"
           scrollSnapType: 'y mandatory',
+          // Prevent elastic bounce
+          position: 'relative',
+          isolation: 'isolate'
         }}
       >
 
@@ -3140,7 +3219,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           
           {/* Footer for PDF section - non-sticky */}
           <PDFSectionFooter 
-            percentile={resultData?.perecentile}
+            percentile={resultData?.pecentile}
             qualityScore={resultData?.qualityscore}
           />
         </SectionFrame>
@@ -3206,7 +3285,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               }
             }}
             pricing={pricing}
-            percentile={resultData?.perecentile}
+            percentile={resultData?.pecentile}
             qualityScore={resultData?.qualityscore}
           />
         )
