@@ -559,7 +559,7 @@ export function QuestProcessing({ className = '', gifSrc = '/analysis1.gif' }: Q
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0" />
         {/* Card-by-Card Sliding Facts */}
-        <div className="absolute bottom-36 w-full px-4">
+        <div className="absolute bottom-44 w-full px-4">
           <PsychologicalFactsCards />
         </div>
 

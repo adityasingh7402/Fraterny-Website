@@ -75,22 +75,40 @@ export const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayme
         <motion.div className="fixed inset-0 z-[70]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/35" onClick={onClose} />
           <motion.div
-            className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-[390px] rounded-t-[28px] bg-white"
-            style={{ boxShadow: "0 -12px 32px rgba(0,0,0,0.15)", border: `1px solid ${tokens.border}` }}
+            className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-[390px] rounded-t-[28px] bg-white flex flex-col"
+            style={{ 
+              boxShadow: "0 -12px 32px rgba(0,0,0,0.15)", 
+              border: `1px solid ${tokens.border}`,
+              maxHeight: 'calc(100vh - 2rem)',
+              minHeight: '60vh'
+            }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
           >
-            <div className="relative px-4 pt-4">
-              <button aria-label="Close" onClick={onClose} className="absolute left-2 top-2 rounded-full p-2">
+            {/* Fixed Header with Close Button */}
+            <div className="flex-shrink-0 relative px-4 pt-4 pb-2">
+              <button 
+                aria-label="Close" 
+                onClick={onClose} 
+                className="absolute right-4 top-4 rounded-full p-2 bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              >
                 <X className="h-5 w-5" color={tokens.textDark} />
               </button>
-              <div className="pb-2 pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
+              <div className="pt-6 text-[26px] font-['Gilroy-Regular'] leading-8" style={{ color: tokens.textDark }}>
                 Download your 35+ page <span className="font-['Gilroy-Black']">Personalised PDF Report</span>
               </div>
               <div className="mb-3 text-[14px] font-['Gilroy-Regular']" style={{ color: tokens.muted }}> Powered by Fraterny's advanced AI model </div>
-              <ul className="grid gap-2 pb-3">
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4" style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}>
+              <ul className="grid gap-2 pb-4">
                 {["A Deep-Dive Mindset Analysis", "Detailed Mental Blueprint", "Personalized Content Operating System ", "You VS Future You", "Curated Action & Growth Plan"].map((t, i) => (
                   <li key={i} className="flex items-center gap-2 text-[14px] font-['Gilroy-semiBold']">
                     <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: i === 0 ? "#FF3B6B" : tokens.accent }} />
@@ -100,10 +118,9 @@ export const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayme
                   </li>
                 ))}
               </ul>
-            </div>
-            <div className="px-4">
+
               <motion.div
-                className="relative rounded-2xl p-4 text-white"
+                className="relative rounded-2xl p-4 text-white mb-4"
                 style={{ background: "linear-gradient(135deg, rgba(12,69,240,1) 0%, rgba(65,217,255,1) 45%, rgba(72,185,216,1) 100%)" }}
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -118,64 +135,66 @@ export const UpsellSheet: React.FC<UpsellSheetProps> = ({ open, onClose, onPayme
                   </span>
                 </div>
               </motion.div>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
+
+              <div className="mb-4 flex items-center justify-between rounded-xl bg-[#F2F5FA] px-3 py-3 font-['Gilroy-Bold']" style={{ border: `1px solid ${tokens.border}` }}>
                 <div className="text-[16px]" style={{ color: tokens.textDark }}>Incorporate My Feedback</div>
                 <button aria-label="toggle trial" onClick={() => setTrial((t) => !t)} className="relative h-6 w-11 rounded-full" style={{ background: trial ? tokens.accent : "#D1D5DB", boxShadow: "0 10px 30px rgba(12,69,240,0.06)" }}>
                   <span className="absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform" style={{ transform: `translateX(${trial ? 20 : 0}px)` }} />
                 </button>
               </div>
-            </div>
 
-            {/* Payment Gateway Selection */}
-            <div className="px-4 pb-4 pt-6">
-              <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
-                Choose Payment Method
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Razorpay Option */}
-                <button
-                  onClick={() => setSelectedGateway('razorpay')}
-                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'razorpay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">💳</span>
-                    <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
-                      Razorpay
-                    </span>
-                  </div>
-                  <div className="text-[12px] text-gray-600 text-left">
-                    Cards, UPI, Net Banking
-                  </div>
-                </button>
-
-                {/* PayPal Option */}
-                <button
-                  onClick={() => setSelectedGateway('paypal')}
-                  className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'paypal'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🌐</span>
+              {/* Payment Gateway Selection */}
+              <div className="pb-4">
+                <div className="text-[14px] font-['Gilroy-semiBold'] mb-3" style={{ color: tokens.textDark }}>
+                  Choose Payment Method
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Razorpay Option */}
+                  <button
+                    onClick={() => setSelectedGateway('razorpay')}
+                    className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'razorpay'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">💳</span>
                       <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
-                        PayPal
+                        Razorpay
                       </span>
                     </div>
-                    <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
-                  </div>
-                  <div className="text-[12px] text-gray-600 text-left">
-                    PayPal Balance, Cards
-                  </div>
-                </button>
+                    <div className="text-[12px] text-gray-600 text-left">
+                      Cards, UPI, Net Banking
+                    </div>
+                  </button>
+
+                  {/* PayPal Option */}
+                  <button
+                    onClick={() => setSelectedGateway('paypal')}
+                    className={`p-3 rounded-xl border-2 transition-all ${selectedGateway === 'paypal'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🌐</span>
+                        <span className="font-['Gilroy-Bold'] text-[14px]" style={{ color: tokens.textDark }}>
+                          PayPal
+                        </span>
+                      </div>
+                      <span className="text-[12px] text-gray-500 font-['Gilroy-Regular']">(USD)</span>
+                    </div>
+                    <div className="text-[12px] text-gray-600 text-left">
+                      PayPal Balance, Cards
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="sticky bottom-0 mt-5 border-t" style={{ borderColor: tokens.border }}>
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 border-t bg-white" style={{ borderColor: tokens.border }}>
               <div className="px-4 py-3">
                 <button
                   onClick={handlePaymentClick}
