@@ -100,6 +100,7 @@ const OurValuesSection = () => {
           <motion.h2 
             className="text-center text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-10"
             variants={headerAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             What's so Special?
           </motion.h2>
@@ -107,10 +108,11 @@ const OurValuesSection = () => {
           <motion.p 
             className="text-center sm:text-xl text-gray-600 text-base pb-8"
             variants={headerAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             Fraterny is built on the belief that{' '}
-            <span className="font-extrabold text-terracotta">success</span> and{' '}
-            <span className="font-extrabold text-terracotta">self discovery</span> can be accelerated exponentially with the <span className="font-extrabold text-terracotta">right tools</span> and the <span className="font-extrabold text-terracotta">right people</span>
+            <span className="font-extrabold text-black" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>success</span> and{' '}
+            <span className="font-extrabold text-black" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>self discovery</span> can be accelerated exponentially with the <span className="font-extrabold text-black" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>right tools</span> and the <span className="font-extrabold text-black" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>right people</span>
           </motion.p>
         </motion.div>
 
@@ -170,6 +172,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 Edu-Vacation
               </motion.h3>
@@ -182,6 +185,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 Looks like a vacation. Feels like a level-up. Ever felt like going on a vacation but not compromise on productivity?
               </motion.p>
@@ -240,6 +244,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 Brain Hacking
               </motion.h3>
@@ -252,6 +257,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 We curate experiences and activities which ensure critical thinking, insightful interactions and openness
               </motion.p>
@@ -303,6 +309,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 Collaboration
               </motion.h3>
@@ -315,6 +322,7 @@ const OurValuesSection = () => {
                   y: cardsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 Legends don't compete. They collaborate. Imagine being stranded on a 10BHK exclusive villa with 19 other ambitious souls like yourself.
               </motion.p>
@@ -322,36 +330,7 @@ const OurValuesSection = () => {
           </motion.div>
         </div>
 
-        {/* CTA Button with scroll trigger */}
         {/* <motion.div 
-          className="flex justify-center mb-5 mt-10"
-          ref={ctaAnimation.ref}
-          variants={ctaAnimation.parentVariants}
-          initial="hidden"
-          animate={ctaAnimation.controls}
-        >
-          <motion.a
-            href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center bg-terracotta text-white rounded-lg px-6 py-3 font-semibold shadow-lg hover:bg-terracotta/90 active:scale-95 transition-all text-lg group"
-            style={{ minWidth: 160 }}
-            variants={ctaAnimation.childVariants}
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: "0 12px 30px rgba(224, 122, 95, 0.3)"
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <motion.span
-              whileHover={{ x: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-              Apply Now
-            </motion.span>
-          </motion.a>
-        </motion.div> */}
-        <motion.div 
           className="flex justify-center mt-16"
           ref={ctaAnimation.ref}
           variants={ctaAnimation.parentVariants}
@@ -387,7 +366,7 @@ const OurValuesSection = () => {
               </motion.span>
             </Link>
           </motion.div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );

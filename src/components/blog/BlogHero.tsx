@@ -112,6 +112,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
             <motion.h1 
               className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6"
               variants={titleAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               Our Blog
             </motion.h1>
@@ -127,8 +128,9 @@ const BlogHero: React.FC<BlogHeroProps> = ({ totalPosts }) => {
             <motion.p 
               className="text-xl md:text-2xl text-gray-300 mb-4"
               variants={subtitleAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
-              <span className='text-terracotta'>Insights, stories</span>, and <span className='text-terracotta'>perspectives</span> from our community
+              <span className='text-white' style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Insights, stories</span>, and <span className='text-white' style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>perspectives</span> from our community
             </motion.p>
           </motion.div>
           

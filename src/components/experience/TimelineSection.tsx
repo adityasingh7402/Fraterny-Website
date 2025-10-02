@@ -73,8 +73,9 @@ const TimelineSection = () => {
           className="text-center mb-8"
         >
           <motion.h2 
-            className="text-3xl md:text-4xl font-playfair text-navy mb-4"
+            className="text-3xl md:text-4xl text-navy mb-4"
             variants={titleAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
           >
             A Day in the Villa
           </motion.h2>
@@ -82,6 +83,7 @@ const TimelineSection = () => {
           <motion.p 
             className="text-center sm:text-xl text-gray-600 text-base"
             variants={titleAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
           >
             We create the perfect conditions for you to have the most insightful conversations, amazing memories and take action towards your goals
           </motion.p>
@@ -105,7 +107,7 @@ const TimelineSection = () => {
               
               {/* Time with simple reveal */}
               <motion.div 
-                className="text-terracotta font-mono mb-2"
+                className="text-black font-mono mb-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ 
                   opacity: cardsAnimation.isInView ? 1 : 0,
@@ -115,6 +117,7 @@ const TimelineSection = () => {
                   delay: 0.3 + (index * 0.15),
                   duration: 0.5
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 {event.time}
               </motion.div>
@@ -131,6 +134,7 @@ const TimelineSection = () => {
                   delay: 0.4 + (index * 0.15),
                   duration: 0.5
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 {event.title}
               </motion.h3>
@@ -147,6 +151,7 @@ const TimelineSection = () => {
                   delay: 0.5 + (index * 0.15),
                   duration: 0.5
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 {event.description}
               </motion.p>

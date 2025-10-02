@@ -234,6 +234,7 @@ const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: false }}
           transition={{ delay: 0.1, duration: 0.4 }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
         >
           {title}
         </motion.h3>
@@ -243,6 +244,7 @@ const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: false }}
           transition={{ delay: 0.2, duration: 0.4 }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
         >
           {description}
         </motion.p>
@@ -330,6 +332,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.h2 
                 className="text-2xl sm:text-3xl md:text-4xl font-playfair mb-3 sm:mb-4"
                 variants={firstSectionHeaderAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 The Ultimate 7-Day Retreat
               </motion.h2>
@@ -337,6 +340,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.p 
                 className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12"
                 variants={firstSectionHeaderAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Curated experiences, deep conversations, and a high-value network that will stay with you for life.
               </motion.p>
@@ -384,7 +388,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
             </motion.div>
 
             {/* CTA Section */}
-            <motion.div 
+            {/* <motion.div 
               className="text-center"
               ref={firstSectionCtaAnimation.ref}
               variants={firstSectionCtaAnimation.parentVariants}
@@ -412,7 +416,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               >
                 Currently accepting applications for {prices.acceptingApplicationsFor || 'February 2026'}
               </motion.p>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </section>
@@ -432,6 +436,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.h2 
                 className="text-2xl sm:text-3xl md:text-4xl font-playfair mb-3 sm:mb-4"
                 variants={secondSectionHeaderAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 Private, High-Level Conversations
               </motion.h2>
@@ -439,6 +444,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.p 
                 className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12"
                 variants={secondSectionHeaderAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 No structured sessions, no group activities – just a space for networking and deep discussions.
               </motion.p>
@@ -486,7 +492,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
             </motion.div>
 
             {/* CTA Section */}
-            <motion.div 
+            {/* <motion.div 
               className="text-center"
               ref={secondSectionCtaAnimation.ref}
               variants={secondSectionCtaAnimation.parentVariants}
@@ -505,7 +511,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               >
                 Apply for Consideration
               </motion.a>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </section>
@@ -525,6 +531,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.h2 
                 className="text-2xl sm:text-3xl md:text-4xl font-playfair mb-3 sm:mb-4"
                 variants={finalSectionAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 Limited Spots, Lifetime Impact
               </motion.h2>
@@ -532,11 +539,12 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
               <motion.p 
                 className="text-lg sm:text-xl mb-6 sm:mb-8"
                 variants={finalSectionAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 We keep the group small and highly curated. If you're ready to experience a network that will change your trajectory, apply now.
               </motion.p>
               
-              <motion.a
+              {/* <motion.a
                 href={APPLICATION_FORM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -549,7 +557,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
                 whileTap={{ scale: 0.98 }}
               >
                 Apply Now
-              </motion.a>
+              </motion.a> */}
               
               <motion.p 
                 className="text-sm text-gray-300"
@@ -563,6 +571,7 @@ const LowerSections = ({ APPLICATION_FORM_URL, EXECUTIVE_ESCAPE_MAIL, prices }: 
                   damping: 15, 
                   delay: 0.8 
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200 }}
               >
                 Only {prices.spotsRemaining} spots remaining
               </motion.p>

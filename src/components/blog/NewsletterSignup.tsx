@@ -345,7 +345,7 @@ const NewsletterSignup = () => {
             {isSuccess ? (
               <Check className="h-12 w-12 text-green-400" />
             ) : (
-              <Mail className="h-12 w-12 text-terracotta" />
+              <Mail className="h-12 w-12 text-white" />
             )}
           </motion.div>
         </motion.div>
@@ -354,6 +354,7 @@ const NewsletterSignup = () => {
         <motion.h3 
           className="text-2xl font-playfair mb-3"
           variants={containerAnimation.childVariants}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
         >
           {isSuccess ? "Successfully Subscribed!" : "Subscribe to Our Newsletter"}
         </motion.h3>
@@ -361,6 +362,7 @@ const NewsletterSignup = () => {
         <motion.p 
           className="mb-6"
           variants={containerAnimation.childVariants}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
         >
           {isSuccess 
             ? "Thank you! You'll receive our latest updates and exclusive content."
@@ -418,7 +420,7 @@ const NewsletterSignup = () => {
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-terracotta hover:bg-terracotta/90 text-white min-w-[120px] transition-all duration-300"
+                className="bg-black hover:bg-black/90 text-white min-w-[120px] transition-all duration-300"
               >
                 {isSubmitting ? (
                   <motion.div 

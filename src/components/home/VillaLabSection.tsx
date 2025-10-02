@@ -450,6 +450,7 @@ const VillaLabSection = () => {
           <motion.h2 
             className="text-center sm:text-4xl md:text-5xl lg:text-6xl font-playfair text-navy mb-3 sm:mb-4 text-4xl"
             variants={headerAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             The Villa Lab
           </motion.h2>
@@ -458,8 +459,8 @@ const VillaLabSection = () => {
             className="text-center sm:text-xl text-gray-600 text-base"
             variants={headerAnimation.childVariants}
           >
-            <span className="font-extrabold text-terracotta">Think</span> hard.{' '}
-            <span className="font-extrabold text-terracotta">Vibe</span> harder.
+            <span className="font-extrabold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Think</span> hard.{' '}
+            <span className="font-extrabold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Vibe</span> harder.
           </motion.p>
         </motion.div>
 
@@ -482,7 +483,7 @@ const VillaLabSection = () => {
         </div>
 
         {/* CTA Button with scroll trigger */}
-        <motion.div 
+        {/* <motion.div 
           className="flex justify-center mt-16"
           ref={ctaAnimation.ref}
           variants={ctaAnimation.parentVariants}
@@ -518,7 +519,7 @@ const VillaLabSection = () => {
               </motion.span>
             </Link>
           </motion.div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );

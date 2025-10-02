@@ -332,7 +332,7 @@ const PricingTier = ({
             whileInView="visible"
             viewport={{ once: false }}
           >
-            <Badge variant="secondary" className="bg-terracotta text-white">
+            <Badge variant="secondary" className="bg-black text-white">
               Most Popular
             </Badge>
           </motion.div>
@@ -345,8 +345,9 @@ const PricingTier = ({
             whileInView="visible"
             viewport={{ once: false }}
             transition={{ delay: animationDelay + 0.25 }}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
           >
-            <Badge variant="outline" className="border-terracotta text-navy bg-transparent">
+            <Badge variant="outline" className="border-black text-navy bg-transparent">
               {applicationsReceived} Applications received
             </Badge>
           </motion.div>
@@ -360,6 +361,7 @@ const PricingTier = ({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: false }}
         transition={{ delay: animationDelay + 0.1, duration: 0.5 }}
+        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
       >
         {name}
       </motion.h3>
@@ -378,6 +380,7 @@ const PricingTier = ({
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ delay: animationDelay + 0.4, duration: 0.3 }}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
           >
             {originalPrice}
           </motion.div>
@@ -392,6 +395,7 @@ const PricingTier = ({
             damping: 15, 
             delay: animationDelay + 0.5 
           }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
         >
           {price}
         </motion.span>
@@ -408,6 +412,7 @@ const PricingTier = ({
             whileInView="visible"
             viewport={{ once: false }}
             transition={{ delay: animationDelay + 0.6 + (index * 0.1) }}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
           >
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
@@ -419,9 +424,9 @@ const PricingTier = ({
                 delay: animationDelay + 0.7 + (index * 0.1) 
               }}
             >
-              <Check size={18} className="text-terracotta flex-shrink-0" />
+              <Check size={18} className="text-black flex-shrink-0" />
             </motion.div>
-            <span className="text-gray-600">{feature}</span>
+            <span className="text-gray-600" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{feature}</span>
           </motion.li>
         ))}
       </ul>
@@ -433,7 +438,7 @@ const PricingTier = ({
         rel="noopener noreferrer"
         className={`block text-center py-2 px-4 rounded-lg transition-colors ${
           isPopular 
-            ? 'bg-terracotta text-white hover:bg-opacity-90' 
+            ? ' bg-black text-white hover:bg-opacity-90' 
             : 'border border-navy text-navy hover:bg-navy hover:text-white'
         }`}
         initial={{ opacity: 0, y: 20 }}
@@ -447,6 +452,7 @@ const PricingTier = ({
             : "0 8px 25px rgba(10, 26, 47, 0.2)"
         }}
         whileTap={{ scale: 0.98 }}
+        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
       >
         {ctaText}
       </motion.a>
@@ -549,13 +555,15 @@ const Pricing = () => {
               <motion.h1 
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair mb-4 sm:mb-6"
                 variants={heroTitleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}  
               >
-                Choose Your <span className="text-terracotta">Experience</span>
+                Choose Your <span className="text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Experience</span>
               </motion.h1>
               
               <motion.p 
                 className="text-lg sm:text-xl text-gray-300"
                 variants={heroTitleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 Each offering is designed for a different kind of individual. Find the one that fits you best.
               </motion.p>

@@ -388,8 +388,9 @@ const DepthSection = () => {
           animate={titleAnimation.controls}
         >
           <motion.h2 
-            className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center"
+            className="text-3xl md:text-4xl text-navy mb-12 text-center"
             variants={titleAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
           >
             Designed for Depth
           </motion.h2>
@@ -414,12 +415,12 @@ const DepthSection = () => {
                 >
                   {/* Icon with animation */}
                   <motion.div 
-                    className="bg-terracotta bg-opacity-10 p-4 rounded-full mb-4 group-hover:bg-terracotta group-hover:bg-opacity-20 transition-colors"
+                    className=" bg-opacity-10 p-4 rounded-full mb-4 group-hover:bg-opacity-20 transition-colors"
                     variants={iconVariants}
                     initial="hidden"
                     animate={mobileCardsAnimation.isInView ? "visible" : "hidden"}
                   >
-                    <div className="text-terracotta">{feature.icon}</div>
+                    <div className="">{feature.icon}</div>
                   </motion.div>
                   
                   {/* Text content */}
@@ -434,6 +435,7 @@ const DepthSection = () => {
                       delay: 0.3 + (index * 0.1),
                       duration: 0.5
                     }}
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
                   >
                     {feature.title}
                   </motion.h3>
@@ -449,6 +451,7 @@ const DepthSection = () => {
                       delay: 0.4 + (index * 0.1),
                       duration: 0.5
                     }}
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {feature.description}
                   </motion.p>
@@ -476,7 +479,7 @@ const DepthSection = () => {
                       transition={{ duration: 0.3 }}
                     >
                       <div className="relative">
-                        <div className="w-8 h-8 border-4 border-gray-300 border-t-terracotta rounded-full animate-spin"></div>
+                        <div className="w-8 h-8 border-4 border-gray-300 rounded-full animate-spin"></div>
                         <motion.div 
                           className="absolute inset-0 w-8 h-8 border-4 border-terracotta/20 rounded-full"
                           animate={{ 
@@ -531,12 +534,12 @@ const DepthSection = () => {
               >
                 {/* Icon with animation */}
                 <motion.div 
-                  className="bg-terracotta bg-opacity-10 p-4 rounded-full mb-4 group-hover:bg-terracotta group-hover:bg-opacity-20 transition-colors"
+                  className=" bg-opacity-10 p-4 rounded-full mb-4 group-hover:bg-opacity-20 transition-colors"
                   variants={iconVariants}
                   initial="hidden"
                   animate={desktopGridAnimation.isInView ? "visible" : "hidden"}
                 >
-                  <div className="text-terracotta">{feature.icon}</div>
+                  <div className="text-black">{feature.icon}</div>
                 </motion.div>
                 
                 {/* Text content */}

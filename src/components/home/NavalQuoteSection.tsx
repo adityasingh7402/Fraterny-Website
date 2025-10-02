@@ -112,6 +112,7 @@ const NavalQuoteSection = () => {
             <motion.h2 
               className="text-left text-4xl md:text-5xl lg:text-6xl font-playfair text-navy"
               variants={quoteAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               "The closer you want to get to me, the better your values have to be."
             </motion.h2>
@@ -119,6 +120,7 @@ const NavalQuoteSection = () => {
             <motion.p 
               className="text-left text-xl md:text-2xl text-gray-600 font-playfair italic"
               variants={quoteAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200 }}
             >
               ~ Naval Ravikant
             </motion.p>
@@ -134,6 +136,7 @@ const NavalQuoteSection = () => {
             <motion.p 
               className="text-left md:text-2xl text-gray-600 border-l-4 border-terracotta pl-6 text-xl"
               variants={supportingTextAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
             >
               Exclusivity ensures depth. No crowds, no noise – just you, your new friends, and a crazy f-ing experience.
             </motion.p>
@@ -179,6 +182,7 @@ const NavalQuoteSection = () => {
                   y: statsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 individuals report improved performance in collaborative work when their team is more likeminded.
               </motion.p>
@@ -192,7 +196,7 @@ const NavalQuoteSection = () => {
             >
               <motion.div 
                 ref={count49Ref}
-                className="text-5xl md:text-7xl font-bold text-terracotta"
+                className="text-5xl md:text-7xl font-bold text-navy"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ 
                   scale: statsAnimation.isInView ? 1 : 0.5, 
@@ -216,6 +220,7 @@ const NavalQuoteSection = () => {
                   y: statsAnimation.isInView ? 0 : 20
                 }}
                 transition={{ delay: 1.1, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 potential achievers are deterred from innovative ideas and passionate ventures due to their fear of criticism and societal pressure.
               </motion.p>

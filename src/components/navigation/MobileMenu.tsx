@@ -326,9 +326,9 @@ const MobileMenu = ({
             <motion.button
               className={`flex items-center w-full text-left py-4 px-4 rounded-2xl text-lg font-medium tracking-wide ${
                 isScrolled
-                  ? 'text-red-600 hover:bg-gray-100'
-                  : 'text-red-400 hover:bg-white/10'
-              } transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-transparent active:scale-98`}
+                  ? ' hover:bg-gray-100'
+                  : ' hover:bg-white/10'
+              } transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent active:scale-98`}
               onClick={() => {
                 onSignOut();
                 toggleMenu();
@@ -359,7 +359,7 @@ const MobileMenu = ({
           variants={itemVariants}
         />
         
-        <motion.div variants={itemVariants}>
+        {/* <motion.div variants={itemVariants}>
           <a
             href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
             className={`block w-full text-center py-4 px-4 rounded-2xl text-lg font-bold tracking-wide ${
@@ -373,7 +373,7 @@ const MobileMenu = ({
           >
             Apply Now
           </a>
-        </motion.div>
+        </motion.div> */}
       </div>
     </motion.div>
   );

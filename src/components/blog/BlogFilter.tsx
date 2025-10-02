@@ -481,7 +481,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Search className="h-5 w-5 text-navy" />
-            <h2 className="text-xl font-semibold text-navy">Search Posts</h2>
+            <h2 className="text-xl font-semibold text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Search Posts</h2>
           </div>
           <Input
             type="search"
@@ -517,7 +517,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
       >
         <div className="flex items-center gap-2 mb-4">
           <Search className="h-5 w-5 text-navy" />
-          <h2 className="text-xl font-semibold text-navy">Search Posts</h2>
+          <h2 className="text-xl font-semibold text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Search Posts</h2>
         </div>
         <Input
           type="search"
@@ -538,7 +538,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
         >
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-navy" />
-            <h2 className="text-xl font-semibold text-navy">Filter by Category</h2>
+            <h2 className="text-xl font-semibold text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Filter by Category</h2>
           </div>
           
           <div className="flex flex-wrap gap-3">
@@ -554,6 +554,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
               custom={3}
               initial="hidden"
               animate="visible"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               All Categories
             </motion.button>
@@ -572,6 +573,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
                 custom={4 + index}
                 initial="hidden"
                 animate="visible"
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 {category}
               </motion.button>
@@ -590,8 +592,8 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
           animate="visible"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Tag className="h-5 w-5 text-terracotta" />
-            <h2 className="text-xl font-semibold text-navy">Filter by Tags</h2>
+            <Tag className="h-5 w-5 text-black" />
+            <h2 className="text-xl font-semibold text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Filter by Tags</h2>
           </div>
           
           {/* Desktop View - Button Grid */}
@@ -600,7 +602,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
             <motion.button 
               className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
                 !selectedTag 
-                  ? 'bg-terracotta text-white' 
+                  ? 'bg-black text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               onClick={() => onSelectTag(null)}
@@ -618,7 +620,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
                 key={tag} 
                 className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
                   selectedTag === tag 
-                    ? 'bg-terracotta text-white' 
+                    ? 'bg-black text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
                 onClick={() => onSelectTag(tag)}
@@ -647,7 +649,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
               onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
             >
               <div className="flex items-center gap-2">
-                <Tag size={16} className="text-terracotta" />
+                <Tag size={16} className="text-black" />
                 <span className="text-sm font-medium text-gray-700">
                   {selectedTag || 'All Tags'}
                 </span>
@@ -673,7 +675,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
                 <button
                   className={`w-full flex items-center gap-2 px-4 py-3 text-left text-sm transition-colors duration-200 ${
                     !selectedTag 
-                      ? 'bg-terracotta text-white' 
+                      ? 'bg-black text-white' 
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                   onClick={() => {
@@ -691,7 +693,7 @@ const BlogFilter: React.FC<BlogFilterProps> = ({
                     key={tag}
                     className={`w-full flex items-center gap-2 px-4 py-3 font-semibold text-left text-sm transition-colors duration-200 ${
                       selectedTag === tag 
-                        ? 'bg-terracotta text-white' 
+                        ? 'bg-black text-white' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                     onClick={() => {

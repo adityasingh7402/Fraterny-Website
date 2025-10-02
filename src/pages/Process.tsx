@@ -1262,15 +1262,16 @@ const Process = () => {
               <motion.h1 
                 className="md:text-5xl font-playfair mb-6 text-5xl lg:text-6xl"
                 variants={heroTitleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
-                It's not <span className='text-terracotta'>special</span> if everyone has it
+                It's not <span className='' style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>special</span> if everyone has it
               </motion.h1>
               
               <motion.p 
                 className="text-gray-300 mb-8 max-w-2xl font-extralight text-left text-lg"
                 variants={heroTitleAnimation.childVariants}
               >
-                We make sure you interact with only <span className="text-terracotta">ambitious, likeminded </span> and <span className="text-terracotta">interesting </span> people.
+                We make sure you interact with only <span className="" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>ambitious, likeminded </span> and <span className="" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>interesting </span> people.
               </motion.p>
             </motion.div>
             
@@ -1291,7 +1292,7 @@ const Process = () => {
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
-                <div className="text-sm text-gray-400">Available Seats</div>
+                <div className="text-sm text-gray-400" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Available Seats</div>
                 <motion.div 
                   className="text-2xl font-mono"
                   initial={{ opacity: 0, y: 10 }}
@@ -1300,7 +1301,7 @@ const Process = () => {
                 >
                   {isLoading ? (
                     <motion.span 
-                      className="opacity-50 text-terracotta"
+                      className="opacity-50 text-black"
                       animate={{ opacity: [0.5, 1, 0.5] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
@@ -1308,7 +1309,7 @@ const Process = () => {
                     </motion.span>
                   ) : (
                     <motion.span 
-                      className="text-terracotta" 
+                      className="text-white" 
                     >
                     {settings?.available_seats || 20}
                     </motion.span>
@@ -1319,7 +1320,7 @@ const Process = () => {
               <motion.div
                 variants={heroStatsAnimation.childVariants}
               >
-                <div className="text-sm text-gray-400">Applications Close</div>
+                <div className="text-sm text-gray-400" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>Applications Close</div>
                 <motion.div 
                   className="text-xl"
                   initial={{ opacity: 0, y: 10 }}
@@ -1336,7 +1337,7 @@ const Process = () => {
                     </motion.span>
                   ) : (
                     <motion.span 
-                      className="text-terracotta" 
+                      className="text-white" 
                     >
                     {formattedCloseDate}
                     </motion.span>
@@ -1358,10 +1359,12 @@ const Process = () => {
             variants={processHeaderAnimation.parentVariants}
             initial="hidden"
             animate={processHeaderAnimation.controls}
+
           >
             <motion.h2 
-              className="text-3xl font-playfair text-navy mb-12 text-center md:text-5xl"
+              className="text-3xl text-navy mb-12 text-center md:text-5xl"
               variants={processHeaderAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               The Process
             </motion.h2>
@@ -1400,7 +1403,7 @@ const Process = () => {
                 >
                   1
                 </motion.div>
-                <h3 className="text-xl font-medium text-navy">Apply</h3>
+                <h3 className="text-xl font-medium text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Apply</h3>
               </motion.div>
               
               <motion.p 
@@ -1411,6 +1414,7 @@ const Process = () => {
                   y: processStepsAnimation.isInView ? 0 : 10
                 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Fill out the Registration form - The registration form allows us to confirm your identity, and help us assess whether we will be able to add value to your life.
               </motion.p>
@@ -1420,17 +1424,18 @@ const Process = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: processStepsAnimation.isInView ? 1 : 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
+                  <Check size={16} className="text-black" />
                   <span>Personal Details</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
+                  <Check size={16} className="text-black" />
                   <span>LinkedIn Profile</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
+                  <Check size={16} className="text-black" />
                   <span>Vision Statement</span>
                 </div>
               </motion.div>
@@ -1443,6 +1448,7 @@ const Process = () => {
                   y: processStepsAnimation.isInView ? 0 : 10
                 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 We encourage group applications with 1-2 friends. Only 1 registration is needed for friend groups.
               </motion.p>
@@ -1473,7 +1479,7 @@ const Process = () => {
                 >
                   2
                 </motion.div>
-                <h3 className="text-xl font-medium text-navy">Screening Call</h3>
+                <h3 className="text-xl font-medium text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Screening Call</h3>
               </motion.div>
               
               <motion.p 
@@ -1484,6 +1490,7 @@ const Process = () => {
                   y: processStepsAnimation.isInView ? 0 : 10
                 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Have a brief conversation - A Fraterny counselor will contact you to have a friendly conversation after your form is shortlisted. Only thing that matters the most is authentic responses from your end.
               </motion.p>
@@ -1497,8 +1504,8 @@ const Process = () => {
                 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <Phone size={16} className="text-terracotta" />
-                <span>15 Minutes</span>
+                <Phone size={16} className="text-black" />
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>15 Minutes</span>
               </motion.div>
             </motion.div>
 
@@ -1516,18 +1523,17 @@ const Process = () => {
                   x: processStepsAnimation.isInView ? 0 : -20
                 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 <motion.div 
                   className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-medium"
                   whileHover={{ 
-                    scale: 1.1,
-                    backgroundColor: "#E07A5F" // terracotta
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   3
                 </motion.div>
-                <h3 className="text-xl font-medium text-navy">Join</h3>
+                <h3 className="text-xl font-medium text-navy" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Join</h3>
               </motion.div>
               
               <motion.p 
@@ -1538,6 +1544,7 @@ const Process = () => {
                   y: processStepsAnimation.isInView ? 0 : 10
                 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 Welcome to the Ecosystem - We will send you a confirmation email for your acceptance in Fraterny.
               </motion.p>
@@ -1549,12 +1556,12 @@ const Process = () => {
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Applying with friends?</span>
+                  <Check size={16} className="text-black" />
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Applying with friends?</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check size={16} className="text-terracotta" />
-                  <span>Group applications welcome</span>
+                  <Check size={16} className="text-black" />
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Group applications welcome</span>
                 </div>
               </motion.div>
             </motion.div>
@@ -1570,6 +1577,7 @@ const Process = () => {
           >
             <motion.div
               variants={securityNoticeAnimation.childVariants}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200 }}
             >
               Your data is 100% secure. Not selected? You will get priority access in future bootcamps.
             </motion.div>
@@ -1592,6 +1600,7 @@ const Process = () => {
               <motion.h2 
                 className="text-3xl font-playfair text-navy mb-6 md:mb-8 text-center md:text-5xl"
                 variants={whoForTitleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 Who is this for?
               </motion.h2>
@@ -1599,6 +1608,7 @@ const Process = () => {
               <motion.p 
                 className="text-xl text-gray-600 italic mb-8 md:mb-12 text-center max-w-2xl mx-auto"
                 variants={whoForTitleAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
               >
                 This is not for everyone. But if you are the right fit, you will know.
               </motion.p>
@@ -1625,7 +1635,7 @@ const Process = () => {
                         initial="hidden"
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                       >
-                        <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                        <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                       </motion.div>
                       <motion.p 
                         className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1633,6 +1643,7 @@ const Process = () => {
                         initial="hidden"
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.2 }}
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                       >
                         You have big ideas and ambitious goals, but you need the right people around you to refine, validate, and discuss them with.
                       </motion.p>
@@ -1651,7 +1662,7 @@ const Process = () => {
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.1 }}
                       >
-                        <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                        <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                       </motion.div>
                       <motion.p 
                         className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1659,6 +1670,7 @@ const Process = () => {
                         initial="hidden"
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.25 }}
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                       >
                         You believe in execution over excuses. You are not here for inspiration; you are here to contribute and collaborate with your own unique perspective.
                       </motion.p>
@@ -1677,7 +1689,7 @@ const Process = () => {
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.2 }}
                       >
-                        <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                        <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                       </motion.div>
                       <motion.p 
                         className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1685,6 +1697,7 @@ const Process = () => {
                         initial="hidden"
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.3 }}
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                       >
                         You don't follow trends; you create them. Whether you are or aim to be an entrepreneur, investor, or innovator, you want to be in a space where you are encouraged and assisted.
                       </motion.p>
@@ -1705,7 +1718,7 @@ const Process = () => {
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.3 }}
                       >
-                        <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                        <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                       </motion.div>
                       <motion.p 
                         className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1713,6 +1726,7 @@ const Process = () => {
                         initial="hidden"
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.35 }}
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                       >
                         You seek deep conversations, meaningful connections, and experiences that shift your perspective and elevate your journey.
                       </motion.p>
@@ -1731,7 +1745,7 @@ const Process = () => {
                         animate={whoForCardsAnimation.isInView ? "visible" : "hidden"}
                         transition={{ delay: 0.4 }}
                       >
-                        <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                        <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                       </motion.div>
                       <motion.p 
                         className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1741,6 +1755,7 @@ const Process = () => {
                           x: whoForCardsAnimation.isInView ? 0 : -10
                         }}
                         transition={{ delay: 0.7, duration: 0.5 }}
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                       >
                         You understand the power of a strong network. You are here to meet driven individuals who challenge and expand your thinking.
                       </motion.p>
@@ -1761,6 +1776,7 @@ const Process = () => {
               <motion.h3 
                 className="font-playfair text-navy mb-6 md:mb-8 text-center text-3xl md:text-5xl"
                 variants={whoNotForAnimation.childVariants}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 Who this is 'not' for?
               </motion.h3>
@@ -1777,7 +1793,7 @@ const Process = () => {
                       initial="hidden"
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                     >
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     </motion.div>
                     <motion.p 
                       className="leading-relaxed text-base md:text-lg font-normal text-gray-200"
@@ -1785,6 +1801,7 @@ const Process = () => {
                       initial="hidden"
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                       transition={{ delay: 0.2 }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                     >
                       Those looking for a solo experience.
                     </motion.p>
@@ -1803,7 +1820,7 @@ const Process = () => {
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                       transition={{ delay: 0.1 }}
                     >
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     </motion.div>
                     <motion.p 
                       className="leading-relaxed text-base md:text-lg text-gray-200"
@@ -1811,6 +1828,7 @@ const Process = () => {
                       initial="hidden"
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                       transition={{ delay: 0.25 }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                     >
                       Anyone with a passive approach.
                     </motion.p>
@@ -1829,7 +1847,7 @@ const Process = () => {
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                       transition={{ delay: 0.2 }}
                     >
-                      <Check className="text-terracotta mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
+                      <Check className="text-white mt-1 flex-shrink-0 w-5 h-5 md:w-6 md:h-6" />
                     </motion.div>
                     <motion.p 
                       className="leading-relaxed text-base md:text-lg px-0 text-gray-200"
@@ -1837,6 +1855,7 @@ const Process = () => {
                       initial="hidden"
                       animate={whoNotForAnimation.isInView ? "visible" : "hidden"}
                       transition={{ delay: 0.3 }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
                     >
                       Those who are not open to exploring new ideas, values or perspectives.
                     </motion.p>

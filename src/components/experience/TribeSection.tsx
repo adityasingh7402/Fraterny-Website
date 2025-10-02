@@ -146,6 +146,7 @@ const TribeSection = () => {
           <motion.h2 
             className="text-3xl md:text-4xl font-playfair text-navy mb-12 text-center"
             variants={titleAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             Your Tribe Awaits
           </motion.h2>
@@ -195,7 +196,7 @@ const TribeSection = () => {
                   >
                     {/* Animated spinner */}
                     <div className="relative">
-                      <div className="w-8 h-8 border-4 border-gray-300 border-t-terracotta rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-gray-300 rounded-full animate-spin"></div>
                       
                       {/* Subtle background pulse */}
                       <motion.div 
@@ -263,6 +264,7 @@ const TribeSection = () => {
                   delay: 0.4 + (index * 0.1),
                   duration: 0.5
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 {peer.title}
               </motion.h3>
@@ -279,6 +281,7 @@ const TribeSection = () => {
                   delay: 0.5 + (index * 0.1),
                   duration: 0.5
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
               >
                 {peer.description}
               </motion.p>
@@ -296,6 +299,7 @@ const TribeSection = () => {
           <motion.p 
             className="text-center text-lg text-gray-600"
             variants={taglineAnimation.childVariants}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             Divided by Circumstance, United by Fraterny
           </motion.p>

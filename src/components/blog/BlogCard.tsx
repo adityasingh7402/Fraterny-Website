@@ -163,6 +163,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, index = 0 }) => {
                 scale: 1.02,
                 transition: { duration: 0.2 }
               }}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               {post.title}
             </motion.h2>
@@ -180,6 +181,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, index = 0 }) => {
                   color: "#ffffff",
                   transition: { duration: 0.2 }
                 }}
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
               >
                 {new Date(post.created_at).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -189,7 +191,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, index = 0 }) => {
               </motion.p>
               
               <motion.span 
-                className="text-terracotta font-medium group-hover:underline transition-all duration-200 flex items-center"
+                className="text-white font-medium group-hover:underline transition-all duration-200 flex items-center"
                 whileHover={{ 
                   color: "#e07a5f",
                 }}
