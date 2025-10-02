@@ -429,15 +429,97 @@ interface PDFSectionFooterProps {
 
 const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, qualityScore }) => {
   const navigate = useNavigate();
-  console.log("your result",percentile, qualityScore)
 
-  const handleNewAssessment = () => {
-    navigate('/assessment');
-  };
+  const handleShare = async () => {
+  // Detect current domain
+  const domain = window.location.hostname.includes('fraterny.com') 
+    ? 'https://fraterny.com' 
+    : 'https://fraterny.in';
+  
+  const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  console.log("Share URL:", shareUrl);
+  
+
+  // Try native share first
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        url: shareUrl
+      });
+    } catch (err) {
+      // User cancelled share, do nothing
+      console.log('Share cancelled or failed:', err);
+    }
+  } else {
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      // Show a toast/notification here: "Link copied!"
+      alert('Link copied to clipboard!'); // Replace with your toast component
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  }
+};
 
   return (
+    // <div
+    //   className="absolute bottom-0 left-0 right-0"
+    //   style={{
+    //     background: "#FFFFFF",
+    //     borderTop: `1px solid ${tokens.border}`,
+    //     boxShadow: "0 -6px 18px rgba(10,10,10,0.08)",
+    //     height: 65,
+    //     minHeight: 65,
+    //     // Prevent overscroll issues
+    //     overscrollBehavior: 'none',
+    //   }}
+    // >
+    //   <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
+    //     {/* Left Section - Gem Icon */}
+    //     <div className="flex flex-col items-center justify-center min-h-[60px]">
+    //       <Gem 
+    //         className="h-7 w-7 mb-2" 
+    //         style={{ color: tokens.accent }}
+    //         fill={tokens.accent}
+    //       />
+    //       <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.accent }}>
+    //         TOP {percentile || '80'}%
+    //       </div>
+    //     </div>
+        
+    //     {/* Center Section - Score Info */}
+    //     <div className="flex flex-col justify-center items-center min-h-[60px] mx-4">
+    //       <div className="flex items-baseline gap-2">
+    //         <div className="text-4xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
+    //           {qualityScore || '85'}
+    //         </div>
+    //         <div className="text-lg font-bold" style={{ color: tokens.muted }}>
+    //           /100
+    //         </div>
+    //       </div>
+    //       <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.muted }}>
+    //         Your Score
+    //       </div>
+    //     </div>
+
+    //     {/* Right Section - Restart Button */}
+    //     <motion.button
+    //       onClick={handleNewAssessment}
+    //       whileTap={{ scale: 0.98 }}
+    //       className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-8 py-3 text-sm font-[700] text-white whitespace-nowrap"
+    //       style={{
+    //         background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
+    //         boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
+    //       }}
+    //       aria-label="New Assessment"
+    //     >
+    //       Restart Test
+    //     </motion.button>
+    //   </div>
+    // </div>
     <div
-      className="absolute bottom-0 left-0 right-0"
+      className="fixed bottom-0 left-0 right-0 z-50"
       style={{
         background: "#FFFFFF",
         borderTop: `1px solid ${tokens.border}`,
@@ -445,49 +527,62 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
         height: 65,
         minHeight: 65,
         // Prevent overscroll issues
+        WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'none',
       }}
     >
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
         {/* Left Section - Gem Icon */}
-        <div className="flex flex-col items-center justify-center min-h-[60px]">
+        {/* <div className="flex flex-col items-center justify-center min-h-[60px]">
           <Gem 
-            className="h-7 w-7 mb-2" 
-            style={{ color: tokens.accent }}
-            fill={tokens.accent}
+            className="h-7 w-7 mb-2 text-[#0284c7]" 
+            // style={{ color: tokens.accent }}
+            // fill={tokens.accent}
           />
-          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.accent }}>
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.textDark }}>
             TOP {percentile || '80'}%
           </div>
-        </div>
+        </div> */}
         
         {/* Center Section - Score Info */}
-        <div className="flex flex-col justify-center items-center min-h-[60px] mx-4">
+        <div className="flex flex-col justify-center items-center min-h-[60px]">
           <div className="flex items-baseline gap-2">
-            <div className="text-4xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
+            <div className="text-3xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
               {qualityScore || '85'}
             </div>
             <div className="text-lg font-bold" style={{ color: tokens.muted }}>
               /100
             </div>
           </div>
-          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.muted }}>
-            Your Score
+          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.textDark }}>
+            Your Depth Score
           </div>
         </div>
 
+
+        {/* <div className="flex flex-col items-center justify-center min-h-[60px]">
+          <Gem 
+            className="h-7 w-7 mb-2 text-[#0284c7]" 
+            // style={{ color: tokens.accent }}
+            // fill={tokens.accent}
+          />
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.textDark }}>
+            TOP {percentile || '80'}%
+          </div>
+        </div> */}
+
         {/* Right Section - Restart Button */}
         <motion.button
-          onClick={handleNewAssessment}
+          onClick={handleShare}
           whileTap={{ scale: 0.98 }}
-          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-8 py-3 text-sm font-[700] text-white whitespace-nowrap"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-6 py-2 text-lg font-[700] text-white whitespace-nowrap"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
           }}
           aria-label="New Assessment"
         >
-          Restart Test
+          Share Test
         </motion.button>
       </div>
     </div>
@@ -503,10 +598,37 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     return () => clearInterval(t);
   }, []);
 
-  // Function to navigate to new assessment page
-  const handleNewAssessment = () => {
-    navigate('/assessment');
-  };
+  const handleShare = async () => {
+  // Detect current domain
+  const domain = window.location.hostname.includes('fraterny.com') 
+    ? 'https://fraterny.com' 
+    : 'https://fraterny.in';
+  
+  const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  console.log("Share URL:", shareUrl);
+  
+
+  // Try native share first
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        url: shareUrl
+      });
+    } catch (err) {
+      // User cancelled share, do nothing
+      console.log('Share cancelled or failed:', err);
+    }
+  } else {
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      // Show a toast/notification here: "Link copied!"
+      alert('Link copied to clipboard!'); // Replace with your toast component
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  }
+};
 
   return (
     <div
@@ -524,44 +646,56 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     >
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
         {/* Left Section - Gem Icon */}
-        <div className="flex flex-col items-center justify-center min-h-[60px]">
+        {/* <div className="flex flex-col items-center justify-center min-h-[60px]">
           <Gem 
-            className="h-7 w-7 mb-2" 
-            style={{ color: tokens.accent }}
-            fill={tokens.accent}
+            className="h-7 w-7 mb-2 text-[#0284c7]" 
+            // style={{ color: tokens.accent }}
+            // fill={tokens.accent}
           />
-          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.accent }}>
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.textDark }}>
             TOP {percentile || '80'}%
           </div>
-        </div>
+        </div> */}
         
         {/* Center Section - Score Info */}
-        <div className="flex flex-col justify-center items-center min-h-[60px] mx-4">
+        <div className="flex flex-col justify-center items-center min-h-[60px]">
           <div className="flex items-baseline gap-2">
-            <div className="text-4xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
+            <div className="text-3xl font-black tracking-tight leading-none" style={{ color: tokens.textDark }}>
               {qualityScore || '85'}
             </div>
             <div className="text-lg font-bold" style={{ color: tokens.muted }}>
               /100
             </div>
           </div>
-          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.muted }}>
-            Your Score
+          <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: tokens.textDark }}>
+            Your Depth Score
           </div>
         </div>
 
+
+        {/* <div className="flex flex-col items-center justify-center min-h-[60px]">
+          <Gem 
+            className="h-7 w-7 mb-2 text-[#0284c7]" 
+            // style={{ color: tokens.accent }}
+            // fill={tokens.accent}
+          />
+          <div className="text-[10px] font-[600] leading-tight whitespace-nowrap" style={{ color: tokens.textDark }}>
+            TOP {percentile || '80'}%
+          </div>
+        </div> */}
+
         {/* Right Section - Restart Button */}
         <motion.button
-          onClick={handleNewAssessment}
+          onClick={handleShare}
           whileTap={{ scale: 0.98 }}
-          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-8 py-3 text-sm font-[700] text-white whitespace-nowrap"
+          className="font-['Gilroy-semiBold'] flex items-center justify-center rounded-xl px-6 py-2 text-lg font-[700] text-white whitespace-nowrap"
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
           }}
-          aria-label="New Assessment"
+          aria-label="Share Test"
         >
-          Restart Test
+          Share Test
         </motion.button>
       </div>
     </div>
