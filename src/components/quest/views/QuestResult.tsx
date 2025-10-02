@@ -1959,7 +1959,7 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
   return (
     <div className="relative">
       {/* Image Viewer Container */}
-      <div className="h-[calc(100dvh-220px)] w-full rounded-xl overflow-hidden shadow-lg bg-gray-100 relative">
+      <div className="h-[calc(100dvh-320px)] w-full rounded-xl overflow-hidden shadow-lg bg-gray-100 relative">
         <div
           ref={containerRef}
           className="w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
@@ -3348,6 +3348,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                   setUpsellOpen(true);
                 }
               }}
+              
             />
           </div>
           
