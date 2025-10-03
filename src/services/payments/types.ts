@@ -5,6 +5,7 @@ export interface PaymentContext {
   sessionStartTime: string;     // When the original session started
   returnUrl: string;            // Where to return after auth
   timestamp: number;            // When context was stored
+  selectedGateway?: 'razorpay' | 'paypal'; // Gateway user selected before auth
 }
 
 // Pricing related interfaces
@@ -48,7 +49,7 @@ export interface CreateOrderResponse {
   currency: string;
   paymentSessionId: string;     // Backend generated session ID
   gateway: 'razorpay' | 'paypal'; // Which gateway created this order
-  transactionId?: string;       // Backend generated transaction ID for tracking
+  transaction_id?: string;       // Backend generated transaction ID for tracking
   
   // Gateway specific data
   clientSecret?: string;        // For PayPal client-side integration
@@ -74,6 +75,7 @@ export interface PaymentCompletionRequest {
     status: 'success' | 'failed';
     // Gateway-specific fields
     razorpay_signature: string;  // Required for Razorpay, optional for PayPal
+    transaction_id?: string; // Optional for Razorpay
     payer_id?: string;   // Optional for PayPal
     paypal_order_id?: string; // For PayPal backend compatibility
   };

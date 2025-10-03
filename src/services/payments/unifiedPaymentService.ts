@@ -42,8 +42,8 @@ class UnifiedPaymentService {
         getPayPalPricingForLocation()
       ]);
 
-      console.log('💰 Razorpay pricing:', razorpayPricing);
-      console.log('💰 PayPal pricing:', paypalPricing);
+      //console.log('💰 Razorpay pricing:', razorpayPricing);
+      //console.log('💰 PayPal pricing:', paypalPricing);
 
       return {
         razorpay: razorpayPricing,
@@ -53,22 +53,33 @@ class UnifiedPaymentService {
     } catch (error) {
       console.error('❌ Error loading gateway pricing:', error);
       
-      // Fallback pricing
+      // Fallback pricing using environment variables
+      // Default to international pricing if location detection fails
+      const fallbackAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS) || 1500;
+      const fallbackOriginalAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS) || 2000;
+      const fallbackAmountInDollars = Math.round(fallbackAmountInCents / 100);
+      const fallbackOriginalAmountInDollars = Math.round(fallbackOriginalAmountInCents / 100);
+      
+      const fallbackPaypalAmountInCents = Number(import.meta.env.VITE_PAYPAL_INTERNATIONAL_PRICE_CENTS) || 1500;
+      const fallbackPaypalOriginalAmountInCents = Number(import.meta.env.VITE_PAYPAL_INTERNATIONAL_ORIGINAL_PRICE_CENTS) || 2000;
+      const fallbackPaypalAmountInDollars = Math.round(fallbackPaypalAmountInCents / 100);
+      const fallbackPaypalOriginalAmountInDollars = Math.round(fallbackPaypalOriginalAmountInCents / 100);
+      
       return {
         razorpay: {
-          main: '₹950',
-          original: '₹1200',
-          currency: 'INR',
-          symbol: '₹',
-          amount: 950,
-          isIndia: true
+          main: `$${fallbackAmountInDollars}`,
+          original: `$${fallbackOriginalAmountInDollars}`,
+          currency: 'USD',
+          symbol: '$',
+          amount: fallbackAmountInDollars,
+          isIndia: false
         },
         paypal: {
-          displayAmount: '$20',
-          displayOriginal: '$25',
+          displayAmount: `$${fallbackPaypalAmountInDollars}`,
+          displayOriginal: `$${fallbackPaypalOriginalAmountInDollars}`,
           currency: 'USD',
-          amount: '20.00',
-          numericAmount: 20,
+          amount: `${(fallbackPaypalAmountInCents / 100).toFixed(2)}`,
+          numericAmount: fallbackPaypalAmountInDollars,
           isIndia: false
         }
       };
