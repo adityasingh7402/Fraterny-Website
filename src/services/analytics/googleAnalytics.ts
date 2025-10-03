@@ -57,6 +57,8 @@ class GoogleAnalyticsService {
       
       window.gtag('js', new Date());
       window.gtag('config', this.measurementId, {
+
+        page_path: this.normalizePagePath(window.location.pathname),
         // Enhanced measurement settings
         enhanced_measurement_settings: {
           scrolls: false, // We'll track quest progress manually
@@ -130,8 +132,9 @@ class GoogleAnalyticsService {
   try {
     // Get platform info for UTM tracking
     const platformInfo = this.getStoredPlatformInfo();
+    const normalizedPath = this.normalizePagePath(window.location.pathname);
     
-    window.gtag('event', eventName, {
+    const eventData: any = {
       ...parameters,
       // Add UTM parameters to every event
       campaign_source: platformInfo.source,
@@ -140,11 +143,15 @@ class GoogleAnalyticsService {
       traffic_platform: platformInfo.platform,
       // Existing fields
       timestamp: Date.now(),
-      page_location: window.location.href,
+      page_location: window.location.origin + normalizedPath,
+      page_path: normalizedPath,
       page_title: document.title
-    });
+    };
     
-    // console.log(`📊 GA4 Event: ${eventName}`, parameters);
+      window.gtag('event', eventName, eventData);
+  
+      console.log(`📊 GA4 Event: ${eventName}`, eventData);
+      console.log(`🔍 Normalized path: ${normalizedPath}`);
   } catch (error) {
     console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
   }
@@ -156,6 +163,35 @@ class GoogleAnalyticsService {
     const isTablet = /iPad|Android(?!.*Mobile)/i.test(userAgent);
     return isTablet ? 'tablet' : (isMobile ? 'mobile' : 'desktop');
   }
+
+  /**
+ * Normalize page path by replacing dynamic IDs with :id placeholder
+ */
+private normalizePagePath(path: string): string {
+  if (!path) return '/';
+  
+  // Replace UUIDs (36-char versions with dashes)
+  path = path.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ig, ':id');
+  
+  // Replace long session tokens like "session_1757972353324"
+  path = path.replace(/session_[0-9]{6,}/ig, 'session/:id');
+  
+  // Replace other 24–64 hex-like blobs
+  path = path.replace(/[0-9a-f]{24,64}/ig, ':id');
+  
+  // Collapse multiple :id in a row
+  path = path.replace(/(:id\/?){2,}/g, ':id/');
+  
+  // Clean up known quest routes
+  path = path
+    .replace(/^\/quest-result\/result\/:id\/session\/:id.*/i, '/quest-result/result')
+    .replace(/^\/quest-result\/processing\/:id.*/i, '/quest-result/processing')
+    .replace(/^\/quest-dashboard\/:id.*/i, '/quest-dashboard')
+    .replace(/^\/assessment-list\/:id.*/i, '/assessment-list')
+    .replace(/^\/payment-history\/:id.*/i, '/payment-history');
+  
+  return path;
+}
 
   private getStoredPlatformInfo(): any {
   try {
