@@ -437,9 +437,9 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
-  const message = "I just completed this personality depth test. Check it out! 🧠";
+  const message = "Hey, I just gave the Quest - Personality & Behaviour Analysis test and I think you'll like it too. \n\n Check it out: ";
 
-  const shareContent = `${message}\n\n${shareUrl}`;
+  const shareContent = `${message}\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
   console.log("Share Content:", shareContent);
   
@@ -612,9 +612,9 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
-  const message = "I just completed this personality depth test. Check it out! 🧠";
+  const message = "Hey, I just gave the Quest - Personality & Behaviour Analysis test and I think you'll like it too. \n\n Check it out: ";
 
-  const shareContent = `${message}\n\n${shareUrl}`;
+  const shareContent = `${message}\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
   console.log("Share Content:", shareContent);
 
