@@ -42,8 +42,8 @@ class UnifiedPaymentService {
         getPayPalPricingForLocation()
       ]);
 
-      console.log('💰 Razorpay pricing:', razorpayPricing);
-      console.log('💰 PayPal pricing:', paypalPricing);
+      //console.log('💰 Razorpay pricing:', razorpayPricing);
+      //console.log('💰 PayPal pricing:', paypalPricing);
 
       return {
         razorpay: razorpayPricing,

@@ -2346,7 +2346,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       try {
         console.log('💰 QuestResult: Loading pricing for both gateways...');
         const unifiedPricingData = await getBothGatewayPricing();
-        console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
+        //console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
 
         const newPricing: DualGatewayPricingData = {
           razorpay: {
@@ -2369,7 +2369,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         };
 
         setPricing(newPricing);
-        console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
+        // console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
       } catch (error) {
         console.error('❌ QuestResult: Failed to load pricing:', error);
         // Keep default pricing on error
@@ -2399,7 +2399,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           );
           
           if (currentAssessment) {
-            console.log('✅ Found current assessment payment status:', currentAssessment);
+            //console.log('✅ Found current assessment payment status:', currentAssessment);
             setAssessmentPaymentStatus({
               ispaymentdone: currentAssessment.ispaymentdone,
               quest_pdf: currentAssessment.quest_pdf,
@@ -2649,7 +2649,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             headers: { 'Content-Type': 'application/json' },
           }
         );
-        console.log('API response:', response.data);
+        //console.log('API response:', response.data);
 
         const analysisData = response.data;
         // console.log('result from the backend:', analysisData)
