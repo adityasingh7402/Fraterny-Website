@@ -391,7 +391,7 @@ const ImageSpinner = ({ index }: { index: number }) => (
   <div className="absolute inset-0 bg-navy/90 flex items-center justify-center z-10">
     {/* Animated spinner */}
     <div className="relative">
-      <div className="w-8 h-8 border-4 border-terracotta/30 border-t-terracotta rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-terracotta/30 border-t-blue-400 rounded-full animate-spin"></div>
       
       {/* Subtle background glow */}
       <div className="absolute inset-0 w-8 h-8 border-4 border-terracotta/10 rounded-full blur-sm"></div>
@@ -848,17 +848,17 @@ export const EnhancedParallaxScroll = ({ className }: EnhancedParallaxScrollProp
       ref={containerRef}
     >
       {/* Decorative borders */}
-      <span className="absolute inset-x-0 top-0 bg-gradient-to-r from-transparent via-terracotta to-transparent h-[2px] w-3/4 mx-auto rounded-full"></span>
-      <span className="absolute inset-x-0 top-0 bg-gradient-to-r from-transparent via-terracotta to-transparent h-[4px] w-3/4 mx-auto blur-sm opacity-100 rounded-full"></span>
-      
-      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-r from-transparent via-terracotta to-transparent h-[2px] w-3/4 mx-auto rounded-full"></span>
-      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-r from-transparent via-terracotta to-transparent h-[4px] w-3/4 mx-auto blur-sm opacity-100 rounded-full"></span>
-      
-      <span className="absolute inset-y-0 left-0 bg-gradient-to-b from-transparent via-terracotta to-transparent w-[2px] h-3/4 my-auto rounded-full"></span>
-      <span className="absolute inset-y-0 left-0 bg-gradient-to-b from-transparent via-terracotta to-transparent w-[4px] h-3/4 my-auto blur-sm opacity-100 rounded-full"></span>
-      
-      <span className="absolute inset-y-0 right-0 bg-gradient-to-b from-transparent via-terracotta to-transparent w-[2px] h-3/4 my-auto rounded-full"></span>
-      <span className="absolute inset-y-0 right-0 bg-gradient-to-b from-transparent via-terracotta to-transparent w-[4px] h-3/4 my-auto blur-sm opacity-100 rounded-full"></span>
+      <span className="absolute inset-x-0 top-0 bg-gradient-to-r from-transparent via-blue to-transparent h-[2px] w-3/4 mx-auto rounded-full"></span>
+      <span className="absolute inset-x-0 top-0 bg-gradient-to-r from-transparent via-blue to-transparent h-[4px] w-3/4 mx-auto blur-sm opacity-100 rounded-full"></span>
+
+      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-r from-transparent via-blue to-transparent h-[2px] w-3/4 mx-auto rounded-full"></span>
+      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-r from-transparent via-blue to-transparent h-[4px] w-3/4 mx-auto blur-sm opacity-100 rounded-full"></span>
+
+      <span className="absolute inset-y-0 left-0 bg-gradient-to-b from-transparent via-blue to-transparent w-[2px] h-3/4 my-auto rounded-full"></span>
+      <span className="absolute inset-y-0 left-0 bg-gradient-to-b from-transparent via-blue to-transparent w-[4px] h-3/4 my-auto blur-sm opacity-100 rounded-full"></span>
+
+      <span className="absolute inset-y-0 right-0 bg-gradient-to-b from-transparent via-blue to-transparent w-[2px] h-3/4 my-auto rounded-full"></span>
+      <span className="absolute inset-y-0 right-0 bg-gradient-to-b from-transparent via-blue to-transparent w-[4px] h-3/4 my-auto blur-sm opacity-100 rounded-full"></span>
 
       {/* Conditional rendering based on device */}
       {isMobile ? renderMobileLayout() : renderDesktopLayout()}

@@ -41,7 +41,7 @@ const NavigationLink = forwardRef<HTMLAnchorElement, NavigationLinkProps>(
         onMouseEnter={e => onMouseEnter && onMouseEnter(e, index)}
         onMouseLeave={e => onMouseLeave && onMouseLeave(e, index)}
         data-nav-index={index}
-        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
       >
         {children}
       </a>

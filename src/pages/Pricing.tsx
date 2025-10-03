@@ -316,7 +316,7 @@ const PricingTier = ({
 
   return (
     <motion.div 
-      className={`p-6 rounded-xl border ${isPopular ? 'border-terracotta shadow-lg' : 'border-gray-200'} bg-white ${className} group cursor-pointer`}
+      className={`p-6 rounded-xl border ${isPopular ? 'border-black shadow-lg' : 'border-gray-200'} bg-white ${className} group cursor-pointer`}
       variants={cardVariants}
       initial="hidden"
       whileInView="visible"
