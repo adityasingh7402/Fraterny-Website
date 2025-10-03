@@ -74,10 +74,10 @@ const FAQ = () => {
       <section className="pt-32 pb-16 bg-navy text-white">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6">
-              Frequently Asked <span className='text-terracotta'>Questions</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair mb-6" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }} >
+              Frequently Asked <span className='text-white' style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Questions</span>
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-gray-300" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}>
               Everything you need to know about the Fraterny experience
             </p>
           </div>
@@ -92,14 +92,14 @@ const FAQ = () => {
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
-                className="border border-gray-200 rounded-lg px-6 py-2 hover:border-terracotta transition-colors"
+                className="border border-gray-200 rounded-lg px-6 py-2 hover:border-black transition-colors"
               >
                 <AccordionTrigger className="hover:no-underline">
-                  <span className="text-left font-medium text-navy hover:text-terracotta transition-colors">
+                  <span className="text-left font-medium text-navy hover:text-black transition-colors" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                     {faq.question}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600">
+                <AccordionContent className="text-gray-600" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -108,14 +108,15 @@ const FAQ = () => {
 
           {/* Contact Information */}
           <div className="mt-16 p-8 bg-gray-50 rounded-lg border border-gray-200">
-            <h2 className="text-2xl font-playfair text-navy mb-6">Still have questions?</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-playfair text-navy mb-6" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Still have questions?</h2>
+            <p className="text-gray-600 mb-6" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
               We're here to help! Reach out to us through any of these channels:
             </p>
             <div className="space-y-4">
               <a 
                 href="mailto:support@fraterny.com" 
-                className="flex items-center gap-3 text-gray-600 hover:text-terracotta transition-colors"
+                className="flex items-center gap-3 text-gray-600 transition-colors"
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 <Mail size={20} />
                 <span>support@fraterny.com</span>
@@ -124,7 +125,8 @@ const FAQ = () => {
                 href="https://wa.me/919004809251" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex items-center gap-3 text-gray-600 hover:text-terracotta transition-colors"
+                className="flex items-center gap-3 text-gray-600 transition-colors"
+                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
               >
                 <Phone size={20} />
                 <span>WhatsApp: +91 9004809251</span>

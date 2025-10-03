@@ -475,7 +475,7 @@ const VillaLabSection = () => {
             href="https://www.instagram.com/join.fraterny/?hl=en" 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="inline-flex items-center text-navy hover:text-terracotta transition-colors group"
+            className="inline-flex items-center text-navy hover:text-black transition-colors group"
           >
             <span className="mr-2">see more</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

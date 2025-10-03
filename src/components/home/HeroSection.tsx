@@ -84,6 +84,7 @@ const HeroSection = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
         >
           Registration Closed
         </motion.span>
