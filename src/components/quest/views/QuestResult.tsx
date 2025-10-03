@@ -529,6 +529,11 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
         // Prevent overscroll issues
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'none',
+        // Prevent dragging/touch manipulation
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        pointerEvents: 'auto'
       }}
     >
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
@@ -579,6 +584,8 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
+            touchAction: 'manipulation',
+            pointerEvents: 'auto'
           }}
           aria-label="New Assessment"
         >
@@ -642,6 +649,11 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
         // Prevent overscroll issues
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'none',
+        // Prevent dragging/touch manipulation
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        pointerEvents: 'auto'
       }}
     >
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
@@ -692,6 +704,8 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 8px 16px rgba(12,69,240,0.20)",
+            touchAction: 'manipulation',
+            pointerEvents: 'auto'
           }}
           aria-label="Share Test"
         >
@@ -1362,6 +1376,11 @@ const PaymentSuccessMessage: React.FC<PaymentSuccessMessageProps> = ({ userId })
         borderTop: `1px solid ${tokens.border}`,
         boxShadow: "0 -6px 18px rgba(10,10,10,0.06)",
         height: CTA_HEIGHT,
+        // Prevent dragging/touch manipulation
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        overscrollBehavior: 'none'
       }}
     >
       <div className="mx-auto flex h-full max-w-[390px] items-center justify-between px-3" style={{ color: tokens.textDark }}>
@@ -1376,6 +1395,8 @@ const PaymentSuccessMessage: React.FC<PaymentSuccessMessageProps> = ({ userId })
           style={{
             background: `linear-gradient(135deg, ${tokens.accent} 0%, ${tokens.accent2} 60%, ${tokens.accent3} 100%)`,
             boxShadow: "0 4px 12px rgba(12,69,240,0.20)",
+            touchAction: 'manipulation',
+            pointerEvents: 'auto'
           }}
         >
           Dashboard
