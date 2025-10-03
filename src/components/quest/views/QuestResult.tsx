@@ -437,15 +437,23 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  const message = "I just completed this personality depth test. Check it out! 🧠";
+
+  const shareContent = `${message}\n\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
+  console.log("Share Content:", shareContent);
   
 
   // Try native share first
   if (navigator.share) {
     try {
       await navigator.share({
-        url: shareUrl
+        // title: "Take the Personality Depth Test",
+        // text: "I just completed this personality depth test. Check it out! 🧠",
+        // url: shareUrl
+        text: shareContent
       });
+      
     } catch (err) {
       // User cancelled share, do nothing
       console.log('Share cancelled or failed:', err);
@@ -453,9 +461,8 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
   } else {
     // Fallback: Copy to clipboard
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      // Show a toast/notification here: "Link copied!"
-      alert('Link copied to clipboard!'); // Replace with your toast component
+      const shareText = `I just completed this personality depth test. Check it out! 🧠\n${shareUrl}`;
+      await navigator.clipboard.writeText(shareText);
     } catch (err) {
       console.error('Copy failed:', err);
     }
@@ -605,14 +612,20 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  const message = "I just completed this personality depth test. Check it out! 🧠";
+
+  const shareContent = `${message}\n\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
-  
+  console.log("Share Content:", shareContent);
 
   // Try native share first
   if (navigator.share) {
     try {
       await navigator.share({
-        url: shareUrl
+        // title: "Take the Personality Depth Test",
+        // text: "I just completed this personality depth test. Check it out! 🧠",
+        // url: shareUrl
+        text: shareContent
       });
     } catch (err) {
       // User cancelled share, do nothing
