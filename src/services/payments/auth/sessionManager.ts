@@ -9,7 +9,8 @@ class SessionManager {
   createPaymentContext(
     originalSessionId: string,
     testId: string,
-    returnUrl?: string
+    returnUrl?: string,
+    selectedGateway?: 'razorpay' | 'paypal'
   ): PaymentContext {
     // Validate inputs
     const sessionValidation = validateSessionId(originalSessionId);
@@ -29,6 +30,7 @@ class SessionManager {
       sessionStartTime: this.getOrCreateSessionStartTime(),
       returnUrl: returnUrl || window.location.href,
       timestamp: Date.now(),
+      selectedGateway: selectedGateway,
     };
 
     // Validate the created context

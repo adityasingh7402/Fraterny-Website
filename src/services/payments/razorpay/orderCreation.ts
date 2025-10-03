@@ -39,16 +39,15 @@ class OrderCreationService {
       // Step 3: Get location flag
       const isIndia = await getUserLocationFlag();
 
-      // Step 4: Choose pricing specifically for Razorpay
-      // IMPORTANT: Razorpay expects smallest unit for the selected currency and, in most setups,
-      // INR only. To avoid 422s from backend validation, force Razorpay pricing to INR.
-      const hardcodedPricing = {
+      // Step 4: Choose pricing based on location
+      const locationBasedPricing = getLocationBasedPricing(isIndia);
+      const pricingForOrder = {
         name: 'regular' as const,
-        amount: PRICING_CONFIG.INDIA.amount, // amount in paise
-        description: PRICING_CONFIG.INDIA.description
+        amount: locationBasedPricing.amount,
+        description: locationBasedPricing.description
       };
 
-      console.log('Razorpay pricing selected:', hardcodedPricing, '(forced INR). User location:', isIndia ? 'India' : 'International');
+      console.log('Razorpay pricing selected:', pricingForOrder, 'User location:', isIndia ? 'India' : 'International');
 
       // Step 5: Create session data first, then update with pricing
       const existingSessionData = sessionManager.getSessionData();
@@ -57,8 +56,8 @@ class OrderCreationService {
         sessionManager.createSessionData(sessionId, testId, false);
       }
 
-      // Now update with hardcoded pricing
-      sessionManager.updateSessionDataWithPricing(hardcodedPricing.name, hardcodedPricing.amount);
+      // Now update with location-based pricing
+      sessionManager.updateSessionDataWithPricing(pricingForOrder.name, pricingForOrder.amount);
 
       // Step 6: Prepare metadata
       const metadata = sessionManager.prepareSessionMetadata();
@@ -76,12 +75,12 @@ class OrderCreationService {
         userId: authResult.user.id,
         fixEmail: email,
         //fixName: authResult.user.full_name || 'User',
-        pricingTier: hardcodedPricing.name,
-        amount: hardcodedPricing.amount,
+        pricingTier: pricingForOrder.name,
+        amount: pricingForOrder.amount,
         sessionStartTime,
         isIndia: isIndia,
         gateway: 'razorpay',
-        currency: RAZORPAY_CONFIG.CURRENCY, // 'INR'
+        currency: isIndia ? 'INR' : 'USD', // Dynamic currency based on location
         metadata: {
           ...metadata,
           authenticationRequired: authResult.needsAuth || false,

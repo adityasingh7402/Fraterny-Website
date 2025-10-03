@@ -146,11 +146,13 @@ export const RAZORPAY_CONFIG = {
 export const PRICING_CONFIG = {
   INDIA: { 
     amount: Number(import.meta.env.VITE_INDIA_PRICE_PAISE),
+    originalAmount: Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE || import.meta.env.VITE_INDIA_PRICE_PAISE * 1.3), // Default to 30% higher if not set
     currency: 'INR',
     description: 'India Pricing' 
   },
   INTERNATIONAL: { 
     amount: Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS),
+    originalAmount: Number(import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS || import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS * 1.25), // Default to 25% higher if not set
     currency: 'USD', 
     description: 'International Pricing'
   }
@@ -233,34 +235,76 @@ export const getPriceForLocation = async () => {
   try {
     const isIndia = await getUserLocationFlag();
     
+    console.log('🌍 getPriceForLocation - Location detected:', { isIndia });
+    console.log('🌍 Environment variables check:', {
+      VITE_INDIA_PRICE_PAISE: import.meta.env.VITE_INDIA_PRICE_PAISE,
+      VITE_INDIA_ORIGINAL_PRICE_PAISE: import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE,
+      VITE_INTERNATIONAL_PRICE_CENTS: import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS,
+      VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS: import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS
+    });
+    
     if (isIndia) {
+      // Get India pricing from environment variables (paise to rupees)
+      const amountInPaise = Number(import.meta.env.VITE_INDIA_PRICE_PAISE) || 95000; // Default 950 rupees
+      const originalAmountInPaise = Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE) || 120000; // Default 1200 rupees
+      
+      const amountInRupees = Math.round(amountInPaise / 100);
+      const originalAmountInRupees = Math.round(originalAmountInPaise / 100);
+      
+      console.log('🇮🇳 India pricing calculated:', {
+        amountInPaise,
+        originalAmountInPaise,
+        amountInRupees,
+        originalAmountInRupees
+      });
+      
       return {
-        main: '₹950',
-        original: '₹1200',
+        main: `₹${amountInRupees}`,
+        original: `₹${originalAmountInRupees}`,
         currency: 'INR',
         symbol: '₹',
-        amount: 950,
+        amount: amountInRupees,
         isIndia: true
       };
     } else {
+      // Get international pricing from environment variables (cents to dollars)
+      const amountInCents = Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS) || 2000; // Default $20
+      const originalAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS) || 2500; // Default $25
+      
+      const amountInDollars = Math.round(amountInCents / 100);
+      const originalAmountInDollars = Math.round(originalAmountInCents / 100);
+      
+      console.log('🌍 International pricing calculated:', {
+        amountInCents,
+        originalAmountInCents,
+        amountInDollars,
+        originalAmountInDollars
+      });
+      
       return {
-        main: '$20',
-        original: '$25', 
+        main: `$${amountInDollars}`,
+        original: `$${originalAmountInDollars}`, 
         currency: 'USD',
         symbol: '$',
-        amount: 20,
+        amount: amountInDollars,
         isIndia: false
       };
     }
   } catch (error) {
     console.error('Error getting location-based price:', error);
-    // Fallback to India pricing
+    // Fallback to India pricing from env or default
+    const fallbackAmountInPaise = Number(import.meta.env.VITE_INDIA_PRICE_PAISE) || 95000;
+    const fallbackOriginalAmountInPaise = Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE) || 120000;
+    
+    const fallbackAmount = Math.round(fallbackAmountInPaise / 100);
+    const fallbackOriginalAmount = Math.round(fallbackOriginalAmountInPaise / 100);
+    
     return {
-      main: '₹950',
-      original: '₹1200',
+      main: `₹${fallbackAmount}`,
+      original: `₹${fallbackOriginalAmount}`,
       currency: 'INR',
       symbol: '₹',
-      amount: 950,
+      amount: fallbackAmount,
       isIndia: true
     };
   }
@@ -320,7 +364,14 @@ export const validateConfig = (): { isValid: boolean; missingVars: string[] } =>
 };
 
 export const getLocationBasedPricing = (isIndia: boolean) => {
-  return isIndia ? PRICING_CONFIG.INDIA : PRICING_CONFIG.INTERNATIONAL;
+  const selectedConfig = isIndia ? PRICING_CONFIG.INDIA : PRICING_CONFIG.INTERNATIONAL;
+  console.log('💰 getLocationBasedPricing:', {
+    isIndia,
+    selectedConfig,
+    PRICING_CONFIG_INDIA: PRICING_CONFIG.INDIA,
+    PRICING_CONFIG_INTERNATIONAL: PRICING_CONFIG.INTERNATIONAL
+  });
+  return selectedConfig;
 };
 
 // Export types for the config
