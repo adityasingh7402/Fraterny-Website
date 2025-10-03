@@ -392,6 +392,10 @@ class PayPalHandlerService {
 
               // Step 2: Complete payment via unified API with PayPal approval data
               // Note: data contains payerID, orderID from PayPal approval
+              // log every data before calling completePayPalPaymentViaAPI
+              console.log('🔍 PayPal approval data:', data);
+              console.log('🔍 Order details:', orderDetails);
+              console.log('🔍 Order data from unified API:', orderData);
               await this.completePayPalPaymentViaAPI(orderData, orderDetails, sessionId, testId, data);
 
               // Track successful payment
@@ -745,6 +749,10 @@ class PayPalHandlerService {
         console.warn('⚠️ Could not get current user, using session ID as fallback');
       }
 
+      // log both orderResponse and paypalOrderData for debugging
+      console.log('🔍 Order response from unified API:', orderResponse);
+      console.log('🔍 PayPal order data:', paypalOrderData);
+
       // Prepare completion data for unified API
       const completionData: PaymentCompletionRequest = {
         userId: userId, // Use current user ID or fallback to session ID
@@ -753,13 +761,14 @@ class PayPalHandlerService {
         paymentSessionId: orderResponse.paymentSessionId,
         gateway: 'paypal', // 🎯 Specify PayPal gateway
         orderid: paypalOrderData.id, // PayPal order ID for backend capture
-        transaction_id: orderResponse.transactionId, // ✅ Add transaction ID from backend
+        transaction_id: orderResponse.transaction_id, // ✅ Add transaction ID from backend
         paymentData: {
           // Map PayPal data to match backend expectations and new validation
           order_id: paypalOrderData.id, // PayPal order ID
           payment_id: paypalOrderData.id, // PayPal order ID  
           paypal_order_id: paypalOrderData.id, // For backend compatibility
           razorpay_signature: "paypal_no_signature", // Placeholder for signature field
+          transaction_id: orderResponse.transaction_id,
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
@@ -780,16 +789,7 @@ class PayPalHandlerService {
       };
 
       // Send completion data to unified API
-      console.log('📡 Sending PayPal completion to unified API:', {
-        userId: completionData.userId,
-        sessionId: completionData.originalSessionId,
-        testId: completionData.testId,
-        paymentSessionId: completionData.paymentSessionId,
-        gateway: completionData.gateway,
-        orderid: completionData.orderid,
-        paymentDataKeys: Object.keys(completionData.paymentData || {}),
-        metadataKeys: Object.keys(completionData.metadata || {})
-      });
+      console.log('📡 Sending PayPal completion to unified API:', completionData);
       
       await paymentApiService.completePayment(completionData);
       console.log('✅ PayPal payment completion sent to unified API successfully');
