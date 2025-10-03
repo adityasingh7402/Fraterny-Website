@@ -1813,7 +1813,7 @@ const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ open, onClose, onDismiss,
                 Rate my Accuracy
               </h3>
               <p className="text-gray-600 font-['Gilroy-Regular'] text-sm">
-                How helpful were these subject recommendations?
+                Do you have any feedback on my accuracy and depth?
               </p>
             </div>
 
@@ -1914,9 +1914,10 @@ interface PDFImageViewerProps {
     quest_status: "generated" | "working" | null;
   } | null;
   onPDFDownload: () => void;
+  pricing: DualGatewayPricingData;
 }
 
-const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnlockClick, paymentStatus, onPDFDownload }) => {
+const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnlockClick, paymentStatus, onPDFDownload, pricing }) => {
   const [zoom, setZoom] = useState(1);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -2047,13 +2048,13 @@ const PDFImageViewer: React.FC<PDFImageViewerProps> = ({ paymentSuccess, onUnloc
         }}>
 
           <div className="relative z-10">
-            {/* Pricing Section */}
+            {/* Pricing Section - Dynamic */}
             <div className="flex items-center justify-center gap-3 mb-2">
               <span className="text-4xl font-['Gilroy-Bold'] text-white">
-                ₹950
+                {pricing.isLoading ? '...' : pricing.razorpay.main}
               </span>
               <span className="text-xl font-['Gilroy-Regular'] line-through text-white/70">
-                ₹1200
+                {pricing.isLoading ? '...' : pricing.razorpay.original}
               </span>
             </div>
 
@@ -2516,8 +2517,9 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
     // If user not authenticated, store payment intent and trigger sign-in
     if (!user?.id) {
       try {
-        // Store payment context using sessionManager
-        sessionManager.createPaymentContext(sessionId, testId);
+        // Store payment context using sessionManager with selected gateway
+        console.log('💳 Storing payment context with gateway:', selectedGateway);
+        sessionManager.createPaymentContext(sessionId, testId, undefined, selectedGateway);
         sessionManager.createSessionData(sessionId, testId, true);
 
         setPaymentLoading(true);
@@ -2687,7 +2689,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       }
     };
 
-    if (sessionId && testId) {
+    if (userId && sessionId && testId) {
       fetchResultData();
     }
   }, [sessionId, userId, testId]);
@@ -2695,6 +2697,15 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   // Add this useEffect to update URL when user signs in
   useEffect(() => {
     const associateDataAndNavigate = async () => {
+      console.log('🔍 Auth state check:', { 
+        userId: user?.id, 
+        urlUserId: userId, 
+        sessionId, 
+        testId,
+        isAnonymous: userId === 'anonymous',
+        hasUser: !!user?.id
+      });
+      
       if (user?.id && userId === 'anonymous' && sessionId && testId) {
         console.log('User authenticated, updating URL from anonymous to:', user.id);
         const userId = user?.id
@@ -2747,6 +2758,9 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       const resumeResult = sessionManager.resumePaymentFlow();
 
       if (resumeResult.canResume) {
+        console.log('🔄 Payment context found:', resumeResult.context);
+        console.log('💳 Original selected gateway:', resumeResult.context?.selectedGateway);
+        
         // Show preparation toast
         toast.info('We are preparing your order...', {
           position: "top-right",
@@ -2759,8 +2773,10 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         setTimeout(async () => {
           setPaymentLoading(true);
           try {
-            // For resume flows, use default Razorpay gateway (TODO: store selected gateway in session)
-            const paymentResult = await unifiedPaymentService.processPayment('razorpay', sessionId, testId);
+            // Use the originally selected gateway from the stored context
+            const gatewayToUse = resumeResult.context?.selectedGateway || 'razorpay';
+            console.log('💳 Resuming payment with gateway:', gatewayToUse);
+            const paymentResult = await unifiedPaymentService.processPayment(gatewayToUse, sessionId, testId);
 
             if (paymentResult.success) {
               toast.success('Payment successful!');
@@ -3348,15 +3364,15 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                   setUpsellOpen(true);
                 }
               }}
-              
+              pricing={pricing}
             />
           </div>
           
-          {/* Footer for PDF section - non-sticky */}
-          <PDFSectionFooter 
+          {/* Footer for PDF section - non-sticky - COMMENTED OUT TO AVOID STICKY CONFLICT */}
+          {/* <PDFSectionFooter 
             percentile={resultData?.pecentile}
             qualityScore={resultData?.qualityscore}
-          />
+          /> */}
         </SectionFrame>
 
 
@@ -3402,28 +3418,26 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
 
       {/* Sticky CTA + Upsell - Hide when in PDF section */}
       {paymentSuccess ? (
-        // Also hide PaymentSuccessMessage in PDF section
-        activeIndex !== 9 && <PaymentSuccessMessage userId={userId} />
+        // Show PaymentSuccessMessage in all sections (fixed sticky conflict)
+        <PaymentSuccessMessage userId={userId} />
       ) : (
-        // Hide StickyCTA when activeIndex is 9 (pdf-report section)
-        activeIndex !== 9 && (
-          <StickyCTA
-            onOpen={() => {
-              if (!paymentSuccess) {
-                // Track PDF unlock CTA click
-                googleAnalytics.trackPdfUnlockCTA({
-                  session_id: sessionId!,
-                  test_id: testId!,
-                  user_state: user?.id ? 'logged_in' : 'anonymous'
-                });
-                setUpsellOpen(true);
-              }
-            }}
-            pricing={pricing}
-            percentile={resultData?.pecentile}
-            qualityScore={resultData?.qualityscore}
-          />
-        )
+        // Show StickyCTA in all sections including PDF (fixed sticky conflict)
+        <StickyCTA
+          onOpen={() => {
+            if (!paymentSuccess) {
+              // Track PDF unlock CTA click
+              googleAnalytics.trackPdfUnlockCTA({
+                session_id: sessionId!,
+                test_id: testId!,
+                user_state: user?.id ? 'logged_in' : 'anonymous'
+              });
+              setUpsellOpen(true);
+            }
+          }}
+          pricing={pricing}
+          percentile={resultData?.pecentile}
+          qualityScore={resultData?.qualityscore}
+        />
       )}
       {!paymentSuccess && (
         <UpsellSheet

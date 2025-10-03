@@ -614,7 +614,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                       </button>
                       
                       {openMenuId === assessment.testid && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-100">
+                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-30 border border-gray-100">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -688,7 +688,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
       {/* Click outside to close menu */}
       {openMenuId && (
         <div 
-          className="fixed inset-0 z-10"
+          className="fixed inset-0 z-[5]"
           onClick={() => setOpenMenuId(null)}
         />
       )}

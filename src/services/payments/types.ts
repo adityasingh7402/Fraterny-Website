@@ -5,6 +5,7 @@ export interface PaymentContext {
   sessionStartTime: string;     // When the original session started
   returnUrl: string;            // Where to return after auth
   timestamp: number;            // When context was stored
+  selectedGateway?: 'razorpay' | 'paypal'; // Gateway user selected before auth
 }
 
 // Pricing related interfaces
