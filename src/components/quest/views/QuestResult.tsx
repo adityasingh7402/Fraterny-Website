@@ -437,15 +437,23 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  const message = "Hey, I just gave the Quest - Personality & Behaviour Analysis test and I think you'll like it too. \n\n Check it out: ";
+
+  const shareContent = `${message}\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
+  console.log("Share Content:", shareContent);
   
 
   // Try native share first
   if (navigator.share) {
     try {
       await navigator.share({
-        url: shareUrl
+        // title: "Take the Personality Depth Test",
+        // text: "I just completed this personality depth test. Check it out! 🧠",
+        // url: shareUrl
+        text: shareContent
       });
+      
     } catch (err) {
       // User cancelled share, do nothing
       console.log('Share cancelled or failed:', err);
@@ -453,9 +461,8 @@ const PDFSectionFooter: React.FC<PDFSectionFooterProps> = ({ percentile, quality
   } else {
     // Fallback: Copy to clipboard
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      // Show a toast/notification here: "Link copied!"
-      alert('Link copied to clipboard!'); // Replace with your toast component
+      const shareText = `I just completed this personality depth test. Check it out! 🧠\n${shareUrl}`;
+      await navigator.clipboard.writeText(shareText);
     } catch (err) {
       console.error('Copy failed:', err);
     }
@@ -612,14 +619,20 @@ const StickyCTA: React.FC<StickyCTAProps> = ({ onOpen, pricing, percentile, qual
     : 'https://fraterny.in';
   
   const shareUrl = `${domain}/quest?utm_source=result&utm_medium=share&utm_campaign=wom`;
+  const message = "Hey, I just gave the Quest - Personality & Behaviour Analysis test and I think you'll like it too. \n\n Check it out: ";
+
+  const shareContent = `${message}\n${shareUrl}`;
   console.log("Share URL:", shareUrl);
-  
+  console.log("Share Content:", shareContent);
 
   // Try native share first
   if (navigator.share) {
     try {
       await navigator.share({
-        url: shareUrl
+        // title: "Take the Personality Depth Test",
+        // text: "I just completed this personality depth test. Check it out! 🧠",
+        // url: shareUrl
+        text: shareContent
       });
     } catch (err) {
       // User cancelled share, do nothing
@@ -2367,7 +2380,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
       try {
         console.log('💰 QuestResult: Loading pricing for both gateways...');
         const unifiedPricingData = await getBothGatewayPricing();
-        console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
+        //console.log('💰 QuestResult: Unified pricing data:', unifiedPricingData);
 
         const newPricing: DualGatewayPricingData = {
           razorpay: {
@@ -2390,7 +2403,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         };
 
         setPricing(newPricing);
-        console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
+        // console.log('✅ QuestResult: Dual gateway pricing updated', newPricing);
       } catch (error) {
         console.error('❌ QuestResult: Failed to load pricing:', error);
         // Keep default pricing on error
@@ -2420,7 +2433,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           );
           
           if (currentAssessment) {
-            console.log('✅ Found current assessment payment status:', currentAssessment);
+            //console.log('✅ Found current assessment payment status:', currentAssessment);
             setAssessmentPaymentStatus({
               ispaymentdone: currentAssessment.ispaymentdone,
               quest_pdf: currentAssessment.quest_pdf,
@@ -2670,7 +2683,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             headers: { 'Content-Type': 'application/json' },
           }
         );
-        console.log('API response:', response.data);
+        //console.log('API response:', response.data);
 
         const analysisData = response.data;
         // console.log('result from the backend:', analysisData)
