@@ -845,6 +845,8 @@ class PayPalHandlerService {
         });
       }
 
+      
+
       console.log('🎉 PayPal payment completion processed successfully via unified API');
 
     } catch (error) {
@@ -941,6 +943,16 @@ class PayPalHandlerService {
 
       if (googleAnalytics.isRedditTraffic()) {
         googleAnalytics.trackRedditConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: orderData.id,
+          amount: pricingData.numericAmount,
+          currency: pricingData.currency
+        });
+      }
+
+      // Track Meta Pixel conversion if user came from Meta (Facebook/Instagram)
+      if (googleAnalytics.isMetaTraffic()) {
+        googleAnalytics.trackMetaPixelPurchase({
           session_id: sessionData.originalSessionId,
           payment_id: orderData.id,
           amount: pricingData.numericAmount,

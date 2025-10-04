@@ -5,6 +5,7 @@ import { useEffect } from 'react'; // Add this import
 import { trackPageView } from '@/services/analytics/tracking'; // Add this import
 import { useLocation } from 'react-router-dom'; // Add this import
 import { trackPageVisit } from '@/services/userJourneyManager';
+import { googleAnalytics } from './services/analytics/googleAnalytics';
 
 // Import providers
 import ReactQueryProvider from './components/providers/ReactQueryProvider';
@@ -17,9 +18,17 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Track page visit for user journey (replaces trackPageView)
-    trackPageVisit(location.pathname, document.title);
-  }, [location.pathname]);
+  // Track page visit for user journey
+  trackPageVisit(location.pathname, document.title);
+  
+  // Track normalized page view for GA4
+  googleAnalytics.trackPageView();
+}, [location.pathname]);
+
+// Track initial page load
+useEffect(() => {
+  googleAnalytics.trackPageView();
+}, []); // Empty dependency array = runs once on mount
 
   return (
     <ReactQueryProvider>

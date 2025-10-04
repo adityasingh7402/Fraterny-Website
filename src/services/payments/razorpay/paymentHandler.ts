@@ -38,6 +38,13 @@ class PaymentHandlerService {
       const orderData = await orderCreationService.createPaymentOrder(sessionId, testId);
       console.log('Order created:', orderData);
 
+      googleAnalytics.trackMetaPixelInitiateCheckout({
+        session_id: sessionId,
+        test_id: testId,
+        amount: orderData.amount / 100,
+        currency: orderData.currency
+      });
+
       // Step 3: Get current user info
       const user = await paymentAuthService.getCurrentUser();
       if (!user) {
@@ -175,6 +182,12 @@ class PaymentHandlerService {
                 session_id: orderData.paymentSessionId,
                 cancel_reason: 'user_dismissed',
                 amount: orderData.amount
+              });
+
+              googleAnalytics.trackMetaPixelPaymentCancelled({
+                session_id: orderData.paymentSessionId,
+                amount: orderData.amount / 100,
+                currency: orderData.currency
               });
               
               resolve({
@@ -317,6 +330,15 @@ class PaymentHandlerService {
       // Track Reddit conversion if user came from Reddit
       if (googleAnalytics.isRedditTraffic()) {
         googleAnalytics.trackRedditConversion({
+          session_id: sessionData.originalSessionId,
+          payment_id: paymentData.razorpay_payment_id,
+          amount: orderData.amount / 100,
+          currency: orderData.currency
+        });
+      }
+
+      if (googleAnalytics.isMetaTraffic()) {
+        googleAnalytics.trackMetaPixelPurchase({
           session_id: sessionData.originalSessionId,
           payment_id: paymentData.razorpay_payment_id,
           amount: orderData.amount / 100,

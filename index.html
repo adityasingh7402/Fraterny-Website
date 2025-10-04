@@ -31,7 +31,9 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '24279099175074291');
-fbq('track', 'PageView');
+fbq('track', 'PageView', {}, {
+  eventID: 'pageview_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+});
 </script>
 <!-- End Meta Pixel Code -->
 
