@@ -384,6 +384,16 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
             currency: 'INR'
           });
         }
+
+        // Track Meta Pixel conversion for dashboard payments
+        if (googleAnalytics.isMetaTraffic()) {
+          googleAnalytics.trackMetaPixelPurchase({
+            session_id: selectedAssessment.sessionid,
+            payment_id: 'dashboard_payment_' + Date.now(),
+            amount: 950, // Use actual dynamic pricing
+            currency: 'INR'
+          });
+        }
         
         // Track Reddit conversion
         if (googleAnalytics.isRedditTraffic()) {

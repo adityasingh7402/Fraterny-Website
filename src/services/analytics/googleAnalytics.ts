@@ -4,10 +4,12 @@
 // ===================================
 
 // Extend Window interface for gtag
+// Declare global types for third-party scripts
 declare global {
   interface Window {
-    dataLayer: any[];
     gtag: (...args: any[]) => void;
+    dataLayer: any[];
+    fbq: (...args: any[]) => void;
   }
 }
 
@@ -59,6 +61,7 @@ class GoogleAnalyticsService {
       window.gtag('config', this.measurementId, {
 
         page_path: this.normalizePagePath(window.location.pathname),
+        send_page_view: false,  
         // Enhanced measurement settings
         enhanced_measurement_settings: {
           scrolls: false, // We'll track quest progress manually
@@ -410,6 +413,19 @@ private normalizePagePath(path: string): string {
   }
 
   /**
+ * Track page view with normalized path
+ */
+trackPageView(): void {
+  const normalizedPath = this.normalizePagePath(window.location.pathname);
+  
+  this.sendEvent('page_view', {
+    page_location: window.location.origin + normalizedPath + window.location.search,
+    page_path: normalizedPath,
+    page_title: document.title
+  });
+}
+
+  /**
    * Get initialization status
    */
   isReady(): boolean {
@@ -426,16 +442,50 @@ private normalizePagePath(path: string): string {
   /**
  * Preserve Google Ads click ID (gclid) for conversion tracking
  */
+// private preserveGclid(): void {
+//   try {
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const gclid = urlParams.get('gclid');
+    
+//     if (gclid) {
+//       // Store gclid in both session and local storage
+//       sessionStorage.setItem('gclid', gclid);
+//       localStorage.setItem('gclid', gclid);
+//       console.log('Google Ads click ID preserved:', gclid);
+//     }
+
+//     // Preserve Reddit source parameters
+//     const utmSource = urlParams.get('utm_source');
+//     const isFromReddit = utmSource?.toLowerCase().includes('reddit') || 
+//                       document.referrer.toLowerCase().includes('reddit');
+
+//     if (isFromReddit) {
+//       sessionStorage.setItem('reddit_source', 'true');
+//       localStorage.setItem('reddit_source', 'true');
+//       console.log('Reddit traffic source preserved');
+//     }
+//   } catch (error) {
+//     console.error('Failed to preserve gclid:', error);
+//   }
+// }
+
 private preserveGclid(): void {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const gclid = urlParams.get('gclid');
-    
+
     if (gclid) {
-      // Store gclid in both session and local storage
       sessionStorage.setItem('gclid', gclid);
       localStorage.setItem('gclid', gclid);
       console.log('Google Ads click ID preserved:', gclid);
+    }
+
+    // Preserve Facebook Click ID (fbclid)
+    const fbclid = urlParams.get('fbclid');
+    if (fbclid) {
+      sessionStorage.setItem('fbclid', fbclid);
+      localStorage.setItem('fbclid', fbclid);
+      console.log('Meta (Facebook) click ID preserved:', fbclid);
     }
 
     // Preserve Reddit source parameters
@@ -448,10 +498,26 @@ private preserveGclid(): void {
       localStorage.setItem('reddit_source', 'true');
       console.log('Reddit traffic source preserved');
     }
+
+    // Preserve Meta (Facebook/Instagram) source parameters
+    const isFromMeta = utmSource?.toLowerCase().includes('facebook') || 
+                       utmSource?.toLowerCase().includes('instagram') ||
+                       utmSource === 'fb' || 
+                       utmSource === 'ig' ||
+                       document.referrer.toLowerCase().includes('facebook') ||
+                       document.referrer.toLowerCase().includes('instagram');
+
+    if (isFromMeta) {
+      sessionStorage.setItem('meta_source', 'true');
+      localStorage.setItem('meta_source', 'true');
+      console.log('Meta traffic source preserved');
+    }
   } catch (error) {
-    console.error('Failed to preserve gclid:', error);
+    console.error('Error preserving click IDs:', error);
   }
 }
+
+
 
 
 /**
@@ -484,6 +550,55 @@ private preserveGclid(): void {
     return false;
   } catch (error) {
     console.error('Error checking Reddit traffic:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if current user came from Meta (Facebook/Instagram) traffic
+ */
+isMetaTraffic(): boolean {
+  try {
+    // Check URL parameters for Facebook Click ID (fbclid)
+    const urlParams = new URLSearchParams(window.location.search);
+    const fbclid = urlParams.get('fbclid');
+    
+    if (fbclid) {
+      return true;
+    }
+    
+    // Check stored fbclid in storage
+    const storedFbclid = sessionStorage.getItem('fbclid') || localStorage.getItem('fbclid');
+    if (storedFbclid) {
+      return true;
+    }
+    
+    // Check URL parameters for Meta UTM sources
+    const utmSource = urlParams.get('utm_source');
+    if (utmSource) {
+      const source = utmSource.toLowerCase();
+      if (source.includes('facebook') || source.includes('instagram') || source === 'fb' || source === 'ig') {
+        return true;
+      }
+    }
+    
+    // Check referrer for Meta domains
+    const referrer = document.referrer.toLowerCase();
+    if (referrer.includes('facebook.com') || 
+        referrer.includes('fb.com') || 
+        referrer.includes('instagram.com')) {
+      return true;
+    }
+    
+    // Check stored platform info
+    const platformInfo = this.getStoredPlatformInfo();
+    if (platformInfo.platform === 'facebook' || platformInfo.platform === 'instagram') {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking Meta traffic:', error);
     return false;
   }
 }
@@ -628,6 +743,111 @@ trackRedditConversion(params: {
     console.log('Reddit conversion tracked successfully');
   } catch (error) {
     console.error('Failed to track Reddit conversion:', error);
+  }
+}
+
+
+/**
+ * Track Meta Pixel conversion (Purchase event)
+ */
+trackMetaPixelPurchase(params: {
+  session_id: string;
+  payment_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  try {
+    // Check if Meta Pixel is loaded
+    if (typeof window.fbq === 'undefined') {
+      console.warn('Meta Pixel not loaded');
+      return;
+    }
+
+    // Track Purchase event with deduplication
+    window.fbq('track', 'Purchase', {
+      value: params.amount,
+      currency: params.currency,
+      content_type: 'product',
+      content_ids: [params.session_id],
+      content_name: 'Quest Assessment Report'
+    }, {
+      eventID: params.payment_id  // Use payment_id as eventID for deduplication
+    });
+    
+    console.log('Meta Pixel Purchase conversion tracked successfully');
+  } catch (error) {
+    console.error('Failed to track Meta Pixel conversion:', error);
+  }
+}
+
+/**
+ * Track Meta Pixel InitiateCheckout event (when payment is initiated)
+ */
+trackMetaPixelInitiateCheckout(params: {
+  session_id: string;
+  test_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  try {
+    // Check if Meta Pixel is loaded
+    if (typeof window.fbq === 'undefined') {
+      console.warn('Meta Pixel not loaded');
+      return;
+    }
+
+    // Generate unique eventID for this checkout initiation
+    const eventID = 'checkout_' + params.session_id + '_' + Date.now();
+
+    // Track InitiateCheckout event with deduplication
+    window.fbq('track', 'InitiateCheckout', {
+      value: params.amount,
+      currency: params.currency,
+      content_type: 'product',
+      content_ids: [params.session_id],
+      content_name: 'Quest Assessment Report'
+    }, {
+      eventID: eventID
+    });
+    
+    console.log('Meta Pixel InitiateCheckout tracked successfully');
+  } catch (error) {
+    console.error('Failed to track Meta Pixel InitiateCheckout:', error);
+  }
+}
+
+
+/**
+ * Track Meta Pixel custom event when payment is cancelled
+ */
+trackMetaPixelPaymentCancelled(params: {
+  session_id: string;
+  amount: number;
+  currency: string;
+}): void {
+  try {
+    // Check if Meta Pixel is loaded
+    if (typeof window.fbq === 'undefined') {
+      console.warn('Meta Pixel not loaded');
+      return;
+    }
+
+    // Generate unique eventID for this cancellation
+    const eventID = 'cancel_' + params.session_id + '_' + Date.now();
+
+    // Track custom event for payment cancellation
+    window.fbq('trackCustom', 'PaymentCancelled', {
+      value: params.amount,
+      currency: params.currency,
+      content_type: 'product',
+      content_ids: [params.session_id]
+    }, {
+      eventID: eventID
+    });
+    
+    console.log('Meta Pixel PaymentCancelled tracked successfully');
+  } catch (error) {
+    console.error('Failed to track Meta Pixel PaymentCancelled:', error);
   }
 }
 
