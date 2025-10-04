@@ -36,6 +36,19 @@ interface PayPalOrderData {
       value: string;
     };
     description: string;
+    payments?: {
+      captures?: Array<{
+        id: string;           // 🎯 PayPal's REAL transaction ID
+        status: string;
+        amount: {
+          currency_code: string;
+          value: string;
+        };
+        final_capture?: boolean;
+        create_time?: string;
+        update_time?: string;
+      }>;
+    };
   }>;
   payer?: {
     email_address?: string;
@@ -752,6 +765,14 @@ class PayPalHandlerService {
       // log both orderResponse and paypalOrderData for debugging
       console.log('🔍 Order response from unified API:', orderResponse);
       console.log('🔍 PayPal order data:', paypalOrderData);
+      
+      // 🎯 CAPTURE PayPal's REAL TRANSACTION ID from the capture response
+      const paypalTransactionId = paypalOrderData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+      console.log('🎯 PayPal Transaction ID captured:', paypalTransactionId);
+      
+      // Use PayPal's transaction ID as the main transaction_id (instead of backend generated)
+      const finalTransactionId = paypalTransactionId || orderResponse.transaction_id;
+      console.log('✅ Using Transaction ID:', finalTransactionId);
 
       // Prepare completion data for unified API
       const completionData: PaymentCompletionRequest = {
@@ -761,14 +782,14 @@ class PayPalHandlerService {
         paymentSessionId: orderResponse.paymentSessionId,
         gateway: 'paypal', // 🎯 Specify PayPal gateway
         orderid: paypalOrderData.id, // PayPal order ID for backend capture
-        transaction_id: orderResponse.transaction_id, // ✅ Add transaction ID from backend
+        transaction_id: finalTransactionId, // 🎯 Use PayPal's REAL transaction ID
         paymentData: {
           // Map PayPal data to match backend expectations and new validation
           order_id: paypalOrderData.id, // PayPal order ID
           payment_id: paypalOrderData.id, // PayPal order ID  
-          paypal_order_id: paypalOrderData.id, // For backend compatibility
+          paypal_order_id: orderResponse.paypalOrderId, // For backend compatibility
           razorpay_signature: "paypal_no_signature", // Placeholder for signature field
-          transaction_id: orderResponse.transaction_id,
+          transaction_id: finalTransactionId, // 🎯 Use PayPal's REAL transaction ID
           amount: orderResponse.amount,
           currency: orderResponse.currency,
           status: 'success',
