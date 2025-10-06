@@ -1,0 +1,23 @@
+/* Desktop Sidebar Styles for Quest Assessment */
+
+/* Info container styling */
+#desktop-info-container {
+  @apply text-sm leading-relaxed;
+}
+
+#desktop-info-container h4 {
+  @apply font-semibold text-base mb-3 text-gray-800;
+}
+
+#desktop-info-container p {
+  @apply text-gray-600 mb-2 last:mb-0;
+}
+
+/* Tags container styling */
+#desktop-tags-container {
+  @apply space-y-2;
+}
+
+#desktop-tags-container .italic {
+  @apply text-center py-4;
+}

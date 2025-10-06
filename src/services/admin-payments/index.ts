@@ -65,7 +65,7 @@ export const fetchPaymentDetails = async (
     if (filters?.searchTerm && filters.searchTerm.trim()) {
       const searchTerm = filters.searchTerm.trim();
       query = query.or(
-        `order_id.ilike.%${searchTerm}%,payment_id.ilike.%${searchTerm}%,session_id.ilike.%${searchTerm}%,testid.ilike.%${searchTerm}%,user_data.email.ilike.%${searchTerm}%,user_data.user_name.ilike.%${searchTerm}%,user_data.mobile_number.ilike.%${searchTerm}%`
+        `order_id.ilike.%${searchTerm}%,payment_id.ilike.%${searchTerm}%,session_id.ilike.%${searchTerm}%,testid.ilike.%${searchTerm}%,transaction_id.ilike.%${searchTerm}%`
       );
     }
 
