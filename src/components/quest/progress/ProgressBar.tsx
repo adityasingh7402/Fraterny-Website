@@ -537,8 +537,8 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
         <div className="w-full px-6">
           {showLabel && (
             <div className="mb-2 text-sm flex justify-between items-center">
-              {/* Section Selector Button with Dropdown */}
-              <div className="relative" ref={dropdownRef}>
+              {/* Section Selector Button with Dropdown - Hide on desktop since we have permanent sidebar */}
+              <div className="lg:hidden relative" ref={dropdownRef}>
                 <button
                   onClick={handleDrawerToggle}
                   className="w-28 min-w-28 h-10 bg-white rounded-[50px] border-[1.50px] border-neutral-400 items-center flex justify-center px-4 hover:bg-gray-50 transition-colors duration-200 group"
@@ -561,6 +561,15 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
                   onClose={() => setIsDrawerOpen(false)}
                   onSectionSelect={handleSectionSelect}
                 />
+              </div>
+              
+              {/* Desktop: Show current section title without dropdown */}
+              <div className="hidden lg:block">
+                <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${
+                  (hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(currentSectionId)) ? 'text-red-600' : 'text-sky-800'
+                }`}>
+                  {currentSection?.title || 'Section'}
+                </div>
               </div>
               
               {/* Question Counter */}

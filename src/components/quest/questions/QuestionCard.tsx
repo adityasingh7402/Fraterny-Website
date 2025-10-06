@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
 import { motion } from 'framer-motion';
 import { useQuestAnimation } from '../animations/useQuestAnimation';
 import { QuestionCardProps } from './types';
@@ -13,6 +14,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { CityAutocomplete } from '../responses/CityAutocomplete';
 import { useQuestionTiming } from '../hooks/useQuestionTiming';
 import { X, Info  } from 'lucide-react';
+import './desktop-sidebar.css';
 
 /**
  * Base question card component
@@ -49,7 +51,7 @@ export function QuestionCard({
   // const [selectedTags, setSelectedTags] = useState<HonestyTag[]>(previousResponse?.tags || []);
   const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<string>(previousResponse?.response || '');
-  const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections } = useQuest();
+  const { trackQuestionView, stopQuestionTracking, session, allQuestions, sections, currentSectionId, changeSection, hasAttemptedFinishWithIncomplete } = useQuest();
   const [showInfo, setShowInfo] = useState(false);
 
    useQuestionTiming(question.id);
@@ -414,6 +416,7 @@ const handleSubmit = (submittedResponse: string) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   const newValue = e.target.value;
+  console.log('⌨️ Input changed:', { newValue, questionId: question.id });
   
   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
     setResponse(newValue.substring(0, maxLength));
@@ -421,17 +424,19 @@ const handleSubmit = (submittedResponse: string) => {
   }
   
   setResponse(newValue);
+  console.log('✅ Response state updated to:', newValue);
 };
 
 
   const handleFormSubmit = (e: React.FormEvent) => {
   e.preventDefault();
-  // console.log('📋 Form submitted!');
-  // console.log('📋 response (text):', response);
-  // console.log('📋 selectedCity at submit:', selectedCity);
+  console.log('📋 Form submitted! Response:', response, 'QuestionID:', question.id);
   
   if (response.trim()) {
+    console.log('✅ Calling handleSubmit with:', response);
     handleSubmit(response);
+  } else {
+    console.log('⚠️ Response is empty, not calling handleSubmit');
   }
 };
   
@@ -461,7 +466,7 @@ const handleSubmit = (submittedResponse: string) => {
     switch (question.type) {
       case 'multiple_choice':
         return (
-          <div className="grid grid-cols-2 gap-1 mb-6">
+          <div className={`grid grid-cols-2 mb-6 ${isDesktop ? 'gap-4 lg:gap-6' : 'gap-1'}`}>
             {question.options?.map((option, index) => {
           const isSelected = currentSelection === option;
           
@@ -472,7 +477,13 @@ const handleSubmit = (submittedResponse: string) => {
                 setCurrentSelection(option);
                 handleSubmit(option);
               }}
-              className={`rounded-lg h-14 text-left pl-3 text-xl font-normal font-['Gilroy-Medium'] border ${index === 4 ? 'col-span-2' : ''}`}
+              whileHover={isDesktop ? { scale: 1.02 } : {}}
+              whileTap={{ scale: 0.98 }}
+              className={`rounded-lg text-left border font-normal font-['Gilroy-Medium'] transition-all duration-200 ${
+                isDesktop 
+                  ? 'h-16 lg:h-20 pl-4 lg:pl-6 text-xl lg:text-2xl hover:shadow-lg' 
+                  : 'h-14 pl-3 text-xl'
+              } ${index === 4 ? 'col-span-2' : ''}`}
               style={{
                 // Background Color Logic
                 backgroundColor: isSelected 
@@ -518,21 +529,23 @@ const handleSubmit = (submittedResponse: string) => {
                       //onToggleAnonymous={() => setIsAnonymousMode(!isAnonymousMode)}
                     />
                     <motion.div 
-                      className="absolute bottom-3 right-3 flex items-center gap-2"
+                      className={`absolute flex items-center gap-2 ${isDesktop ? 'bottom-4 right-4 lg:bottom-6 lg:right-6' : 'bottom-3 right-3'}`}
                     >
                       <motion.button
                         type="button"
                         onClick={() => setIsAnonymousMode(!isAnonymousMode)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                        whileHover={isDesktop ? { scale: 1.1 } : {}}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative inline-flex items-center rounded-full transition-colors focus:outline-none ${
                           isAnonymousMode ? 'bg-gray-950' : 'bg-gray-300'
-                        }`}
+                        } ${isDesktop ? 'h-8 w-14 lg:h-10 lg:w-16' : 'h-6 w-11'}`}
                         data-anonymous-mode={isAnonymousMode}
                         animate={{ backgroundColor: isAnonymousMode ? '#374151' : '#D1D5DB' }}
                         transition={{ duration: 0.2 }}
                       >
                         <motion.span
-                          className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
-                          animate={{ x: isAnonymousMode ? 22 : 2 }}
+                          className={`inline-block transform rounded-full bg-white shadow ${isDesktop ? 'h-6 w-6 lg:h-8 lg:w-8' : 'h-4 w-4'}`}
+                          animate={{ x: isAnonymousMode ? (isDesktop ? 26 : 22) : 2 }}
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />
                       </motion.button>
@@ -551,7 +564,11 @@ const handleSubmit = (submittedResponse: string) => {
                         ? (isAnonymousMode ? "Anonymous mode" : question.placeholder)
                         : (question.placeholder || "Be as honest as you want to be for the best analysis")
                     }
-                    className={`p-3 bg-white rounded-lg border border-zinc-400 resize-y w-full h-52 justify-start text-black text-xl font-normal font-['Gilroy-Medium'] ${
+                    className={`quest-textarea bg-white rounded-lg border border-zinc-400 resize-y w-full justify-start text-black font-normal font-['Gilroy-Medium'] focus:outline-none ${
+                      isDesktop 
+                        ? 'p-4 lg:p-6 h-64 lg:h-80 text-xl lg:text-2xl' 
+                        : 'p-3 h-52 text-xl'
+                    } ${
                       textValidation?.wordStatus === 'error' 
                         ? '' 
                         : 'border-gray-200'
@@ -561,21 +578,23 @@ const handleSubmit = (submittedResponse: string) => {
 
                   {question.allowAnonymous && !question.enableCityAutocomplete && (
                     <motion.div 
-                      className="absolute bottom-3 right-3 flex items-center gap-2"
+                      className={`absolute flex items-center gap-2 ${isDesktop ? 'bottom-4 right-4 lg:bottom-6 lg:right-6' : 'bottom-3 right-3'}`}
                     >
                       <motion.button
                         type="button"
                         onClick={() => setIsAnonymousMode(!isAnonymousMode)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                        whileHover={isDesktop ? { scale: 1.1 } : {}}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative inline-flex items-center rounded-full transition-colors focus:outline-none ${
                           isAnonymousMode ? 'bg-blue-500' : 'bg-gray-300'
-                        }`}
+                        } ${isDesktop ? 'h-8 w-14 lg:h-10 lg:w-16' : 'h-6 w-11'}`}
                         data-anonymous-mode={isAnonymousMode}
                         animate={{ backgroundColor: isAnonymousMode ? '#374151' : '#D1D5DB' }}
                         transition={{ duration: 0.2 }}
                       >
                         <motion.span
-                          className="inline-block h-4 w-4 transform rounded-full bg-white shadow"
-                          animate={{ x: isAnonymousMode ? 22 : 2 }}
+                          className={`inline-block transform rounded-full bg-white shadow ${isDesktop ? 'h-6 w-6 lg:h-8 lg:w-8' : 'h-4 w-4'}`}
+                          animate={{ x: isAnonymousMode ? (isDesktop ? 26 : 22) : 2 }}
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />
                       </motion.button>
@@ -600,13 +619,15 @@ const handleSubmit = (submittedResponse: string) => {
                 )}
 
                 {question.allowTags && showTags && (
-                  <div className="mt-4 mb-3">
-                    <p className="font-normal font-['Gilroy-Medium'] text-gray-600 pb-2"> Want to tag your answer? </p>
-                    <AuthenticityTags 
-                      selectedTags={selectedTags}
-                      onTagSelect={handleTagSelect}
-                      disabled={isAnswered}
-                    />
+                  <div className={`mb-3 ${isDesktop ? 'mt-8 mb-6' : 'mt-4'}`}>
+                    <p className={`font-normal font-['Gilroy-Medium'] text-gray-600 pb-2 ${isDesktop ? 'text-xl lg:text-2xl pb-4' : ''}`}> Want to tag your answer? </p>
+                    <div className={isDesktop ? 'transform scale-110 origin-left' : ''}>
+                      <AuthenticityTags 
+                        selectedTags={selectedTags}
+                        onTagSelect={handleTagSelect}
+                        disabled={isAnswered}
+                      />
+                    </div>
                   </div>
                 )}
                 
@@ -701,6 +722,195 @@ const handleSubmit = (submittedResponse: string) => {
   };
 
   
+  // Detect if we're in desktop layout context - use media query for consistency
+  const [isDesktop, setIsDesktop] = useState(false);
+  
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      const mediaQuery = window.matchMedia('(min-width: 1024px)');
+      setIsDesktop(mediaQuery.matches);
+    };
+    
+    // Check initially
+    checkIsDesktop();
+    
+    // Listen for changes
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handler);
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handler);
+    }
+    
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handler);
+      } else {
+        mediaQuery.removeListener(handler);
+      }
+    };
+  }, []);
+  
+  // Update desktop sidebars when component mounts or data changes
+  useEffect(() => {
+    if (isDesktop) {
+      // Update info sidebar
+      const infoContainer = document.getElementById('desktop-info-container');
+      if (infoContainer && question.infoText) {
+        infoContainer.innerHTML = `
+          <h4 class="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">About this question</h4>
+          <p class="text-sm leading-relaxed">${question.infoText}</p>
+        `;
+      } else if (infoContainer) {
+        infoContainer.innerHTML = `<p class="text-sm text-gray-500 italic">This question helps us better understand your personality and provide more accurate insights.</p>`;
+      }
+      
+      // Update authenticity tags sidebar
+      const tagsContainer = document.getElementById('desktop-tags-container');
+      if (tagsContainer && question.allowTags && showTags) {
+        // Clear previous content
+        tagsContainer.innerHTML = '';
+        
+        // Create a root and render AuthenticityTags component
+        const root = createRoot(tagsContainer);
+        root.render(
+          React.createElement(AuthenticityTags, {
+            selectedTags: selectedTags,
+            onTagSelect: handleTagSelect,
+            disabled: isAnswered
+          })
+        );
+      } else if (tagsContainer) {
+        tagsContainer.innerHTML = `<p class="text-sm text-gray-500 italic">Tag your responses to show your answering style.</p>`;
+      }
+      
+      // Update section drawer sidebar  
+      const drawerContainer = document.getElementById('desktop-section-drawer');
+      if (drawerContainer && sections) {
+        const getSectionColor = (index: number): string => {
+          const colors = [
+            'text-sky-800',    // Section 1
+            'text-red-800',    // Section 2  
+            'text-purple-900', // Section 3
+            'text-lime-700',   // Section 4
+            'text-blue-950'    // Section 5
+          ];
+          return colors[index] || 'text-sky-800';
+        };
+        
+        // Helper function to check if a section has incomplete questions
+        const sectionHasIncompleteQuestions = (sectionId: string): boolean => {
+          if (!session?.responses || !allQuestions) return false;
+          
+          const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
+          return sectionQuestions.some(question => {
+            const response = session?.responses?.[question.id];
+            
+            if (!response) {
+              return true; // No response = incomplete
+            }
+            
+            const responseText = response.response?.trim();
+            if (!responseText || responseText === '') {
+              return true; // Empty response = incomplete
+            }
+            
+            if (responseText === "I preferred not to response for this question") {
+              return true; // Placeholder response = incomplete
+            }
+            
+            // Special handling for anonymous questions
+            if (question.allowAnonymous && (question.id === 'q1_1' || question.id === 'q1_2')) {
+              try {
+                const anonymousData = JSON.parse(responseText);
+                if (anonymousData.isAnonymous === true) {
+                  return false; // Anonymous mode = complete
+                }
+                const fieldName = question.id === 'q1_1' ? 'name' : 'email';
+                const fieldValue = anonymousData[fieldName];
+                if (!fieldValue || fieldValue.trim() === '') {
+                  return true; // No field content = incomplete
+                }
+              } catch (e) {
+                // Treat as regular text response
+              }
+            }
+            
+            // Special handling for location question
+            if (question.id === 'q1_5' && question.allowAnonymous && question.enableCityAutocomplete) {
+              try {
+                const locationData = JSON.parse(responseText);
+                const isAnonymous = locationData.isAnonymous === true;
+                
+                if (isAnonymous) {
+                  const hasDetails = locationData.details && locationData.details.trim() !== '';
+                  return !hasDetails; // No details = incomplete
+                } else {
+                  const hasDetails = locationData.details && locationData.details.trim() !== '';
+                  const hasCity = locationData.selectedCity && locationData.selectedCity.trim() !== '';
+                  return !hasDetails || !hasCity; // Missing either = incomplete
+                }
+              } catch (e) {
+                return true; // Parse error = incomplete
+              }
+            }
+            
+            // Special handling for ranking questions
+            if (question.type === 'ranking') {
+              try {
+                const rankingData = JSON.parse(responseText);
+                const hasRealRanking = rankingData.isUserRanked === true;
+                const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+                return !hasRealRanking && !hasExplanation; // Neither ranking nor explanation = incomplete
+              } catch (e) {
+                return true; // Parse error = incomplete
+              }
+            }
+            
+            return false; // Has real response = complete
+          });
+        };
+        
+        const sectionsHTML = sections.map((section, index) => {
+          const isCurrentSection = section.id === currentSectionId;
+          const colorClass = getSectionColor(index);
+          const separatorHTML = index < sections.length - 1 ? '<div class="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>' : '';
+          const hasIncompleteQuestions = hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id);
+          const redDotHTML = hasIncompleteQuestions ? '<div class="absolute top-1 right-1 w-2 h-2 opacity-60 bg-red-600 rounded-full"></div>' : '';
+          
+          return `
+            <div>
+              <button class="relative w-full px-4 py-2 text-center" data-section-id="${section.id}">
+                <div class="text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}">
+                  ${section.title}
+                </div>
+                ${redDotHTML}
+              </button>
+              ${separatorHTML}
+            </div>
+          `;
+        }).join('');
+        
+        drawerContainer.innerHTML = sectionsHTML;
+        
+        // Add click handlers
+        const buttons = drawerContainer.querySelectorAll('button[data-section-id]');
+        buttons.forEach(button => {
+          button.addEventListener('click', (e) => {
+            const sectionId = (e.currentTarget as HTMLElement).getAttribute('data-section-id');
+            if (sectionId && changeSection) {
+              changeSection(sectionId);
+            }
+          });
+        });
+      }
+    }
+  }, [question.infoText, question.allowTags, showTags, selectedTags, handleTagSelect, isAnswered, isDesktop, sections, currentSectionId, changeSection, hasAttemptedFinishWithIncomplete, session, allQuestions]);
+  
+  
   return (
     <motion.div
       ref={ref}
@@ -710,11 +920,11 @@ const handleSubmit = (submittedResponse: string) => {
       className={`${className}`}
     >      
       {/* Question Text */}
-      <div className="mb-4">
-        <div className="justify-start text-neutral-950 text-2xl font-normal font-['Gilroy-Bold']">
+      <div className={`${isDesktop ? 'mb-8' : 'mb-4'}`}>
+        <div className={`justify-start text-neutral-950 font-normal font-['Gilroy-Bold'] ${isDesktop ? 'text-3xl lg:text-4xl' : 'text-2xl'}`}>
           {question.text}
-          {question.isInfo && (
-          <Info className="inline w-4 h-4 ml-2 text-black cursor-pointer" 
+          {question.isInfo && !isDesktop && (
+          <Info className="inline ml-2 w-4 h-4 text-black cursor-pointer" 
             onClick={() => setShowInfo(true)} />
           )}
         </div>
@@ -726,30 +936,26 @@ const handleSubmit = (submittedResponse: string) => {
 
       
   
-      {/* Info Modal */}
-      {showInfo && (
+      {/* Info Modal - Only show on mobile since desktop has permanent sidebar */}
+      {showInfo && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowInfo(false)} // Add this - closes on backdrop click
+          onClick={() => setShowInfo(false)}
         >
-          <div 
-            className="bg-white rounded-lg max-w-sm w-full p-6 relative"
-            onClick={(e) => e.stopPropagation()} // Add this - prevents closing when clicking inside modal
+          <div className="bg-white rounded-lg w-full max-w-sm relative border border-gray-200 shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button 
               onClick={() => setShowInfo(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             
             {/* Content */}
-            <div className="">
-              {/* <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Question Purpose
-              </h3> */}
-              <p className="text-gray-600 text-sm leading-relaxed">
+            <div>
+              <p className="text-gray-600 leading-relaxed font-['Gilroy-Regular'] text-sm">
                 {question.infoText || "This question helps us better understand your personality and provide more accurate insights."}
               </p>
             </div>
