@@ -1,10 +1,17 @@
+
+
+
+// This is only for demonstration for Aditya. Final version will be create UI/UX by Aditya
+
+
+
 import React, { useState } from 'react';
 import { fetchPaymentDetails } from '@/services/admin-payments';
 import type { PaymentStatus, PaymentFilters, PaginationParams } from '@/services/admin-payments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const PlatformTest: React.FC = () => {
+const AdminQuestPayment: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -243,4 +250,4 @@ const PlatformTest: React.FC = () => {
   );
 };
 
-export default PlatformTest;
+export default AdminQuestPayment;

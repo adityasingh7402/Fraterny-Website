@@ -8,6 +8,7 @@ import ModernLoading from './components/ui/ModernLoading';
 import { HelmetProvider } from 'react-helmet-async';
 import { initializeUserJourney } from '@/services/userJourneyManager';
 import { getUserLocationFlag } from './services/payments/razorpay/config'
+import PlatformTest from './components/PlatformTest';
 
 initializeUserJourney();
 
@@ -48,16 +49,12 @@ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import QuestResult from './components/quest/views/QuestResult';
 
 // ADMIN ROUTES - Heavily lazy loaded and chunk-separated
-// const Dashboard = lazy(() => import('./pages/admin/dashboard'));
-// const AdminBlog = lazy(() => import('./pages/admin/blog'));
-// const Analytics = lazy(() => import('./pages/admin/Analytics'));
-// const AdminImages = lazy(() => import('./pages/admin/images'));
-// const NewsletterSubscribers = lazy(() => import('./pages/admin/NewsletterSubscribers'));
 import Dashboard from './pages/admin/dashboard';
 import AdminBlog from './pages/admin/blog';
 import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
+import AdminQuestPayment from './pages/admin/payments/AdminQuestPayment';
 
 // PROFILE ROUTES - Lazy loaded with optimized chunks
 const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
@@ -158,6 +155,9 @@ const router = createBrowserRouter([
       { path: 'blog/:slug', element: <BlogPost /> },
 
 
+      // testing route
+      { path: 'test', element: <PlatformTest /> },
+
       // QUEST ROUTES - Lazy loaded with custom loading
       { path: 'assessment', element: createSuspenseWrapper(QuestLoading)(<QuestRoute />) },
       { path: 'quest-result/*', element: <QuestResultRoute /> },
@@ -193,6 +193,7 @@ const router = createBrowserRouter([
           { path: 'analytics', element: createSuspenseWrapper(AdminLoading)(<Analytics />) },
           { path: 'images', element: createSuspenseWrapper(AdminLoading)(<AdminImages />) },
           { path: 'newsletter', element: createSuspenseWrapper(AdminLoading)(<NewsletterSubscribers />) },
+          { path: 'quest-payment', element: createSuspenseWrapper(AdminLoading)(<AdminQuestPayment />) },
         ],
       },
     ],

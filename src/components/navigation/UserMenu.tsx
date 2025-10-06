@@ -23,6 +23,7 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },
     { name: 'Newsletter', href: '/admin/newsletter' },
+    { name: 'Quest Payment', href: '/admin/quest-payment' },
   ];
 
   const handleSignOut = async () => {
