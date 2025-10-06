@@ -202,6 +202,320 @@ export type Database = {
           }
         ]
       }
+      transaction_details: {
+        Row: {
+          id: number
+          total_discount: number | null
+          coupon: string | null
+          total_paid: number | null
+          date: string | null
+          order_id: string | null
+          status: string | null
+          session_id: string | null
+          user_id: string | null
+          testid: string | null
+          payment_session_id: string | null
+          payment_id: string | null
+          session_duration: string | null
+          session_start_time: string | null
+          payment_completed_time: string | null
+          IsIndia: boolean | null
+          gateway: string | null
+          paypal_order_id: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          id?: number
+          total_discount?: number | null
+          coupon?: string | null
+          total_paid?: number | null
+          date?: string | null
+          order_id?: string | null
+          status?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          testid?: string | null
+          payment_session_id?: string | null
+          payment_id?: string | null
+          session_duration?: string | null
+          session_start_time?: string | null
+          payment_completed_time?: string | null
+          IsIndia?: boolean | null
+          gateway?: string | null
+          paypal_order_id?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          id?: number
+          total_discount?: number | null
+          coupon?: string | null
+          total_paid?: number | null
+          date?: string | null
+          order_id?: string | null
+          status?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          testid?: string | null
+          payment_session_id?: string | null
+          payment_id?: string | null
+          session_duration?: string | null
+          session_start_time?: string | null
+          payment_completed_time?: string | null
+          IsIndia?: boolean | null
+          gateway?: string | null
+          paypal_order_id?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_details_testid_fkey"
+            columns: ["testid"]
+            isOneToOne: false
+            referencedRelation: "summary_generation"
+            referencedColumns: ["testid"]
+          },
+          {
+            foreignKeyName: "transaction_details_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_data"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
+      user_data: {
+        Row: {
+          user_name: string
+          email: string
+          dob: string | null
+          mobile_number: string | null
+          city: string | null
+          total_summary_generation: number | null
+          total_paid_generation: number | null
+          last_used: string | null
+          is_anonymous: string | null
+          user_id: string
+          gender: string | null
+        }
+        Insert: {
+          user_name?: string
+          email?: string
+          dob?: string | null
+          mobile_number?: string | null
+          city?: string | null
+          total_summary_generation?: number | null
+          total_paid_generation?: number | null
+          last_used?: string | null
+          is_anonymous?: string | null
+          user_id: string
+          gender?: string | null
+        }
+        Update: {
+          user_name?: string
+          email?: string
+          dob?: string | null
+          mobile_number?: string | null
+          city?: string | null
+          total_summary_generation?: number | null
+          total_paid_generation?: number | null
+          last_used?: string | null
+          is_anonymous?: string | null
+          user_id?: string
+          gender?: string | null
+        }
+        Relationships: []
+      }
+      summary_generation: {
+        Row: {
+          id: number
+          user_id: string | null
+          starting_time: string | null
+          question_answer: string | null
+          summary_response: string | null
+          device_type: string | null
+          device_browser: string | null
+          operating_system: string | null
+          completion_time: string | null
+          complete_duration: string | null
+          q1_5: string | null
+          q2_1: string | null
+          q2_2: string | null
+          q2_3: string | null
+          q3_1: string | null
+          q3_2: string | null
+          q3_3: string | null
+          q3_4: string | null
+          q3_5: string | null
+          q3_6: string | null
+          q4_1: string | null
+          q4_2: string | null
+          q4_3: string | null
+          q4_4: string | null
+          q5_1: string | null
+          q5_2: string | null
+          q5_3: string | null
+          session_id: string | null
+          testid: string | null
+          quest_pdf: string | null
+          payment_status: string | null
+          paid_generation_time: string | null
+          summary_error: string | null
+          quest_error: string | null
+          quest_status: string | null
+          brain_mapping: string | null
+          future_compass: string | null
+          content_output: string | null
+          q1_1: string | null
+          q1_3: string | null
+          q1_4: string | null
+          q1_2: string | null
+          thought: string | null
+          agent_start_time: string | null
+          agent_completion_time: string | null
+          total_time_taken_by_agent: number | null
+          status: string | null
+          url: string | null
+          qualityscore: string | null
+          AQI: number | null
+          pdf_attempt: number | null
+          paid_agent_start_time: string | null
+          paid_agent_complete_time: string | null
+          paid_agent_time: number | null
+          ip_address: string | null
+          device_fingerprint: string | null
+          perecentile: string | null
+          Archetype: string | null
+        }
+        Insert: {
+          id?: number
+          user_id?: string | null
+          starting_time?: string | null
+          question_answer?: string | null
+          summary_response?: string | null
+          device_type?: string | null
+          device_browser?: string | null
+          operating_system?: string | null
+          completion_time?: string | null
+          complete_duration?: string | null
+          q1_5?: string | null
+          q2_1?: string | null
+          q2_2?: string | null
+          q2_3?: string | null
+          q3_1?: string | null
+          q3_2?: string | null
+          q3_3?: string | null
+          q3_4?: string | null
+          q3_5?: string | null
+          q3_6?: string | null
+          q4_1?: string | null
+          q4_2?: string | null
+          q4_3?: string | null
+          q4_4?: string | null
+          q5_1?: string | null
+          q5_2?: string | null
+          q5_3?: string | null
+          session_id?: string | null
+          testid?: string | null
+          quest_pdf?: string | null
+          payment_status?: string | null
+          paid_generation_time?: string | null
+          summary_error?: string | null
+          quest_error?: string | null
+          quest_status?: string | null
+          brain_mapping?: string | null
+          future_compass?: string | null
+          content_output?: string | null
+          q1_1?: string | null
+          q1_3?: string | null
+          q1_4?: string | null
+          q1_2?: string | null
+          thought?: string | null
+          agent_start_time?: string | null
+          agent_completion_time?: string | null
+          total_time_taken_by_agent?: number | null
+          status?: string | null
+          url?: string | null
+          qualityscore?: string | null
+          AQI?: number | null
+          pdf_attempt?: number | null
+          paid_agent_start_time?: string | null
+          paid_agent_complete_time?: string | null
+          paid_agent_time?: number | null
+          ip_address?: string | null
+          device_fingerprint?: string | null
+          perecentile?: string | null
+          Archetype?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string | null
+          starting_time?: string | null
+          question_answer?: string | null
+          summary_response?: string | null
+          device_type?: string | null
+          device_browser?: string | null
+          operating_system?: string | null
+          completion_time?: string | null
+          complete_duration?: string | null
+          q1_5?: string | null
+          q2_1?: string | null
+          q2_2?: string | null
+          q2_3?: string | null
+          q3_1?: string | null
+          q3_2?: string | null
+          q3_3?: string | null
+          q3_4?: string | null
+          q3_5?: string | null
+          q3_6?: string | null
+          q4_1?: string | null
+          q4_2?: string | null
+          q4_3?: string | null
+          q4_4?: string | null
+          q5_1?: string | null
+          q5_2?: string | null
+          q5_3?: string | null
+          session_id?: string | null
+          testid?: string | null
+          quest_pdf?: string | null
+          payment_status?: string | null
+          paid_generation_time?: string | null
+          summary_error?: string | null
+          quest_error?: string | null
+          quest_status?: string | null
+          brain_mapping?: string | null
+          future_compass?: string | null
+          content_output?: string | null
+          q1_1?: string | null
+          q1_3?: string | null
+          q1_4?: string | null
+          q1_2?: string | null
+          thought?: string | null
+          agent_start_time?: string | null
+          agent_completion_time?: string | null
+          total_time_taken_by_agent?: number | null
+          status?: string | null
+          url?: string | null
+          qualityscore?: string | null
+          AQI?: number | null
+          pdf_attempt?: number | null
+          paid_agent_start_time?: string | null
+          paid_agent_complete_time?: string | null
+          paid_agent_time?: number | null
+          ip_address?: string | null
+          device_fingerprint?: string | null
+          perecentile?: string | null
+          Archetype?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "summary_generation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_data"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
