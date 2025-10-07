@@ -6,54 +6,54 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 // Peer profiles data
 const peers = [
   { 
-    title: "The Visionary", 
+    title: "The Strategist", 
     dynamicKey: "tribe-visionary",
-    description: "Sees possibilities others don't",
+    description: "Think, speed, structure, scale.",
     imageSrc: {
       mobile: "/images/tribe/visionary-mobile.webp",
       desktop: "/images/tribe/visionary-desktop.webp"
     }
   },
   { 
-    title: "The Hustler", 
+    title: "The Hidden Thinker", 
     dynamicKey: "tribe-hustler",
-    description: "Gets things done, period",
+    description: "Move with evidence, not ego.",
     imageSrc: {
       mobile: "/images/tribe/hustler-mobile.webp",
       desktop: "/images/tribe/hustler-desktop.webp"
     }
   },
   { 
-    title: "The Workaholic", 
+    title: "The Restless Mind", 
     dynamicKey: "tribe-workaholic",
-    description: "Lives and breathes excellence",
+    description: "Overflowing with ideas",
     imageSrc: {
       mobile: "/images/tribe/workaholic-mobile.webp",
       desktop: "/images/tribe/workaholic-desktop.webp"
     }
   },
   { 
-    title: "The Experienced", 
+    title: "The Soul-Aligned", 
     dynamicKey: "tribe-experienced",
-    description: "Been there, done that",
+    description: "Meaning-driven, vibe-tuning, purpose-focused",
     imageSrc: {
       mobile: "/images/tribe/experienced-mobile.webp",
       desktop: "/images/tribe/experienced-desktop.webp"
     }
   },
   { 
-    title: "The Optimist", 
+    title: "The Healing Heart", 
     dynamicKey: "tribe-optimist",
-    description: "Finds silver linings",
+    description: "Protect calm and create safety",
     imageSrc: {
       mobile: "/images/tribe/optimist-mobile.webp",
       desktop: "/images/tribe/optimist-desktop.webp"
     }
   },
   { 
-    title: "The Guardian", 
+    title: "The Free Spirit", 
     dynamicKey: "tribe-guardian",
-    description: "Keeps the ship steady",
+    description: "Creative, curious, and nonlinear.",
     imageSrc: {
       mobile: "/images/tribe/guardian-mobile.webp",
       desktop: "/images/tribe/guardian-desktop.webp"
@@ -148,7 +148,7 @@ const TribeSection = () => {
             variants={titleAnimation.childVariants}
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Your Tribe Awaits
+            Upgrade your Mask
           </motion.h2>
         </motion.div>
         
