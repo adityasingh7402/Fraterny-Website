@@ -31,7 +31,7 @@ export type PaymentFilters = {
   searchTerm?: string;
   dateFrom?: string;
   dateTo?: string;
-  gateway?: 'razorpay' | 'paypal' | null;
+  gateway?: 'Razorpay' | 'paypal' | null;
   isIndia?: boolean | null;
   minAmount?: number | null;
   maxAmount?: number | null;
