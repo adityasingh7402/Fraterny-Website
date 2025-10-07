@@ -16,7 +16,7 @@ const PlatformTest: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [gateway, setGateway] = useState<'razorpay' | 'paypal' | ''>('');
+  const [gateway, setGateway] = useState<'Razorpay' | 'paypal' | ''>('');
   const [isIndia, setIsIndia] = useState<boolean | null>(null);
 
   const runTest = async () => {
@@ -143,11 +143,11 @@ const PlatformTest: React.FC = () => {
               <label className="block text-sm font-medium mb-2">Gateway</label>
               <select
                 value={gateway}
-                onChange={(e) => setGateway(e.target.value as 'razorpay' | 'paypal' | '')}
+                onChange={(e) => setGateway(e.target.value as 'Razorpay' | 'paypal' | '')}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
               >
                 <option value="">All</option>
-                <option value="razorpay">Razorpay</option>
+                <option value="Razorpay">Razorpay</option>
                 <option value="paypal">PayPal</option>
               </select>
             </div>

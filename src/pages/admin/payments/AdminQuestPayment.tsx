@@ -14,7 +14,7 @@ const formatCurrency = (amount: number | string | null, gateway: string | null, 
   if (gateway === 'paypal') {
     // PayPal always shows dollar sign regardless of location
     return `$${numericAmount}`;
-  } else if (gateway === 'razorpay') {
+  } else if (gateway === 'Razorpay') {
     // Razorpay: India = ₹, International = $
     return isIndia === true ? `₹${numericAmount}` : `$${numericAmount}`;
   } else {
@@ -38,7 +38,7 @@ const AdminQuestPayment: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [gateway, setGateway] = useState<'razorpay' | 'paypal' | ''>('');
+  const [gateway, setGateway] = useState<'Razorpay' | 'paypal' | ''>('');
   const [isIndia, setIsIndia] = useState<boolean | null>(null);
   
   // Refund popup state
@@ -356,11 +356,11 @@ const AdminQuestPayment: React.FC = () => {
                   <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Gateway</p>
                   <select
                     value={gateway}
-                    onChange={(e) => setGateway(e.target.value as 'razorpay' | 'paypal' | '')}
+                    onChange={(e) => setGateway(e.target.value as 'Razorpay' | 'paypal' | '')}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">All Gateways</option>
-                    <option value="razorpay">Razorpay</option>
+                    <option value="Razorpay">Razorpay</option>
                     <option value="paypal">PayPal</option>
                   </select>
                 </label>
@@ -531,13 +531,13 @@ const AdminQuestPayment: React.FC = () => {
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-600">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
-                                  transaction.gateway === 'razorpay' 
+                                  transaction.gateway === 'Razorpay' 
                                     ? 'bg-blue-100 text-blue-800' 
                                     : transaction.gateway === 'paypal' 
                                     ? 'bg-purple-100 text-purple-800' 
                                     : 'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {transaction.gateway === 'razorpay' ? 'Razorpay' : transaction.gateway === 'paypal' ? 'PayPal' : 'Other'}
+                                  {transaction.gateway === 'Razorpay' ? 'Razorpay' : transaction.gateway === 'paypal' ? 'PayPal' : 'Other'}
                                 </span>
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-600">
@@ -898,13 +898,13 @@ const AdminQuestPayment: React.FC = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-600">Gateway</p>
                           <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            selectedTransactionDetails.gateway === 'razorpay' 
+                            selectedTransactionDetails.gateway === 'Razorpay' 
                               ? 'bg-blue-100 text-blue-800' 
                               : selectedTransactionDetails.gateway === 'paypal' 
                               ? 'bg-purple-100 text-purple-800' 
                               : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {selectedTransactionDetails.gateway === 'razorpay' ? 'Razorpay' : selectedTransactionDetails.gateway === 'paypal' ? 'PayPal' : 'Other'}
+                            {selectedTransactionDetails.gateway === 'Razorpay' ? 'Razorpay' : selectedTransactionDetails.gateway === 'paypal' ? 'PayPal' : 'Other'}
                           </span>
                         </div>
                         <div>
