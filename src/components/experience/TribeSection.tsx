@@ -6,27 +6,27 @@ import ResponsiveImage from '../ui/ResponsiveImage';
 // Peer profiles data
 const peers = [
   { 
-    title: "The Strategist", 
+    title: "The Strategists", 
     dynamicKey: "tribe-visionary",
-    description: "Think, speed, structure, scale.",
+    description: "Think Speed, Structure, Scale",
     imageSrc: {
       mobile: "/images/tribe/visionary-mobile.webp",
       desktop: "/images/tribe/visionary-desktop.webp"
     }
   },
   { 
-    title: "The Hidden Thinker", 
+    title: "The Hidden Thinkers", 
     dynamicKey: "tribe-hustler",
-    description: "Move with evidence, not ego.",
+    description: "Move with Evidence",
     imageSrc: {
       mobile: "/images/tribe/hustler-mobile.webp",
       desktop: "/images/tribe/hustler-desktop.webp"
     }
   },
   { 
-    title: "The Restless Mind", 
+    title: "The Restless Minds", 
     dynamicKey: "tribe-workaholic",
-    description: "Overflowing with ideas",
+    description: "Overflowing with Ideas",
     imageSrc: {
       mobile: "/images/tribe/workaholic-mobile.webp",
       desktop: "/images/tribe/workaholic-desktop.webp"
@@ -35,23 +35,23 @@ const peers = [
   { 
     title: "The Soul-Aligned", 
     dynamicKey: "tribe-experienced",
-    description: "Meaning-driven, vibe-tuning, purpose-focused",
+    description: "Meaning-driven, Vibe-tuning, Purpose-focused",
     imageSrc: {
       mobile: "/images/tribe/experienced-mobile.webp",
       desktop: "/images/tribe/experienced-desktop.webp"
     }
   },
   { 
-    title: "The Healing Heart", 
+    title: "The Healing Hearts", 
     dynamicKey: "tribe-optimist",
-    description: "Protect calm and create safety",
+    description: "Protect Calm and Safety",
     imageSrc: {
       mobile: "/images/tribe/optimist-mobile.webp",
       desktop: "/images/tribe/optimist-desktop.webp"
     }
   },
   { 
-    title: "The Free Spirit", 
+    title: "The Free Spirits", 
     dynamicKey: "tribe-guardian",
     description: "Creative, curious, and nonlinear.",
     imageSrc: {
@@ -148,7 +148,7 @@ const TribeSection = () => {
             variants={titleAnimation.childVariants}
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Upgrade your Mask
+            Play Your Ideal Archetype
           </motion.h2>
         </motion.div>
         
@@ -301,7 +301,7 @@ const TribeSection = () => {
             variants={taglineAnimation.childVariants}
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Divided by Circumstance, United by Fraterny
+            Divided by Masks, United by Fraterny
           </motion.p>
         </motion.div>
       </div>

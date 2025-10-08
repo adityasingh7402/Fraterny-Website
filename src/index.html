@@ -32,7 +32,9 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'AW-17510888941');
+      gtag('config', 'AW-17510888941', {
+        send_page_view: false  // Prevent automatic page view tracking
+      });
     </script>
 
     <!-- Meta Pixel Code -->
