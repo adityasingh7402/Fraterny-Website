@@ -10,6 +10,7 @@ import { initializeUserJourney } from '@/services/userJourneyManager';
 import { getUserLocationFlag } from './services/payments/razorpay/config'
 import PlatformTest from './components/PlatformTest';
 
+
 initializeUserJourney();
 
 // Initialize platform detection immediately when the app loads
