@@ -115,6 +115,9 @@ export const fetchPaymentDetails = async (
     // Calculate pagination metadata
     const totalRecords = count || 0;
     const totalPages = Math.ceil(totalRecords / pageSize);
+    
+    // Ensure we return exactly the requested page size or less (for last page)
+    const transactions = data ? data.slice(0, pageSize) : [];
 
     const paginationMeta: PaginationMeta = {
       currentPage: page,
@@ -126,7 +129,7 @@ export const fetchPaymentDetails = async (
     return {
       success: true,
       data: {
-        transactions: (data as EnrichedTransaction[]) || [],
+        transactions: (transactions as EnrichedTransaction[]) || [],
         pagination: paginationMeta,
       },
       error: null,
@@ -151,7 +154,7 @@ export const fetchPaymentDetails = async (
  *     searchTerm: 'john@example.com',
  *     dateFrom: '2025-01-01',
  *     dateTo: '2025-01-31',
- *     gateway: 'razorpay',
+ *     gateway: 'Razorpay',
  *     isIndia: true,
  *     minAmount: 500,
  *     maxAmount: 1000
@@ -180,7 +183,7 @@ export const fetchPaymentDetails = async (
  *         session_start_time: "2025-01-15T10:00:00Z",
  *         payment_completed_time: "2025-01-15T10:45:00Z",
  *         IsIndia: true,
- *         gateway: "razorpay",
+ *         gateway: "Razorpay",
  *         paypal_order_id: null,
  *         transaction_id: "txn_112233",
  *         user_data: {
