@@ -13,6 +13,7 @@ export interface Archetype {
 
 export interface Cluster {
   name: string;
+  img: string,
   blurb: string;
   archetypes: Archetype[];
 }
@@ -36,6 +37,7 @@ export const clusterBlurbs = {
 export const clusters: Cluster[] = [
   {
     name: "The Strategists",
+    img: '/9.png',
     blurb: "You like things that make sense. You compare options, pick the one that actually helps, and keep going. Around you, people feel calmer because there's a path instead of noise. At your best you're clear and steady; on tough days you can get a bit rigid—pausing to check in with people softens the edges.",
     archetypes: [
       {
@@ -90,6 +92,7 @@ export const clusters: Cluster[] = [
   },
   {
     name: "The Hidden Thinkers",
+    img: '/10.png',
     blurb: "You think before you speak and prefer to get it right. Evidence and craft matter to you, even if it means moving slower. People experience you as thoughtful and grounded. Your gift is depth; your watch-out is hiding too long—sharing a little earlier lets others meet you halfway.",
     archetypes: [
       {
@@ -136,6 +139,7 @@ export const clusters: Cluster[] = [
   },
   {
     name: "The Free Spirits",
+    img: '/8.png',
     blurb: "You move when something feels alive. You try things, remix them your way, and bring lightness when the mood is heavy. Folks around you remember that life can be playful and still meaningful. Finishing small pieces and checking your timing keeps your spark from scattering.",
     archetypes: [
       {
@@ -182,6 +186,7 @@ export const clusters: Cluster[] = [
   },
   {
     name: "The Restless Minds",
+    img: '/7.png',
     blurb: "Your head holds ten ideas at once. That can be exciting—or exhausting. What helps is shrinking the next step, closing a few tabs (literal or mental), and doing one gentle thing now. Your talent is turning \"too much\" into motion; just remember to choose before you collect more.",
     archetypes: [
       {
@@ -228,6 +233,7 @@ export const clusters: Cluster[] = [
   },
   {
     name: "The Healing Hearts",
+    img: '/11.png',
     blurb: "You make rooms feel safer. You listen well, name what's real, and use small rituals—water, sunlight, a text—to bring people back to center. Clear boundaries protect your care so it lasts. Hope with edges is your superpower.",
     archetypes: [
       {
@@ -274,6 +280,7 @@ export const clusters: Cluster[] = [
   },
   {
     name: "The Soul-Aligned",
+    img: '/12.png',
     blurb: "You sense what a space needs and help it land. You can name feelings without blame, invite honesty, and line up actions with values. Being around you often feels like an exhale, then a gentle nudge forward. Just watch that tuning the vibe doesn't replace making the move.",
     archetypes: [
       {
