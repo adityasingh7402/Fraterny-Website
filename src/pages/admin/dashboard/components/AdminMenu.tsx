@@ -39,12 +39,6 @@ const AdminMenu = () => {
       title: 'Summary Management',
       description: 'Manage summary generations and tests',
       link: '/admin/summaries'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Feedback Management',
-      description: 'View and manage user feedback',
-      link: '/admin/feedback'
     }
   ];
 

@@ -209,7 +209,6 @@ const MobileMenu = ({
     { name: 'Newsletter', href: '/admin/newsletter' },
     { name: 'User Management', href: '/admin/users' },
     { name: 'Summary Management', href: '/admin/summaries' },
-    { name: 'Feedback Management', href: '/admin/feedback' },
   ];
 
   // Animation variants - keeping from Navigation 2
