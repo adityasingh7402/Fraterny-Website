@@ -148,7 +148,7 @@ const TribeSection = () => {
             variants={titleAnimation.childVariants}
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Play your Ideal Self
+            Play Your Ideal Archetype
           </motion.h2>
         </motion.div>
         
