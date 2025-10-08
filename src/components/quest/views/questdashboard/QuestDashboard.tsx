@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, Home, FileText, CreditCard, Lightbulb, TrendingUp, User, Calendar, ExternalLink, LogOut, Plus, X, Brain, Unlock, LayoutDashboard, HelpCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
@@ -11,6 +11,7 @@ import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../../services/analytics/googleAnalytics';
 import { getUserLocationFlag } from '../../../../services/payments/razorpay/config';
 import { AnalyzeSidebar } from '../../../quest-landing/sections/AnalyzeSidebar';
+import { clusters, Archetype, Cluster } from '../../../archeotype/archeotype';
 
 interface MenuItemConfig {
   id: string;
@@ -124,6 +125,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [navigationLoading, setNavigationLoading] = useState<string | null>(null);
   const [currentFunFact, setCurrentFunFact] = useState<string>('');
+  const [archetypeData, setArchetypeData] = useState<{ cluster: Cluster; archetype: Archetype } | null>(null);
+  const [archetypeLoading, setArchetypeLoading] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const contextCardsRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -231,6 +236,73 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     const randomIndex = Math.floor(Math.random() * FUN_FACTS.length);
     setCurrentFunFact(FUN_FACTS[randomIndex]);
   }, []);
+
+  // Fetch archetype data from latest assessment
+  useEffect(() => {
+    const fetchArchetypeData = async () => {
+      const latestAssessment = getLatestAssessment();
+      if (!latestAssessment) {
+        setArchetypeLoading(false);
+        return;
+      }
+
+      try {
+        setArchetypeLoading(true);
+        // Fetch the result data to get the archetype name
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/report/${latestAssessment.userid}/${latestAssessment.sessionid}/${latestAssessment.testid}`
+        );
+
+        let resultsData = response.data.results;
+        if (typeof resultsData === 'string') {
+          resultsData = JSON.parse(resultsData);
+        }
+
+        const archetypeName = resultsData?.['Mind Card']?.personality_type || resultsData?.['Mind Card']?.name;
+        
+        if (archetypeName) {
+          // Find the archetype in clusters
+          for (const cluster of clusters) {
+            const foundArchetype = cluster.archetypes.find(
+              arch => arch.name.toLowerCase() === archetypeName.toLowerCase()
+            );
+            if (foundArchetype) {
+              setArchetypeData({ cluster, archetype: foundArchetype });
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch archetype data:', error);
+      } finally {
+        setArchetypeLoading(false);
+      }
+    };
+
+    if (data.length > 0) {
+      fetchArchetypeData();
+    }
+  }, [data]);
+
+  // Handle context cards scroll animation
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!contextCardsRef.current) return;
+      const scrollLeft = contextCardsRef.current.scrollLeft;
+      const cardWidth = contextCardsRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / cardWidth);
+      console.log('Scroll position:', scrollLeft, 'Card width:', cardWidth, 'New index:', newIndex);
+      setCurrentCardIndex(newIndex);
+    };
+
+    const cardsElement = contextCardsRef.current;
+    if (cardsElement) {
+      cardsElement.addEventListener('scroll', handleScroll, { passive: true });
+      // Set initial index
+      handleScroll();
+      return () => cardsElement.removeEventListener('scroll', handleScroll);
+    }
+  }, [archetypeData]);
 
   // Handle download actions
   const handleFreeReport = (testData: DashboardTest) => {
@@ -573,105 +645,319 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       />
 
       {/* Main Content */}
-      <main className="px-6 -mt-8 relative z-10">
-        {/* Assessment Journeys Card */}
-        <div className="bg-white rounded-xl shadow-md p-4 mb-8">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-['Gilroy-Bold'] text-gray-800">Your Assessment Journeys</h3>
-            {/* <button
-              onClick={() => data.length > 0 ? handleFreeReport(getLatestAssessment()!) : navigate('/assessment')}
-              className="bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-gray-300 transition-colors"
-            >
-              {data.length > 0 ? 'New Result' : 'Start Assessment'}
-            </button> */}
-          </div>
-          <div className="w-1/3 border-b-2 border-blue-600 mt-2"></div>
-        </div>
-
-        {/* Insights Section */}
-        <section className="mb-24">
-          <h3 className="text-xl font-['Gilroy-Bold'] text-gray-800 mb-4">Your Insights at a Glance</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Creative Thinker Card */}
-            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px] overflow-hidden">
-              <Lightbulb className="w-12 h-12 mb-2 text-yellow-500" />
-              <h4 className="font-['Gilroy-Bold'] text-sm text-gray-800">Creative Thinker</h4>
-              <p className="text-xs font-['Gilroy-Regular'] text-gray-500 mt-1 overflow-hidden text-ellipsis">Creative thinking often leads to innovative solutions and unique perspectives.</p>
+      <main className="px-6 -mt-10 relative z-20 pb-16">
+        {/* Archetype Insights Section */}
+        <section className="mb-6">
+          {archetypeLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-['Gilroy-bold']">Loading your insights...</p>
+              </div>
             </div>
+          ) : archetypeData ? (
+            <div className="relative">
+              {/* Horizontal Scrollable Main Cards */}
+              <div 
+                ref={contextCardsRef}
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2"
+                style={{ scrollSnapType: 'x mandatory' }}
+              >
+                {/* Card 1: SELF - Fully Visible */}
+                <div className="flex-shrink-0 w-full snap-center h-[600px]">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-gradient-to-br from-white to-blue-50 rounded-3xl overflow-hidden border border-blue-100 h-full flex flex-col"
+                  >
+                    {/* Image Section */}
+                    <div className="relative h-56 overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20 z-10"></div>
+                      <motion.img 
+                        src={archetypeData.cluster.img} 
+                        alt={archetypeData.cluster.name}
+                        className="w-full h-full object-cover transform scale-105"
+                        initial={{ scale: 1.1 }}
+                        animate={{ scale: 1.05 }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      {/* Tag */}
+                      <div className="absolute top-4 right-4 z-20">
+                        <motion.div 
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                          className="bg-gradient-to-r from-[#003366] to-[#004A7F] text-white px-5 py-2.5 font-['Gilroy-Bold'] text-xs rounded-full uppercase tracking-wider shadow-lg backdrop-blur-sm border border-white/20"
+                        >
+                          {archetypeData.cluster.name}
+                        </motion.div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"></div>
+                    </div>
+                    
+                    {/* Content Section */}
+                    <div className="px-6 pt-5 pb-7 relative flex-1 flex flex-col">
+                      <div>
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.1 }}
+                          className="inline-flex items-center gap-2.5 mb-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-lg"
+                        >
+                          <User className="w-4 h-4 text-white" />
+                          <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">How You See Yourself</span>
+                        </motion.div>
+                        
+                        <motion.h2 
+                          initial={{ y: 10, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="text-[28px] font-['Gilroy-Bold'] text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-blue-900 mb-4 leading-tight tracking-tight"
+                        >
+                          {archetypeData.archetype.name}
+                        </motion.h2>
+                      </div>
+                      
+                      <motion.div 
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-gray-600 font-['Gilroy-Regular'] text-base leading-[1.7] tracking-wide"
+                      >
+                        {archetypeData.archetype.contexts.self}
+                      </motion.div>
+                      
+                      <div className="flex items-center gap-3 mt-6 pt-5 border-t border-blue-100">
+                        <div className="flex-1 h-[2px] bg-gradient-to-r from-blue-300 to-transparent rounded-full"></div>
+                        <Brain className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                        <div className="flex-1 h-[2px] bg-gradient-to-l from-blue-300 to-transparent rounded-full"></div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
 
-            {/* Areas for Growth Card */}
-            <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
-              <TrendingUp className="w-12 h-12 mb-2 text-blue-500" />
-              <h4 className="font-['Gilroy-Bold'] text-sm text-gray-800">Areas for Growth</h4>
-              <p className="text-xs font-['Gilroy-Regular'] text-gray-500 mt-1">Strong communication and collaboration skills build lasting success in teams.</p>
-            </div>
+                {/* Card 2: WORLD */}
+                <div className="flex-shrink-0 w-full snap-center h-[600px]">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="bg-gradient-to-br from-white to-purple-50 rounded-3xl overflow-hidden border border-purple-100 relative h-full flex flex-col"
+                  >
+                    {/* Image Section */}
+                    <div className="relative h-56 overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20 z-10"></div>
+                      <img 
+                        src={archetypeData.cluster.img} 
+                        alt={archetypeData.cluster.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Tag */}
+                      <div className="absolute top-4 right-4 z-20">
+                        <div className="bg-gradient-to-r from-[#003366] to-[#004A7F] text-white px-5 py-2.5 font-['Gilroy-Bold'] text-xs rounded-full uppercase tracking-wider shadow-lg backdrop-blur-sm border border-white/20">
+                          {archetypeData.cluster.name}
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-fuchsia-600"></div>
+                    </div>
+                    
+                    {/* Content Section */}
+                    <div className="px-6 pt-5 pb-7 relative flex-1 flex flex-col">
+                      {/* Badge and Heading */}
+                      <div className="relative z-30">
+                        <div className="inline-flex items-center gap-2.5 mb-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full shadow-lg">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">How World Sees You</span>
+                        </div>
+                        
+                        <h2 className="text-[28px] font-['Gilroy-Bold'] text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-purple-900 mb-4 leading-tight tracking-tight">
+                          {archetypeData.archetype.name}
+                        </h2>
+                      </div>
+                      
+                      {/* Content - Conditional Blur */}
+                      <div className="text-gray-600 font-['Gilroy-Regular'] text-base leading-[1.7] tracking-wide flex-1" style={{ filter: getLatestAssessment()?.ispaymentdone === 'success' ? 'none' : 'blur(8px)' }}>
+                        {archetypeData.archetype.contexts.world}
+                      </div>
+                      
+                      {/* Conditional Button/Overlay */}
+                      {getLatestAssessment()?.ispaymentdone === 'success' ? (
+                        /* PDF Button Below Content */
+                        <div className="mt-4 pt-4 border-t border-purple-100">
+                          <button
+                            onClick={() => handlePaidReport(getLatestAssessment()!)}
+                            disabled={getLatestAssessment()?.quest_status === 'working'}
+                            className={`w-full px-6 py-3 bg-gradient-to-r ${
+                              getLatestAssessment()?.quest_status === 'generated' 
+                                ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' 
+                                : 'from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+                            } text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                          >
+                            {getLatestAssessment()?.quest_status === 'generated' ? (
+                              <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span>Download PDF Report</span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-5 h-5" />
+                                <span>PDF Processing...</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        /* Unlock Overlay */
+                        <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center bg-white/5 backdrop-blur-[2px]">
+                          <button
+                            onClick={handleUnlockPotential}
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <Unlock className="w-5 h-5" />
+                            <span>Get Complete Analysis</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </div>
 
-            {/* Fun Fact with Unlock Potential Card */}
-            <div className="col-span-2 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl shadow-md p-4 border border-purple-100">
-              <div className="flex flex-col gap-1">
-                <Brain className="w-10 h-10 text-purple-500 flex-shrink-0 mt-1" />
-                <div className="flex-1">
-                  <h4 className="font-['Gilroy-Bold'] text-base text-gray-800 mb-2">Fun Fact / Brain Teaser</h4>
-                  <p className="text-sm font-['Gilroy-Regular'] text-gray-600 mb-4 leading-relaxed">
-                    {currentFunFact}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-['Gilroy-semiBold'] text-blue-600">Uncover Your Strengths</p>
-                    <button
-                      onClick={handleUnlockPotential}
-                      className={`px-4 py-2 bg-gradient-to-r ${getButtonContent().className} text-white text-sm font-['Gilroy-semiBold'] rounded-full transition-all duration-200 transform hover:scale-105 shadow-sm flex items-center justify-center gap-2 min-w-[120px]`}
-                    >
-                      {getButtonContent().icon && getButtonContent().icon}
-                      <span>{getButtonContent().text}</span>
-                    </button>
-                  </div>
+                {/* Card 3: ASPIRE */}
+                <div className="flex-shrink-0 w-full snap-center h-[600px]">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-gradient-to-br from-white to-green-50 rounded-3xl overflow-hidden border border-green-100 relative h-full flex flex-col"
+                  >
+                    {/* Image Section */}
+                    <div className="relative h-56 overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20 z-10"></div>
+                      <img 
+                        src={archetypeData.cluster.img} 
+                        alt={archetypeData.cluster.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Tag */}
+                      <div className="absolute top-4 right-4 z-20">
+                        <div className="bg-gradient-to-r from-[#003366] to-[#004A7F] text-white px-5 py-2.5 font-['Gilroy-Bold'] text-xs rounded-full uppercase tracking-wider shadow-lg backdrop-blur-sm border border-white/20">
+                          {archetypeData.cluster.name}
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600"></div>
+                    </div>
+                    
+                    {/* Content Section */}
+                    <div className="px-6 pt-5 pb-7 relative flex-1 flex flex-col">
+                      {/* Badge and Heading */}
+                      <div className="relative z-30">
+                        <div className="inline-flex items-center gap-2.5 mb-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-lg">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                          <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">What You Aspire To Be</span>
+                        </div>
+                        
+                        <h2 className="text-[28px] font-['Gilroy-Bold'] text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-green-900 mb-4 leading-tight tracking-tight">
+                          {archetypeData.archetype.name}
+                        </h2>
+                      </div>
+                      
+                      {/* Content - Conditional Blur */}
+                      <div className="text-gray-600 font-['Gilroy-Regular'] text-base leading-[1.7] tracking-wide flex-1" style={{ filter: getLatestAssessment()?.ispaymentdone === 'success' ? 'none' : 'blur(8px)' }}>
+                        {archetypeData.archetype.contexts.aspire}
+                      </div>
+                      
+                      {/* Conditional Button/Overlay */}
+                      {getLatestAssessment()?.ispaymentdone === 'success' ? (
+                        /* PDF Button Below Content */
+                        <div className="mt-4 pt-4 border-t border-green-100">
+                          <button
+                            onClick={() => handlePaidReport(getLatestAssessment()!)}
+                            disabled={getLatestAssessment()?.quest_status === 'working'}
+                            className={`w-full px-6 py-3 bg-gradient-to-r ${
+                              getLatestAssessment()?.quest_status === 'generated' 
+                                ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' 
+                                : 'from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+                            } text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                          >
+                            {getLatestAssessment()?.quest_status === 'generated' ? (
+                              <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span>Download PDF Report</span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-5 h-5" />
+                                <span>PDF Processing...</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        /* Unlock Overlay */
+                        <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center bg-white/5 backdrop-blur-[2px]">
+                          <button
+                            onClick={handleUnlockPotential}
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <Unlock className="w-5 h-5" />
+                            <span>Get Complete Analysis</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
                 </div>
               </div>
-            </div>
 
-            {/* Progress Card */}
-            {/* <div className="bg-white rounded-xl shadow-md p-4 text-center flex flex-col items-center justify-between min-h-[140px]">
-              <div className="w-12 h-12 mb-2 text-green-500">
-                🏃‍♂️
-              </div>
-              <h4 className="font-['Gilroy-Bold'] text-sm text-gray-800">Your Progress</h4>
-              <div className="relative w-16 h-16 my-2">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-gray-200"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
+              {/* Scroll Indicators */}
+              <div className="flex justify-center gap-2 mt-4">
+                {[0, 1, 2].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      console.log('Indicator clicked:', index);
+                      if (contextCardsRef.current) {
+                        const cardWidth = contextCardsRef.current.offsetWidth;
+                        contextCardsRef.current.scrollTo({
+                          left: cardWidth * index,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 hover:opacity-80 ${
+                      currentCardIndex === index ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                    }`}
+                    aria-label={`Go to card ${index + 1}`}
                   />
-                  <path
-                    className="text-orange-500"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeDasharray={`${getCompletionPercentage()}, 100`}
-                    strokeLinecap="round"
-                    strokeWidth="3"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-['Gilroy-Bold'] text-gray-800">{getCompletionPercentage()}%</span>
-                </div>
+                ))}
               </div>
-              <p className="text-xs font-['Gilroy-Regular'] text-gray-500 mt-1">Personality Profile Mapped</p>
-            </div> */}
-          </div>
+            </div>
+          ) : (
+            // Fallback when no archetype data
+            <div className="bg-white rounded-xl shadow-md p-6 text-center">
+              <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 font-['Gilroy-Regular'] mb-4">
+                Complete an assessment to discover your archetype
+              </p>
+              <button
+                onClick={() => navigate('/quest')}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-['Gilroy-Bold'] rounded-lg transition-all duration-200 transform hover:scale-105"
+              >
+                Start Assessment
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Explore All Insights Button */}
-        {/* <div className="mb-24">
-          <button
-            onClick={() => data.length > 0 && getLatestAssessment() ? handleFreeReport(getLatestAssessment()!) : navigate('/assessment')}
-            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
-          >
-            {data.length > 0 ? 'Explore All Insights' : 'Start Your First Assessment'}
-          </button>
-        </div> */}
       </main>
 
       {/* Bottom Navigation */}
