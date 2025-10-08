@@ -19,7 +19,7 @@ function App() {
 
   useEffect(() => {
   // Track page visit for user journey
-  trackPageVisit(location.pathname, document.title);
+  // trackPageVisit(location.pathname, document.title);
   
   // Track normalized page view for GA4
   googleAnalytics.trackPageView();
