@@ -10,6 +10,9 @@ import NewsletterSignup from '../components/blog/NewsletterSignup';
 import { setMeta, clearDynamicMetaTags } from '@/utils/seo';
 import { generateImageStructuredData, insertStructuredData } from '@/utils/seo/index';
 import {getImageDataForSEO} from '@/services/images/services/seoService';
+import DOMPurify from 'dompurify'
+import parse from 'html-react-parser';
+import '../App.css';  // Add this with your other imports
 
 
 const BlogPost = () => {
@@ -302,6 +305,27 @@ const BlogPost = () => {
     ));
   };
 
+  const sanitizeContent = (htmlContent: string): string => {
+  // Step 1: Remove data-start and data-end attributes
+  let cleaned = htmlContent.replace(/\s*data-start="[^"]*"/g, '');
+  cleaned = cleaned.replace(/\s*data-end="[^"]*"/g, '');
+  
+  // Step 2: Decode HTML entities
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = cleaned;
+  cleaned = textarea.value;
+  
+  // Step 3: Sanitize with DOMPurify
+  const sanitized = DOMPurify.sanitize(cleaned, {
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'blockquote', 'code', 'pre', 'hr', 'span', 'div'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+  });
+  
+  console.log('Sanitized content:', sanitized);
+  
+  return sanitized;
+};
+
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -379,8 +403,9 @@ const BlogPost = () => {
             </div>
           )}
           
-          <div className="prose prose-lg max-w-none text-gray-700">
-            {post && <div dangerouslySetInnerHTML={{ __html: post.content }} />}
+          <div className="max-w-none text-gray-700">
+            {/* {post && <div dangerouslySetInnerHTML={{ __html: sanitizeContent(post.content) }} />} */}
+            {post && parse(sanitizeContent(post.content))}
           </div>
           
           {post?.id && <CommentSection postId={post.id} />}
