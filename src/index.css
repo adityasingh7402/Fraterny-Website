@@ -336,5 +336,15 @@
     transform: translate3d(0, 0, 0);
     will-change: transform;
   }
+}
 
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
