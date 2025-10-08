@@ -148,7 +148,7 @@ const TribeSection = () => {
             variants={titleAnimation.childVariants}
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Upgrade your Mask
+            Find Your Ideal Circle
           </motion.h2>
         </motion.div>
         
