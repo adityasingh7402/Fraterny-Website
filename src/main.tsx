@@ -56,6 +56,8 @@ import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 import AdminQuestPayment from './pages/admin/payments/AdminQuestPayment';
+import AdminUserManagement from './pages/admin/users/AdminUserManagement';
+import AdminSummaryManagement from './pages/admin/summaries/AdminSummaryManagement';
 
 // PROFILE ROUTES - Lazy loaded with optimized chunks
 const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
@@ -194,6 +196,8 @@ const router = createBrowserRouter([
           { path: 'analytics', element: createSuspenseWrapper(AdminLoading)(<Analytics />) },
           { path: 'images', element: createSuspenseWrapper(AdminLoading)(<AdminImages />) },
           { path: 'newsletter', element: createSuspenseWrapper(AdminLoading)(<NewsletterSubscribers />) },
+          { path: 'users', element: createSuspenseWrapper(AdminLoading)(<AdminUserManagement />) },
+          { path: 'summaries', element: createSuspenseWrapper(AdminLoading)(<AdminSummaryManagement />) },
           { path: 'quest-payment', element: createSuspenseWrapper(AdminLoading)(<AdminQuestPayment />) },
         ],
       },

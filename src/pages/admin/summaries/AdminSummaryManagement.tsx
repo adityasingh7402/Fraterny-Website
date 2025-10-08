@@ -1,0 +1,712 @@
+import React, { useState, useEffect } from 'react';
+import { fetchSummaries, deleteSummary, getSummaryStats } from '@/services/admin-summaries';
+import type { SummaryFilters, PaginationParams, SummaryGeneration, SummaryStats } from '@/services/admin-summaries';
+import { FileStack, CheckCircle, Clock, TrendingUp, ChevronLeft, ChevronRight, Trash2, AlertTriangle, Copy, Check, Eye, Download } from 'lucide-react';
+import { toast } from 'sonner';
+
+const AdminSummaryManagement: React.FC = () => {
+  // State for data
+  const [loading, setLoading] = useState(false);
+  const [summaries, setSummaries] = useState<SummaryGeneration[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<SummaryStats>({ 
+    totalSummaries: 0, 
+    paidSummaries: 0, 
+    completedSummaries: 0, 
+    averageQualityScore: 0 
+  });
+
+  // Filter states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<string>('');
+  const [questStatus, setQuestStatus] = useState('');
+  const [status, setStatus] = useState('');
+  const [deviceType, setDeviceType] = useState('');
+  
+  // Delete confirmation popup state
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [selectedSummary, setSelectedSummary] = useState<SummaryGeneration | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  
+  // View Details popup state
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [selectedSummaryDetails, setSelectedSummaryDetails] = useState<SummaryGeneration | null>(null);
+  
+  // Copy functionality state
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Fetch summary statistics
+  const fetchSummaryStats = async () => {
+    try {
+      const statistics = await getSummaryStats();
+      setStats(statistics);
+    } catch (err: any) {
+      console.error('Error fetching summary stats:', err);
+    }
+  };
+
+  // Fetch summaries based on current filters
+  const fetchSummariesData = async () => {
+    setLoading(true);
+    setError(null);
+    setSummaries([]);
+    setPagination(null);
+
+    try {
+      const paginationParams: PaginationParams = {
+        page: currentPage,
+        pageSize,
+      };
+
+      const filters: SummaryFilters = {
+        searchTerm: searchTerm || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        paymentStatus: paymentStatus ? paymentStatus as any : null,
+        questStatus: questStatus || undefined,
+        status: status || undefined,
+        deviceType: deviceType || undefined,
+      };
+
+      console.log('🔍 Applying filters:', filters);
+
+      const response = await fetchSummaries(paginationParams, filters);
+
+      if (response.success && response.data) {
+        setSummaries(response.data.summaries);
+        setPagination(response.data.pagination);
+      } else {
+        setError(response.error || 'Failed to load summary data');
+        setSummaries([]);
+        setPagination(null);
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+      setSummaries([]);
+      setPagination(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle filter apply
+  const applyFilters = () => {
+    setCurrentPage(1);
+    fetchSummariesData();
+  };
+
+  // Handle filter reset
+  const resetFilters = () => {
+    setSearchTerm('');
+    setDateFrom('');
+    setDateTo('');
+    setPaymentStatus('');
+    setQuestStatus('');
+    setStatus('');
+    setDeviceType('');
+    setCurrentPage(1);
+    setError(null);
+    setSummaries([]);
+    setPagination(null);
+    setTimeout(() => {
+      fetchSummariesData();
+    }, 0);
+  };
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(text);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedId(text);
+        setTimeout(() => {
+          setCopiedId(null);
+        }, 2000);
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed: ', fallbackErr);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  // Open delete confirmation popup
+  const openDeletePopup = (summary: SummaryGeneration) => {
+    setSelectedSummary(summary);
+    setShowDeletePopup(true);
+  };
+
+  // Close delete confirmation popup
+  const closeDeletePopup = () => {
+    setShowDeletePopup(false);
+    setSelectedSummary(null);
+  };
+  
+  // Open view details popup
+  const openDetailsPopup = (summary: SummaryGeneration) => {
+    setSelectedSummaryDetails(summary);
+    setShowDetailsPopup(true);
+  };
+  
+  // Close view details popup
+  const closeDetailsPopup = () => {
+    setShowDetailsPopup(false);
+    setSelectedSummaryDetails(null);
+    setCopiedId(null);
+  };
+
+  // Process delete
+  const processDelete = async () => {
+    if (!selectedSummary) return;
+    
+    setDeleting(true);
+    try {
+      const response = await deleteSummary(selectedSummary.id);
+      
+      if (response.success) {
+        toast.success('Summary deleted successfully', {
+          description: 'Summary record has been removed.'
+        });
+        closeDeletePopup();
+        fetchSummariesData();
+        fetchSummaryStats();
+      } else {
+        toast.error('Failed to delete summary', {
+          description: response.error || 'An unknown error occurred'
+        });
+        setError(response.error || 'Failed to delete summary');
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete summary', {
+        description: error.message || 'An unexpected error occurred'
+      });
+      setError(error.message || 'Failed to delete summary');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Load initial data
+  useEffect(() => {
+    fetchSummaryStats();
+    fetchSummariesData();
+  }, []);
+
+  // Fetch data when page changes
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchSummariesData();
+    }
+  }, [currentPage]);
+
+  // Format date helper
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString() + ' ' + new Date(dateString).toLocaleTimeString();
+  };
+
+  return (
+    <div className="relative flex h-auto min-h-screen w-full flex-col bg-gray-50">
+      <div className="layout-container flex h-full grow flex-col">
+        <main className="flex-1 px-8 sm:px-6 lg:px-16 py-8">
+          <div className="max-w-full mx-auto">
+            {/* Page Header */}
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-8">
+              <p className="text-gray-900 text-3xl font-black leading-tight tracking-[-0.033em]">Summary Management</p>
+            </div>
+            
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {/* Total Summaries Card */}
+              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600 text-base font-medium leading-normal">Total Summaries</p>
+                  <FileStack className="h-6 w-6 text-blue-500" />
+                </div>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.totalSummaries.toLocaleString()}</p>
+              </div>
+
+              {/* Paid Summaries Card */}
+              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600 text-base font-medium leading-normal">Paid Summaries</p>
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                </div>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.paidSummaries.toLocaleString()}</p>
+              </div>
+
+              {/* Completed Summaries Card */}
+              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600 text-base font-medium leading-normal">Completed</p>
+                  <Clock className="h-6 w-6 text-orange-500" />
+                </div>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.completedSummaries.toLocaleString()}</p>
+              </div>
+
+              {/* Average Quality Score Card */}
+              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600 text-base font-medium leading-normal">Avg Quality</p>
+                  <TrendingUp className="h-6 w-6 text-purple-500" />
+                </div>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.averageQualityScore}</p>
+              </div>
+            </div>
+
+            {/* Filter Section */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 mb-8">
+              <h2 className="text-gray-900 text-xl font-bold leading-tight tracking-[-0.015em] mb-4">Filter Summaries</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end mb-6">
+                {/* Search */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Search</p>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Test ID, User ID, Session..."
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Payment Status */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Payment Status</p>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </label>
+                
+                {/* Device Type */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Device Type</p>
+                  <input
+                    type="text"
+                    value={deviceType}
+                    onChange={(e) => setDeviceType(e.target.value)}
+                    placeholder="e.g., desktop, mobile"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Status */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Status</p>
+                  <input
+                    type="text"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    placeholder="e.g., completed"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Date From */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">From Date</p>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Date To */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">To Date</p>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+              </div>
+              
+              <div className="flex justify-end gap-3 mt-4">
+                <button 
+                  onClick={resetFilters}
+                  disabled={loading}
+                  className="flex items-center justify-center rounded-lg h-11 bg-gray-200 text-gray-700 gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-6 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Reset
+                </button>
+                <button 
+                  onClick={applyFilters}
+                  disabled={loading}
+                  className="flex items-center justify-center rounded-lg h-11 bg-blue-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-8 hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Searching...' : 'Search'}
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+                  <h3 className="text-red-800 font-semibold mb-2">Error:</h3>
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+
+              {/* Data Table */}
+              <div className="overflow-x-auto mt-6">
+                <table className="w-full text-left">
+                  <thead className="border-b border-gray-200">
+                    <tr>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Test ID</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start Time</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quest</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quality</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {loading ? (
+                      Array.from({ length: 10 }).map((_, index) => (
+                        <tr key={`loading-${index}`} className="animate-pulse hover:bg-gray-50">
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                          <td className="py-4 px-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
+                          <td className="py-4 px-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                          <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                        </tr>
+                      ))
+                    ) : (
+                      Array.from({ length: pageSize }).map((_, index) => {
+                        const summary = index < pageSize ? summaries[index] : undefined;
+                        
+                        if (summary) {
+                          return (
+                            <tr key={summary.id} className="hover:bg-gray-50">
+                              {/* Test ID with copy */}
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-2 group">
+                                  <div className="relative">
+                                    <span className="text-sm font-mono text-gray-900 cursor-pointer hover:text-blue-600" title={summary.testid || 'N/A'}>
+                                      {summary.testid ? summary.testid.substring(0, 12) + '...' : 'N/A'}
+                                    </span>
+                                    {summary.testid && (
+                                      <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
+                                        {summary.testid}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {summary.testid && (
+                                    <button onClick={() => copyToClipboard(summary.testid!)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded" title="Copy Test ID">
+                                      {copiedId === summary.testid ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3 text-gray-600" />}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                              
+                              {/* Name */}
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {summary.user_data?.user_name || 'N/A'}
+                              </td>
+                              
+                              {/* Email */}
+                              <td className="py-4 px-4 text-sm text-gray-600">
+                                {summary.user_data?.email || 'N/A'}
+                              </td>
+                              
+                              {/* Start Time */}
+                              <td className="py-4 px-4 text-sm text-gray-600">
+                                {summary.starting_time ? new Date(summary.starting_time).toLocaleDateString() : 'N/A'}
+                              </td>
+                              
+                              {/* Payment Status */}
+                              <td className="py-4 px-4">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  summary.payment_status === 'completed' ? 'bg-green-100 text-green-800' :
+                                  summary.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {summary.payment_status || 'N/A'}
+                                </span>
+                              </td>
+                              
+                              {/* Quest Status */}
+                              <td className="py-4 px-4">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  summary.quest_status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {summary.quest_status || 'N/A'}
+                                </span>
+                              </td>
+                              
+                              {/* Quality Score */}
+                              <td className="py-4 px-4">
+                                <span className="text-sm font-semibold text-purple-600">
+                                  {summary.qualityscore || 'N/A'}
+                                </span>
+                              </td>
+                              
+                              {/* Device */}
+                              <td className="py-4 px-4 text-sm text-gray-600">
+                                {summary.device_type || 'N/A'}
+                              </td>
+                              
+                              {/* Actions */}
+                              <td className="py-4 px-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button onClick={() => openDetailsPopup(summary)} className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline" title="View Details">
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                  <button onClick={() => openDeletePopup(summary)} className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 text-sm font-medium hover:underline" title="Delete">
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        } else {
+                          return (
+                            <tr key={`empty-${index}`} className="h-14">
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
+                            </tr>
+                          );
+                        }
+                      })
+                    )}
+                    
+                    {!loading && summaries.length === 0 && (
+                      <tr>
+                        <td colSpan={9} className="py-12 text-center text-gray-500 text-sm">
+                          No summaries found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              {pagination && (
+                <div className="flex items-center justify-between pt-4">
+                  <span className="text-sm text-gray-600">
+                    Showing {((pagination.currentPage - 1) * pageSize) + 1} to {Math.min(pagination.currentPage * pageSize, pagination.totalRecords)} of {pagination.totalRecords} summaries
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="flex items-center justify-center rounded-lg h-9 w-9 border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    
+                    {pagination.totalPages <= 10 ? (
+                      Array.from({ length: pagination.totalPages }).map((_, i) => (
+                        <button key={i+1} onClick={() => handlePageChange(i+1)} className={`flex items-center justify-center rounded-lg h-9 w-9 text-sm font-medium ${ currentPage === i+1 ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-100' }`}>
+                          {i+1}
+                        </button>
+                      ))
+                    ) : (
+                      <>
+                        <button onClick={() => handlePageChange(1)} className={`flex items-center justify-center rounded-lg h-9 w-9 text-sm font-medium ${ currentPage === 1 ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-100' }`}>1</button>
+                        {currentPage > 4 && <span className="px-2 text-gray-500">...</span>}
+                        {Array.from({ length: Math.min(3, pagination.totalPages - 2) }).map((_, i) => {
+                          const pageNum = Math.max(2, currentPage - 1) + i;
+                          if (pageNum > 1 && pageNum < pagination.totalPages) {
+                            return <button key={pageNum} onClick={() => handlePageChange(pageNum)} className={`flex items-center justify-center rounded-lg h-9 w-9 text-sm font-medium ${ currentPage === pageNum ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-100' }`}>{pageNum}</button>;
+                          }
+                          return null;
+                        })}
+                        {currentPage < pagination.totalPages - 3 && <span className="px-2 text-gray-500">...</span>}
+                        {pagination.totalPages > 1 && (
+                          <button onClick={() => handlePageChange(pagination.totalPages)} className={`flex items-center justify-center rounded-lg h-9 w-9 text-sm font-medium ${ currentPage === pagination.totalPages ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-100' }`}>{pagination.totalPages}</button>
+                        )}
+                      </>
+                    )}
+                    
+                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pagination.totalPages} className="flex items-center justify-center rounded-lg h-9 w-9 border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Delete Confirmation Popup */}
+            {showDeletePopup && selectedSummary && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Delete Summary</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Are you sure you want to delete this summary? This action cannot be undone.
+                  </p>
+                  <div className="bg-gray-50 p-3 rounded-md mb-4">
+                    <p className="font-medium text-sm">Test ID: <span className="text-gray-900 font-mono">{selectedSummary.testid || 'N/A'}</span></p>
+                    <p className="text-xs text-gray-500 mt-1">User: {selectedSummary.user_id || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">Started: {selectedSummary.starting_time ? new Date(selectedSummary.starting_time).toLocaleString() : 'N/A'}</p>
+                  </div>
+                  <div className="flex justify-end space-x-3">
+                    <button onClick={closeDeletePopup} disabled={deleting} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+                    <button onClick={processDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">{deleting ? 'Deleting...' : 'Delete Summary'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View Details Popup */}
+            {showDetailsPopup && selectedSummaryDetails && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-gray-900">Summary Details</h3>
+                      <button onClick={closeDetailsPopup} className="text-gray-400 hover:text-gray-600 text-2xl font-semibold">×</button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 space-y-6">
+                    {/* User Information */}
+                    {selectedSummaryDetails.user_data && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">User Information</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div><p className="text-sm font-medium text-gray-600">Name</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.user_name || 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">Email</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.email || 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">Mobile</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.mobile_number || 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">City</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.city || 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">Gender</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.gender || 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">DOB</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.dob ? new Date(selectedSummaryDetails.user_data.dob).toLocaleDateString() : 'N/A'}</p></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Test Information */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Test Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div><p className="text-sm font-medium text-gray-600">Test ID</p><div className="flex items-center gap-2"><p className="text-sm font-mono text-gray-900">{selectedSummaryDetails.testid || 'N/A'}</p>{selectedSummaryDetails.testid && (<button onClick={() => copyToClipboard(selectedSummaryDetails.testid!)} className="p-1 hover:bg-gray-200 rounded" title="Copy">{copiedId === selectedSummaryDetails.testid ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3 text-gray-600" />}</button>)}</div></div>
+                        <div><p className="text-sm font-medium text-gray-600">Session ID</p><p className="text-sm font-mono text-gray-900">{selectedSummaryDetails.session_id || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">User ID</p><p className="text-sm font-mono text-gray-900">{selectedSummaryDetails.user_id || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Quality Score</p><p className="text-lg font-bold text-purple-600">{selectedSummaryDetails.qualityscore || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">AQI</p><p className="text-sm text-gray-900">{selectedSummaryDetails.AQI || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Percentile</p><p className="text-sm text-gray-900">{selectedSummaryDetails.perecentile || 'N/A'}</p></div>
+                      </div>
+                    </div>
+
+                    {/* Status Information */}
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Status & Payment</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><p className="text-sm font-medium text-gray-600">Payment Status</p><span className={`inline-block px-2 py-1 text-xs rounded-full ${selectedSummaryDetails.payment_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{selectedSummaryDetails.payment_status || 'N/A'}</span></div>
+                        <div><p className="text-sm font-medium text-gray-600">Quest Status</p><span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{selectedSummaryDetails.quest_status || 'N/A'}</span></div>
+                        <div><p className="text-sm font-medium text-gray-600">Status</p><span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{selectedSummaryDetails.status || 'N/A'}</span></div>
+                      </div>
+                    </div>
+
+                    {/* Timing Information */}
+                    <div className="bg-orange-50 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Timeline</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div><p className="text-sm font-medium text-gray-600">Starting Time</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.starting_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Completion Time</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.completion_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Duration</p><p className="text-sm text-gray-900">{selectedSummaryDetails.complete_duration || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Paid Generation Time</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.paid_generation_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Agent Start</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.agent_start_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Agent Complete</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.agent_completion_time)}</p></div>
+                      </div>
+                    </div>
+
+                    {/* Device Information */}
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Device & Browser</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div><p className="text-sm font-medium text-gray-600">Device Type</p><p className="text-sm text-gray-900">{selectedSummaryDetails.device_type || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Browser</p><p className="text-sm text-gray-900">{selectedSummaryDetails.device_browser || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">OS</p><p className="text-sm text-gray-900">{selectedSummaryDetails.operating_system || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">IP Address</p><p className="text-sm font-mono text-gray-900">{selectedSummaryDetails.ip_address || 'N/A'}</p></div>
+                      </div>
+                    </div>
+
+                    {/* PDF & URLs */}
+                    {(selectedSummaryDetails.quest_pdf || selectedSummaryDetails.url) && (
+                      <div className="bg-yellow-50 rounded-lg p-4">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Resources</h4>
+                        <div className="space-y-2">
+                          {selectedSummaryDetails.quest_pdf && (
+                            <div><p className="text-sm font-medium text-gray-600 mb-2">Quest PDF</p><a href={selectedSummaryDetails.quest_pdf} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"><Download className="w-4 h-4 mr-2" />Download PDF</a></div>
+                          )}
+                          {selectedSummaryDetails.url && (
+                            <div><p className="text-sm font-medium text-gray-600">URL</p><a href={selectedSummaryDetails.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline break-all">{selectedSummaryDetails.url}</a></div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Errors */}
+                    {(selectedSummaryDetails.summary_error || selectedSummaryDetails.quest_error) && (
+                      <div className="bg-red-50 rounded-lg p-4">
+                        <h4 className="text-lg font-semibold text-red-900 mb-3">Errors</h4>
+                        {selectedSummaryDetails.summary_error && (<div className="mb-2"><p className="text-sm font-medium text-gray-600">Summary Error</p><p className="text-sm text-red-600 bg-red-100 p-2 rounded">{selectedSummaryDetails.summary_error}</p></div>)}
+                        {selectedSummaryDetails.quest_error && (<div><p className="text-sm font-medium text-gray-600">Quest Error</p><p className="text-sm text-red-600 bg-red-100 p-2 rounded">{selectedSummaryDetails.quest_error}</p></div>)}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6">
+                    <button onClick={closeDetailsPopup} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminSummaryManagement;
