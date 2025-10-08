@@ -3,7 +3,8 @@ import { fetchPaymentDetails } from '@/services/admin-payments';
 import type { PaymentStatus, PaymentFilters, PaginationParams, EnrichedTransaction, PaymentResponse } from '@/services/admin-payments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Clock, AlertTriangle, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, ChevronLeft, ChevronRight, Copy, Check, RefreshCw } from 'lucide-react';
+import RefundPopup from '@/components/admin/RefundPopup';
 
 // Helper function to format currency based on gateway and location
 const formatCurrency = (amount: number | string | null, gateway: string | null, isIndia: boolean | null): string => {
@@ -288,6 +289,13 @@ const AdminQuestPayment: React.FC = () => {
           <div className="max-w-full mx-auto">
             <div className="flex flex-wrap justify-between items-center gap-3 mb-8">
               <p className="text-gray-900 text-3xl font-black leading-tight tracking-[-0.033em]">Payment Dashboard</p>
+              <button
+                onClick={() => setShowRefundPopup(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Process Refund
+              </button>
             </div>
             
             {/* Status Filter Cards */}
@@ -483,12 +491,9 @@ const AdminQuestPayment: React.FC = () => {
                         </tr>
                       ))
                     ) : (
-                      // Always render exactly pageSize rows (10)
-                      Array.from({ length: pageSize }).map((_, index) => {
-                        // Only show transactions up to pageSize, ignore any extra
-                        const transaction = index < pageSize ? transactions[index] : undefined;
-                        
-                        if (transaction) {
+                      // Render transactions (only show actual data, not empty rows)
+                      transactions.length > 0 ? (
+                        transactions.map((transaction, index) => {
                           // Get status info - handle null status
                           const getStatusInfo = (status: string | null | undefined) => {
                             switch (status) {
@@ -517,9 +522,9 @@ const AdminQuestPayment: React.FC = () => {
                           const transactionStatus = transaction.status || 'unknown';
                           const statusInfo = getStatusInfo(transactionStatus);
                           
-                          // Render actual transaction data
+                          // Render actual transaction data  
                           return (
-                            <tr key={transaction.payment_id || `transaction-${index}`} className="hover:bg-gray-50">
+                            <tr key={`${transaction.payment_id || transaction.id || transaction.transaction_id}-${index}`} className="hover:bg-gray-50">
                               <td className="py-4 px-4 text-sm font-medium text-gray-900">
                                 #{transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`}
                               </td>
@@ -552,7 +557,18 @@ const AdminQuestPayment: React.FC = () => {
                                 </span>
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-600">
-                                {transaction.payment_completed_time ? new Date(transaction.payment_completed_time).toLocaleDateString() : 'N/A'}
+                                {(() => {
+                                  // For attempted payments (Start status), show session_start_time
+                                  // For successful payments, show payment_completed_time
+                                  if (transaction.status === 'Start' && transaction.session_start_time) {
+                                    return new Date(transaction.session_start_time).toLocaleDateString();
+                                  } else if (transaction.payment_completed_time) {
+                                    return new Date(transaction.payment_completed_time).toLocaleDateString();
+                                  } else if (transaction.session_start_time) {
+                                    return new Date(transaction.session_start_time).toLocaleDateString();
+                                  }
+                                  return 'N/A';
+                                })()}
                               </td>
                               <td className="py-4 px-4">
                                 <span className={statusInfo.className}>
@@ -561,49 +577,24 @@ const AdminQuestPayment: React.FC = () => {
                                 </span>
                               </td>
                               <td className="py-4 px-4 text-right">
-                                {activeStatus === 'error' ? (
-                                  <button 
-                                    onClick={() => openRefundPopup(transaction)}
-                                    className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium"
-                                  >
-                                    Refund
-                                  </button>
-                                ) : (
-                                  <button 
-                                    onClick={() => openDetailsPopup(transaction)}
-                                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                                  >
-                                    View Details
-                                  </button>
-                                )}
+                                <button 
+                                  onClick={() => openDetailsPopup(transaction)}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+                                >
+                                  View Details
+                                </button>
                               </td>
                             </tr>
                           );
-                        } else {
-                          // Render empty row
-                          return (
-                            <tr key={`empty-${index}`} className="h-14">
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                              <td className="py-4 px-4"></td>
-                            </tr>
-                          );
-                        }
-                      })
-                    )}
-                    
-                    {/* Show no data message if no transactions at all */}
-                    {!loading && transactions.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="py-12 text-center text-gray-500 text-sm">
-                          No transactions found
-                        </td>
-                      </tr>
+                        })
+                      ) : (
+                        // Show "no data" message instead of empty rows
+                        <tr>
+                          <td colSpan={8} className="py-12 text-center text-gray-500 text-sm">
+                            No transactions found for the current filters
+                          </td>
+                        </tr>
+                      )
                     )}
                   </tbody>
                 </table>
@@ -1177,6 +1168,12 @@ const AdminQuestPayment: React.FC = () => {
                 </div>
               </div>
             )}
+            
+            {/* Refund Popup */}
+            <RefundPopup 
+              isOpen={showRefundPopup}
+              onClose={() => setShowRefundPopup(false)}
+            />
           </div>
         </main>
       </div>

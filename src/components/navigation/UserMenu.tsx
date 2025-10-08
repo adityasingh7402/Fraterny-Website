@@ -25,7 +25,6 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
     { name: 'Newsletter', href: '/admin/newsletter' },
     { name: 'User Management', href: '/admin/users' },
     { name: 'Summary Management', href: '/admin/summaries' },
-    { name: 'Feedback Management', href: '/admin/feedback' },
     { name: 'Quest Payment', href: '/admin/quest-payment' },
   ];
 
