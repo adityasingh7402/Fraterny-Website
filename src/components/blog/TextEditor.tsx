@@ -125,8 +125,8 @@ const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
             'insertdatetime', 'media', 'table', 'help', 'wordcount'
           ],
           toolbar: 'bold italic underline | alignleft aligncenter alignright | bullist numlist | link',
-          content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px }',
-          skin: 'oxide',
+          // content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px }',
+          // skin: 'oxide',
           content_css: 'default'
         }}
       />

@@ -206,7 +206,7 @@ const MobileMenu = ({
     { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },
-    { name: 'Newsletter', href: '/admin/newsletter' },
+    { name: 'Newsletter', href: '/admin/newsletter' }
   ];
 
   // Animation variants - keeping from Navigation 2
