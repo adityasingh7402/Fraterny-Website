@@ -330,7 +330,8 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
     };
 
     if (currentQuestion.type === 'text_input') {
-  const currentTextarea = document.querySelector('textarea');
+  //const currentTextarea = document.querySelector('textarea');
+  const currentTextarea = Array.from(document.querySelectorAll('textarea')).find(ta => ta.offsetParent !== null);
   if (currentTextarea) {
     const selectedTags = getSelectedTagsFromQuestionCard();
     
