@@ -28,7 +28,7 @@ export function QuestLayout({
   className = '',
   onFinish 
 }: QuestLayoutProps) {
-  const { currentSection, session, isLoading, error } = useQuest();
+  const { currentSection, session, isLoading, error, currentQuestion, sections, currentSectionId, changeSection } = useQuest();
   
   return (
     <div className='pt-0'>
@@ -98,14 +98,28 @@ export function QuestLayout({
       <div className={`hidden lg:flex relative max-h-dvh min-h-dvh w-full ${className}`}>
         
         {/* Left Sidebar - Expanded Section Drawer */}
-        <div className="w-48 xl:w-56 bg-sky-900/5 border-r border-sky-200/20 p-6 overflow-y-auto">
-          <div className="sticky top-6">
-            <div className="bg-white rounded-[10px] border-[1.50px] border-neutral-400 py-2 shadow-lg">
-              <div id="desktop-section-drawer">
-                {/* Section drawer will be rendered here */}
+        <div id="desktop-section-drawer">
+          {sections?.map((section, index) => {
+            const colors = ['text-sky-800', 'text-red-800', 'text-purple-900', 'text-lime-700', 'text-blue-950'];
+            const colorClass = colors[index] || 'text-sky-800';
+            const isLast = index === sections.length - 1;
+            
+            return (
+              <div key={section.id}>
+                <button 
+                  className="relative w-full px-4 py-2 text-center"
+                  onClick={() => changeSection(section.id)}
+                >
+                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}`}>
+                    {section.title}
+                  </div>
+                </button>
+                {!isLast && (
+                  <div className="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>
+                )}
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
         
         {/* Main Content Area */}
@@ -177,17 +191,24 @@ export function QuestLayout({
         <div className="w-72 xl:w-80 bg-sky-900/5 border-l border-sky-200/20 p-6 overflow-y-auto">
           <div className="sticky top-6 space-y-6">
             
-            {/* Question Information */}
+            
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 font-['Gilroy-Bold']">Question Info</h3>
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-sky-200/40 shadow-sm">
                 <div id="desktop-info-container" className="text-gray-600 font-['Gilroy-Regular']">
-                  <p className="text-sm text-gray-500 italic">Question information will appear here when available.</p>
+                  {currentQuestion?.infoText ? (
+                    <>
+                      <h4 className="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">About this question</h4>
+                      <p className="text-sm leading-relaxed">{currentQuestion.infoText}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">This question helps us better understand your personality and provide more accurate insights.</p>
+                  )}
                 </div>
               </div>
             </div>
             
-            {/* Assessment Tips */}
+            
             <div>
               <h4 className="text-base font-semibold text-gray-800 mb-3 font-['Gilroy-Bold']">Assessment Tips</h4>
               <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-sky-200/30 shadow-sm">

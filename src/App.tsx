@@ -28,7 +28,7 @@ function App() {
 // Track initial page load
 useEffect(() => {
   googleAnalytics.trackPageView();
-}, []); // Empty dependency array = runs once on mount
+}, []);
 
   return (
     <ReactQueryProvider>
