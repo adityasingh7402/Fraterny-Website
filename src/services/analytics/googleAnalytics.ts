@@ -58,13 +58,18 @@ class GoogleAnalyticsService {
       };
       
       window.gtag('js', new Date());
+
+      const normalizedPath = this.normalizePagePath(window.location.pathname);
+      const contentGroup = this.getContentGroup(normalizedPath);
+
       window.gtag('config', this.measurementId, {
 
         page_path: this.normalizePagePath(window.location.pathname),
         send_page_view: false,  
-        // Enhanced measurement settings
+        ...(contentGroup && { content_group: contentGroup }),
+        
         enhanced_measurement_settings: {
-          scrolls: false, // We'll track quest progress manually
+          scrolls: false, 
           outbound_clicks: true,
           site_search: false,
           video_engagement: false,
@@ -194,6 +199,22 @@ private normalizePagePath(path: string): string {
     .replace(/^\/payment-history\/:id.*/i, '/payment-history');
   
   return path;
+}
+
+
+/**
+ * Determine content group based on normalized page path
+ */
+private getContentGroup(path: string): string | undefined {
+  // Map normalized paths to content groups
+  if (path === '/quest') return 'quest';
+  if (path === '/quest-dashboard') return 'quest-dashboard';
+  if (path === '/assessment-list') return 'assessment-list';
+  if (path === '/quest-result/processing') return 'quest-processing';
+  if (path === '/quest-result/result') return 'quest-result';
+  
+  // Return undefined for pages that don't need content grouping
+  return undefined;
 }
 
   private getStoredPlatformInfo(): any {
@@ -417,11 +438,13 @@ private normalizePagePath(path: string): string {
  */
 trackPageView(): void {
   const normalizedPath = this.normalizePagePath(window.location.pathname);
+  const contentGroup = this.getContentGroup(normalizedPath);
   
   this.sendEvent('page_view', {
     page_location: window.location.origin + normalizedPath + window.location.search,
     page_path: normalizedPath,
-    page_title: document.title
+    page_title: document.title,
+     ...(contentGroup && { content_group: contentGroup }) 
   });
 }
 

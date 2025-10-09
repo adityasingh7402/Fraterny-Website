@@ -1267,6 +1267,13 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
     response: string, 
     tags?: HonestyTag[]
   ): Promise<void> => {
+    console.log('💾 [DESKTOP-DEBUG] submitResponse called:', {
+    questionId,
+    responsePreview: response.substring(0, 100) + (response.length > 100 ? '...' : ''),
+    responseLength: response.length,
+    hasTags: !!tags,
+    tagsCount: tags?.length || 0
+  });
     if (!session) return;
     
     try {

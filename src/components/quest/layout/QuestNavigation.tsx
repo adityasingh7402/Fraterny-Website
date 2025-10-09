@@ -521,7 +521,12 @@ export function QuestNavigation({
       };
 
       if (currentQuestion.type === 'text_input') {
+        console.log('🔍 [DESKTOP-DEBUG] handleNext called for text_input');
+  console.log('🔍 [DESKTOP-DEBUG] Question ID:', currentQuestion.id);
+  console.log('🔍 [DESKTOP-DEBUG] Question Type:', currentQuestion.type);
         const currentTextarea = document.querySelector('textarea');
+
+        
         if (currentTextarea) {
           const selectedTags = getSelectedTagsFromQuestionCard();
 

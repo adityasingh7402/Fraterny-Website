@@ -59,28 +59,74 @@ export function QuestionCard({
   //const [selectedCity, setSelectedCity] = useState<string>('');
 
 // Parse previous response to separate city and text OR handle ranking data
-const [response, setResponse] = useState<string>(() => {
+// const [response, setResponse] = useState<string>(() => {
+//   if (previousResponse?.response) {
+//     // For ranking questions, pass the full JSON response
+//     if (question.type === 'ranking') {
+//       console.log('🔄 Restoring ranking response:', previousResponse.response);
+//       return previousResponse.response;
+//     }
+    
+//     // For questions with anonymous mode or city autocomplete, parse JSON
+//     if (question.allowAnonymous || question.enableCityAutocomplete) {
+//       try {
+//         // Try to parse as JSON with proper field mapping
+//         const parsed = JSON.parse(previousResponse.response);
+//         console.log('🔄 Restoring parsed response:', parsed);
+        
+//         // Determine field name based on question type
+//         let fieldValue = '';
+//         if (question.id === 'q1_1') {
+//           fieldValue = parsed.name || '';
+//         } else if (question.id === 'q1_2') {
+//           fieldValue = parsed.email || '';
+//         } else if (question.id === 'q1_3') {        
+//           fieldValue = String(parsed.age || '') || '';
+//         } else if (question.id === 'q1_5') {
+//           fieldValue = parsed.details || '';
+//         } else {
+//           fieldValue = parsed.details || '';
+//         }
+        
+//         return fieldValue;
+//       } catch {
+//         // If JSON parsing fails, return the raw response
+//         return previousResponse.response;
+//       }
+//     } else {
+//       // For regular text questions without special features, return raw response
+//       console.log('🔄 Restoring simple text response:', previousResponse.response);
+//       return previousResponse.response;
+//     }
+//   }
+//   return '';
+// });
+
+// Initialize response state with empty string
+const [response, setResponse] = useState<string>('');
+
+// Use ref to track if we've initialized
+const hasInitializedResponse = useRef(false);
+
+// Initialize response from previousResponse ONLY ONCE
+useEffect(() => {
+  if (hasInitializedResponse.current) return;
+  
   if (previousResponse?.response) {
-    // For ranking questions, pass the full JSON response
     if (question.type === 'ranking') {
       console.log('🔄 Restoring ranking response:', previousResponse.response);
-      return previousResponse.response;
-    }
-    
-    // For questions with anonymous mode or city autocomplete, parse JSON
-    if (question.allowAnonymous || question.enableCityAutocomplete) {
+      setResponse(previousResponse.response);
+    } else if (question.allowAnonymous || question.enableCityAutocomplete) {
       try {
-        // Try to parse as JSON with proper field mapping
         const parsed = JSON.parse(previousResponse.response);
         console.log('🔄 Restoring parsed response:', parsed);
         
-        // Determine field name based on question type
         let fieldValue = '';
         if (question.id === 'q1_1') {
           fieldValue = parsed.name || '';
         } else if (question.id === 'q1_2') {
           fieldValue = parsed.email || '';
-        } else if (question.id === 'q1_3') {        
+        } else if (question.id === 'q1_3') {
           fieldValue = String(parsed.age || '') || '';
         } else if (question.id === 'q1_5') {
           fieldValue = parsed.details || '';
@@ -88,19 +134,18 @@ const [response, setResponse] = useState<string>(() => {
           fieldValue = parsed.details || '';
         }
         
-        return fieldValue;
+        setResponse(fieldValue);
       } catch {
-        // If JSON parsing fails, return the raw response
-        return previousResponse.response;
+        setResponse(previousResponse.response);
       }
     } else {
-      // For regular text questions without special features, return raw response
       console.log('🔄 Restoring simple text response:', previousResponse.response);
-      return previousResponse.response;
+      setResponse(previousResponse.response);
     }
   }
-  return '';
-});
+  
+  hasInitializedResponse.current = true;
+}, []);
 
   const [isAnonymousMode, setIsAnonymousMode] = useState<boolean>(() => {
   if (previousResponse?.response) {
@@ -282,77 +327,6 @@ useEffect(() => {
     return newTags;
   });
 };
-
-//   const handleSubmit = (submittedResponse: string) => {
-//   if (!isActive) return;
-//   console.log('🚀 handleSubmit called with:', submittedResponse);
-  
-//   // Combine city and text response for location questions
-//   // let finalResponse = submittedResponse;
-//   // if (question.enableCityAutocomplete && selectedCity) {
-//   //   finalResponse = JSON.stringify({
-//   //     selectedCity: selectedCity,
-//   //     details: submittedResponse
-//   //   });
-//   //   console.log('📦 SAVING city+text as:', finalResponse);
-//   // } else {
-//   //   console.log('📝 SAVING text only as:', finalResponse);
-//   // }
-
-//   // Combine city and text response for location questions
-// let finalResponse = submittedResponse;
-// if (question.allowAnonymous) {
-//   if (isAnonymousMode) {
-//     finalResponse = JSON.stringify({
-//       isAnonymous: true,
-//       selectedCity: "",
-//       details: submittedResponse || 'User chose to remain anonymous'
-//     });
-//     console.log('📦 SAVING anonymous response as:', finalResponse);
-//   } else if (question.enableCityAutocomplete && selectedCity) {
-//     finalResponse = JSON.stringify({
-//       selectedCity: selectedCity,
-//       details: submittedResponse,
-//       isAnonymous: false
-//     });
-//     console.log('📦 SAVING city+text as:', finalResponse);
-//   } else {
-//     finalResponse = JSON.stringify({
-//       details: submittedResponse,
-//       isAnonymous: false
-//     });
-//     console.log('📦 SAVING text-only (not anonymous) as:', finalResponse);
-//   }
-// } else if (question.enableCityAutocomplete && selectedCity) {
-//   finalResponse = JSON.stringify({
-//     selectedCity: selectedCity,
-//     details: submittedResponse
-//   });
-//   console.log('📦 SAVING city+text as:', finalResponse);
-// } else {
-//   console.log('📝 SAVING text only as:', finalResponse);
-// }
-  
-//   // Call the onResponse callback with the response and tags
-//   onResponse(finalResponse, selectedTags);
-// };
-  
-//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-//     // console.log('🎯 handleInputChange received:', e.target.value, 'for question:', question?.type);
-//   const newValue = e.target.value;
-  
-//   // Allow pasting but truncate if too long
-//   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
-//     setResponse(newValue.substring(0, maxLength));
-//     return;
-//   }
-  
-//   setResponse(newValue);
-//   // console.log('📝 Set response to:', newValue);
-  
-//   // AUTO-SAVE: Call onResponse immediately for auto-save
-//   // onResponse(newValue, selectedTags);
-// };
   
 const handleSubmit = (submittedResponse: string) => {
   if (!isActive) return;
@@ -416,7 +390,13 @@ const handleSubmit = (submittedResponse: string) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   const newValue = e.target.value;
-  console.log('⌨️ Input changed:', { newValue, questionId: question.id });
+  console.log('⌨️ [DESKTOP-DEBUG] Input changed:', { 
+    newValue, 
+    questionId: question.id,
+    valueLength: newValue.length,
+    timestamp: new Date().toISOString()
+  });
+
   
   if (question.type === 'text_input' && maxLength && newValue.length > maxLength) {
     setResponse(newValue.substring(0, maxLength));
@@ -424,7 +404,11 @@ const handleSubmit = (submittedResponse: string) => {
   }
   
   setResponse(newValue);
-  console.log('✅ Response state updated to:', newValue);
+  console.log('✅ [DESKTOP-DEBUG] Response state updated:', {
+    questionId: question.id,
+    newValue: newValue.substring(0, 50) + '...', // First 50 chars
+    stateUpdated: true
+  });
 };
 
 
@@ -554,7 +538,7 @@ const handleSubmit = (submittedResponse: string) => {
                 </div>
               )}
 
-              <form onSubmit={handleFormSubmit}>
+              <form onSubmit={handleFormSubmit} autoComplete="off">
                 <div className="relative mb-[-15px]">
                   <textarea
                     value={response}
@@ -755,160 +739,160 @@ const handleSubmit = (submittedResponse: string) => {
   }, []);
   
   // Update desktop sidebars when component mounts or data changes
-  useEffect(() => {
-    if (isDesktop) {
-      // Update info sidebar
-      const infoContainer = document.getElementById('desktop-info-container');
-      if (infoContainer && question.infoText) {
-        infoContainer.innerHTML = `
-          <h4 class="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">About this question</h4>
-          <p class="text-sm leading-relaxed">${question.infoText}</p>
-        `;
-      } else if (infoContainer) {
-        infoContainer.innerHTML = `<p class="text-sm text-gray-500 italic">This question helps us better understand your personality and provide more accurate insights.</p>`;
-      }
+  // useEffect(() => {
+  //   if (isDesktop) {
+  //     // Update info sidebar
+  //     const infoContainer = document.getElementById('desktop-info-container');
+  //     if (infoContainer && question.infoText) {
+  //       infoContainer.innerHTML = `
+  //         <h4 class="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">About this question</h4>
+  //         <p class="text-sm leading-relaxed">${question.infoText}</p>
+  //       `;
+  //     } else if (infoContainer) {
+  //       infoContainer.innerHTML = `<p class="text-sm text-gray-500 italic">This question helps us better understand your personality and provide more accurate insights.</p>`;
+  //     }
       
-      // Update authenticity tags sidebar
-      const tagsContainer = document.getElementById('desktop-tags-container');
-      if (tagsContainer && question.allowTags && showTags) {
-        // Clear previous content
-        tagsContainer.innerHTML = '';
+  //     // Update authenticity tags sidebar
+  //     const tagsContainer = document.getElementById('desktop-tags-container');
+  //     if (tagsContainer && question.allowTags && showTags) {
+  //       // Clear previous content
+  //       tagsContainer.innerHTML = '';
         
-        // Create a root and render AuthenticityTags component
-        const root = createRoot(tagsContainer);
-        root.render(
-          React.createElement(AuthenticityTags, {
-            selectedTags: selectedTags,
-            onTagSelect: handleTagSelect,
-            disabled: isAnswered
-          })
-        );
-      } else if (tagsContainer) {
-        tagsContainer.innerHTML = `<p class="text-sm text-gray-500 italic">Tag your responses to show your answering style.</p>`;
-      }
+  //       // Create a root and render AuthenticityTags component
+  //       const root = createRoot(tagsContainer);
+  //       root.render(
+  //         React.createElement(AuthenticityTags, {
+  //           selectedTags: selectedTags,
+  //           onTagSelect: handleTagSelect,
+  //           disabled: isAnswered
+  //         })
+  //       );
+  //     } else if (tagsContainer) {
+  //       tagsContainer.innerHTML = `<p class="text-sm text-gray-500 italic">Tag your responses to show your answering style.</p>`;
+  //     }
       
-      // Update section drawer sidebar  
-      const drawerContainer = document.getElementById('desktop-section-drawer');
-      if (drawerContainer && sections) {
-        const getSectionColor = (index: number): string => {
-          const colors = [
-            'text-sky-800',    // Section 1
-            'text-red-800',    // Section 2  
-            'text-purple-900', // Section 3
-            'text-lime-700',   // Section 4
-            'text-blue-950'    // Section 5
-          ];
-          return colors[index] || 'text-sky-800';
-        };
+  //     // Update section drawer sidebar  
+  //     const drawerContainer = document.getElementById('desktop-section-drawer');
+  //     if (drawerContainer && sections) {
+  //       const getSectionColor = (index: number): string => {
+  //         const colors = [
+  //           'text-sky-800',    // Section 1
+  //           'text-red-800',    // Section 2  
+  //           'text-purple-900', // Section 3
+  //           'text-lime-700',   // Section 4
+  //           'text-blue-950'    // Section 5
+  //         ];
+  //         return colors[index] || 'text-sky-800';
+  //       };
         
-        // Helper function to check if a section has incomplete questions
-        const sectionHasIncompleteQuestions = (sectionId: string): boolean => {
-          if (!session?.responses || !allQuestions) return false;
+  //       // Helper function to check if a section has incomplete questions
+  //       const sectionHasIncompleteQuestions = (sectionId: string): boolean => {
+  //         if (!session?.responses || !allQuestions) return false;
           
-          const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
-          return sectionQuestions.some(question => {
-            const response = session?.responses?.[question.id];
+  //         const sectionQuestions = allQuestions.filter(q => q.sectionId === sectionId);
+  //         return sectionQuestions.some(question => {
+  //           const response = session?.responses?.[question.id];
             
-            if (!response) {
-              return true; // No response = incomplete
-            }
+  //           if (!response) {
+  //             return true; // No response = incomplete
+  //           }
             
-            const responseText = response.response?.trim();
-            if (!responseText || responseText === '') {
-              return true; // Empty response = incomplete
-            }
+  //           const responseText = response.response?.trim();
+  //           if (!responseText || responseText === '') {
+  //             return true; // Empty response = incomplete
+  //           }
             
-            if (responseText === "I preferred not to response for this question") {
-              return true; // Placeholder response = incomplete
-            }
+  //           if (responseText === "I preferred not to response for this question") {
+  //             return true; // Placeholder response = incomplete
+  //           }
             
-            // Special handling for anonymous questions
-            if (question.allowAnonymous && (question.id === 'q1_1' || question.id === 'q1_2')) {
-              try {
-                const anonymousData = JSON.parse(responseText);
-                if (anonymousData.isAnonymous === true) {
-                  return false; // Anonymous mode = complete
-                }
-                const fieldName = question.id === 'q1_1' ? 'name' : 'email';
-                const fieldValue = anonymousData[fieldName];
-                if (!fieldValue || fieldValue.trim() === '') {
-                  return true; // No field content = incomplete
-                }
-              } catch (e) {
-                // Treat as regular text response
-              }
-            }
+  //           // Special handling for anonymous questions
+  //           if (question.allowAnonymous && (question.id === 'q1_1' || question.id === 'q1_2')) {
+  //             try {
+  //               const anonymousData = JSON.parse(responseText);
+  //               if (anonymousData.isAnonymous === true) {
+  //                 return false; // Anonymous mode = complete
+  //               }
+  //               const fieldName = question.id === 'q1_1' ? 'name' : 'email';
+  //               const fieldValue = anonymousData[fieldName];
+  //               if (!fieldValue || fieldValue.trim() === '') {
+  //                 return true; // No field content = incomplete
+  //               }
+  //             } catch (e) {
+  //               // Treat as regular text response
+  //             }
+  //           }
             
-            // Special handling for location question
-            if (question.id === 'q1_5' && question.allowAnonymous && question.enableCityAutocomplete) {
-              try {
-                const locationData = JSON.parse(responseText);
-                const isAnonymous = locationData.isAnonymous === true;
+  //           // Special handling for location question
+  //           if (question.id === 'q1_5' && question.allowAnonymous && question.enableCityAutocomplete) {
+  //             try {
+  //               const locationData = JSON.parse(responseText);
+  //               const isAnonymous = locationData.isAnonymous === true;
                 
-                if (isAnonymous) {
-                  const hasDetails = locationData.details && locationData.details.trim() !== '';
-                  return !hasDetails; // No details = incomplete
-                } else {
-                  const hasDetails = locationData.details && locationData.details.trim() !== '';
-                  const hasCity = locationData.selectedCity && locationData.selectedCity.trim() !== '';
-                  return !hasDetails || !hasCity; // Missing either = incomplete
-                }
-              } catch (e) {
-                return true; // Parse error = incomplete
-              }
-            }
+  //               if (isAnonymous) {
+  //                 const hasDetails = locationData.details && locationData.details.trim() !== '';
+  //                 return !hasDetails; // No details = incomplete
+  //               } else {
+  //                 const hasDetails = locationData.details && locationData.details.trim() !== '';
+  //                 const hasCity = locationData.selectedCity && locationData.selectedCity.trim() !== '';
+  //                 return !hasDetails || !hasCity; // Missing either = incomplete
+  //               }
+  //             } catch (e) {
+  //               return true; // Parse error = incomplete
+  //             }
+  //           }
             
-            // Special handling for ranking questions
-            if (question.type === 'ranking') {
-              try {
-                const rankingData = JSON.parse(responseText);
-                const hasRealRanking = rankingData.isUserRanked === true;
-                const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
-                return !hasRealRanking && !hasExplanation; // Neither ranking nor explanation = incomplete
-              } catch (e) {
-                return true; // Parse error = incomplete
-              }
-            }
+  //           // Special handling for ranking questions
+  //           if (question.type === 'ranking') {
+  //             try {
+  //               const rankingData = JSON.parse(responseText);
+  //               const hasRealRanking = rankingData.isUserRanked === true;
+  //               const hasExplanation = rankingData.explanation && rankingData.explanation.trim() !== '';
+  //               return !hasRealRanking && !hasExplanation; // Neither ranking nor explanation = incomplete
+  //             } catch (e) {
+  //               return true; // Parse error = incomplete
+  //             }
+  //           }
             
-            return false; // Has real response = complete
-          });
-        };
+  //           return false; // Has real response = complete
+  //         });
+  //       };
         
-        const sectionsHTML = sections.map((section, index) => {
-          const isCurrentSection = section.id === currentSectionId;
-          const colorClass = getSectionColor(index);
-          const separatorHTML = index < sections.length - 1 ? '<div class="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>' : '';
-          const hasIncompleteQuestions = hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id);
-          const redDotHTML = hasIncompleteQuestions ? '<div class="absolute top-1 right-1 w-2 h-2 opacity-60 bg-red-600 rounded-full"></div>' : '';
+  //       const sectionsHTML = sections.map((section, index) => {
+  //         const isCurrentSection = section.id === currentSectionId;
+  //         const colorClass = getSectionColor(index);
+  //         const separatorHTML = index < sections.length - 1 ? '<div class="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>' : '';
+  //         const hasIncompleteQuestions = hasAttemptedFinishWithIncomplete && sectionHasIncompleteQuestions(section.id);
+  //         const redDotHTML = hasIncompleteQuestions ? '<div class="absolute top-1 right-1 w-2 h-2 opacity-60 bg-red-600 rounded-full"></div>' : '';
           
-          return `
-            <div>
-              <button class="relative w-full px-4 py-2 text-center" data-section-id="${section.id}">
-                <div class="text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}">
-                  ${section.title}
-                </div>
-                ${redDotHTML}
-              </button>
-              ${separatorHTML}
-            </div>
-          `;
-        }).join('');
+  //         return `
+  //           <div>
+  //             <button class="relative w-full px-4 py-2 text-center" data-section-id="${section.id}">
+  //               <div class="text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}">
+  //                 ${section.title}
+  //               </div>
+  //               ${redDotHTML}
+  //             </button>
+  //             ${separatorHTML}
+  //           </div>
+  //         `;
+  //       }).join('');
         
-        drawerContainer.innerHTML = sectionsHTML;
+  //       drawerContainer.innerHTML = sectionsHTML;
         
-        // Add click handlers
-        const buttons = drawerContainer.querySelectorAll('button[data-section-id]');
-        buttons.forEach(button => {
-          button.addEventListener('click', (e) => {
-            const sectionId = (e.currentTarget as HTMLElement).getAttribute('data-section-id');
-            if (sectionId && changeSection) {
-              changeSection(sectionId);
-            }
-          });
-        });
-      }
-    }
-  }, [question.infoText, question.allowTags, showTags, selectedTags, handleTagSelect, isAnswered, isDesktop, sections, currentSectionId, changeSection, hasAttemptedFinishWithIncomplete, session, allQuestions]);
+  //       // Add click handlers
+  //       const buttons = drawerContainer.querySelectorAll('button[data-section-id]');
+  //       buttons.forEach(button => {
+  //         button.addEventListener('click', (e) => {
+  //           const sectionId = (e.currentTarget as HTMLElement).getAttribute('data-section-id');
+  //           if (sectionId && changeSection) {
+  //             changeSection(sectionId);
+  //           }
+  //         });
+  //       });
+  //     }
+  //   }
+  // }, [question.infoText, question.allowTags, showTags, selectedTags, handleTagSelect, isAnswered, isDesktop, sections, currentSectionId, changeSection, hasAttemptedFinishWithIncomplete, session, allQuestions]);
   
   
   return (
@@ -920,7 +904,7 @@ const handleSubmit = (submittedResponse: string) => {
       className={`${className}`}
     >      
       {/* Question Text */}
-      <div className={`${isDesktop ? 'mb-8' : 'mb-4'}`}>
+      <div className={`${isDesktop ? 'mb-8' : 'mb-4'} flex flex-row`}>
         <div className={`justify-start text-neutral-950 font-normal font-['Gilroy-Bold'] ${isDesktop ? 'text-3xl lg:text-4xl' : 'text-2xl'}`}>
           {question.text}
           {question.isInfo && !isDesktop && (
@@ -932,10 +916,12 @@ const handleSubmit = (submittedResponse: string) => {
       
       
       {/* Question Input */}
+
+      <div className=''>
       {renderQuestionInput()}
 
-      
-  
+      </div>
+
       {/* Info Modal - Only show on mobile since desktop has permanent sidebar */}
       {showInfo && !isDesktop && (
         <div 
