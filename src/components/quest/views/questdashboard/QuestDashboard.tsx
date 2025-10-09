@@ -127,8 +127,8 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
   const [currentFunFact, setCurrentFunFact] = useState<string>('');
   const [archetypeData, setArchetypeData] = useState<{ cluster: Cluster; archetype: Archetype } | null>(null);
   const [archetypeLoading, setArchetypeLoading] = useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const contextCardsRef = useRef<HTMLDivElement>(null);
+  // const [currentCardIndex, setCurrentCardIndex] = useState(0); // Commented out as slider is disabled
+  const contextCardsRef = useRef<HTMLDivElement>(null); // Commented out as slider is disabled
 
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -284,25 +284,25 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
     }
   }, [data]);
 
-  // Handle context cards scroll animation
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!contextCardsRef.current) return;
-      const scrollLeft = contextCardsRef.current.scrollLeft;
-      const cardWidth = contextCardsRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / cardWidth);
-      console.log('Scroll position:', scrollLeft, 'Card width:', cardWidth, 'New index:', newIndex);
-      setCurrentCardIndex(newIndex);
-    };
+  // Handle context cards scroll animation - Commented out as slider is disabled
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     // if (!contextCardsRef.current) return; // Commented out as slider is disabled
+  //     // const scrollLeft = contextCardsRef.current.scrollLeft; // Commented out as slider is disabled
+  //     // const cardWidth = contextCardsRef.current.offsetWidth; // Commented out as slider is disabled
+  //     // const newIndex = Math.round(scrollLeft / cardWidth); // Commented out as slider is disabled
+  //     // console.log('Scroll position:', scrollLeft, 'Card width:', cardWidth, 'New index:', newIndex); // Commented out as slider is disabled
+  //     // setCurrentCardIndex(newIndex); // Commented out as slider is disabled
+  //   };
 
-    const cardsElement = contextCardsRef.current;
-    if (cardsElement) {
-      cardsElement.addEventListener('scroll', handleScroll, { passive: true });
-      // Set initial index
-      handleScroll();
-      return () => cardsElement.removeEventListener('scroll', handleScroll);
-    }
-  }, [archetypeData]);
+  //   // const cardsElement = contextCardsRef.current; // Commented out as slider is disabled
+  //   // if (cardsElement) { // Commented out as slider is disabled
+  //   //   cardsElement.addEventListener('scroll', handleScroll, { passive: true }); // Commented out as slider is disabled
+  //   //   // Set initial index // Commented out as slider is disabled
+  //   //   handleScroll(); // Commented out as slider is disabled
+  //   //   return () => cardsElement.removeEventListener('scroll', handleScroll); // Commented out as slider is disabled
+  //   // } // Commented out as slider is disabled
+  // }, [archetypeData]); // Commented out as slider is disabled
 
   // Handle download actions
   const handleFreeReport = (testData: DashboardTest) => {
@@ -469,7 +469,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       },
       {
         id: 'assessments',
-        label: 'Assessments',
+        label: 'Results',
         icon: <FileText className="w-5 h-5" />,
         action: () => {
           navigate(`/assessment-list/${userId}`);
@@ -487,7 +487,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
       },
       {
         id: 'new-test',
-        label: 'New Assessment',
+        label: 'New Quest',
         icon: <Plus className="w-5 h-5" />,
         action: handleNewAssessment,
         variant: 'primary' as const
@@ -657,10 +657,10 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
             </div>
           ) : archetypeData ? (
             <div className="relative">
-              {/* Horizontal Scrollable Main Cards */}
+              {/* Horizontal Scrollable Main Cards - Modified to show only first card */}
               <div 
-                ref={contextCardsRef}
-                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2"
+                // ref={contextCardsRef} // Commented out as slider is disabled
+                className="flex overflow-hidden snap-x snap-mandatory gap-4 pb-2"
                 style={{ scrollSnapType: 'x mandatory' }}
               >
                 {/* Card 1: SELF - Fully Visible */}
@@ -682,31 +682,32 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                         animate={{ scale: 1.05 }}
                         transition={{ duration: 0.6 }}
                       />
-                      {/* Tag */}
+                      {/* Tag - Moved "How You See Yourself" here */}
                       <div className="absolute top-4 right-4 z-20">
                         <motion.div 
                           initial={{ x: 20, opacity: 0 }}
                           animate={{ x: 0, opacity: 1 }}
                           transition={{ delay: 0.3 }}
-                          className="bg-gradient-to-r from-[#003366] to-[#004A7F] text-white px-5 py-2.5 font-['Gilroy-Bold'] text-xs rounded-full uppercase tracking-wider shadow-lg backdrop-blur-sm border border-white/20"
+                          className="inline-flex items-center gap-2.5 px-4 py-2 bg-gradient-to-br from-cyan-600 to-blue-800 rounded-full shadow-lg"
                         >
-                          {archetypeData.cluster.name}
+                          <User className="w-4 h-4 text-white" />
+                          <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">How You See Yourself</span>
                         </motion.div>
                       </div>
                       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"></div>
                     </div>
                     
-                    {/* Content Section */}
+                    {/* Content Section - Moved cluster name here */}
                     <div className="px-6 pt-5 pb-7 relative flex-1 flex flex-col">
                       <div>
+                        {/* Cluster name badge - moved from top right */}
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.1 }}
-                          className="inline-flex items-center gap-2.5 mb-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-lg"
+                          className="inline-flex items-center gap-2.5 mb-2 px-5 py-2.5 bg-gradient-to-br from-cyan-600 to-blue-800 text-white font-['Gilroy-Bold'] text-xs rounded-full uppercase tracking-wider shadow-lg backdrop-blur-sm border border-white/20"
                         >
-                          <User className="w-4 h-4 text-white" />
-                          <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">How You See Yourself</span>
+                          {archetypeData.cluster.name}
                         </motion.div>
                         
                         <motion.h2 
@@ -768,7 +769,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                       <div className="relative z-30">
                         <div className="inline-flex items-center gap-2.5 mb-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full shadow-lg">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 104 0 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="text-[11px] font-['Gilroy-Bold'] text-white uppercase tracking-[0.08em] leading-none">How World Sees You</span>
                         </div>
@@ -816,7 +817,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                         <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center bg-white/5 backdrop-blur-[2px]">
                           <button
                             onClick={handleUnlockPotential}
-                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                            className="px-6 py-3 bg-gradient-to-br from-cyan-600 to-blue-800 hover:from-cyan-600 hover:to-blue-800 text-white text-base font-['Gilroy-Bold'] rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                           >
                             <Unlock className="w-5 h-5" />
                             <span>Get Complete Analysis</span>
@@ -918,28 +919,28 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
                 </div>
               </div>
 
-              {/* Scroll Indicators */}
-              <div className="flex justify-center gap-2 mt-4">
+              {/* Scroll Indicators - Commented out as slider is disabled */}
+              {/* <div className="flex justify-center gap-2 mt-4">
                 {[0, 1, 2].map((index) => (
                   <button
                     key={index}
                     onClick={() => {
                       console.log('Indicator clicked:', index);
-                      if (contextCardsRef.current) {
-                        const cardWidth = contextCardsRef.current.offsetWidth;
-                        contextCardsRef.current.scrollTo({
-                          left: cardWidth * index,
-                          behavior: 'smooth'
-                        });
-                      }
+                      // if (contextCardsRef.current) { // Commented out as slider is disabled
+                      //   const cardWidth = contextCardsRef.current.offsetWidth; // Commented out as slider is disabled
+                      //   contextCardsRef.current.scrollTo({ // Commented out as slider is disabled
+                      //     left: cardWidth * index, // Commented out as slider is disabled
+                      //     behavior: 'smooth' // Commented out as slider is disabled
+                      //   }); // Commented out as slider is disabled
+                      // } // Commented out as slider is disabled
                     }}
                     className={`h-2 rounded-full transition-all duration-300 hover:opacity-80 ${
-                      currentCardIndex === index ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                      'w-2 bg-gray-300 hover:bg-gray-400' // Default style as slider is disabled
                     }`}
                     aria-label={`Go to card ${index + 1}`}
                   />
                 ))}
-              </div>
+              </div> */}
             </div>
           ) : (
             // Fallback when no archetype data
@@ -950,9 +951,9 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
               </p>
               <button
                 onClick={() => navigate('/quest')}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-['Gilroy-Bold'] rounded-lg transition-all duration-200 transform hover:scale-105"
+                className="px-6 py-3 bg-gradient-to-br from-cyan-600 to-blue-800 hover:from-cyan-600 hover:to-blue-800 text-white font-['Gilroy-Bold'] rounded-lg transition-all duration-200 transform hover:scale-105"
               >
-                Start Assessment
+                Start Quest
               </button>
             </div>
           )}
@@ -976,7 +977,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           }}
         >
           <FileText className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-['Gilroy-semiBold']">Assessment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Results</p>
         </div>
         <div
           className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
@@ -988,7 +989,7 @@ const QuestDashboard: React.FC<QuestDashboardProps> = ({ className = '' }) => {
           }}
         >
           <CreditCard className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-['Gilroy-semiBold']">Payment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Payments</p>
         </div>
       </footer>
     </div>

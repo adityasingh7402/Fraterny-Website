@@ -14,7 +14,9 @@ import {
   Download,
   Clock,
   Eye,
-  MessageCircle
+  MessageCircle,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { QuestLoading } from './QuestLoading';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -84,21 +86,21 @@ const getAssessmentType = (index: number) => {
     },
     { 
       name: "Cognitive Ability Test", 
-      icon: BarChart3, 
-      bgColor: "bg-green-100", 
-      iconColor: "text-green-500" 
+      icon: FileText, 
+      bgColor: "bg-blue-100", 
+      iconColor: "text-blue-500"
     },
     { 
       name: "Emotional Intelligence Quiz", 
-      icon: Brain, 
-      bgColor: "bg-purple-100", 
-      iconColor: "text-purple-500" 
+      icon: FileText, 
+      bgColor: "bg-blue-100", 
+      iconColor: "text-blue-500" 
     },
     { 
       name: "Career Aptitude Test", 
-      icon: Briefcase, 
-      bgColor: "bg-orange-100", 
-      iconColor: "text-orange-500" 
+      icon: FileText, 
+      bgColor: "bg-blue-100", 
+      iconColor: "text-blue-500" 
     }
   ];
   
@@ -135,6 +137,9 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
     },
     isLoading: true
   });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [assessmentToDelete, setAssessmentToDelete] = useState<DashboardTest | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -293,8 +298,54 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
   };
 
   const handleDelete = (testData: DashboardTest) => {
+    // Close menu immediately
     setOpenMenuId(null);
-    toast.info('Delete functionality will be implemented soon.');
+    // Add small delay to prevent overlay conflicts
+    setTimeout(() => {
+      setAssessmentToDelete(testData);
+      setDeleteConfirmOpen(true);
+    }, 100);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!assessmentToDelete || !user?.id) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/delete/assessment`,
+        {
+          userId: assessmentToDelete.userid,
+          testId: assessmentToDelete.testid
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data.status === 200 || response.status === 200) {
+        // Remove the deleted assessment from the local state
+        setData(prevData => prevData.filter(item => item.testid !== assessmentToDelete.testid));
+        toast.success('Assessment deleted successfully!');
+      } else {
+        throw new Error('Delete failed');
+      }
+    } catch (error: any) {
+      console.error('Delete assessment error:', error);
+      let errorMessage = 'Failed to delete assessment. Please try again.';
+      if (error.response?.status === 404) {
+        errorMessage = 'Assessment not found.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please log in again.';
+      }
+      toast.error(errorMessage);
+    } finally {
+      setDeleteLoading(false);
+      setDeleteConfirmOpen(false);
+      setAssessmentToDelete(null);
+    }
   };
 
   const handleAssessmentClick = (testData: DashboardTest) => {
@@ -449,7 +500,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading previous assessments...</p>
+          <p className="text-lg text-gray-700 font-['Gilroy-Bold']">Loading previous results...</p>
           <div className="flex justify-center gap-1 mt-4">
             <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0s'}}></div>
             <div className="w-2 h-2 bg-blue-600 rounded-full" style={{animation: 'pulse 0.5s infinite alternate', animationDelay: '0.2s'}}></div>
@@ -469,7 +520,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
             <button onClick={() => navigate(`/quest-dashboard/${userId}`)} className="text-gray-600">
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Assessment</h1>
+            <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Result</h1>
             <div className="w-6"></div>
           </div>
         </header>
@@ -477,7 +528,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
         <main className="p-4">
           <div className="text-center py-16">
             <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
-            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">Error Loading Assessments</h3>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">Error Loading Results</h3>
             <p className="text-gray-600 font-['Gilroy-Regular'] mb-4">{error}</p>
             <button
               onClick={() => navigate('/quest')}
@@ -504,7 +555,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
               >
                 <ArrowLeft className="w-6 h-6" />
               </button>
-              <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Assessment</h1>
+              <h1 className="text-xl font-['Gilroy-semiBold'] text-gray-800">Result</h1>
               <div className="w-6"></div>
             </div>
           </div>
@@ -517,8 +568,8 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
           // Empty state
           <div className="text-center py-16">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">No Assessments Found</h3>
-            <p className="text-gray-600 font-['Gilroy-Regular'] mb-6">You haven't completed any assessments yet.</p>
+            <h3 className="text-lg font-['Gilroy-semiBold'] text-gray-900 mb-2">No Results Found</h3>
+            <p className="text-gray-600 font-['Gilroy-Regular'] mb-6">You haven't completed any Results yet.</p>
             <button
               onClick={() => navigate('/assessment')}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
@@ -578,7 +629,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                               ) : (
                                 <>
                                   <Lock className="w-3 h-3 mr-1" />
-                                  Unlock
+                                  Unlock Full Report
                                 </>
                               )}
                             </button>
@@ -645,16 +696,16 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Feedback
                           </button> */}
-                          {/* <button
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(assessment);
                             }}
                             className="flex items-center w-full text-left px-4 py-2 text-sm font-['Gilroy-Regular'] text-red-600 hover:bg-gray-100 transition-colors"
                           >
-                            <FileText className="w-4 h-4 mr-2" />
+                            <Trash2 className="w-4 h-4 mr-2" />
                             Delete
-                          </button> */}
+                          </button>
                         </div>
                       )}
                     </div>
@@ -678,7 +729,7 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
           </div>
           <div className="text-center text-blue-600">
             <FileText className="w-6 h-6 mx-auto" />
-            <p className="text-xs font-['Gilroy-semiBold']">Assessment</p>
+            <p className="text-xs font-['Gilroy-semiBold']">Results</p>
           </div>
           <div 
             className="text-center text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
@@ -690,13 +741,13 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
             }}
           >
             <CreditCard className="w-6 h-6 mx-auto" />
-            <p className="text-xs font-['Gilroy-semiBold']">Payment</p>
+            <p className="text-xs font-['Gilroy-semiBold']">Payments</p>
           </div>
         </footer>
       </div>
 
       {/* Click outside to close menu */}
-      {openMenuId && (
+      {openMenuId && !deleteConfirmOpen && (
         <div 
           className="fixed inset-0 z-[5]"
           onClick={() => setOpenMenuId(null)}
@@ -711,6 +762,20 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
         paymentLoading={paymentModalLoading}
         pricing={pricing}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && (
+        <DeleteConfirmationModal
+          open={deleteConfirmOpen}
+          onClose={() => {
+            setDeleteConfirmOpen(false);
+            setAssessmentToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          loading={deleteLoading}
+          assessmentName={assessmentToDelete ? formatAssessmentName(assessmentToDelete.testtaken) : ''}
+        />
+      )}
     </div>
   );
 };
@@ -886,6 +951,93 @@ const UpsellSheetComponent: React.FC<UpsellSheetComponentProps> = ({ open, onClo
         </motion.div>
       )}
     </AnimatePresence>
+  );
+};
+
+// Delete Confirmation Modal Component
+interface DeleteConfirmationModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+  assessmentName: string;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ 
+  open, 
+  onClose, 
+  onConfirm, 
+  loading, 
+  assessmentName 
+}) => {
+  // Create a portal-like effect by rendering at the very top level
+  if (!open) return null;
+  
+  return (
+    <div 
+      className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center p-4"
+      style={{ 
+        zIndex: 999999, 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        position: 'fixed',
+        width: '100vw',
+        height: '100vh'
+      }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto relative"
+        style={{ 
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          zIndex: 999999
+        }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25, duration: 0.2 }}
+        onClick={(e) => e.stopPropagation()} // Prevent modal close when clicking inside
+      >
+        {/* Warning Icon */}
+        <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+          <AlertTriangle className="w-6 h-6 text-red-600" />
+        </div>
+        
+        {/* Title */}
+        <h3 className="text-lg font-['Gilroy-Bold'] text-gray-900 text-center mb-2">
+          Delete Assessment?
+        </h3>
+        
+        {/* Description */}
+        <p className="text-sm font-['Gilroy-Regular'] text-gray-600 text-center mb-6">
+          Are you sure you want to delete the assessment from <span className="font-['Gilroy-semiBold'] text-gray-800">{assessmentName}</span>? This action cannot be undone.
+        </p>
+        
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 text-sm font-['Gilroy-semiBold'] text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 text-sm font-['Gilroy-semiBold'] text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                Deleting...
+              </>
+            ) : (
+              'Delete'
+            )}
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
