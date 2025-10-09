@@ -337,9 +337,9 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
             <p className="text-gray-600 font-['Gilroy-Regular'] mb-6">You haven't made any payments yet.</p>
             <button
               onClick={() => navigate('/assessment')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
+              className="px-6 py-3 bg-gradient-to-br from-cyan-600 to-blue-800 text-white rounded-lg hover:bg-blue-700 transition-colors font-['Gilroy-semiBold']"
             >
-              Take Your First Assessment
+              Take Your First Quest
             </button>
           </div>
         ) : (
@@ -415,11 +415,11 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ className = '' }) => {
           }}
         >
           <FileText className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-['Gilroy-semiBold']">Assessment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Results</p>
         </div>
         <div className="text-center text-blue-600">
           <CreditCard className="w-6 h-6 mx-auto" />
-          <p className="text-xs font-['Gilroy-semiBold']">Payment</p>
+          <p className="text-xs font-['Gilroy-semiBold']">Payments</p>
         </div>
       </footer>
     </div>
