@@ -474,6 +474,8 @@ export function QuestNavigation({
   };
 
   const handleNext = async () => {
+
+    console.log('🔍 [DEBUG-1] handleNext called - Screen width:', window.innerWidth, 'innerHeight:', window.innerHeight);
     // Simple 700ms delay to prevent rapid clicking duplicate answers
     if (nextButtonDisabled) {
       console.log('⏱️ Next button is disabled, please wait...');
@@ -521,10 +523,24 @@ export function QuestNavigation({
       };
 
       if (currentQuestion.type === 'text_input') {
-        console.log('🔍 [DESKTOP-DEBUG] handleNext called for text_input');
-  console.log('🔍 [DESKTOP-DEBUG] Question ID:', currentQuestion.id);
-  console.log('🔍 [DESKTOP-DEBUG] Question Type:', currentQuestion.type);
-        const currentTextarea = document.querySelector('textarea');
+        console.log('🔍 [DEBUG-2] Text input detected - Question ID:', currentQuestion.id);
+        //const currentTextarea = document.querySelector('textarea');
+        const currentTextarea = Array.from(document.querySelectorAll('textarea')).find(ta => ta.offsetParent !== null);
+        console.log('🔍 [DEBUG-3] Textarea search result:', currentTextarea);
+        console.log('🔍 [DEBUG-3] Textarea value:', currentTextarea?.value);
+        console.log('🔍 [DEBUG-3] Textarea value length:', currentTextarea?.value?.length);
+        console.log('🔍 [DEBUG-3] All textareas on page:', document.querySelectorAll('textarea').length);
+
+        console.log('🔍 [DEBUG-4] Checking all textareas:');
+        document.querySelectorAll('textarea').forEach((ta, index) => {
+          console.log(`  Textarea #${index}:`, {
+            value: ta.value,
+            length: ta.value.length,
+            className: ta.className,
+            placeholder: ta.placeholder,
+            isVisible: ta.offsetParent !== null
+          });
+        });
 
         
         if (currentTextarea) {
@@ -611,7 +627,36 @@ export function QuestNavigation({
         // Ranking order is already saved on drag, we just need to save explanation
         const rankingContainer = document.querySelector('.ranking-response');
         if (rankingContainer) {
-          const explanationTextarea = rankingContainer.querySelector('textarea');
+          //const explanationTextarea = rankingContainer.querySelector('textarea');
+          const explanationTextarea = Array.from(document.querySelectorAll('textarea'))
+  .find(ta => ta.placeholder === 'Write one sentence explaining why...' && ta.offsetParent !== null);
+//           console.log('🔍 [DEBUG-6] Ranking textarea search:');
+// console.log('  rankingContainer:', rankingContainer);
+// console.log('  explanationTextarea found:', explanationTextarea);
+// console.log('  explanationTextarea value:', explanationTextarea?.value);
+// console.log('  All textareas in ranking container:', rankingContainer?.querySelectorAll('textarea').length);
+
+// console.log('🔍 [DEBUG-7] Checking ranking textarea visibility:');
+// rankingContainer?.querySelectorAll('textarea').forEach((ta, index) => {
+//   console.log(`  Textarea #${index}:`, {
+//     value: ta.value,
+//     offsetParent: ta.offsetParent,
+//     isVisible: ta.offsetParent !== null,
+//     display: window.getComputedStyle(ta).display,
+//     visibility: window.getComputedStyle(ta).visibility,
+//     opacity: window.getComputedStyle(ta).opacity
+//   });
+// });
+
+// console.log('🔍 [DEBUG-8] ALL textareas on entire page:');
+// document.querySelectorAll('textarea').forEach((ta, index) => {
+//   console.log(`  Page Textarea #${index}:`, {
+//     value: ta.value,
+//     placeholder: ta.placeholder,
+//     offsetParent: ta.offsetParent !== null ? 'visible' : 'hidden',
+//     inRankingContainer: rankingContainer?.contains(ta) || false
+//   });
+// });
           const explanation = explanationTextarea ? explanationTextarea.value.trim() : '';
 
           // Get existing response (which has the ranking order from drag events)
@@ -642,6 +687,7 @@ export function QuestNavigation({
 
                 // Save updated response with new explanation and tags
                 submitResponse(currentQuestion.id, JSON.stringify(existingData), selectedTags);
+                console.log('🔍 [DEBUG-5] Ranking data being saved:', JSON.stringify(existingData, null, 2));
               }
             } catch (e) {
               // Don't create fallback - let user actually provide input
@@ -866,7 +912,8 @@ export function QuestNavigation({
 
       // Save current response before going back (copy from handleNext)
       if (currentQuestion.type === 'text_input') {
-        const currentTextarea = document.querySelector('textarea');
+        //const currentTextarea = document.querySelector('textarea');
+        const currentTextarea = Array.from(document.querySelectorAll('textarea')).find(ta => ta.offsetParent !== null);
         if (currentTextarea) {
           const selectedTags = getSelectedTagsFromQuestionCard();
 

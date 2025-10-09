@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuest } from '../core/useQuest';
 import { CalmingBackground } from '../effects/CalmingBackground';
 import { QuestHeader } from './QuestHeader';
 import { QuestContainer } from './QuestContainer';
 import { QuestNavigation } from './QuestNavigation';
+import { Home, ChevronRight } from 'lucide-react';
 
 interface QuestLayoutProps {
   children: React.ReactNode;
@@ -28,7 +29,29 @@ export function QuestLayout({
   className = '',
   onFinish 
 }: QuestLayoutProps) {
-  const { currentSection, session, isLoading, error, currentQuestion, sections, currentSectionId, changeSection } = useQuest();
+  const { currentSection, session, isLoading, error, currentQuestion, sections, currentSectionId, changeSection, allQuestions, goToQuestion } = useQuest();
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const toggleSection = (sectionId: string) => {
+  setExpandedSectionId(prev => prev === sectionId ? null : sectionId);
+};
+
+const getSectionProgress = (sectionId: string) => {
+  const sectionQuestions = allQuestions?.filter(q => q.sectionId === sectionId) || [];
+  const completed = sectionQuestions.filter(q => {
+    const response = session?.responses?.[q.id];
+    return response && response.response && response.response.trim() !== '';
+  }).length;
+  
+  return { completed, total: sectionQuestions.length };
+};
+
+// useEffect(() => {
+//   console.log('🔍 [DRAWER-DEBUG] Section states:', {
+//     expandedSectionId,
+//     currentSectionId,
+//     sectionsCount: sections?.length
+//   });
+// }, [expandedSectionId, currentSectionId, sections]);
   
   return (
     <div className='pt-0'>
@@ -98,33 +121,117 @@ export function QuestLayout({
       <div className={`hidden lg:flex relative max-h-dvh min-h-dvh w-full ${className}`}>
         
         {/* Left Sidebar - Expanded Section Drawer */}
-        <div id="desktop-section-drawer">
-          {sections?.map((section, index) => {
-            const colors = ['text-sky-800', 'text-red-800', 'text-purple-900', 'text-lime-700', 'text-blue-950'];
-            const colorClass = colors[index] || 'text-sky-800';
-            const isLast = index === sections.length - 1;
-            
-            return (
-              <div key={section.id}>
-                <button 
-                  className="relative w-full px-4 py-2 text-center"
-                  onClick={() => changeSection(section.id)}
-                >
-                  <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}`}>
-                    {section.title}
-                  </div>
-                </button>
-                {!isLast && (
-                  <div className="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>
-                )}
+        {/* <div className="w-48 xl:w-56 bg-sky-900/5 border-r border-sky-200/20 p-6 overflow-y-auto">
+          <div className="sticky top-6">
+            <div className="bg-white rounded-[10px] border-[1.50px] border-neutral-400 py-2 shadow-lg">
+              <div id="desktop-section-drawer" className=''>
+                {sections?.map((section, index) => {
+                  const colors = ['text-sky-800', 'text-red-800', 'text-purple-900', 'text-lime-700', 'text-blue-950'];
+                  const colorClass = colors[index] || 'text-sky-800';
+                  const isLast = index === sections.length - 1;
+                  
+                  return (
+                    <div key={section.id}>
+                      <button 
+                        className="relative w-full px-4 py-2 text-center"
+                        onClick={() => changeSection(section.id)}
+                      >
+                        <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}`}>
+                          {section.title}
+                        </div>
+                      </button>
+                      {!isLast && (
+                        <div className="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          </div>
+        </div> */}
+
+        <div className="w-48 xl:w-56 bg-sky-900/5 border-r border-sky-200/20 p-6 overflow-y-auto">
+          <div className="sticky top-6">
+            <div className="bg-white rounded-[10px] border-[1.50px] border-neutral-400 py-2 shadow-lg">
+              <div id="desktop-section-drawer" className=''>
+                {sections?.map((section, index) => {
+                  console.log('🔍 [DRAWER-RENDER]', section.id, 'expanded?', expandedSectionId === section.id);
+                  const colors = ['text-sky-800', 'text-red-800', 'text-purple-900', 'text-lime-700', 'text-blue-950'];
+                  const colorClass = colors[index] || 'text-sky-800';
+                  const isLast = index === sections.length - 1;
+                  
+                  return (
+                    <div key={section.id}>
+                      <button 
+                        className="relative w-full px-4 py-2 text-left flex items-center justify-between hover:bg-sky-50/30 transition-colors z-10 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔍 [CLICK] Clicked section:', section.id, 'Current expanded:', expandedSectionId);
+                          toggleSection(section.id);
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`text-xl font-normal font-['Gilroy-Bold'] tracking-[-1.5px] ${colorClass}`}>
+                            {section.title}
+                          </div>
+                          {/* <span className="text-sm text-gray-500 font-['Gilroy-Medium']">
+                            {getSectionProgress(section.id).completed}/{getSectionProgress(section.id).total}
+                          </span> */}
+                        </div>
+                        <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${expandedSectionId === section.id ? 'rotate-90' : ''}`} />
+                      </button>
+                      {expandedSectionId === section.id && (() => {
+                        //console.log('🔍 [QUESTIONS-RENDER] Section:', section.id, 'Questions:', allQuestions?.filter(q => q.sectionId === section.id).length);
+                        return (
+                          <div className="bg-sky-50/20 py-2">
+                            {allQuestions?.filter(q => q.sectionId === section.id).map((question, qIndex) => {
+                              const hasResponse = session?.responses?.[question.id]?.response?.trim();
+                              const questionPreview = question.text.substring(0, 10) + (question.text.length > 40 ? '...' : '');
+                              
+                              return (
+                                <div
+                                  key={question.id}
+                                  className={`px-6 py-2 hover:bg-sky-100/40 cursor-pointer transition-colors flex items-center gap-3 ${
+                                    currentQuestion?.id === question.id ? 'bg-sky-200/50 border-l-4 border-sky-600' : ''
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (currentSectionId !== section.id) {
+                                      changeSection(section.id);
+                                    }
+                                    goToQuestion(qIndex);
+                                  }}
+                                >
+                                  <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs ${
+                                    hasResponse ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-400'
+                                  }`}>
+                                    {hasResponse ? '✓' : qIndex + 1}
+                                  </span>
+                                  <span className="text-sm text-gray-700 font-['Gilroy-Regular']">
+                                    {questionPreview}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                      {!isLast && (
+                        <div className="w-full h-0 outline outline-[0.50px] outline-offset-[-0.25px] outline-neutral-400"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
-          {/* Header with title and progress */}
+        
           {showHeader && (
             <QuestHeader 
               title={currentSection?.title || 'Psychology Assessment'} 
@@ -132,8 +239,21 @@ export function QuestLayout({
               className='border-b border-sky-200/30 bg-sky-50/30'
             />
           )}
+
+          {/* Breadcrumb Navigation - Desktop Only */}
+          <div className="hidden lg:block border-b border-sky-200/30 bg-white px-8 py-3">
+            <div className="max-w-4xl mx-auto flex items-center gap-2 text-sm">
+              <Home className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-600 font-['Gilroy-Medium']">My Quest</span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-sky-800 font-['Gilroy-Bold']">
+                {currentSection?.title || 'Psychology Assessment'}
+              </span>
+            </div>
+          </div>
           
-          {/* Main content area with enhanced margins */}
+         
           <main className="flex-1 overflow-auto pb-32 px-8 py-6">
             <QuestContainer className='min-h-full max-w-4xl mx-auto border border-sky-200/40 rounded-2xl bg-white/90 backdrop-blur-sm shadow-lg p-8'>
               {/* Loading state */}
