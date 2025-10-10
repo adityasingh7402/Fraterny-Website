@@ -6,6 +6,7 @@ export type UserData = Database['public']['Tables']['user_data']['Row'];
 // Filter options for users
 export type UserFilters = {
   searchTerm?: string;
+  excludeTerm?: string; // NEW: Exclusion filter - filters OUT matching data
   dateFrom?: string;
   dateTo?: string;
   isAnonymous?: boolean | null;
@@ -13,8 +14,9 @@ export type UserFilters = {
   maxSummaryGeneration?: number | null;
   minPaidGeneration?: number | null;
   maxPaidGeneration?: number | null;
-  city?: string;
   gender?: string;
+  ageFrom?: number | null; // NEW: Starting age
+  ageTo?: number | null; // NEW: Ending age
 };
 
 // Pagination parameters
@@ -37,6 +39,7 @@ export type UsersResponse = {
   data: {
     users: UserData[];
     pagination: PaginationMeta;
+    filteredStats?: UserStats; // Optional filtered statistics
   } | null;
   error: string | null;
 };
@@ -54,6 +57,30 @@ export type UserStats = {
   anonymousUsers: number;
   activeUsers: number;
   totalGenerations: number;
+};
+
+// Extended UserData with duplicate information
+export type UserDataWithDuplicateInfo = UserData & {
+  isDuplicateGroup?: boolean;
+  duplicateCount?: number;
+  isPrimary?: boolean;
+  groupKey?: string;
+};
+
+// Duplicate group structure
+export type DuplicateGroup = {
+  groupKey: string;
+  users: UserData[];
+  primaryUser: UserData;
+  duplicateUsers: UserData[];
+};
+
+// Response for duplicate operations
+export type DuplicateOperationResponse = {
+  success: boolean;
+  message: string | null;
+  error: string | null;
+  data?: DuplicateGroup | null;
 };
 
 /**

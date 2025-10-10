@@ -61,7 +61,12 @@ export const fetchSummaries = async (
 
     // Apply payment status filter
     if (filters?.paymentStatus) {
-      query = query.eq('payment_status', filters.paymentStatus);
+      if (filters.paymentStatus === 'ERROR') {
+        // Filter for error cases - anything that contains error-related terms or starts with "Failed"
+        query = query.or('payment_status.ilike.*Failed*,payment_status.ilike.*Error*,payment_status.ilike.*error*,payment_status.ilike.*failed*');
+      } else {
+        query = query.eq('payment_status', filters.paymentStatus);
+      }
     }
 
     // Apply quest status filter
@@ -72,11 +77,6 @@ export const fetchSummaries = async (
     // Apply status filter
     if (filters?.status) {
       query = query.eq('status', filters.status);
-    }
-
-    // Apply device type filter
-    if (filters?.deviceType) {
-      query = query.eq('device_type', filters.deviceType);
     }
 
     // Apply quest PDF filter
@@ -124,11 +124,101 @@ export const fetchSummaries = async (
       totalPages,
     };
 
+    // Calculate filtered statistics from ALL filtered data (not just current page)
+    let filteredStats = null;
+    
+    if (filters && (filters.searchTerm || filters.dateFrom || filters.dateTo || 
+        filters.paymentStatus || filters.questStatus || filters.status || 
+        filters.minQualityScore || filters.maxQualityScore)) {
+      
+      // Get all filtered data for accurate statistics
+      let statsQuery = supabase
+        .from('summary_generation')
+        .select('payment_status, status, qualityscore');
+
+      // Apply the same filters as the main query
+      if (filters.searchTerm && filters.searchTerm.trim()) {
+        const searchTerm = filters.searchTerm.trim();
+        statsQuery = statsQuery.or(
+          `testid.ilike.%${searchTerm}%,user_id.ilike.%${searchTerm}%,session_id.ilike.%${searchTerm}%,ip_address.ilike.%${searchTerm}%`
+        );
+      }
+
+      if (filters.dateFrom) {
+        statsQuery = statsQuery.gte('starting_time', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        statsQuery = statsQuery.lte('starting_time', filters.dateTo);
+      }
+
+      if (filters.paymentStatus) {
+        if (filters.paymentStatus === 'ERROR') {
+          // Filter for error cases in statistics
+          statsQuery = statsQuery.or('payment_status.ilike.*Failed*,payment_status.ilike.*Error*,payment_status.ilike.*error*,payment_status.ilike.*failed*');
+        } else {
+          statsQuery = statsQuery.eq('payment_status', filters.paymentStatus);
+        }
+      }
+
+      if (filters.questStatus) {
+        statsQuery = statsQuery.eq('quest_status', filters.questStatus);
+      }
+
+      if (filters.status) {
+        statsQuery = statsQuery.eq('status', filters.status);
+      }
+
+      if (filters.minQualityScore !== null && filters.minQualityScore !== undefined) {
+        statsQuery = statsQuery.gte('qualityscore', filters.minQualityScore.toString());
+      }
+      if (filters.maxQualityScore !== null && filters.maxQualityScore !== undefined) {
+        statsQuery = statsQuery.lte('qualityscore', filters.maxQualityScore.toString());
+      }
+
+      const { data: allFilteredData } = await statsQuery;
+      
+      if (allFilteredData) {
+        const totalSummaries = allFilteredData.length;
+        const paidSummaries = allFilteredData.filter(s => 
+          s.payment_status === 'success' || 
+          s.payment_status === 'completed'
+        ).length;
+        const failedPayments = allFilteredData.filter(s => 
+          s.payment_status && (
+            s.payment_status.toLowerCase().includes('failed') ||
+            s.payment_status.toLowerCase().includes('error')
+          )
+        ).length;
+        const completedSummaries = allFilteredData.filter(s => 
+          s.status === 'Complete' || 
+          s.status === 'completed'
+        ).length;
+        
+        // Calculate average quality score
+        const qualityScores = allFilteredData
+          .map(s => parseFloat(s.qualityscore || '0'))
+          .filter(score => !isNaN(score) && score > 0);
+        
+        const averageQualityScore = qualityScores.length > 0
+          ? Math.round(qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length)
+          : 0;
+
+        filteredStats = {
+          totalSummaries,
+          paidSummaries,
+          completedSummaries,
+          averageQualityScore,
+          failedPayments,
+        };
+      }
+    }
+
     return {
       success: true,
       data: {
         summaries: (data as SummaryGeneration[]) || [],
         pagination: paginationMeta,
+        ...(filteredStats ? { filteredStats } : {}),
       },
       error: null,
     };
@@ -240,12 +330,28 @@ export const getSummaryStats = async (): Promise<SummaryStats> => {
         paidSummaries: 0,
         completedSummaries: 0,
         averageQualityScore: 0,
+        failedPayments: 0,
       };
     }
 
     const totalSummaries = data?.length || 0;
-    const paidSummaries = data?.filter(s => s.payment_status === 'completed').length || 0;
-    const completedSummaries = data?.filter(s => s.status === 'completed').length || 0;
+    // Check for actual payment status values in your database
+    const paidSummaries = data?.filter(s => 
+      s.payment_status === 'success' || 
+      s.payment_status === 'completed'
+    ).length || 0;
+    // Check for failed/error payment status
+    const failedPayments = data?.filter(s => 
+      s.payment_status && (
+        s.payment_status.toLowerCase().includes('failed') ||
+        s.payment_status.toLowerCase().includes('error')
+      )
+    ).length || 0;
+    // Check for actual status values in your database  
+    const completedSummaries = data?.filter(s => 
+      s.status === 'Complete' || 
+      s.status === 'completed'
+    ).length || 0;
     
     // Calculate average quality score
     const qualityScores = data
@@ -261,6 +367,7 @@ export const getSummaryStats = async (): Promise<SummaryStats> => {
       paidSummaries,
       completedSummaries,
       averageQualityScore,
+      failedPayments,
     };
   } catch (error) {
     console.error('Unexpected error in getSummaryStats:', error);
@@ -269,6 +376,7 @@ export const getSummaryStats = async (): Promise<SummaryStats> => {
       paidSummaries: 0,
       completedSummaries: 0,
       averageQualityScore: 0,
+      failedPayments: 0,
     };
   }
 };
