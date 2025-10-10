@@ -14,8 +14,10 @@ const AdminSummaryManagement: React.FC = () => {
     totalSummaries: 0, 
     paidSummaries: 0, 
     completedSummaries: 0, 
-    averageQualityScore: 0 
+    averageQualityScore: 0,
+    failedPayments: 0
   });
+  const [filteredStats, setFilteredStats] = useState<SummaryStats | null>(null);
 
   // Filter states
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,7 +28,8 @@ const AdminSummaryManagement: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>('');
   const [questStatus, setQuestStatus] = useState('');
   const [status, setStatus] = useState('');
-  const [deviceType, setDeviceType] = useState('');
+  const [minQualityScore, setMinQualityScore] = useState<number | null>(null);
+  const [maxQualityScore, setMaxQualityScore] = useState<number | null>(null);
   
   // Delete confirmation popup state
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -70,7 +73,8 @@ const AdminSummaryManagement: React.FC = () => {
         paymentStatus: paymentStatus ? paymentStatus as any : null,
         questStatus: questStatus || undefined,
         status: status || undefined,
-        deviceType: deviceType || undefined,
+        minQualityScore: minQualityScore,
+        maxQualityScore: maxQualityScore,
       };
 
       console.log('🔍 Applying filters:', filters);
@@ -80,10 +84,18 @@ const AdminSummaryManagement: React.FC = () => {
       if (response.success && response.data) {
         setSummaries(response.data.summaries);
         setPagination(response.data.pagination);
+        
+        // Set filtered statistics if available
+        if (response.data.filteredStats) {
+          setFilteredStats(response.data.filteredStats);
+        } else {
+          setFilteredStats(null);
+        }
       } else {
         setError(response.error || 'Failed to load summary data');
         setSummaries([]);
         setPagination(null);
+        setFilteredStats(null);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -113,11 +125,13 @@ const AdminSummaryManagement: React.FC = () => {
     setPaymentStatus('');
     setQuestStatus('');
     setStatus('');
-    setDeviceType('');
+    setMinQualityScore(null);
+    setMaxQualityScore(null);
     setCurrentPage(1);
     setError(null);
     setSummaries([]);
     setPagination(null);
+    setFilteredStats(null);
     setTimeout(() => {
       fetchSummariesData();
     }, 0);
@@ -208,6 +222,56 @@ const AdminSummaryManagement: React.FC = () => {
     }
   };
 
+  // Helper function to check if any filters are active
+  const hasActiveFilters = () => {
+    return !!(searchTerm || dateFrom || dateTo || paymentStatus || questStatus || status || minQualityScore || maxQualityScore);
+  };
+
+  // Helper function to apply filters immediately with specific values
+  const applyFiltersWithValues = async (filterOverrides: any) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const filters = {
+        searchTerm: searchTerm || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        paymentStatus: paymentStatus ? paymentStatus as any : null,
+        questStatus: questStatus || undefined,
+        status: status || undefined,
+        minQualityScore: minQualityScore,
+        maxQualityScore: maxQualityScore,
+        ...filterOverrides, // Override with new values
+      };
+      
+      const paginationParams = { page: 1, pageSize };
+      const response = await fetchSummaries(paginationParams, filters);
+      
+      if (response.success && response.data) {
+        setSummaries(response.data.summaries);
+        setPagination(response.data.pagination);
+        
+        if (response.data.filteredStats) {
+          setFilteredStats(response.data.filteredStats);
+        } else {
+          setFilteredStats(null);
+        }
+      } else {
+        setError(response.error || 'Failed to load summary data');
+        setSummaries([]);
+        setPagination(null);
+        setFilteredStats(null);
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+      setSummaries([]);
+      setPagination(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load initial data
   useEffect(() => {
     fetchSummaryStats();
@@ -238,48 +302,199 @@ const AdminSummaryManagement: React.FC = () => {
             </div>
             
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               {/* Total Summaries Card */}
-              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+              <div 
+                className={`flex flex-col gap-2 rounded-xl p-6 border cursor-pointer transition-all duration-200 ${
+                  !hasActiveFilters()
+                    ? 'border-blue-400 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-300 hover:shadow-sm'
+                }`}
+                onClick={() => {
+                  // Clear all filters to show total summaries
+                  resetFilters();
+                }}
+                title="Click to clear all filters and show all summaries"
+              >
                 <div className="flex items-center justify-between">
                   <p className="text-gray-600 text-base font-medium leading-normal">Total Summaries</p>
                   <FileStack className="h-6 w-6 text-blue-500" />
                 </div>
-                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.totalSummaries.toLocaleString()}</p>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
+                  {(filteredStats && hasActiveFilters() ? filteredStats.totalSummaries : stats.totalSummaries).toLocaleString()}
+                </p>
+                {!hasActiveFilters() ? (
+                  <p className="text-blue-600 text-xs font-medium">Showing All Results</p>
+                ) : (
+                  <p className="text-gray-600 text-xs font-medium">Click to Clear Filters</p>
+                )}
               </div>
 
               {/* Paid Summaries Card */}
-              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+              <div 
+                className={`flex flex-col gap-2 rounded-xl p-6 border cursor-pointer transition-all duration-200 ${
+                  paymentStatus === 'success'
+                    ? 'border-green-400 bg-green-50 shadow-md transform scale-105'
+                    : 'border-gray-200 bg-white hover:bg-green-50 hover:border-green-300 hover:shadow-sm'
+                }`}
+                onClick={() => {
+                  // Toggle paid summaries filter (preserve other filters)
+                  const newPaymentStatus = paymentStatus === 'success' ? '' : 'success';
+                  
+                  // Update state immediately
+                  setPaymentStatus(newPaymentStatus);
+                  setCurrentPage(1);
+                  
+                  // Apply filters with the new value immediately
+                  setTimeout(() => {
+                    applyFiltersWithValues({
+                      paymentStatus: newPaymentStatus ? newPaymentStatus as any : null,
+                    });
+                  }, 10);
+                }}
+                title="Click to show only paid summaries"
+              >
                 <div className="flex items-center justify-between">
                   <p className="text-gray-600 text-base font-medium leading-normal">Paid Summaries</p>
                   <CheckCircle className="h-6 w-6 text-green-500" />
                 </div>
-                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.paidSummaries.toLocaleString()}</p>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
+                  {(filteredStats && hasActiveFilters() ? filteredStats.paidSummaries : stats.paidSummaries).toLocaleString()}
+                </p>
+                {paymentStatus === 'success' ? (
+                  <p className="text-green-600 text-xs font-medium">✓ Success Filter Active</p>
+                ) : hasActiveFilters() ? (
+                  <p className="text-blue-600 text-xs font-medium">Filtered Results</p>
+                ) : (
+                  <p className="text-gray-600 text-xs font-medium">Click to Filter Success</p>
+                )}
               </div>
 
               {/* Completed Summaries Card */}
-              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+              <div 
+                className={`flex flex-col gap-2 rounded-xl p-6 border cursor-pointer transition-all duration-200 ${
+                  status === 'Complete'
+                    ? 'border-orange-400 bg-orange-50 shadow-md transform scale-105'
+                    : 'border-gray-200 bg-white hover:bg-orange-50 hover:border-orange-300 hover:shadow-sm'
+                }`}
+                onClick={() => {
+                  // Toggle completed summaries filter (preserve other filters)
+                  const newStatus = status === 'Complete' ? '' : 'Complete';
+                  
+                  // Update state immediately
+                  setStatus(newStatus);
+                  setCurrentPage(1);
+                  
+                  // Apply filters with the new value immediately
+                  setTimeout(() => {
+                    applyFiltersWithValues({
+                      status: newStatus || undefined,
+                    });
+                  }, 10);
+                }}
+                title="Click to show only completed summaries"
+              >
                 <div className="flex items-center justify-between">
                   <p className="text-gray-600 text-base font-medium leading-normal">Completed</p>
                   <Clock className="h-6 w-6 text-orange-500" />
                 </div>
-                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.completedSummaries.toLocaleString()}</p>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
+                  {(filteredStats && hasActiveFilters() ? filteredStats.completedSummaries : stats.completedSummaries).toLocaleString()}
+                </p>
+                {status === 'Complete' ? (
+                  <p className="text-orange-600 text-xs font-medium">✓ Completed Filter Active</p>
+                ) : hasActiveFilters() ? (
+                  <p className="text-blue-600 text-xs font-medium">Filtered Results</p>
+                ) : (
+                  <p className="text-gray-600 text-xs font-medium">Click to Filter Completed</p>
+                )}
+              </div>
+
+              {/* Failed Payments Card */}
+              <div 
+                className={`flex flex-col gap-2 rounded-xl p-6 border cursor-pointer transition-all duration-200 ${
+                  paymentStatus === 'ERROR'
+                    ? 'border-red-400 bg-red-50 shadow-md transform scale-105'
+                    : 'border-gray-200 bg-white hover:bg-red-50 hover:border-red-300 hover:shadow-sm'
+                }`}
+                onClick={() => {
+                  // Toggle failed payments filter (preserve other filters)
+                  const newPaymentStatus = paymentStatus === 'ERROR' ? '' : 'ERROR';
+                  
+                  // Update state immediately
+                  setPaymentStatus(newPaymentStatus);
+                  setCurrentPage(1);
+                  
+                  // Apply filters with the new value immediately
+                  setTimeout(() => {
+                    applyFiltersWithValues({
+                      paymentStatus: newPaymentStatus ? newPaymentStatus as any : null,
+                    });
+                  }, 10);
+                }}
+                title="Click to filter for failed/error payments"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600 text-base font-medium leading-normal">Failed Payments</p>
+                  <AlertTriangle className="h-6 w-6 text-red-500" />
+                </div>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
+                  {(filteredStats && hasActiveFilters() ? filteredStats.failedPayments : stats.failedPayments).toLocaleString()}
+                </p>
+                {paymentStatus === 'ERROR' ? (
+                  <p className="text-red-600 text-xs font-medium">✓ Error Filter Active</p>
+                ) : hasActiveFilters() ? (
+                  <p className="text-blue-600 text-xs font-medium">Filtered Results</p>
+                ) : (
+                  <p className="text-gray-600 text-xs font-medium">Click to Filter Errors</p>
+                )}
               </div>
 
               {/* Average Quality Score Card */}
-              <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
+              <div 
+                className={`flex flex-col gap-2 rounded-xl p-6 border cursor-pointer transition-all duration-200 ${
+                  minQualityScore === 70
+                    ? 'border-purple-400 bg-purple-50 shadow-md transform scale-105'
+                    : 'border-gray-200 bg-white hover:bg-purple-50 hover:border-purple-300 hover:shadow-sm'
+                }`}
+                onClick={() => {
+                  // Toggle high quality filter (70+)
+                  const newMinQualityScore = minQualityScore === 70 ? null : 70;
+                  
+                  // Update state immediately
+                  setMinQualityScore(newMinQualityScore);
+                  setCurrentPage(1);
+                  
+                  // Apply filters with the new value immediately
+                  setTimeout(() => {
+                    applyFiltersWithValues({
+                      minQualityScore: newMinQualityScore,
+                    });
+                  }, 10);
+                }}
+                title="Click to filter for high quality summaries (70+)"
+              >
                 <div className="flex items-center justify-between">
                   <p className="text-gray-600 text-base font-medium leading-normal">Avg Quality</p>
                   <TrendingUp className="h-6 w-6 text-purple-500" />
                 </div>
-                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">{stats.averageQualityScore}</p>
+                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
+                  {filteredStats && hasActiveFilters() ? filteredStats.averageQualityScore : stats.averageQualityScore}
+                </p>
+                {minQualityScore === 70 ? (
+                  <p className="text-purple-600 text-xs font-medium">Showing Quality 70+</p>
+                ) : hasActiveFilters() ? (
+                  <p className="text-blue-600 text-xs font-medium">Filtered Results</p>
+                ) : (
+                  <p className="text-gray-600 text-xs font-medium">Click for Quality 70+</p>
+                )}
               </div>
             </div>
 
             {/* Filter Section */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 mb-8">
               <h2 className="text-gray-900 text-xl font-bold leading-tight tracking-[-0.015em] mb-4">Filter Summaries</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end mb-6">
                 {/* Search */}
                 <label className="flex flex-col">
                   <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Search</p>
@@ -301,34 +516,41 @@ const AdminSummaryManagement: React.FC = () => {
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">All Status</option>
+                    <option value="success">Success</option>
+                    <option value="Start">Start</option>
                     <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
+                    <option value="ERROR">Failed/Error</option>
                   </select>
                 </label>
                 
-                {/* Device Type */}
+                {/* Quest Status */}
                 <label className="flex flex-col">
-                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Device Type</p>
-                  <input
-                    type="text"
-                    value={deviceType}
-                    onChange={(e) => setDeviceType(e.target.value)}
-                    placeholder="e.g., desktop, mobile"
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Quest Status</p>
+                  <select
+                    value={questStatus}
+                    onChange={(e) => setQuestStatus(e.target.value)}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">All Quest Status</option>
+                    <option value="Complete">Complete</option>
+                    <option value="Failed">Failed</option>
+                    <option value="completed">Completed</option>
+                  </select>
                 </label>
                 
                 {/* Status */}
                 <label className="flex flex-col">
                   <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Status</p>
-                  <input
-                    type="text"
+                  <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    placeholder="e.g., completed"
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">All Status</option>
+                    <option value="Complete">Complete</option>
+                    <option value="Failed">Failed</option>
+                    <option value="completed">Completed</option>
+                  </select>
                 </label>
                 
                 {/* Date From */}
@@ -349,6 +571,34 @@ const AdminSummaryManagement: React.FC = () => {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Min Quality Score */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Min Quality Score</p>
+                  <input
+                    type="number"
+                    value={minQualityScore || ''}
+                    onChange={(e) => setMinQualityScore(e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="e.g., 70"
+                    min="0"
+                    max="100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+                
+                {/* Max Quality Score */}
+                <label className="flex flex-col">
+                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Max Quality Score</p>
+                  <input
+                    type="number"
+                    value={maxQualityScore || ''}
+                    onChange={(e) => setMaxQualityScore(e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="e.g., 100"
+                    min="0"
+                    max="100"
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </label>
@@ -456,18 +706,24 @@ const AdminSummaryManagement: React.FC = () => {
                               {/* Payment Status */}
                               <td className="py-4 px-4">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
-                                  summary.payment_status === 'completed' ? 'bg-green-100 text-green-800' :
-                                  summary.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
+                                  summary.payment_status === 'success' || summary.payment_status === 'completed' ? 'bg-green-100 text-green-800' :
+                                  summary.payment_status === 'Start' ? 'bg-yellow-100 text-yellow-800' :
+                                  summary.payment_status === null || summary.payment_status === 'NULL' ? 'bg-gray-100 text-gray-800' :
+                                  (summary.payment_status && (
+                                    summary.payment_status.toLowerCase().includes('failed') ||
+                                    summary.payment_status.toLowerCase().includes('error')
+                                  )) ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {summary.payment_status || 'N/A'}
+                                  {summary.payment_status || 'NULL'}
                                 </span>
                               </td>
                               
                               {/* Quest Status */}
                               <td className="py-4 px-4">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
-                                  summary.quest_status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  summary.quest_status === 'Complete' || summary.quest_status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  summary.quest_status === 'Failed' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
                                   {summary.quest_status || 'N/A'}
@@ -476,9 +732,18 @@ const AdminSummaryManagement: React.FC = () => {
                               
                               {/* Quality Score */}
                               <td className="py-4 px-4">
-                                <span className="text-sm font-semibold text-purple-600">
-                                  {summary.qualityscore || 'N/A'}
-                                </span>
+                                {summary.qualityscore ? (
+                                  <span className={`px-2 py-1 text-xs rounded-full font-semibold ${
+                                    parseInt(summary.qualityscore) >= 80 ? 'bg-green-100 text-green-800' :
+                                    parseInt(summary.qualityscore) >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                                    parseInt(summary.qualityscore) >= 40 ? 'bg-orange-100 text-orange-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {summary.qualityscore}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-gray-400">N/A</span>
+                                )}
                               </td>
                               
                               {/* Device */}
@@ -634,6 +899,8 @@ const AdminSummaryManagement: React.FC = () => {
                         <div><p className="text-sm font-medium text-gray-600">Quality Score</p><p className="text-lg font-bold text-purple-600">{selectedSummaryDetails.qualityscore || 'N/A'}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">AQI</p><p className="text-sm text-gray-900">{selectedSummaryDetails.AQI || 'N/A'}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">Percentile</p><p className="text-sm text-gray-900">{selectedSummaryDetails.perecentile || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">PDF Attempts</p><p className="text-sm text-gray-900">{(selectedSummaryDetails as any).pdf_attempt || '0'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Paid Agent Time</p><p className="text-sm text-gray-900">{(selectedSummaryDetails as any).paid_agent_time ? `${(selectedSummaryDetails as any).paid_agent_time}s` : 'N/A'}</p></div>
                       </div>
                     </div>
 
@@ -641,7 +908,7 @@ const AdminSummaryManagement: React.FC = () => {
                     <div className="bg-green-50 rounded-lg p-4">
                       <h4 className="text-lg font-semibold text-gray-900 mb-3">Status & Payment</h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><p className="text-sm font-medium text-gray-600">Payment Status</p><span className={`inline-block px-2 py-1 text-xs rounded-full ${selectedSummaryDetails.payment_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{selectedSummaryDetails.payment_status || 'N/A'}</span></div>
+                        <div><p className="text-sm font-medium text-gray-600">Payment Status</p><span className={`inline-block px-2 py-1 text-xs rounded-full ${selectedSummaryDetails.payment_status === 'success' || selectedSummaryDetails.payment_status === 'completed' ? 'bg-green-100 text-green-800' : selectedSummaryDetails.payment_status === 'Start' ? 'bg-yellow-100 text-yellow-800' : (selectedSummaryDetails.payment_status && (selectedSummaryDetails.payment_status.toLowerCase().includes('failed') || selectedSummaryDetails.payment_status.toLowerCase().includes('error'))) ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>{selectedSummaryDetails.payment_status || 'NULL'}</span></div>
                         <div><p className="text-sm font-medium text-gray-600">Quest Status</p><span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{selectedSummaryDetails.quest_status || 'N/A'}</span></div>
                         <div><p className="text-sm font-medium text-gray-600">Status</p><span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{selectedSummaryDetails.status || 'N/A'}</span></div>
                       </div>
@@ -657,6 +924,9 @@ const AdminSummaryManagement: React.FC = () => {
                         <div><p className="text-sm font-medium text-gray-600">Paid Generation Time</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.paid_generation_time)}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">Agent Start</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.agent_start_time)}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">Agent Complete</p><p className="text-sm text-gray-900">{formatDate(selectedSummaryDetails.agent_completion_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Paid Agent Start</p><p className="text-sm text-gray-900">{formatDate((selectedSummaryDetails as any).paid_agent_start_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Paid Agent Complete</p><p className="text-sm text-gray-900">{formatDate((selectedSummaryDetails as any).paid_agent_complete_time)}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Agent Time Taken</p><p className="text-sm text-gray-900">{(selectedSummaryDetails as any).total_time_taken_by_agent ? `${(selectedSummaryDetails as any).total_time_taken_by_agent}s` : 'N/A'}</p></div>
                       </div>
                     </div>
 
@@ -668,8 +938,51 @@ const AdminSummaryManagement: React.FC = () => {
                         <div><p className="text-sm font-medium text-gray-600">Browser</p><p className="text-sm text-gray-900">{selectedSummaryDetails.device_browser || 'N/A'}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">OS</p><p className="text-sm text-gray-900">{selectedSummaryDetails.operating_system || 'N/A'}</p></div>
                         <div><p className="text-sm font-medium text-gray-600">IP Address</p><p className="text-sm font-mono text-gray-900">{selectedSummaryDetails.ip_address || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Device Fingerprint</p><p className="text-sm font-mono text-gray-900">{(selectedSummaryDetails as any).device_fingerprint || 'N/A'}</p></div>
+                        <div><p className="text-sm font-medium text-gray-600">Archetype</p><p className="text-sm text-gray-900">{(selectedSummaryDetails as any).Archetype || 'N/A'}</p></div>
                       </div>
                     </div>
+
+                    {/* Content Outputs */}
+                    {((selectedSummaryDetails as any).brain_mapping || (selectedSummaryDetails as any).future_compass || (selectedSummaryDetails as any).content_output || (selectedSummaryDetails as any).thought) && (
+                      <div className="bg-indigo-50 rounded-lg p-4">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">AI Generated Content</h4>
+                        <div className="space-y-4">
+                          {(selectedSummaryDetails as any).brain_mapping && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-2">Brain Mapping</p>
+                              <div className="text-sm text-gray-900 bg-white p-3 rounded border max-h-32 overflow-y-auto">
+                                {(selectedSummaryDetails as any).brain_mapping}
+                              </div>
+                            </div>
+                          )}
+                          {(selectedSummaryDetails as any).future_compass && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-2">Future Compass</p>
+                              <div className="text-sm text-gray-900 bg-white p-3 rounded border max-h-32 overflow-y-auto">
+                                {(selectedSummaryDetails as any).future_compass}
+                              </div>
+                            </div>
+                          )}
+                          {(selectedSummaryDetails as any).content_output && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-2">Content Output</p>
+                              <div className="text-sm text-gray-900 bg-white p-3 rounded border max-h-32 overflow-y-auto">
+                                {(selectedSummaryDetails as any).content_output}
+                              </div>
+                            </div>
+                          )}
+                          {(selectedSummaryDetails as any).thought && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-2">Thought</p>
+                              <div className="text-sm text-gray-900 bg-white p-3 rounded border max-h-32 overflow-y-auto">
+                                {(selectedSummaryDetails as any).thought}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* PDF & URLs */}
                     {(selectedSummaryDetails.quest_pdf || selectedSummaryDetails.url) && (

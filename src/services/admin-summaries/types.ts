@@ -17,10 +17,9 @@ export type SummaryFilters = {
   searchTerm?: string;
   dateFrom?: string;
   dateTo?: string;
-  paymentStatus?: 'completed' | 'pending' | 'failed' | null;
+  paymentStatus?: 'completed' | 'pending' | 'failed' | 'success' | 'Start' | 'ERROR' | null;
   questStatus?: string;
   status?: string;
-  deviceType?: string;
   hasQuestPdf?: boolean | null;
   minQualityScore?: number | null;
   maxQualityScore?: number | null;
@@ -46,6 +45,7 @@ export type SummariesResponse = {
   data: {
     summaries: SummaryGeneration[];
     pagination: PaginationMeta;
+    filteredStats?: SummaryStats; // Optional filtered statistics
   } | null;
   error: string | null;
 };
@@ -63,6 +63,7 @@ export type SummaryStats = {
   paidSummaries: number;
   completedSummaries: number;
   averageQualityScore: number;
+  failedPayments: number;
 };
 
 /**
