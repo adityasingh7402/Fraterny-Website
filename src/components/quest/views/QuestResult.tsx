@@ -3395,6 +3395,11 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               onPDFDownload={handlePDFDownload}
               onUnlockClick={() => {
                 if (!paymentSuccess) {
+                  googleAnalytics.trackPdfUnlockCTA({
+                session_id: sessionId!,
+                test_id: testId!,
+                user_state: user?.id ? 'logged_in' : 'anonymous'
+              });
                   setUpsellOpen(true);
                 }
               }}
@@ -3460,11 +3465,11 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           onOpen={() => {
             if (!paymentSuccess) {
               // Track PDF unlock CTA click
-              googleAnalytics.trackPdfUnlockCTA({
-                session_id: sessionId!,
-                test_id: testId!,
-                user_state: user?.id ? 'logged_in' : 'anonymous'
-              });
+              // googleAnalytics.trackPdfUnlockCTA({
+              //   session_id: sessionId!,
+              //   test_id: testId!,
+              //   user_state: user?.id ? 'logged_in' : 'anonymous'
+              // });
               setUpsellOpen(true);
             }
           }}
