@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Users, FileText, CreditCard, BarChart3, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
+import AdminFeedbackManagement from './feedback/AdminFeedbackManagement';
+import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
+import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
 
 // Define menu items
 const menuItems = [
@@ -29,65 +32,204 @@ const menuItems = [
     label: 'Payment Dashboard',
     icon: CreditCard,
     component: AdminQuestPayment
+  },
+  {
+    id: 'feedback',
+    label: 'Feedback Management',
+    icon: MessageCircle,
+    component: AdminFeedbackManagement
   }
 ];
 
 // Simple Overview Component
 const DashboardOverview: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [quickStats, setQuickStats] = useState<QuickStats[]>([]);
+  
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetchDashboardStats();
+      
+      if (response.success && response.data) {
+        setDashboardStats(response.data);
+        setQuickStats(formatQuickStats(response.data));
+      } else {
+        setError(response.error || 'Failed to load dashboard statistics');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while loading dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+  
+  // Get icon component based on icon type
+  const getIconComponent = (iconType: string) => {
+    const iconMap = {
+      users: Users,
+      summaries: FileText,
+      payments: CreditCard,
+      feedback: MessageCircle,
+    };
+    return iconMap[iconType as keyof typeof iconMap] || Users;
+  };
+  
+  // Get color classes based on color type
+  const getColorClasses = (colorType: string) => {
+    const colorMap = {
+      blue: { icon: 'text-blue-500', trend: 'text-blue-600' },
+      green: { icon: 'text-green-500', trend: 'text-green-600' },
+      purple: { icon: 'text-purple-500', trend: 'text-purple-600' },
+      orange: { icon: 'text-orange-500', trend: 'text-orange-600' },
+    };
+    return colorMap[colorType as keyof typeof colorMap] || colorMap.blue;
+  };
+  
   return (
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-black text-gray-900 mb-2">Dashboard Overview</h1>
-        <p className="text-gray-600">Welcome to the admin dashboard. Select a section from the sidebar to get started.</p>
+        <p className="text-gray-600">Welcome to the admin dashboard. Here's your business overview.</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <h3 className="text-red-800 font-semibold">Error Loading Dashboard</h3>
+          </div>
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Quick Stats Cards */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Users</h3>
-            <Users className="h-8 w-8 text-blue-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">1,234</p>
-          <p className="text-sm text-gray-600">Total registered users</p>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Summaries</h3>
-            <FileText className="h-8 w-8 text-green-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">5,678</p>
-          <p className="text-sm text-gray-600">Generated summaries</p>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Payments</h3>
-            <CreditCard className="h-8 w-8 text-purple-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">$12,345</p>
-          <p className="text-sm text-gray-600">Total revenue</p>
-        </div>
+        {loading ? (
+          // Loading skeleton cards
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={`loading-${index}`} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm animate-pulse">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-5 bg-gray-200 rounded w-20"></div>
+                <div className="h-8 w-8 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-8 bg-gray-200 rounded w-24 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-32"></div>
+            </div>
+          ))
+        ) : (
+          // Real stats cards
+          quickStats.map((stat, index) => {
+            const IconComponent = getIconComponent(stat.icon);
+            const colors = getColorClasses(stat.color);
+            
+            return (
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{stat.label}</h3>
+                  <IconComponent className={`h-8 w-8 ${colors.icon}`} />
+                </div>
+                <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                {stat.change && (
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className={`h-4 w-4 ${colors.trend}`} />
+                    <span className={`text-sm font-medium ${colors.trend}`}>
+                      +{stat.change.value.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-gray-600">{stat.change.period}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
       
-      <div className="mt-8 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-            <Users className="h-5 w-5 text-blue-600" />
-            <span className="text-blue-800 font-medium">Manage Users</span>
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-            <FileText className="h-5 w-5 text-green-600" />
-            <span className="text-green-800 font-medium">View Summaries</span>
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-            <CreditCard className="h-5 w-5 text-purple-600" />
-            <span className="text-purple-800 font-medium">Payment Reports</span>
-          </button>
+      {/* Business Insights */}
+      {dashboardStats && !loading && (
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Key Metrics */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Business Metrics</h3>
+            <div className="space-y-4">
+              {(() => {
+                const insights = getDashboardInsights(dashboardStats);
+                return (
+                  <>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-600">Conversion Rate</span>
+                      <span className="text-lg font-bold text-green-600">{insights.businessMetrics.conversionRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-600">Payment Success Rate</span>
+                      <span className="text-lg font-bold text-blue-600">{insights.businessMetrics.paymentSuccessRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-600">Active Users (7 days)</span>
+                      <span className="text-lg font-bold text-purple-600">{insights.userEngagement.activeUsersRatio}%</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-sm font-medium text-gray-600">Avg Revenue per Payment</span>
+                      <span className="text-lg font-bold text-orange-600">${insights.businessMetrics.averageRevenue}</span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
+                <Users className="h-5 w-5 text-blue-600" />
+                <div>
+                  <span className="text-blue-800 font-medium block">Manage Users</span>
+                  <span className="text-blue-600 text-xs">{dashboardStats.users.totalUsers.toLocaleString()} total</span>
+                </div>
+              </button>
+              <button className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
+                <FileText className="h-5 w-5 text-green-600" />
+                <div>
+                  <span className="text-green-800 font-medium block">View Summaries</span>
+                  <span className="text-green-600 text-xs">{dashboardStats.summaries.totalSummaries.toLocaleString()} generated</span>
+                </div>
+              </button>
+              <button className="flex items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left">
+                <CreditCard className="h-5 w-5 text-purple-600" />
+                <div>
+                  <span className="text-purple-800 font-medium block">Payment Reports</span>
+                  <span className="text-purple-600 text-xs">${dashboardStats.payments.totalRevenue.toLocaleString()} revenue</span>
+                </div>
+              </button>
+              <button className="flex items-center gap-3 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">
+                <MessageCircle className="h-5 w-5 text-orange-600" />
+                <div>
+                  <span className="text-orange-800 font-medium block">View Feedback</span>
+                  <span className="text-orange-600 text-xs">{dashboardStats.feedback.totalFeedbacks.toLocaleString()} received</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -45,7 +45,7 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
   // Handle transaction lookup
   const handleTransactionLookup = async () => {
     if (!transactionId.trim()) {
-      toast.error('Please enter a transaction ID');
+      toast.error(`Please enter a ${selectedGateway === 'razorpay' ? 'payment ID' : 'transaction ID'}`);
       return;
     }
 
@@ -245,7 +245,7 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Transaction ID
+                    {selectedGateway === 'razorpay' ? 'Payment ID' : 'Transaction ID'}
                   </label>
                   <input
                     type="text"

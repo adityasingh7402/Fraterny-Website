@@ -15,7 +15,11 @@ export * from './types';
 // Razorpay configuration
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 const RAZORPAY_KEY_SECRET = import.meta.env.VITE_RAZORPAY_KEY_SECRET;
-const RAZORPAY_BASE_URL = 'https://api.razorpay.com/v1';
+
+// Use proxy in development, direct API in production
+const RAZORPAY_BASE_URL = import.meta.env.DEV 
+  ? '/api/razorpay' // Use Vite proxy in development
+  : 'https://api.razorpay.com/v1'; // Direct API in production (needs backend)
 
 /**
  * Fetch transaction from database by payment_id or order_id
@@ -80,15 +84,16 @@ async function fetchRazorpayTransaction(paymentId: string): Promise<RazorpayTran
   try {
     console.log('🔍 Searching Razorpay for transaction:', paymentId);
     
-    // Create Basic Auth header
+    // Create Basic Auth header (needed for both proxy and direct calls)
     const credentials = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
+    const headers: HeadersInit = {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/json',
+    };
     
     const response = await fetch(`${RAZORPAY_BASE_URL}/payments/${paymentId}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (response.ok) {
@@ -187,8 +192,12 @@ export async function processRazorpayRefund(request: RefundRequest): Promise<Ref
   try {
     console.log('💰 Processing Razorpay refund for:', request.payment_id);
     
-    // Create Basic Auth header
+    // Create Basic Auth header (needed for both proxy and direct calls)
     const credentials = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
+    const headers: HeadersInit = {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/json',
+    };
     
     // Prepare refund data
     const refundData: any = {};
@@ -211,10 +220,7 @@ export async function processRazorpayRefund(request: RefundRequest): Promise<Ref
 
     const response = await fetch(`${RAZORPAY_BASE_URL}/payments/${request.payment_id}/refund`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(refundData),
     });
 

@@ -434,7 +434,7 @@ const AdminQuestPayment: React.FC = () => {
                   <thead className="border-b border-gray-200">
                     <tr>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Transaction ID
+                        Transaction/Payment ID
                       </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Customer
@@ -525,39 +525,70 @@ const AdminQuestPayment: React.FC = () => {
                           // Render actual transaction data  
                           return (
                             <tr key={`${transaction.payment_id || transaction.id || transaction.transaction_id}-${index}`} className="hover:bg-gray-50">
-                              {/* Transaction ID with hover tooltip and copy */}
+                              {/* Transaction/Payment ID with hover tooltip and copy - shows based on gateway */}
                               <td className="py-4 px-4">
                                 <div className="flex items-center gap-2 group">
                                   <div className="relative">
                                     {(() => {
-                                      const fullTransactionId = transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`;
-                                      const displayId = fullTransactionId.length > 12 ? `#${fullTransactionId.substring(0, 12)}...` : `#${fullTransactionId}`;
+                                      // Choose ID based on gateway
+                                      let fullId, idType;
+                                      if (transaction.gateway === 'paypal') {
+                                        // For PayPal, prefer transaction_id, fallback to payment_id
+                                        fullId = transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`;
+                                        idType = 'Transaction ID';
+                                      } else if (transaction.gateway === 'Razorpay') {
+                                        // For Razorpay, prefer payment_id, fallback to transaction_id
+                                        fullId = transaction.payment_id || transaction.transaction_id || `PAY${index + 1}`;
+                                        idType = 'Payment ID';
+                                      } else {
+                                        // For other gateways, use whatever is available
+                                        fullId = transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`;
+                                        idType = 'Transaction ID';
+                                      }
+                                      
+                                      const displayId = fullId.length > 12 ? `#${fullId.substring(0, 12)}...` : `#${fullId}`;
                                       return (
                                         <>
-                                          <span className="text-sm font-mono text-gray-900 cursor-pointer hover:text-blue-600" title={fullTransactionId}>
+                                          <span className="text-sm font-mono text-gray-900 cursor-pointer hover:text-blue-600" title={`${idType}: ${fullId}`}>
                                             {displayId}
                                           </span>
-                                          {fullTransactionId.length > 12 && (
+                                          {fullId.length > 12 && (
                                             <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
-                                              #{fullTransactionId}
+                                              <div className="font-medium text-yellow-200">{idType}</div>
+                                              #{fullId}
                                             </div>
                                           )}
                                         </>
                                       );
                                     })()}
                                   </div>
-                                  {(transaction.transaction_id || transaction.payment_id) && (
-                                    <button 
-                                      onClick={() => copyToClipboard(transaction.transaction_id || transaction.payment_id || '')}
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded" 
-                                      title="Copy Transaction ID"
-                                    >
-                                      {copiedText === (transaction.transaction_id || transaction.payment_id) ? 
-                                        <Check className="h-3 w-3 text-green-600" /> : 
-                                        <Copy className="h-3 w-3 text-gray-600" />
-                                      }
-                                    </button>
-                                  )}
+                                  {(() => {
+                                    // Get the appropriate ID for copying based on gateway
+                                    const copyId = transaction.gateway === 'paypal' 
+                                      ? (transaction.transaction_id || transaction.payment_id)
+                                      : transaction.gateway === 'Razorpay'
+                                      ? (transaction.payment_id || transaction.transaction_id)
+                                      : (transaction.transaction_id || transaction.payment_id);
+                                    
+                                    const copyLabel = transaction.gateway === 'paypal' 
+                                      ? 'Copy Transaction ID'
+                                      : transaction.gateway === 'Razorpay'
+                                      ? 'Copy Payment ID'
+                                      : 'Copy ID';
+                                    
+                                    return copyId && (
+                                      <button 
+                                        onClick={() => copyToClipboard(copyId)}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded" 
+                                        title={copyLabel}
+                                      >
+                                        {copiedText === copyId ? 
+                                          <Check className="h-3 w-3 text-green-600" /> : 
+                                          <Copy className="h-3 w-3 text-gray-600" />
+                                        }
+                                      </button>
+                                    );
+                                  })()}
                                 </div>
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-600">
