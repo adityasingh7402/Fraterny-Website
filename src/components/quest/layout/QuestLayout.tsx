@@ -151,7 +151,7 @@ const getSectionProgress = (sectionId: string) => {
           </div>
         </div> */}
 
-        <div className="w-48 xl:w-56 bg-sky-900/5 border-r border-sky-200/20 p-6 overflow-y-auto">
+        <div className="w-48 xl:w-56 bg-sky-900/5 border-r border-sky-200/20 p-2 overflow-y-auto">
           <div className="sticky top-6">
             <div className="bg-white rounded-[10px] border-[1.50px] border-neutral-400 py-2 shadow-lg">
               <div id="desktop-section-drawer" className=''>
@@ -313,12 +313,12 @@ const getSectionProgress = (sectionId: string) => {
             
             
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 font-['Gilroy-Bold']">Question Info</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 font-['Gilroy-Bold']">You are in Quest Mode</h3>
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-sky-200/40 shadow-sm">
                 <div id="desktop-info-container" className="text-gray-600 font-['Gilroy-Regular']">
                   {currentQuestion?.infoText ? (
                     <>
-                      <h4 className="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">About this question</h4>
+                      <h4 className="font-semibold text-base mb-2 text-gray-800 font-['Gilroy-Bold']">Why do I ask</h4>
                       <p className="text-sm leading-relaxed">{currentQuestion.infoText}</p>
                     </>
                   ) : (
@@ -330,20 +330,20 @@ const getSectionProgress = (sectionId: string) => {
             
             
             <div>
-              <h4 className="text-base font-semibold text-gray-800 mb-3 font-['Gilroy-Bold']">Assessment Tips</h4>
+              <h4 className="text-base font-semibold text-gray-800 mb-3 font-['Gilroy-Bold']">For Accurate Results</h4>
               <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-sky-200/30 shadow-sm">
                 <ul className="text-sm text-gray-600 space-y-2 font-['Gilroy-Regular']">
                   <li className="flex items-start">
                     <span className="text-sky-600 mr-2 font-bold">•</span>
-                    <span>Be honest for more accurate insights</span>
+                    <span>Give more context - More details you provide, More accurate my analysis will become.</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-sky-600 mr-2 font-bold">•</span>
-                    <span>Use tags to express your response style</span>
+                    <span>Fill your responses like you are chatting with a close friend - This will give me a better understanding of you</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-sky-600 mr-2 font-bold">•</span>
-                    <span>Take your time to reflect</span>
+                    <span>Take your time - Don't rush through questions. Try to be accurate but also try to finish it in one sitting.</span>
                   </li>
                 </ul>
               </div>
