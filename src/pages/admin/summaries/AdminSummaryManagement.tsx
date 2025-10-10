@@ -26,7 +26,6 @@ const AdminSummaryManagement: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<string>('');
-  const [questStatus, setQuestStatus] = useState('');
   const [status, setStatus] = useState('');
   const [minQualityScore, setMinQualityScore] = useState<number | null>(null);
   const [maxQualityScore, setMaxQualityScore] = useState<number | null>(null);
@@ -71,7 +70,6 @@ const AdminSummaryManagement: React.FC = () => {
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         paymentStatus: paymentStatus ? paymentStatus as any : null,
-        questStatus: questStatus || undefined,
         status: status || undefined,
         minQualityScore: minQualityScore,
         maxQualityScore: maxQualityScore,
@@ -82,6 +80,18 @@ const AdminSummaryManagement: React.FC = () => {
       const response = await fetchSummaries(paginationParams, filters);
 
       if (response.success && response.data) {
+        console.log('📊 Received summaries data:', response.data.summaries);
+        console.log('📊 First 3 summaries debug:', response.data.summaries.slice(0, 3).map(s => ({
+          id: s.id,
+          testid: s.testid?.substring(0, 8) + '...',
+          status: s.status,
+          payment_status: s.payment_status,
+          quest_status: s.quest_status,
+          starting_time: s.starting_time,
+          summary_response: (s as any).summary_response,
+          allKeys: Object.keys(s).filter(key => key.includes('status') || key.includes('response'))
+        })));
+        
         setSummaries(response.data.summaries);
         setPagination(response.data.pagination);
         
@@ -123,7 +133,6 @@ const AdminSummaryManagement: React.FC = () => {
     setDateFrom('');
     setDateTo('');
     setPaymentStatus('');
-    setQuestStatus('');
     setStatus('');
     setMinQualityScore(null);
     setMaxQualityScore(null);
@@ -224,7 +233,7 @@ const AdminSummaryManagement: React.FC = () => {
 
   // Helper function to check if any filters are active
   const hasActiveFilters = () => {
-    return !!(searchTerm || dateFrom || dateTo || paymentStatus || questStatus || status || minQualityScore || maxQualityScore);
+    return !!(searchTerm || dateFrom || dateTo || paymentStatus || status || minQualityScore || maxQualityScore);
   };
 
   // Helper function to apply filters immediately with specific values
@@ -238,7 +247,6 @@ const AdminSummaryManagement: React.FC = () => {
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         paymentStatus: paymentStatus ? paymentStatus as any : null,
-        questStatus: questStatus || undefined,
         status: status || undefined,
         minQualityScore: minQualityScore,
         maxQualityScore: maxQualityScore,
@@ -278,9 +286,11 @@ const AdminSummaryManagement: React.FC = () => {
     fetchSummariesData();
   }, []);
 
-  // Fetch data when page changes
+  // Fetch data when page changes (except for the initial page 1 load)
   useEffect(() => {
-    if (currentPage > 1) {
+    // Only fetch if currentPage > 1 OR if we're going back to page 1 from another page
+    // We can detect this by checking if we have pagination data (meaning we've loaded before)
+    if (currentPage > 1 || (currentPage === 1 && pagination && pagination.totalPages > 1)) {
       fetchSummariesData();
     }
   }, [currentPage]);
@@ -518,23 +528,7 @@ const AdminSummaryManagement: React.FC = () => {
                     <option value="">All Status</option>
                     <option value="success">Success</option>
                     <option value="Start">Start</option>
-                    <option value="completed">Completed</option>
                     <option value="ERROR">Failed/Error</option>
-                  </select>
-                </label>
-                
-                {/* Quest Status */}
-                <label className="flex flex-col">
-                  <p className="text-gray-700 text-sm font-medium leading-normal pb-2">Quest Status</p>
-                  <select
-                    value={questStatus}
-                    onChange={(e) => setQuestStatus(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="">All Quest Status</option>
-                    <option value="Complete">Complete</option>
-                    <option value="Failed">Failed</option>
-                    <option value="completed">Completed</option>
                   </select>
                 </label>
                 
@@ -549,7 +543,6 @@ const AdminSummaryManagement: React.FC = () => {
                     <option value="">All Status</option>
                     <option value="Complete">Complete</option>
                     <option value="Failed">Failed</option>
-                    <option value="completed">Completed</option>
                   </select>
                 </label>
                 
@@ -639,7 +632,7 @@ const AdminSummaryManagement: React.FC = () => {
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start Time</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
-                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quest</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quality</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -719,14 +712,14 @@ const AdminSummaryManagement: React.FC = () => {
                                 </span>
                               </td>
                               
-                              {/* Quest Status */}
+                              {/* Status */}
                               <td className="py-4 px-4">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
-                                  summary.quest_status === 'Complete' || summary.quest_status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                                  summary.quest_status === 'Failed' ? 'bg-red-100 text-red-800' :
+                                  summary.status === 'Complete' || summary.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  summary.status === 'Failed' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {summary.quest_status || 'N/A'}
+                                  {summary.status || 'N/A'}
                                 </span>
                               </td>
                               

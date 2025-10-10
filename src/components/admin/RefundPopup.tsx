@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Search, CheckCircle, AlertTriangle, XCircle, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
-import { lookupTransaction, processPayPalRefund } from '@/services/paypal-refund';
-import type { TransactionLookupResult, RefundResult } from '@/services/paypal-refund';
+import { lookupTransaction as lookupPayPalTransaction, processPayPalRefund } from '@/services/paypal-refund';
+import type { TransactionLookupResult as PayPalTransactionLookupResult, RefundResult as PayPalRefundResult } from '@/services/paypal-refund';
+import { lookupTransaction as lookupRazorpayTransaction, processRazorpayRefund, formatRazorpayAmount } from '@/services/razorpay-refund';
+import type { TransactionLookupResult as RazorpayTransactionLookupResult, RefundResult as RazorpayRefundResult } from '@/services/razorpay-refund';
 
 interface RefundPopupProps {
   isOpen: boolean;
@@ -11,6 +13,8 @@ interface RefundPopupProps {
 
 type Gateway = 'paypal' | 'razorpay' | null;
 type Step = 'gateway-selection' | 'transaction-input' | 'transaction-details' | 'refund-processing';
+type TransactionLookupResult = PayPalTransactionLookupResult | RazorpayTransactionLookupResult;
+type RefundResult = PayPalRefundResult | RazorpayRefundResult;
 
 const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
   // State management
@@ -41,13 +45,27 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
   // Handle transaction lookup
   const handleTransactionLookup = async () => {
     if (!transactionId.trim()) {
-      toast.error('Please enter a transaction ID');
+      toast.error(`Please enter a ${selectedGateway === 'razorpay' ? 'payment ID' : 'transaction ID'}`);
+      return;
+    }
+
+    if (!selectedGateway) {
+      toast.error('Please select a payment gateway');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await lookupTransaction(transactionId.trim());
+      let result: TransactionLookupResult;
+      
+      if (selectedGateway === 'paypal') {
+        result = await lookupPayPalTransaction(transactionId.trim());
+      } else if (selectedGateway === 'razorpay') {
+        result = await lookupRazorpayTransaction(transactionId.trim());
+      } else {
+        throw new Error('Unsupported gateway');
+      }
+      
       setLookupResult(result);
       setCurrentStep('transaction-details');
     } catch (error: any) {
@@ -59,8 +77,13 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
 
   // Handle refund processing
   const handleProcessRefund = async () => {
-    if (!lookupResult?.can_refund || !lookupResult.paypal_data) {
+    if (!lookupResult?.can_refund) {
       toast.error('Cannot process refund for this transaction');
+      return;
+    }
+
+    if (!selectedGateway) {
+      toast.error('Please select a payment gateway');
       return;
     }
 
@@ -68,10 +91,30 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
     setCurrentStep('refund-processing');
 
     try {
-      const refund = await processPayPalRefund({
-        transaction_id: transactionId,
-        description: `Admin refund for transaction ${transactionId}`,
-      });
+      let refund: RefundResult;
+      
+      if (selectedGateway === 'paypal') {
+        if (!('paypal_data' in lookupResult) || !lookupResult.paypal_data) {
+          throw new Error('PayPal transaction data not found');
+        }
+        
+        refund = await processPayPalRefund({
+          transaction_id: transactionId,
+          description: `Admin refund for transaction ${transactionId}`,
+        });
+      } else if (selectedGateway === 'razorpay') {
+        if (!('razorpay_data' in lookupResult) || !lookupResult.razorpay_data) {
+          throw new Error('Razorpay transaction data not found');
+        }
+        
+        refund = await processRazorpayRefund({
+          payment_id: transactionId,
+          notes: { reason: 'Admin refund', admin_processed: 'true' },
+          speed: 'normal',
+        });
+      } else {
+        throw new Error('Unsupported gateway');
+      }
       
       setRefundResult(refund);
       
@@ -112,6 +155,12 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
           className: 'bg-red-100 text-red-800 border-red-200',
           icon: XCircle,
           label: 'Not in PayPal ❌'
+        };
+      case 'NOT_IN_RAZORPAY':
+        return {
+          className: 'bg-red-100 text-red-800 border-red-200',
+          icon: XCircle,
+          label: 'Not in Razorpay ❌'
         };
       case 'NOT_FOUND':
         return {
@@ -168,16 +217,16 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
                   <p className="text-sm text-gray-600 text-center mt-1">Process refund via PayPal</p>
                 </button>
 
-                {/* Razorpay Option (Disabled for now) */}
+                {/* Razorpay Option */}
                 <button
-                  disabled
-                  className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg opacity-50 cursor-not-allowed"
+                  onClick={() => handleGatewaySelect('razorpay')}
+                  className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                    <CreditCard className="h-6 w-6 text-gray-400" />
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-500">Razorpay</h4>
-                  <p className="text-sm text-gray-400 text-center mt-1">Coming soon...</p>
+                  <h4 className="font-semibold text-gray-900">Razorpay</h4>
+                  <p className="text-sm text-gray-600 text-center mt-1">Process refund via Razorpay</p>
                 </button>
               </div>
             </div>
@@ -196,13 +245,19 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Transaction ID
+                    {selectedGateway === 'razorpay' ? 'Payment ID' : 'Transaction ID'}
                   </label>
                   <input
                     type="text"
                     value={transactionId}
                     onChange={(e) => setTransactionId(e.target.value)}
-                    placeholder={selectedGateway === 'paypal' ? 'PAY-XXXXXXXXXX or sale ID' : 'pay_XXXXXXXXXX'}
+                    placeholder={
+                      selectedGateway === 'paypal' 
+                        ? 'PAY-XXXXXXXXXX or sale ID' 
+                        : selectedGateway === 'razorpay'
+                        ? 'pay_XXXXXXXXXX'
+                        : 'Transaction ID'
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={loading}
                   />
@@ -259,14 +314,19 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
                       <div><span className="font-medium">User:</span> {lookupResult.database_data.user_data?.user_name || 'N/A'}</div>
                       <div><span className="font-medium">Email:</span> {lookupResult.database_data.user_data?.email || 'N/A'}</div>
                       <div><span className="font-medium">Test ID:</span> {lookupResult.database_data.testid}</div>
-                      <div><span className="font-medium">Amount:</span> ${(lookupResult.database_data.total_paid / 100).toFixed(2)}</div>
+                      <div><span className="font-medium">Amount:</span> 
+                        {selectedGateway === 'razorpay' 
+                          ? `₹${(lookupResult.database_data.total_paid / 100).toFixed(2)}`
+                          : `$${(lookupResult.database_data.total_paid / 100).toFixed(2)}`
+                        }
+                      </div>
                       <div className="col-span-2"><span className="font-medium">Date:</span> {new Date(lookupResult.database_data.payment_completed_time || lookupResult.database_data.session_start_time).toLocaleString()}</div>
                     </div>
                   </div>
                 )}
 
                 {/* PayPal Data */}
-                {lookupResult.paypal_data && (
+                {'paypal_data' in lookupResult && lookupResult.paypal_data && (
                   <div className="mb-4 p-3 bg-white rounded border">
                     <h4 className="font-medium text-gray-900 mb-2">💳 PayPal Information</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
@@ -274,6 +334,23 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
                       <div><span className="font-medium">State:</span> {lookupResult.paypal_data.state}</div>
                       <div className="col-span-2"><span className="font-medium">Created:</span> {new Date(lookupResult.paypal_data.create_time).toLocaleString()}</div>
                       <div className="col-span-2"><span className="font-medium">Transaction ID:</span> {lookupResult.paypal_data.id}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Razorpay Data */}
+                {'razorpay_data' in lookupResult && lookupResult.razorpay_data && (
+                  <div className="mb-4 p-3 bg-white rounded border">
+                    <h4 className="font-medium text-gray-900 mb-2">💳 Razorpay Information</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="font-medium">Amount:</span> {lookupResult.razorpay_data.currency} {formatRazorpayAmount(lookupResult.razorpay_data.amount)}</div>
+                      <div><span className="font-medium">Status:</span> {lookupResult.razorpay_data.status}</div>
+                      <div><span className="font-medium">Method:</span> {lookupResult.razorpay_data.method}</div>
+                      <div><span className="font-medium">Captured:</span> {lookupResult.razorpay_data.captured ? 'Yes' : 'No'}</div>
+                      <div><span className="font-medium">Refunded:</span> ₹{formatRazorpayAmount(lookupResult.razorpay_data.amount_refunded)}</div>
+                      <div><span className="font-medium">Order ID:</span> {lookupResult.razorpay_data.order_id}</div>
+                      <div className="col-span-2"><span className="font-medium">Created:</span> {new Date(lookupResult.razorpay_data.created_at * 1000).toLocaleString()}</div>
+                      <div className="col-span-2"><span className="font-medium">Payment ID:</span> {lookupResult.razorpay_data.id}</div>
                     </div>
                   </div>
                 )}
@@ -334,8 +411,16 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
                     {refundResult.success && (
                       <div className="mt-3 text-sm text-green-700">
                         <p><strong>Refund ID:</strong> {refundResult.refund_id}</p>
-                        <p><strong>Amount:</strong> {refundResult.currency} {refundResult.amount}</p>
-                        <p><strong>Status:</strong> {refundResult.state}</p>
+                        <p><strong>Amount:</strong> 
+                          {selectedGateway === 'razorpay' && 'amount' in refundResult && typeof refundResult.amount === 'number'
+                            ? `₹${formatRazorpayAmount(refundResult.amount)}`
+                            : `${refundResult.currency} ${refundResult.amount}`
+                          }
+                        </p>
+                        <p><strong>Status:</strong> {'state' in refundResult ? refundResult.state : refundResult.status}</p>
+                        {'speed' in refundResult && refundResult.speed && (
+                          <p><strong>Speed:</strong> {refundResult.speed}</p>
+                        )}
                       </div>
                     )}
                     

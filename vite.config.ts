@@ -10,6 +10,15 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     strictPort: false, // Will try another port if 8080 is busy
     open: false, // Set to true if you want browser to open automatically
+    proxy: {
+      // Proxy Razorpay API requests to avoid CORS
+      '/api/razorpay': {
+        target: 'https://api.razorpay.com/v1',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/razorpay/, ''),
+        secure: true,
+      },
+    },
   },
   plugins: [
     react(),

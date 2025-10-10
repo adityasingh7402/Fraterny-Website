@@ -96,10 +96,10 @@ export const fetchSummaries = async (
       query = query.lte('qualityscore', filters.maxQualityScore.toString());
     }
 
-    // Apply pagination and ordering
+    // Apply pagination and ordering (use id for consistent latest-first ordering)
     query = query
       .range(from, to)
-      .order('starting_time', { ascending: false, nullsFirst: false });
+      .order('id', { ascending: false });
 
     // Execute query
     const { data, error, count } = await query;

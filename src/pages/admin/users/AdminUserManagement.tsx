@@ -409,9 +409,11 @@ const AdminUserManagement: React.FC = () => {
     fetchUsersData();
   }, []);
 
-  // Fetch data when page changes
+  // Fetch data when page changes (except for the initial page 1 load)
   useEffect(() => {
-    if (currentPage > 1) {
+    // Only fetch if currentPage > 1 OR if we're going back to page 1 from another page
+    // We can detect this by checking if we have pagination data (meaning we've loaded before)
+    if (currentPage > 1 || (currentPage === 1 && pagination && pagination.totalPages > 1)) {
       fetchUsersData();
     }
   }, [currentPage]);
