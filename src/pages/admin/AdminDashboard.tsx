@@ -13,7 +13,7 @@ const menuItems = [
     id: 'overview',
     label: 'Dashboard Overview',
     icon: BarChart3,
-    component: null // We'll create a simple overview component
+    component: null
   },
   {
     id: 'users',
