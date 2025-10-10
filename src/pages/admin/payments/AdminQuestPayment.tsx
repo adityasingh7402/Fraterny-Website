@@ -525,8 +525,40 @@ const AdminQuestPayment: React.FC = () => {
                           // Render actual transaction data  
                           return (
                             <tr key={`${transaction.payment_id || transaction.id || transaction.transaction_id}-${index}`} className="hover:bg-gray-50">
-                              <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                                #{transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`}
+                              {/* Transaction ID with hover tooltip and copy */}
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-2 group">
+                                  <div className="relative">
+                                    {(() => {
+                                      const fullTransactionId = transaction.transaction_id || transaction.payment_id || `TXN${index + 1}`;
+                                      const displayId = fullTransactionId.length > 12 ? `#${fullTransactionId.substring(0, 12)}...` : `#${fullTransactionId}`;
+                                      return (
+                                        <>
+                                          <span className="text-sm font-mono text-gray-900 cursor-pointer hover:text-blue-600" title={fullTransactionId}>
+                                            {displayId}
+                                          </span>
+                                          {fullTransactionId.length > 12 && (
+                                            <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
+                                              #{fullTransactionId}
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                  {(transaction.transaction_id || transaction.payment_id) && (
+                                    <button 
+                                      onClick={() => copyToClipboard(transaction.transaction_id || transaction.payment_id || '')}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded" 
+                                      title="Copy Transaction ID"
+                                    >
+                                      {copiedText === (transaction.transaction_id || transaction.payment_id) ? 
+                                        <Check className="h-3 w-3 text-green-600" /> : 
+                                        <Copy className="h-3 w-3 text-gray-600" />
+                                      }
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-600">
                                 {transaction.user_data?.email || 'N/A'}
@@ -908,25 +940,28 @@ const AdminQuestPayment: React.FC = () => {
                             {selectedTransactionDetails.IsIndia ? 'India' : 'International'}
                           </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">PayPal Order ID</p>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-mono text-gray-900 break-all flex-1">{selectedTransactionDetails.paypal_order_id || 'N/A'}</p>
-                            {selectedTransactionDetails.paypal_order_id && selectedTransactionDetails.paypal_order_id !== 'N/A' && (
-                              <button 
-                                onClick={() => copyToClipboard(selectedTransactionDetails.paypal_order_id || '')}
-                                className="p-1 hover:bg-gray-200 rounded transition-colors"
-                                title="Copy PayPal Order ID"
-                              >
-                                {copiedText === selectedTransactionDetails.paypal_order_id ? (
-                                  <Check className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <Copy className="h-3 w-3 text-gray-600" />
-                                )}
-                              </button>
-                            )}
+                        {/* Only show PayPal Order ID for PayPal transactions */}
+                        {selectedTransactionDetails.gateway === 'paypal' && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">PayPal Order ID</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-mono text-gray-900 break-all flex-1">{selectedTransactionDetails.paypal_order_id || 'N/A'}</p>
+                              {selectedTransactionDetails.paypal_order_id && selectedTransactionDetails.paypal_order_id !== 'N/A' && (
+                                <button 
+                                  onClick={() => copyToClipboard(selectedTransactionDetails.paypal_order_id || '')}
+                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  title="Copy PayPal Order ID"
+                                >
+                                  {copiedText === selectedTransactionDetails.paypal_order_id ? (
+                                    <Check className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <Copy className="h-3 w-3 text-gray-600" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                         <div>
                           <p className="text-sm font-medium text-gray-600">Payment Session</p>
                           <div className="flex items-center gap-2">
