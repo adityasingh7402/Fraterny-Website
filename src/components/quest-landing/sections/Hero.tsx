@@ -7,6 +7,8 @@ import img from '../../../../public/Vector.svg';
 import {useIsMobile} from '../../quest/views/questbouncing/use-mobile';
 import { Link } from 'react-router-dom';
 import BrowserPopup from '../BrowserPopup';
+import HeroDesktop from '../desktop/HeroDesktop';
+import {MaskCard} from '../desktop/MaskCard';
 
 interface HeroProps {
   onAnalyzeClick?: () => void;
@@ -158,7 +160,7 @@ const Hero: React.FC<HeroProps> = ({
       {/* Browser Detection Popup */}
       <BrowserPopup />
       
-      <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
+      {/* <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
       <div className=' flex flex-col w-full items-center justify-center'>
         <div className='flex gap-2'>
           <motion.div 
@@ -175,7 +177,6 @@ const Hero: React.FC<HeroProps> = ({
             transition={{ duration: 1.2 }}
             className="flex items-center"
           >
-            {/* <img src={img} alt="Logo" className="mt-3" /> */}
             <div>
             <div className='text-[180px] text-white font-normal font-["Gilroy-Bold"] tracking-[-0.5rem]'>
               QUEST
@@ -189,16 +190,14 @@ const Hero: React.FC<HeroProps> = ({
       
       </div>
 
-      <div className='flex flex-col items-center w-full pl-5 xs:pr-0'>
-        {/* <div className="justify-center text-white text-2xl font-normal font-['Gilroy-Regular'] mb-1">Let&apos;s get you <span className='justify-start text-white text-4xl font-normal font-["Gilroy-Bold"]'>Analysed.</span></div> */}
-        {/* <div className="w-full justify-center items-center text-white text-[18px] font-normal font-['Gilroy-Regular']">I am designed to deeply understand your personality through simple yet thought provoking questions.</div> */}
-      </div>
-
       <div className='flex flex-col items-center justify-center w-full pl-5'>
         <img src="/qr-code.png" alt="QR Code" className="w-40 h-40" />
         <div className='text-white text-[25px] font-normal font-["Gilroy-Regular"] mt-2'>Scan the QR code to get started on your mobile.</div>
       </div>
-    </section>
+    </section> */}
+
+    <HeroDesktop />
+    <MaskCard />
     </>
   );
 };
