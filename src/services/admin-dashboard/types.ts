@@ -10,10 +10,18 @@ export interface DashboardStats {
     summariesLast30Days: number;
   };
   payments: {
-    totalRevenue: number;
+    totalRevenue: number; // For backward compatibility
+    totalRevenueUSD: number;
+    totalRevenueINR: number;
     totalTransactions: number;
-    revenueThisMonth: number;
+    revenueThisMonth: number; // For backward compatibility
+    revenueThisMonthUSD: number;
+    revenueThisMonthINR: number;
     successfulPayments: number;
+    // Regional breakdown
+    indiaRevenueUSD: number; // USD from India (Razorpay with IsIndia=false)
+    indiaRevenueINR: number; // INR from India (Razorpay with IsIndia=true)
+    internationalRevenueUSD: number; // USD from International (PayPal)
   };
   feedback: {
     totalFeedbacks: number;

@@ -1279,7 +1279,7 @@ const CirclePercent: React.FC<CirclePercentProps> = ({ percent }) => {
 };
 
 const getAuthBannerColors = (sectionIndex: number) => {
-  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
+  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
   const currentSection = sectionKeys[sectionIndex];
 
   switch (currentSection) {
@@ -1298,7 +1298,7 @@ const getAuthBannerColors = (sectionIndex: number) => {
     case "mind":
     case "findings":
     case "films":
-    case "astrology":
+    // case "astrology":
     case "work":
     default:
       // Dark sections - use light colors
@@ -1323,7 +1323,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
   const colors = getAuthBannerColors(activeIndex);
 
   const getGlassBackground = (index: number) => {
-    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
+    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
     const currentSection = sectionKeys[index];
 
     if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books" || currentSection === "pdf-report") {
@@ -2255,7 +2255,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
   const [seconds, setSeconds] = useState(30 * 60); // 30 minutes countdown for PDF promotion
 
-  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", "astrology", "books", "work", "pdf-report"];
+  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
   const getEffectiveUserId = () => {
     return user?.id || userId;
   };
@@ -3234,8 +3234,8 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         </SectionFrame>
 
 
-        {/* Astrology Section */}
-        {astrology && (
+        {/* Astrology Section - TEMPORARILY HIDDEN */}
+        {/* {astrology && (
           <SectionFrame
             id="astrology"
             title="Our Take on Astrology"
@@ -3256,7 +3256,6 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                 </div>
               </div>
 
-              {/* Predictions Cards */}
               <div className="overflow-x-auto">
                 <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
                   {astrology.predictions.slice(0, 3).map((prediction, i) => {
@@ -3271,30 +3270,12 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                           setAstrologyModalOpen(true);
                         }}
                       >
-                        {/* Percentage */}
                         <div className="absolute left-[20px] top-[10px] text-white text-7xl font-normal font-['Gilroy-Bold'] leading-[60px]">
                           {prediction.likelihood}%
                         </div>
                         <div className="w-14 h-14 absolute right-[5px] top-[5px]">
                           <img src="/i-card.png" alt="Prediction Card" />
                         </div>
-                        {/* <motion.div 
-                              className="w-14 h-14 absolute right-[5px] top-[5px]"
-                              animate={{ 
-                                scale: [1, 1.05, 1],
-                                opacity: [0.8, 1, 0.8]
-                              }}
-                              transition={{
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                                delay: i * 0.4  // Stagger each card by 400ms
-                              }}
-                            >
-                              <img src="/i-card.png" alt="Prediction Card" />
-                            </motion.div> */}
-
-                        {/* Title */}
                         <div className="absolute left-[20px] bottom-[21px] text-white text-xl font-normal font-['Gilroy-Bold'] leading-6">
                           {prediction.title.split(' ').slice(0, 3).join('  ') + ' ....'}
                         </div>
@@ -3305,7 +3286,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               </div>
             </div>
           </SectionFrame>
-        )}
+        )} */}
 
         {/* Books Section */}
         <SectionFrame
