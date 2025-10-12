@@ -598,7 +598,9 @@ const AdminUserManagement: React.FC = () => {
                     <option value="">All Genders</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
                     <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
                   </select>
                 </label>
                 

@@ -295,6 +295,32 @@ const AdminSummaryManagement: React.FC = () => {
     }
   }, [currentPage]);
 
+  // Calculate age from date of birth (handles both date strings and simple age numbers)
+  const calculateAge = (dob: string | null): number | null => {
+    if (!dob) return null;
+    
+    // Check if dob is already a simple number (age)
+    const numericAge = parseInt(dob);
+    if (!isNaN(numericAge) && numericAge > 0 && numericAge < 150) {
+      return numericAge;
+    }
+    
+    // Try to parse as date
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) {
+      // Invalid date, return null
+      return null;
+    }
+    
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   // Format date helper
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
@@ -630,6 +656,7 @@ const AdminSummaryManagement: React.FC = () => {
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Test ID</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Age</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start Time</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -645,6 +672,7 @@ const AdminSummaryManagement: React.FC = () => {
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                          <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-10"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
                           <td className="py-4 px-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
                           <td className="py-4 px-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
@@ -689,6 +717,13 @@ const AdminSummaryManagement: React.FC = () => {
                               {/* Email */}
                               <td className="py-4 px-4 text-sm text-gray-600">
                                 {summary.user_data?.email || 'N/A'}
+                              </td>
+                              
+                              {/* Age */}
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {summary.user_data?.dob ? (
+                                  calculateAge(summary.user_data.dob) !== null ? calculateAge(summary.user_data.dob) : 'N/A'
+                                ) : 'N/A'}
                               </td>
                               
                               {/* Start Time */}
@@ -769,6 +804,7 @@ const AdminSummaryManagement: React.FC = () => {
                               <td className="py-4 px-4"></td>
                               <td className="py-4 px-4"></td>
                               <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
                             </tr>
                           );
                         }
@@ -777,7 +813,7 @@ const AdminSummaryManagement: React.FC = () => {
                     
                     {!loading && summaries.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="py-12 text-center text-gray-500 text-sm">
+                        <td colSpan={10} className="py-12 text-center text-gray-500 text-sm">
                           No summaries found
                         </td>
                       </tr>
@@ -877,7 +913,10 @@ const AdminSummaryManagement: React.FC = () => {
                           <div><p className="text-sm font-medium text-gray-600">Mobile</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.mobile_number || 'N/A'}</p></div>
                           <div><p className="text-sm font-medium text-gray-600">City</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.city || 'N/A'}</p></div>
                           <div><p className="text-sm font-medium text-gray-600">Gender</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.gender || 'N/A'}</p></div>
-                          <div><p className="text-sm font-medium text-gray-600">DOB</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.dob ? new Date(selectedSummaryDetails.user_data.dob).toLocaleDateString() : 'N/A'}</p></div>
+                          <div><p className="text-sm font-medium text-gray-600">Age</p><p className="text-sm text-gray-900">{selectedSummaryDetails.user_data.dob ? (() => {
+                            const calculatedAge = calculateAge(selectedSummaryDetails.user_data.dob);
+                            return calculatedAge !== null ? calculatedAge.toString() : 'N/A';
+                          })() : 'N/A'}</p></div>
                         </div>
                       </div>
                     )}
