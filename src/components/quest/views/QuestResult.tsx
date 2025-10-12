@@ -1279,7 +1279,7 @@ const CirclePercent: React.FC<CirclePercentProps> = ({ percent }) => {
 };
 
 const getAuthBannerColors = (sectionIndex: number) => {
-  const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
+  const sectionKeys = ["emotional", "mind", "findings", "subjects", "quotes", "films", "books", /* "astrology", */ "work", "pdf-report"];
   const currentSection = sectionKeys[sectionIndex];
 
   switch (currentSection) {
@@ -1323,7 +1323,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ onSignIn, onPayment, user, paym
   const colors = getAuthBannerColors(activeIndex);
 
   const getGlassBackground = (index: number) => {
-    const sectionKeys = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
+    const sectionKeys = ["emotional", "mind", "findings", "subjects", "quotes", "films", "books", /* "astrology", */ "work", "pdf-report"];
     const currentSection = sectionKeys[index];
 
     if (currentSection === "quotes" || currentSection === "subjects" || currentSection === "books" || currentSection === "pdf-report") {
@@ -2255,7 +2255,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
   const [hasCleanedStorage, setHasCleanedStorage] = useState(false);
   const [seconds, setSeconds] = useState(30 * 60); // 30 minutes countdown for PDF promotion
 
-  const sectionIds = ["emotional", "mind", "findings", "quotes", "films", "subjects", /* "astrology", */ "books", "work", "pdf-report"];
+  const sectionIds = ["emotional", "mind", "findings", "subjects", "quotes", "films", "books", /* "astrology", */ "work", "pdf-report"];
   const getEffectiveUserId = () => {
     return user?.id || userId;
   };
@@ -2362,8 +2362,8 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
 
   // Auto-trigger feedback popup when user reaches subjects section
   useEffect(() => {
-    // Subjects section is at index 5 in sectionIds array
-    if (activeIndex === 5 && !hasTriggeredFeedback && !feedbackPopupOpen) {
+    // Subjects section is at index 3 in sectionIds array (after findings)
+    if (activeIndex === 3 && !hasTriggeredFeedback && !feedbackPopupOpen) {
       // Add a small delay to let the section settle
       const timer = setTimeout(() => {
         setFeedbackPopupOpen(true);
@@ -3119,6 +3119,30 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           </div>
         </SectionFrame>
 
+        {/* Subjects Section */}
+        <SectionFrame
+          id="subjects"
+          title="Subjects You Are Mentally Built to Explore Deeper"
+          sub="Deepen the edges"
+          shareText={subjects.map(s => `${s.title}: ${s.description}`).join("; ")}
+          themeKey="subjects"
+          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
+          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600"
+          customClass="pt-12 pb-[50px] overflow-y-auto"
+          sessionId={sessionId}
+          testId={testId}
+        >
+          <div className="grid h-full content-center gap-3">
+            {subjects.map((subject, i) => (
+              <div key={i} className="rounded-2xl bg-white p-3 text-[15px]" style={{ border: `1px solid ${tokens.border}` }}>
+                <div className="font-semibold text-gray-900">{subject.title}</div>
+                <div className="text-sm text-gray-600 mt-1">{subject.description}</div>
+                <div className="text-xs text-blue-600 mt-2">{subject.matchPercentage}% match</div>
+              </div>
+            ))}
+          </div>
+        </SectionFrame>
+
         {/* Quotes Section */}
         <SectionFrame
           id="quotes"
@@ -3133,7 +3157,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
           testId={testId}
         >
           <ul className="grid content-center gap-3 overflow-y-auto">
-            {quotes.map((quote, i) => (
+            {quotes.slice(0, 4).map((quote, i) => (
               <li key={i} className="rounded-2xl bg-white p-3" style={{ border: `1px solid ${tokens.border}` }}>
                 <div className="flex items-start gap-2">
                   <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center mt-0.5">
@@ -3162,7 +3186,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         >
           <div className="overflow-x-auto">
             <div className="flex gap-4 pb-1" style={{ width: "max-content" }}>
-              {films.map((film, i) => (
+              {films.slice(0, 3).map((film, i) => (
                 <div
                   key={i}
                   className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
@@ -3206,30 +3230,6 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                 </div>
               ))}
             </div>
-          </div>
-        </SectionFrame>
-
-        {/* Subjects Section */}
-        <SectionFrame
-          id="subjects"
-          title="Subjects You Are Mentally Built to Explore Deeper"
-          sub="Deepen the edges"
-          shareText={subjects.map(s => `${s.title}: ${s.description}`).join("; ")}
-          themeKey="subjects"
-          inputClassName="placeholder:text-gray-700 bg-gray-100/30 text-gray-800 border border-gray-300"
-          buttonClassName="bg-blue-600 text-white hover:bg-blue-700 border border-blue-600"
-          customClass="pt-12 pb-[50px] overflow-y-auto"
-          sessionId={sessionId}
-          testId={testId}
-        >
-          <div className="grid h-full content-center gap-3">
-            {subjects.map((subject, i) => (
-              <div key={i} className="rounded-2xl bg-white p-3 text-[15px]" style={{ border: `1px solid ${tokens.border}` }}>
-                <div className="font-semibold text-gray-900">{subject.title}</div>
-                <div className="text-sm text-gray-600 mt-1">{subject.description}</div>
-                <div className="text-xs text-blue-600 mt-2">{subject.matchPercentage}% match</div>
-              </div>
-            ))}
           </div>
         </SectionFrame>
 
