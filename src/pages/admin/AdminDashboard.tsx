@@ -161,9 +161,51 @@ const DashboardOverview: React.FC = () => {
         )}
       </div>
       
+      {/* Regional Revenue Breakdown - More Prominent */}
+      {dashboardStats && !loading && (
+        <div className="mt-8">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              🌍 Revenue by Region
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-lg font-semibold text-green-800">🇮🇳 India Revenue</h4>
+                </div>
+                <div className="text-2xl font-bold text-green-700 mb-1">
+                  ${dashboardStats.payments.indiaRevenueUSD.toLocaleString()} + ₹{dashboardStats.payments.indiaRevenueINR.toLocaleString()}
+                </div>
+                <div className="text-sm text-green-600">
+                  USD: ${dashboardStats.payments.indiaRevenueUSD.toLocaleString()} | INR: ₹{dashboardStats.payments.indiaRevenueINR.toLocaleString()}
+                </div>
+                <div className="text-xs text-green-500 mt-1">
+                  PayPal USD + Razorpay INR from Indian users
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-lg font-semibold text-blue-800">🌎 International Revenue</h4>
+                </div>
+                <div className="text-2xl font-bold text-blue-700 mb-1">
+                  ${dashboardStats.payments.internationalRevenueUSD.toLocaleString()}
+                </div>
+                <div className="text-sm text-blue-600">
+                  USD Only
+                </div>
+                <div className="text-xs text-blue-500 mt-1">
+                  PayPal + Razorpay USD from international users
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Business Insights */}
       {dashboardStats && !loading && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Key Metrics */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Business Metrics</h3>
@@ -216,7 +258,9 @@ const DashboardOverview: React.FC = () => {
                 <CreditCard className="h-5 w-5 text-purple-600" />
                 <div>
                   <span className="text-purple-800 font-medium block">Payment Reports</span>
-                  <span className="text-purple-600 text-xs">${dashboardStats.payments.totalRevenue.toLocaleString()} revenue</span>
+                  <span className="text-purple-600 text-xs">
+                    ${dashboardStats.payments.totalRevenueUSD.toLocaleString()} + ₹{dashboardStats.payments.totalRevenueINR.toLocaleString()}
+                  </span>
                 </div>
               </button>
               <button className="flex items-center gap-3 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">

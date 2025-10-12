@@ -160,7 +160,7 @@ const Hero: React.FC<HeroProps> = ({
       {/* Browser Detection Popup */}
       <BrowserPopup />
       
-      {/* <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
+      <section className='bg-sky-800 gap-1 h-screen flex flex-col items-center justify-center'>
       <div className=' flex flex-col w-full items-center justify-center'>
         <div className='flex gap-2'>
           <motion.div 
@@ -194,10 +194,10 @@ const Hero: React.FC<HeroProps> = ({
         <img src="/qr-code.png" alt="QR Code" className="w-40 h-40" />
         <div className='text-white text-[25px] font-normal font-["Gilroy-Regular"] mt-2'>Scan the QR code to get started on your mobile.</div>
       </div>
-    </section> */}
+    </section>
 
-    <HeroDesktop />
-    <MaskCard />
+    {/* <HeroDesktop /> */}
+    {/* <MaskCard /> */}
     </>
   );
 };

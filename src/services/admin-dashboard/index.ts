@@ -38,18 +38,18 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
       recentFeedbackResult
     ] = await Promise.all([
       // Users queries
-      supabase.from('user_data').select('id', { count: 'exact' }),
-      supabase.from('user_data').select('id', { count: 'exact' }).gte('last_used', thirtyDaysAgo.toISOString()),
-      supabase.from('user_data').select('id', { count: 'exact' }).gte('last_used', sevenDaysAgo.toISOString()),
+      supabase.from('user_data').select('user_id', { count: 'exact' }),
+      supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', thirtyDaysAgo.toISOString()),
+      supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', sevenDaysAgo.toISOString()),
       
       // Summaries queries
       supabase.from('summary_generation').select('id', { count: 'exact' }),
       supabase.from('summary_generation').select('id', { count: 'exact' }).in('payment_status', ['success', 'completed']),
       supabase.from('summary_generation').select('id', { count: 'exact' }).gte('starting_time', thirtyDaysAgo.toISOString()),
       
-      // Payments queries
-      supabase.from('transaction_details').select('total_paid, status', { count: 'exact' }),
-      supabase.from('transaction_details').select('total_paid').eq('status', 'success').gte('payment_completed_time', startOfMonth.toISOString()),
+      // Payments queries - get all payment details including gateway and location info
+      supabase.from('transaction_details').select('total_paid, status, gateway, IsIndia', { count: 'exact' }),
+      supabase.from('transaction_details').select('total_paid, gateway, IsIndia').eq('status', 'success').gte('payment_completed_time', startOfMonth.toISOString()),
       
       // Feedback queries
       supabase.from('summary_overall_feedback').select('rating', { count: 'exact' }),
@@ -71,15 +71,83 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
     const totalTransactions = paymentsResult.count || 0;
     const successfulPayments = allPayments.filter(p => p.status === 'success').length;
     
-    // Calculate total revenue (sum of successful payments)
-    const totalRevenue = allPayments
-      .filter(p => p.status === 'success')
-      .reduce((sum, p) => sum + (parseFloat(p.total_paid) || 0), 0);
+    // Helper function to determine currency and calculate amount with regional breakdown
+    const calculateCurrencyAmount = (payment: any) => {
+      const amount = (parseFloat(payment.total_paid) || 0) / 100; // Convert from cents/paise
+      
+      // Determine currency based on gateway
+      let isUSD = false;
+      let isINR = false;
+      
+      if (payment.gateway === 'paypal') {
+        isUSD = true; // PayPal is always USD
+      } else if (payment.gateway === 'Razorpay') {
+        if (payment.IsIndia === true) {
+          isINR = true; // Razorpay in India = INR
+        } else {
+          isUSD = true; // Razorpay international = USD
+        }
+      }
+      
+      // Now determine region based on IsIndia flag (regardless of gateway)
+      const isFromIndia = payment.IsIndia === true;
+      
+      if (isFromIndia) {
+        // Payment from India (can be PayPal USD or Razorpay INR)
+        return {
+          usd: isUSD ? amount : 0,
+          inr: isINR ? amount : 0,
+          indiaUSD: isUSD ? amount : 0,
+          indiaINR: isINR ? amount : 0,
+          internationalUSD: 0
+        };
+      } else {
+        // Payment from International (can be PayPal USD or Razorpay USD)
+        return {
+          usd: isUSD ? amount : 0,
+          inr: isINR ? amount : 0,
+          indiaUSD: 0,
+          indiaINR: 0,
+          internationalUSD: isUSD ? amount : 0
+        };
+      }
+    };
     
-    // Calculate revenue this month
+    // Calculate total revenue by currency and region
+    const successfulPaymentData = allPayments.filter(p => p.status === 'success');
+    const totalRevenueByCurrency = successfulPaymentData.reduce(
+      (totals, payment) => {
+        const { usd, inr, indiaUSD, indiaINR, internationalUSD } = calculateCurrencyAmount(payment);
+        return {
+          usd: totals.usd + usd,
+          inr: totals.inr + inr,
+          indiaUSD: totals.indiaUSD + indiaUSD,
+          indiaINR: totals.indiaINR + indiaINR,
+          internationalUSD: totals.internationalUSD + internationalUSD
+        };
+      },
+      { usd: 0, inr: 0, indiaUSD: 0, indiaINR: 0, internationalUSD: 0 }
+    );
+    
+    // Calculate revenue this month by currency and region
     const monthlyPayments = revenueThisMonthResult.data || [];
-    const revenueThisMonth = monthlyPayments
-      .reduce((sum, p) => sum + (parseFloat(p.total_paid) || 0), 0);
+    const monthlyRevenueByCurrency = monthlyPayments.reduce(
+      (totals, payment) => {
+        const { usd, inr, indiaUSD, indiaINR, internationalUSD } = calculateCurrencyAmount(payment);
+        return {
+          usd: totals.usd + usd,
+          inr: totals.inr + inr,
+          indiaUSD: totals.indiaUSD + indiaUSD,
+          indiaINR: totals.indiaINR + indiaINR,
+          internationalUSD: totals.internationalUSD + internationalUSD
+        };
+      },
+      { usd: 0, inr: 0, indiaUSD: 0, indiaINR: 0, internationalUSD: 0 }
+    );
+    
+    // For backward compatibility, calculate total revenue (USD + INR, but this isn't ideal)
+    const totalRevenue = totalRevenueByCurrency.usd + totalRevenueByCurrency.inr;
+    const revenueThisMonth = monthlyRevenueByCurrency.usd + monthlyRevenueByCurrency.inr;
 
     // Process feedback data
     const totalFeedbacks = feedbackResult.count || 0;
@@ -104,10 +172,18 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
         summariesLast30Days,
       },
       payments: {
-        totalRevenue: totalRevenue / 100, // Convert from cents to dollars/rupees
+        totalRevenue: totalRevenue, // For backward compatibility
+        totalRevenueUSD: totalRevenueByCurrency.usd,
+        totalRevenueINR: totalRevenueByCurrency.inr,
         totalTransactions,
-        revenueThisMonth: revenueThisMonth / 100, // Convert from cents
+        revenueThisMonth: revenueThisMonth, // For backward compatibility
+        revenueThisMonthUSD: monthlyRevenueByCurrency.usd,
+        revenueThisMonthINR: monthlyRevenueByCurrency.inr,
         successfulPayments,
+        // Regional breakdown
+        indiaRevenueUSD: totalRevenueByCurrency.indiaUSD,
+        indiaRevenueINR: totalRevenueByCurrency.indiaINR,
+        internationalRevenueUSD: totalRevenueByCurrency.internationalUSD,
       },
       feedback: {
         totalFeedbacks,
@@ -160,9 +236,9 @@ export const formatQuickStats = (stats: DashboardStats): QuickStats[] => {
     },
     {
       label: 'Total Revenue',
-      value: `$${stats.payments.totalRevenue.toLocaleString()}`,
+      value: `$${stats.payments.totalRevenueUSD.toLocaleString()} + ₹${stats.payments.totalRevenueINR.toLocaleString()}`,
       change: {
-        value: Math.round(stats.payments.revenueThisMonth),
+        value: Math.round(stats.payments.revenueThisMonthUSD + stats.payments.revenueThisMonthINR),
         type: 'increase',
         period: 'this month'
       },

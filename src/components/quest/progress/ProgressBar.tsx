@@ -434,7 +434,7 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
             />
           </div> */}
           {/* Single continuous progress bar */}
-          <div className="w-full h-2 bg-gray-200 rounded-r-full relative overflow-hidden">
+          <div className="w-full h-2 lg:h-3 bg-gray-200 rounded-r-full relative overflow-hidden">
             {/* Use pre-calculated section-aware progress */}
             <motion.div
                   className="h-full bg-gradient-to-r from-sky-600 to-sky-400 rounded-r-full relative overflow-hidden"
