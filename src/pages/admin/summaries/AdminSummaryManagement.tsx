@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchSummaries, deleteSummary, getSummaryStats } from '@/services/admin-summaries';
+import { fetchSummaries, deleteSummary, deleteSummaries, getSummaryStats } from '@/services/admin-summaries';
 import type { SummaryFilters, PaginationParams, SummaryGeneration, SummaryStats } from '@/services/admin-summaries';
 import { FileStack, CheckCircle, Clock, TrendingUp, ChevronLeft, ChevronRight, Trash2, AlertTriangle, Copy, Check, Eye, Download } from 'lucide-react';
 import { toast } from 'sonner';
@@ -41,6 +41,12 @@ const AdminSummaryManagement: React.FC = () => {
   
   // Copy functionality state
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  // Bulk selection state
+  const [selectedSummaryIds, setSelectedSummaryIds] = useState<number[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [showBulkDeletePopup, setShowBulkDeletePopup] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Fetch summary statistics
   const fetchSummaryStats = async () => {
@@ -119,11 +125,13 @@ const AdminSummaryManagement: React.FC = () => {
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    clearSelections();
   };
 
   // Handle filter apply
   const applyFilters = () => {
     setCurrentPage(1);
+    clearSelections();
     fetchSummariesData();
   };
 
@@ -141,6 +149,7 @@ const AdminSummaryManagement: React.FC = () => {
     setSummaries([]);
     setPagination(null);
     setFilteredStats(null);
+    clearSelections();
     setTimeout(() => {
       fetchSummariesData();
     }, 0);
@@ -236,6 +245,81 @@ const AdminSummaryManagement: React.FC = () => {
     return !!(searchTerm || dateFrom || dateTo || paymentStatus || status || minQualityScore || maxQualityScore);
   };
 
+  // Bulk selection handlers
+  const handleSelectSummary = (summaryId: number, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedSummaryIds(prev => [...prev, summaryId]);
+    } else {
+      setSelectedSummaryIds(prev => prev.filter(id => id !== summaryId));
+      setIsAllSelected(false);
+    }
+  };
+  
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedSummaryIds([]);
+      setIsAllSelected(false);
+    } else {
+      const currentPageIds = summaries.map(s => s.id);
+      setSelectedSummaryIds(currentPageIds);
+      setIsAllSelected(true);
+    }
+  };
+  
+  const handleUnselectAll = () => {
+    setSelectedSummaryIds([]);
+    setIsAllSelected(false);
+  };
+  
+  const openBulkDeletePopup = () => {
+    if (selectedSummaryIds.length > 0) {
+      setShowBulkDeletePopup(true);
+    }
+  };
+  
+  const closeBulkDeletePopup = () => {
+    setShowBulkDeletePopup(false);
+  };
+  
+  const processBulkDelete = async () => {
+    if (selectedSummaryIds.length === 0) return;
+    
+    setBulkDeleting(true);
+    try {
+      const response = await deleteSummaries(selectedSummaryIds);
+      
+      if (response.success) {
+        toast.success(`${selectedSummaryIds.length} summaries deleted successfully`, {
+          description: 'Selected summary records have been removed.'
+        });
+        closeBulkDeletePopup();
+        setSelectedSummaryIds([]);
+        setIsAllSelected(false);
+        fetchSummariesData();
+        fetchSummaryStats();
+      } else {
+        toast.error('Failed to delete summaries', {
+          description: response.error || 'An unknown error occurred'
+        });
+        setError(response.error || 'Failed to delete summaries');
+      }
+    } catch (error: any) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete summaries', {
+        description: error.message || 'An unexpected error occurred'
+      });
+      setError(error.message || 'Failed to delete summaries');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+  
+  // Clear selected summaries when page changes
+  const clearSelections = () => {
+    setSelectedSummaryIds([]);
+    setIsAllSelected(false);
+  };
+
   // Helper function to apply filters immediately with specific values
   const applyFiltersWithValues = async (filterOverrides: any) => {
     setLoading(true);
@@ -294,6 +378,17 @@ const AdminSummaryManagement: React.FC = () => {
       fetchSummariesData();
     }
   }, [currentPage]);
+  
+  // Update selection state when summaries change
+  useEffect(() => {
+    if (summaries.length > 0) {
+      const currentPageIds = summaries.map(s => s.id);
+      const allCurrentPageSelected = currentPageIds.every(id => selectedSummaryIds.includes(id));
+      setIsAllSelected(allCurrentPageSelected && currentPageIds.length > 0);
+    } else {
+      setIsAllSelected(false);
+    }
+  }, [summaries, selectedSummaryIds]);
 
   // Calculate age from date of birth (handles both date strings and simple age numbers)
   const calculateAge = (dob: string | null): number | null => {
@@ -648,11 +743,55 @@ const AdminSummaryManagement: React.FC = () => {
                 </div>
               )}
 
+              {/* Bulk Actions */}
+              <div className="flex items-center justify-between mt-6 mb-4">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={openBulkDeletePopup}
+                    disabled={selectedSummaryIds.length === 0 || loading}
+                    className="flex items-center justify-center rounded-lg h-10 bg-red-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={selectedSummaryIds.length === 0 ? 'Select summaries to delete' : `Delete ${selectedSummaryIds.length} selected summaries`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Selected ({selectedSummaryIds.length})
+                  </button>
+                  <button 
+                    onClick={handleSelectAll}
+                    disabled={loading || summaries.length === 0}
+                    className="flex items-center justify-center rounded-lg h-10 bg-blue-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAllSelected ? 'Unselect All' : 'Select All'}
+                  </button>
+                  <button 
+                    onClick={handleUnselectAll}
+                    disabled={loading || selectedSummaryIds.length === 0}
+                    className="flex items-center justify-center rounded-lg h-10 bg-gray-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+                {selectedSummaryIds.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    {selectedSummaryIds.length} of {summaries.length} selected on this page
+                  </div>
+                )}
+              </div>
+
               {/* Data Table */}
-              <div className="overflow-x-auto mt-6">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="border-b border-gray-200">
                     <tr>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">
+                        <input 
+                          type="checkbox" 
+                          checked={isAllSelected && summaries.length > 0}
+                          onChange={handleSelectAll}
+                          disabled={loading || summaries.length === 0}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          title={isAllSelected ? 'Unselect all on this page' : 'Select all on this page'}
+                        />
+                      </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Test ID</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
@@ -669,6 +808,7 @@ const AdminSummaryManagement: React.FC = () => {
                     {loading ? (
                       Array.from({ length: 10 }).map((_, index) => (
                         <tr key={`loading-${index}`} className="animate-pulse hover:bg-gray-50">
+                          <td className="py-4 px-4 w-12"><div className="h-4 bg-gray-200 rounded w-4"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
                           <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
@@ -688,6 +828,15 @@ const AdminSummaryManagement: React.FC = () => {
                         if (summary) {
                           return (
                             <tr key={summary.id} className="hover:bg-gray-50">
+                              {/* Checkbox */}
+                              <td className="py-4 px-4 w-12">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedSummaryIds.includes(summary.id)}
+                                  onChange={(e) => handleSelectSummary(summary.id, e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                />
+                              </td>
                               {/* Test ID with copy */}
                               <td className="py-4 px-4">
                                 <div className="flex items-center gap-2 group">
@@ -805,6 +954,7 @@ const AdminSummaryManagement: React.FC = () => {
                               <td className="py-4 px-4"></td>
                               <td className="py-4 px-4"></td>
                               <td className="py-4 px-4"></td>
+                              <td className="py-4 px-4"></td>
                             </tr>
                           );
                         }
@@ -813,7 +963,7 @@ const AdminSummaryManagement: React.FC = () => {
                     
                     {!loading && summaries.length === 0 && (
                       <tr>
-                        <td colSpan={10} className="py-12 text-center text-gray-500 text-sm">
+                        <td colSpan={11} className="py-12 text-center text-gray-500 text-sm">
                           No summaries found
                         </td>
                       </tr>
@@ -864,6 +1014,47 @@ const AdminSummaryManagement: React.FC = () => {
                 </div>
               )}
             </div>
+            
+            {/* Bulk Delete Confirmation Popup */}
+            {showBulkDeletePopup && selectedSummaryIds.length > 0 && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Delete Multiple Summaries</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Are you sure you want to delete <strong>{selectedSummaryIds.length}</strong> selected summaries? This action cannot be undone.
+                  </p>
+                  <div className="bg-gray-50 p-3 rounded-md mb-4">
+                    <p className="font-medium text-sm text-red-600">⚠️ This will permanently delete:</p>
+                    <ul className="text-xs text-gray-600 mt-1 list-disc list-inside">
+                      <li>{selectedSummaryIds.length} summary records</li>
+                      <li>All associated question answers</li>
+                      <li>All related data for these summaries</li>
+                    </ul>
+                  </div>
+                  <div className="flex justify-end space-x-3">
+                    <button 
+                      onClick={closeBulkDeletePopup} 
+                      disabled={bulkDeleting} 
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={processBulkDelete} 
+                      disabled={bulkDeleting} 
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {bulkDeleting ? `Deleting ${selectedSummaryIds.length}...` : `Delete ${selectedSummaryIds.length} Summaries`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Delete Confirmation Popup */}
             {showDeletePopup && selectedSummary && (

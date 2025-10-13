@@ -312,6 +312,95 @@ export const deleteSummary = async (summaryId: number): Promise<DeleteSummaryRes
 };
 
 /**
+ * Delete multiple summaries by their IDs
+ * 
+ * @param summaryIds - Array of summary IDs to delete
+ * @returns DeleteSummaryResponse with success status
+ */
+export const deleteSummaries = async (summaryIds: number[]): Promise<DeleteSummaryResponse> => {
+  try {
+    console.log('🗑️ Starting bulk cascade delete for summaries:', summaryIds);
+    
+    if (summaryIds.length === 0) {
+      return {
+        success: false,
+        message: null,
+        error: 'No summaries selected for deletion',
+      };
+    }
+    
+    // First, get the testids to delete related records
+    const { data: summaryData, error: fetchError } = await supabase
+      .from('summary_generation')
+      .select('testid')
+      .in('id', summaryIds);
+
+    if (fetchError) {
+      console.error('❌ Error fetching summaries:', fetchError);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to fetch summaries: ${fetchError.message}`,
+      };
+    }
+
+    // Step 1: Delete related records in summary_question_answer table
+    if (summaryData && summaryData.length > 0) {
+      const testids = summaryData.map(s => s.testid).filter(Boolean);
+      if (testids.length > 0) {
+        console.log('📝 Deleting related question answers for testids:', testids);
+        const { error: questionError } = await supabase
+          .from('summary_question_answer')
+          .delete()
+          .in('testid', testids);
+
+        if (questionError) {
+          console.error('❌ Error deleting question answers:', questionError);
+          return {
+            success: false,
+            message: null,
+            error: `Failed to delete related question answers: ${questionError.message}`,
+          };
+        }
+        console.log('✅ Deleted related question answers');
+      }
+    }
+
+    // Step 2: Delete the summaries
+    console.log('📊 Deleting summary records...');
+    const { error } = await supabase
+      .from('summary_generation')
+      .delete()
+      .in('id', summaryIds);
+
+    if (error) {
+      console.error('❌ Error deleting summaries:', error);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete summaries: ${error.message}`,
+      };
+    }
+
+    console.log('✅ Summaries deleted successfully!');
+    console.log('🎉 Bulk cascade delete completed for summaries:', summaryIds);
+
+    return {
+      success: true,
+      message: `${summaryIds.length} summaries and all related records deleted successfully`,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in deleteSummaries:', error);
+    return {
+      success: false,
+      message: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
  * Get summary statistics for dashboard cards
  * 
  * @returns SummaryStats with aggregated statistics

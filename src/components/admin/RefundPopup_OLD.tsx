@@ -35,21 +35,12 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
     refundData: RefundResult
   ) => {
     try {
-      // Debug log to see the actual data structure
-      console.log('🔍 Debug - Lookup data structure:', JSON.stringify(lookupData, null, 2));
-      console.log('🔍 Debug - Database data:', JSON.stringify(lookupData.database_data, null, 2));
-      console.log('🔍 Debug - User data:', JSON.stringify(lookupData.database_data?.user_data, null, 2));
-      
       const refundRequest: RefundRequest = {
-        transaction_id: lookupData.database_data?.transaction_id || null,
+        transaction_id: transactionId,
         payment_id: gateway === 'razorpay' ? transactionId : lookupData.database_data?.payment_id || '',
         order_id: lookupData.database_data?.order_id || '',
         session_id: lookupData.database_data?.session_id || '',
-        testid: lookupData.database_data?.testid || null,
-        user_id: lookupData.database_data?.user_data?.user_id || 
-                  lookupData.database_data?.user_id || 
-                  lookupData.database_data?.userId || 
-                  lookupData.database_data?.userid || '',
+        user_id: lookupData.database_data?.user_data?.user_id || '',
         refund_amount: (() => {
           if (gateway === 'paypal' && 'paypal_data' in lookupData && lookupData.paypal_data) {
             return Math.round(parseFloat(lookupData.paypal_data.amount.total) * 100);
@@ -70,6 +61,7 @@ const RefundPopup: React.FC<RefundPopupProps> = ({ isOpen, onClose }) => {
         customer_email: lookupData.database_data?.user_data?.email || '',
         customer_mobile: lookupData.database_data?.user_data?.mobile_number || '',
         original_transaction_data: lookupData.database_data || {}
+        // Note: gatewayError and refundStatus will be handled by the service
       };
 
       const result = await initiateRefund(refundRequest);
