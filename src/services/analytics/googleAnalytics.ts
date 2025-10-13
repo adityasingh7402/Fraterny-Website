@@ -158,8 +158,8 @@ class GoogleAnalyticsService {
     
       window.gtag('event', eventName, eventData);
   
-      console.log(`📊 GA4 Event: ${eventName}`, eventData);
-      console.log(`🔍 Normalized path: ${normalizedPath}`);
+     // console.log(`📊 GA4 Event: ${eventName}`, eventData);
+     //  console.log(`🔍 Normalized path: ${normalizedPath}`);
   } catch (error) {
     console.error(`❌ Failed to send GA4 event ${eventName}:`, error);
   }

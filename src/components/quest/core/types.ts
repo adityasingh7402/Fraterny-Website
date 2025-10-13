@@ -11,7 +11,7 @@ export interface Question {
   id: string;
   text: string;
   difficulty: QuestionDifficulty;
-  type: 'multiple_choice' | 'text_input' | 'scale_rating' | 'image_choice' | 'date_input' | 'ranking';
+  type: 'multiple_choice' | 'text_input' | 'scale_rating' | 'image_choice' | 'date_input' | 'ranking' | 'number_dropdown';
   options?: string[];
   imageOptions?: string[];
   minScale?: number;
