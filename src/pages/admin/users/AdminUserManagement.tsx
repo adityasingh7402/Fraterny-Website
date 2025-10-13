@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUsers, deleteUser, getUserStats, fetchUsersWithDuplicateDetection, getTotalUniqueUsersCount } from '@/services/admin-users';
+import { fetchUsers, deleteUser, deleteUsers, getUserStats, fetchUsersWithDuplicateDetection, getTotalUniqueUsersCount } from '@/services/admin-users';
 import type { UserFilters, PaginationParams, UserData, UsersResponse, UserStats, UserDataWithDuplicateInfo } from '@/services/admin-users';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,6 +64,12 @@ const AdminUserManagement: React.FC = () => {
   
   // Copy functionality state
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
+  
+  // Bulk selection state
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [showBulkDeletePopup, setShowBulkDeletePopup] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Fetch user statistics
   const fetchUserStats = async () => {
@@ -183,6 +189,7 @@ const AdminUserManagement: React.FC = () => {
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    clearSelections();
   };
 
   // Handle filter apply
@@ -223,6 +230,7 @@ const AdminUserManagement: React.FC = () => {
               newAppliedFilters.ageFrom || newAppliedFilters.ageTo || newAppliedFilters.minPaidGeneration || newAppliedFilters.maxPaidGeneration));
     
     // Use the current input values for immediate API call
+    clearSelections();
     fetchUsersDataWithFilters(newAppliedFilters);
   };
 
@@ -260,6 +268,7 @@ const AdminUserManagement: React.FC = () => {
     setPagination(null);
     setFilteredStats(null);
     setFilteredUniqueUsersCount(null);
+    clearSelections();
     
     // Fetch data with empty filters
     setTimeout(() => {
@@ -386,6 +395,82 @@ const AdminUserManagement: React.FC = () => {
     }
   };
 
+  // Bulk selection handlers
+  const handleSelectUser = (userId: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedUserIds(prev => [...prev, userId]);
+    } else {
+      setSelectedUserIds(prev => prev.filter(id => id !== userId));
+      setIsAllSelected(false);
+    }
+  };
+  
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUserIds([]);
+      setIsAllSelected(false);
+    } else {
+      const currentPageIds = users.filter(u => !u.isDuplicateGroup).map(u => u.user_id);
+      setSelectedUserIds(currentPageIds);
+      setIsAllSelected(true);
+    }
+  };
+  
+  const handleUnselectAll = () => {
+    setSelectedUserIds([]);
+    setIsAllSelected(false);
+  };
+  
+  const openBulkDeletePopup = () => {
+    if (selectedUserIds.length > 0) {
+      setShowBulkDeletePopup(true);
+    }
+  };
+  
+  const closeBulkDeletePopup = () => {
+    setShowBulkDeletePopup(false);
+  };
+  
+  const processBulkDelete = async () => {
+    if (selectedUserIds.length === 0) return;
+    
+    setBulkDeleting(true);
+    try {
+      const response = await deleteUsers(selectedUserIds);
+      
+      if (response.success) {
+        toast.success(`${selectedUserIds.length} users deleted successfully`, {
+          description: 'Selected user records have been removed.'
+        });
+        closeBulkDeletePopup();
+        setSelectedUserIds([]);
+        setIsAllSelected(false);
+        fetchUsersData();
+        fetchUserStats();
+        fetchUniqueUsersCount();
+      } else {
+        toast.error('Failed to delete users', {
+          description: response.error || 'An unknown error occurred'
+        });
+        setError(response.error || 'Failed to delete users');
+      }
+    } catch (error: any) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete users', {
+        description: error.message || 'An unexpected error occurred'
+      });
+      setError(error.message || 'Failed to delete users');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+  
+  // Clear selected users when page changes
+  const clearSelections = () => {
+    setSelectedUserIds([]);
+    setIsAllSelected(false);
+  };
+
   // Helper function to check if any filters are active (based on applied filters, not input states)
   const hasActiveFilters = () => {
     const hasFilters = !!(appliedFilters.searchTerm || appliedFilters.excludeTerm || appliedFilters.dateFrom || 
@@ -417,6 +502,18 @@ const AdminUserManagement: React.FC = () => {
       fetchUsersData();
     }
   }, [currentPage]);
+  
+  // Update selection state when users change
+  useEffect(() => {
+    if (users.length > 0) {
+      const nonDuplicateUsers = users.filter(u => !u.isDuplicateGroup);
+      const currentPageIds = nonDuplicateUsers.map(u => u.user_id);
+      const allCurrentPageSelected = currentPageIds.every(id => selectedUserIds.includes(id));
+      setIsAllSelected(allCurrentPageSelected && currentPageIds.length > 0);
+    } else {
+      setIsAllSelected(false);
+    }
+  }, [users, selectedUserIds]);
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-gray-50">
@@ -679,11 +776,55 @@ const AdminUserManagement: React.FC = () => {
                 </div>
               )}
 
+              {/* Bulk Actions */}
+              <div className="flex items-center justify-between mt-6 mb-4">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={openBulkDeletePopup}
+                    disabled={selectedUserIds.length === 0 || loading}
+                    className="flex items-center justify-center rounded-lg h-10 bg-red-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={selectedUserIds.length === 0 ? 'Select users to delete' : `Delete ${selectedUserIds.length} selected users`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Selected ({selectedUserIds.length})
+                  </button>
+                  <button 
+                    onClick={handleSelectAll}
+                    disabled={loading || users.filter(u => !u.isDuplicateGroup).length === 0}
+                    className="flex items-center justify-center rounded-lg h-10 bg-blue-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAllSelected ? 'Unselect All' : 'Select All'}
+                  </button>
+                  <button 
+                    onClick={handleUnselectAll}
+                    disabled={loading || selectedUserIds.length === 0}
+                    className="flex items-center justify-center rounded-lg h-10 bg-gray-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+                {selectedUserIds.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    {selectedUserIds.length} of {users.filter(u => !u.isDuplicateGroup).length} selected on this page
+                  </div>
+                )}
+              </div>
+
               {/* Data Table */}
-              <div className="overflow-x-auto mt-6">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="border-b border-gray-200">
                     <tr>
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">
+                        <input 
+                          type="checkbox" 
+                          checked={isAllSelected && users.filter(u => !u.isDuplicateGroup).length > 0}
+                          onChange={handleSelectAll}
+                          disabled={loading || users.filter(u => !u.isDuplicateGroup).length === 0}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          title={isAllSelected ? 'Unselect all on this page' : 'Select all on this page'}
+                        />
+                      </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         User ID
                       </th>
@@ -724,6 +865,9 @@ const AdminUserManagement: React.FC = () => {
                       // Loading rows
                       Array.from({ length: 10 }).map((_, index) => (
                         <tr key={`loading-${index}`} className="animate-pulse hover:bg-gray-50">
+                          <td className="py-4 px-4 w-12">
+                            <div className="h-4 bg-gray-200 rounded w-4"></div>
+                          </td>
                           <td className="py-4 px-4">
                             <div className="h-4 bg-gray-200 rounded w-32"></div>
                           </td>
@@ -811,6 +955,19 @@ const AdminUserManagement: React.FC = () => {
                           
                           return (
                             <tr key={user.user_id} className="hover:bg-gray-50">
+                              {/* Checkbox - only show for non-duplicate groups */}
+                              <td className="py-4 px-4 w-12">
+                                {!user.isDuplicateGroup ? (
+                                  <input 
+                                    type="checkbox" 
+                                    checked={selectedUserIds.includes(user.user_id)}
+                                    onChange={(e) => handleSelectUser(user.user_id, e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                  />
+                                ) : (
+                                  <span className="text-gray-400 text-xs" title="Cannot select duplicate groups">—</span>
+                                )}
+                              </td>
                               <td className="py-4 px-4">
                                 <div className="flex items-center gap-2 group">
                                   <div className="relative">
@@ -902,7 +1059,7 @@ const AdminUserManagement: React.FC = () => {
                         }
                       }) : (
                         <tr>
-                          <td colSpan={11} className="py-12 text-center text-gray-500 text-sm">
+                          <td colSpan={12} className="py-12 text-center text-gray-500 text-sm">
                             No users found
                           </td>
                         </tr>
@@ -1014,6 +1171,52 @@ const AdminUserManagement: React.FC = () => {
               )}
             </div>
 
+            {/* Bulk Delete Confirmation Popup */}
+            {showBulkDeletePopup && selectedUserIds.length > 0 && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Delete Multiple Users</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Are you sure you want to delete <strong>{selectedUserIds.length}</strong> selected users? This action cannot be undone and will also:
+                  </p>
+                  <ul className="text-sm text-gray-600 mb-4 list-disc list-inside space-y-1 bg-yellow-50 p-3 rounded border border-yellow-200">
+                    <li>Remove all associated question answers</li>
+                    <li>Delete all summary generation records</li>
+                    <li>Remove all transaction history</li>
+                  </ul>
+                  <div className="bg-gray-50 p-3 rounded-md mb-4">
+                    <p className="font-medium text-sm text-red-600">⚠️ This will permanently delete:</p>
+                    <ul className="text-xs text-gray-600 mt-1 list-disc list-inside">
+                      <li>{selectedUserIds.length} user records</li>
+                      <li>All associated data for these users</li>
+                      <li>All related records across multiple tables</li>
+                    </ul>
+                  </div>
+                  <div className="flex justify-end space-x-3">
+                    <button 
+                      onClick={closeBulkDeletePopup} 
+                      disabled={bulkDeleting} 
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={processBulkDelete} 
+                      disabled={bulkDeleting} 
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {bulkDeleting ? `Deleting ${selectedUserIds.length}...` : `Delete ${selectedUserIds.length} Users`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Duplicate Management Popup */}
             <DuplicateManagementPopup
               isOpen={showDuplicatePopup}

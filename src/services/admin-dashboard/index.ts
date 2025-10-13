@@ -17,6 +17,15 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // Create filter function for excluding test data
+    // Exclude records where user_name, email, or dob contains 'test' (case-insensitive)
+    const applyTestDataFilter = (query: any) => {
+      return query
+        .not('user_name', 'ilike', '%test%')
+        .not('email', 'ilike', '%test%')
+        .not('dob', 'ilike', '%test%');
+    };
+
     // Parallel fetch all statistics
     const [
       // Users statistics
@@ -37,23 +46,107 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
       feedbackResult,
       recentFeedbackResult
     ] = await Promise.all([
-      // Users queries
-      supabase.from('user_data').select('user_id', { count: 'exact' }),
-      supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', thirtyDaysAgo.toISOString()),
-      supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', sevenDaysAgo.toISOString()),
+      // Users queries - exclude test users
+      applyTestDataFilter(supabase.from('user_data').select('user_id', { count: 'exact' })),
+      applyTestDataFilter(supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', thirtyDaysAgo.toISOString())),
+      applyTestDataFilter(supabase.from('user_data').select('user_id', { count: 'exact' }).gte('last_used', sevenDaysAgo.toISOString())),
       
-      // Summaries queries
-      supabase.from('summary_generation').select('id', { count: 'exact' }),
-      supabase.from('summary_generation').select('id', { count: 'exact' }).in('payment_status', ['success', 'completed']),
-      supabase.from('summary_generation').select('id', { count: 'exact' }).gte('starting_time', thirtyDaysAgo.toISOString()),
+      // Summaries queries - filter by BOTH user_data fields AND question_answer content
+      supabase.from('summary_generation')
+        .select(`
+          id, question_answer,
+          user_data!inner(
+            user_id, user_name, email, dob
+          )
+        `, { count: 'exact' })
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
+        .not('question_answer', 'ilike', '%test%'),
+        
+      supabase.from('summary_generation')
+        .select(`
+          id, question_answer,
+          user_data!inner(
+            user_id, user_name, email, dob
+          )
+        `, { count: 'exact' })
+        .in('payment_status', ['success', 'completed'])
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
+        .not('question_answer', 'ilike', '%test%'),
+        
+      supabase.from('summary_generation')
+        .select(`
+          id, question_answer,
+          user_data!inner(
+            user_id, user_name, email, dob
+          )
+        `, { count: 'exact' })
+        .gte('starting_time', thirtyDaysAgo.toISOString())
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
+        .not('question_answer', 'ilike', '%test%'),
       
-      // Payments queries - get all payment details including gateway and location info
-      supabase.from('transaction_details').select('total_paid, status, gateway, IsIndia', { count: 'exact' }),
-      supabase.from('transaction_details').select('total_paid, gateway, IsIndia').eq('status', 'success').gte('payment_completed_time', startOfMonth.toISOString()),
+      // Payments queries - filter by user_data fields AND summary question_answer content
+      // This ensures if EITHER the user data OR the summary question_answer has test data, the transaction is excluded
+      supabase.from('transaction_details')
+        .select(`
+          total_paid, status, gateway, IsIndia,
+          user_data!inner(
+            user_id, user_name, email, dob
+          ),
+          summary_generation!inner(
+            testid, user_id, question_answer
+          )
+        `, { count: 'exact' })
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
+        .not('summary_generation.question_answer', 'ilike', '%test%'),
+        
+      supabase.from('transaction_details')
+        .select(`
+          total_paid, gateway, IsIndia,
+          user_data!inner(
+            user_id, user_name, email, dob
+          ),
+          summary_generation!inner(
+            testid, user_id, question_answer
+          )
+        `)
+        .eq('status', 'success')
+        .gte('payment_completed_time', startOfMonth.toISOString())
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
+        .not('summary_generation.question_answer', 'ilike', '%test%'),
       
-      // Feedback queries
-      supabase.from('summary_overall_feedback').select('rating', { count: 'exact' }),
-      supabase.from('summary_overall_feedback').select('id', { count: 'exact' }).gte('created_at', thirtyDaysAgo.toISOString())
+      // Feedback queries - join with user_data to filter by user fields
+      supabase.from('summary_overall_feedback')
+        .select(`
+          rating,
+          user_data!inner(
+            user_id, user_name, email, dob
+          )
+        `, { count: 'exact' })
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%'),
+        
+      supabase.from('summary_overall_feedback')
+        .select(`
+          id,
+          user_data!inner(
+            user_id, user_name, email, dob
+          )
+        `, { count: 'exact' })
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .not('user_data.user_name', 'ilike', '%test%')
+        .not('user_data.email', 'ilike', '%test%')
+        .not('user_data.dob', 'ilike', '%test%')
     ]);
 
     // Process users data
@@ -192,7 +285,7 @@ export const fetchDashboardStats = async (): Promise<DashboardResponse> => {
       },
     };
 
-    console.log('✅ Dashboard stats fetched successfully:', dashboardStats);
+    console.log('✅ Dashboard stats fetched successfully (excluding test data):', dashboardStats);
 
     return {
       success: true,

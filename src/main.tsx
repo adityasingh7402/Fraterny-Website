@@ -56,6 +56,7 @@ import Analytics from './pages/admin/Analytics';
 import AdminImages from './pages/admin/images';
 import NewsletterSubscribers from './pages/admin/NewsletterSubscribers';
 import AdminQuestPayment from './pages/admin/payments/AdminQuestPayment';
+import AdminRefundManagement from './pages/admin/payments/AdminRefundManagement';
 import AdminUserManagement from './pages/admin/users/AdminUserManagement';
 import AdminSummaryManagement from './pages/admin/summaries/AdminSummaryManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -200,6 +201,7 @@ const router = createBrowserRouter([
           { path: 'users', element: createSuspenseWrapper(AdminLoading)(<AdminUserManagement />) },
           { path: 'summaries', element: createSuspenseWrapper(AdminLoading)(<AdminSummaryManagement />) },
           { path: 'quest-payment', element: createSuspenseWrapper(AdminLoading)(<AdminQuestPayment />) },
+          { path: 'payments/refunds', element: createSuspenseWrapper(AdminLoading)(<AdminRefundManagement />) },
           { path: 'dashboard', element: createSuspenseWrapper(AdminLoading)(<AdminDashboard />) }, // Added this route
         ],
       },

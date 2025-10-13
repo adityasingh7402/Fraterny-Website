@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchPaymentDetails } from '@/services/admin-payments';
 import type { PaymentStatus, PaymentFilters, PaginationParams, EnrichedTransaction, PaymentResponse } from '@/services/admin-payments';
+import { initiateRefund } from '@/services/admin-refunds';
+import type { RefundRequest } from '@/services/admin-refunds';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Clock, AlertTriangle, ChevronLeft, ChevronRight, Copy, Check, RefreshCw } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, ChevronLeft, ChevronRight, Copy, Check, RefreshCw, Eye } from 'lucide-react';
 import RefundPopup from '@/components/admin/RefundPopup';
+import { toast } from 'sonner';
 
 // Helper function to format currency based on gateway and location
 const formatCurrency = (amount: number | string | null, gateway: string | null, isIndia: boolean | null): string => {
@@ -25,6 +29,8 @@ const formatCurrency = (amount: number | string | null, gateway: string | null, 
 };
 
 const AdminQuestPayment: React.FC = () => {
+  const navigate = useNavigate();
+  
   // State for data
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState<EnrichedTransaction[]>([]);
@@ -289,13 +295,22 @@ const AdminQuestPayment: React.FC = () => {
           <div className="max-w-full mx-auto">
             <div className="flex flex-wrap justify-between items-center gap-3 mb-8">
               <p className="text-gray-900 text-3xl font-black leading-tight tracking-[-0.033em]">Payment Dashboard</p>
-              <button
-                onClick={() => setShowRefundPopup(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Process Refund
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/admin/payments/refunds')}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  <Eye className="h-4 w-4" />
+                  View Refunds
+                </button>
+                <button
+                  onClick={() => setShowRefundPopup(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Process Refund
+                </button>
+              </div>
             </div>
             
             {/* Status Filter Cards */}

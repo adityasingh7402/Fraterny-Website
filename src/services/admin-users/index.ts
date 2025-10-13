@@ -368,6 +368,109 @@ export const deleteUser = async (userId: string): Promise<DeleteUserResponse> =>
 };
 
 /**
+ * Delete multiple users by their user_ids
+ * 
+ * @param userIds - Array of user_ids to delete
+ * @returns DeleteUserResponse with success status
+ */
+export const deleteUsers = async (userIds: string[]): Promise<DeleteUserResponse> => {
+  try {
+    console.log('🗑️ Starting bulk cascade delete for users:', userIds);
+    
+    if (userIds.length === 0) {
+      return {
+        success: false,
+        message: null,
+        error: 'No users selected for deletion',
+      };
+    }
+    
+    // Step 1: Delete related records in summary_question_answer table for all users
+    console.log('📝 Deleting question answers for all users...');
+    const { error: questionError } = await supabase
+      .from('summary_question_answer')
+      .delete()
+      .in('user_id', userIds);
+
+    if (questionError) {
+      console.error('❌ Error deleting question answer records:', questionError);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete users' question answers: ${questionError.message}`,
+      };
+    }
+    console.log('✅ Deleted question answers for all users');
+
+    // Step 2: Delete related records in summary_generation table for all users
+    console.log('📊 Deleting summary generation records for all users...');
+    const { error: summaryError } = await supabase
+      .from('summary_generation')
+      .delete()
+      .in('user_id', userIds);
+
+    if (summaryError) {
+      console.error('❌ Error deleting summary_generation records:', summaryError);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete users' summary records: ${summaryError.message}`,
+      };
+    }
+    console.log('✅ Deleted summary generation records for all users');
+
+    // Step 3: Delete related records in transaction_details table for all users
+    console.log('💳 Deleting transaction records for all users...');
+    const { error: transactionError } = await supabase
+      .from('transaction_details')
+      .delete()
+      .in('user_id', userIds);
+
+    if (transactionError) {
+      console.error('❌ Error deleting transaction_details records:', transactionError);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete users' transaction records: ${transactionError.message}`,
+      };
+    }
+    console.log('✅ Deleted transaction records for all users');
+
+    // Step 4: Finally, delete all the users
+    console.log('👥 Deleting user records...');
+    const { error } = await supabase
+      .from('user_data')
+      .delete()
+      .in('user_id', userIds);
+
+    if (error) {
+      console.error('❌ Error deleting users:', error);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete users: ${error.message}. Please check foreign key constraints.`,
+      };
+    }
+    
+    console.log('✅ Users deleted successfully!');
+    console.log('🎉 Bulk cascade delete completed for users:', userIds);
+
+    return {
+      success: true,
+      message: `${userIds.length} users and all related records deleted successfully`,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in deleteUsers:', error);
+    return {
+      success: false,
+      message: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
  * Get user statistics for dashboard cards
  * 
  * @returns UserStats with aggregated statistics
