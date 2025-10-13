@@ -20,6 +20,7 @@ export function setMeta({
 }) {
   if (title) document.title = title;
 
+  // comment out all the console logs 
   // <meta name="description">
   let desc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
   if (!desc) {
@@ -52,7 +53,7 @@ export function setMeta({
   for (let i = 1; i < canonAll.length; i++) canonAll[i].remove();
 
   // Open Graph meta tags
-  console.log('🏷️ setMeta: Setting Open Graph tags', { ogTitle, ogDescription, ogImage, ogUrl });
+  //console.log('🏷️ setMeta: Setting Open Graph tags', { ogTitle, ogDescription, ogImage, ogUrl });
   
   if (ogTitle) {
     let ogTitleMeta = document.querySelector('meta[property="og:title"]') as HTMLMetaElement;
@@ -60,12 +61,12 @@ export function setMeta({
       ogTitleMeta = document.createElement('meta');
       ogTitleMeta.setAttribute('property', 'og:title');
       document.head.appendChild(ogTitleMeta);
-      console.log('✅ Created new og:title meta tag');
+      //console.log('✅ Created new og:title meta tag');
     } else {
-      console.log('🔄 Found existing og:title meta tag, updating');
+      //console.log('🔄 Found existing og:title meta tag, updating');
     }
     ogTitleMeta.content = ogTitle;
-    console.log('🏷️ Set og:title to:', ogTitle);
+    //console.log('🏷️ Set og:title to:', ogTitle);
   }
 
   if (ogDescription) {
@@ -74,12 +75,12 @@ export function setMeta({
       ogDescMeta = document.createElement('meta');
       ogDescMeta.setAttribute('property', 'og:description');
       document.head.appendChild(ogDescMeta);
-      console.log('✅ Created new og:description meta tag');
+      //console.log('✅ Created new og:description meta tag');
     } else {
-      console.log('🔄 Found existing og:description meta tag, updating');
+      //console.log('🔄 Found existing og:description meta tag, updating');
     }
     ogDescMeta.content = ogDescription;
-    console.log('🏷️ Set og:description to:', ogDescription);
+    //console.log('🏷️ Set og:description to:', ogDescription);
   }
 
   if (ogImage) {
@@ -88,12 +89,12 @@ export function setMeta({
       ogImageMeta = document.createElement('meta');
       ogImageMeta.setAttribute('property', 'og:image');
       document.head.appendChild(ogImageMeta);
-      console.log('✅ Created new og:image meta tag');
+      //console.log('✅ Created new og:image meta tag');
     } else {
-      console.log('🔄 Found existing og:image meta tag, updating');
+      //console.log('🔄 Found existing og:image meta tag, updating');
     }
     ogImageMeta.content = ogImage;
-    console.log('🏷️ Set og:image to:', ogImage);
+    //console.log('🏷️ Set og:image to:', ogImage);
   }
 
   if (ogUrl) {
@@ -102,12 +103,12 @@ export function setMeta({
       ogUrlMeta = document.createElement('meta');
       ogUrlMeta.setAttribute('property', 'og:url');
       document.head.appendChild(ogUrlMeta);
-      console.log('✅ Created new og:url meta tag');
+      //console.log('✅ Created new og:url meta tag');
     } else {
-      console.log('🔄 Found existing og:url meta tag, updating');
+      //console.log('🔄 Found existing og:url meta tag, updating');
     }
     ogUrlMeta.content = ogUrl;
-    console.log('🏷️ Set og:url to:', ogUrl);
+    //console.log('🏷️ Set og:url to:', ogUrl);
   }
   
   console.log('🎯 setMeta: Open Graph section completed');
@@ -116,7 +117,7 @@ export function setMeta({
 
 
 export function clearDynamicMetaTags() {
-  console.log('🧹 clearDynamicMetaTags: Starting cleanup');
+  //console.log('🧹 clearDynamicMetaTags: Starting cleanup');
   
   // Remove Open Graph tags
   const ogTags = [
@@ -132,10 +133,10 @@ export function clearDynamicMetaTags() {
   ogTags.forEach(selector => {
     const element = document.querySelector(selector);
     if (element) {
-      console.log('🗑️ Removing OG tag:', selector, 'content:', element.getAttribute('content'));
+      // console.log('🗑️ Removing OG tag:', selector, 'content:', element.getAttribute('content'));
       element.remove();
     } else {
-      console.log('👻 OG tag not found:', selector);
+      //console.log('👻 OG tag not found:', selector);
     }
   });
 
@@ -154,7 +155,7 @@ export function clearDynamicMetaTags() {
   otherTags.forEach(selector => {
     const elements = document.querySelectorAll(selector);
     elements.forEach(element => {
-      console.log('🗑️ Removing other tag:', selector, 'content:', element.getAttribute('content') || element.textContent?.slice(0, 50));
+      //console.log('🗑️ Removing other tag:', selector, 'content:', element.getAttribute('content') || element.textContent?.slice(0, 50));
       element.remove();
     });
   });

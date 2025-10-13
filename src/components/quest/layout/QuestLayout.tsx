@@ -156,7 +156,7 @@ const getSectionProgress = (sectionId: string) => {
             <div className="bg-white rounded-[10px] border-[1.50px] border-neutral-400 py-2 shadow-lg">
               <div id="desktop-section-drawer" className=''>
                 {sections?.map((section, index) => {
-                  console.log('🔍 [DRAWER-RENDER]', section.id, 'expanded?', expandedSectionId === section.id);
+                  // console.log('🔍 [DRAWER-RENDER]', section.id, 'expanded?', expandedSectionId === section.id);
                   const colors = ['text-sky-800', 'text-red-800', 'text-purple-900', 'text-lime-700', 'text-blue-950'];
                   const colorClass = colors[index] || 'text-sky-800';
                   const isLast = index === sections.length - 1;

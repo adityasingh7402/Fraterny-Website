@@ -15,6 +15,7 @@ import { CityAutocomplete } from '../responses/CityAutocomplete';
 import { useQuestionTiming } from '../hooks/useQuestionTiming';
 import { X, Info  } from 'lucide-react';
 import './desktop-sidebar.css';
+import { NumberDropdownResponse } from '../responses/NumberDropdownResponse';
 
 /**
  * Base question card component
@@ -144,6 +145,11 @@ const [previousText, setPreviousText] = useState<string>('');
 
   // Handle data when switching anonymous mode
 useEffect(() => {
+  console.log('🔄 [ANON-DEBUG] Anonymous mode useEffect triggered:', {
+    isAnonymousMode,
+    questionId: question.id,
+    currentResponse: response
+  });
   if (isAnonymousMode) {
     // For name/email questions: save and clear text
     if (response && !question.enableCityAutocomplete) {
@@ -177,12 +183,13 @@ useEffect(() => {
         selectedCity: "",
         [fieldName]: fieldValue
       });
-      
-      console.log('🔄 Auto-saving anonymous response:', anonymousResponse);
+    
+      console.log('💾 [ANON-DEBUG] Calling onResponse with:', anonymousResponse);
       onResponse(anonymousResponse, selectedTags);
+      console.log('✅ [ANON-DEBUG] onResponse completed');
     }
   } else {
-    // Restore previous text when switching back to share mode
+    console.log('🔄 [ANON-DEBUG] Switched to non-anonymous mode');
     if (previousText && !question.enableCityAutocomplete) {
       setResponse(previousText);
       console.log('🔄 Restored previous text when switching to share mode');
@@ -695,6 +702,19 @@ const handleSubmit = (submittedResponse: string) => {
           />
         );
       
+      case 'number_dropdown':
+        return (
+          <NumberDropdownResponse
+            question={question}
+            onResponse={handleSubmit}
+            isActive={isActive}
+            isAnswered={isAnswered}
+            previousResponse={previousResponse?.response}
+            placeholder={question.placeholder || 'Select an option'}
+            className="mb-6"
+          />
+        );
+
       case 'ranking':
         return (
           <RankingResponse

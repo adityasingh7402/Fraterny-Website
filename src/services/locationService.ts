@@ -61,14 +61,14 @@ class LocationService {
         'https://api.ipify.org?format=json' // Fallback for IP only
       ];
       
-      console.log('🌐 Trying location detection services...');
-      console.log('Services to try:', services);
+      //console.log('🌐 Trying location detection services...');
+      //console.log('Services to try:', services);
 
       let locationData: LocationData | null = null;
 
       for (const service of services) {
         try {
-          console.log('🔍 Trying service:', service);
+          //console.log('🔍 Trying service:', service);
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
           

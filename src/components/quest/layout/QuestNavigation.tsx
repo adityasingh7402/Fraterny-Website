@@ -475,7 +475,7 @@ export function QuestNavigation({
 
   const handleNext = async () => {
 
-    console.log('🔍 [DEBUG-1] handleNext called - Screen width:', window.innerWidth, 'innerHeight:', window.innerHeight);
+    //console.log('🔍 [DEBUG-1] handleNext called - Screen width:', window.innerWidth, 'innerHeight:', window.innerHeight);
     // Simple 700ms delay to prevent rapid clicking duplicate answers
     if (nextButtonDisabled) {
       console.log('⏱️ Next button is disabled, please wait...');
@@ -517,21 +517,34 @@ export function QuestNavigation({
         return selectedTags;
       };
 
-      const getAnonymousModeFromDOM = (): boolean => {
-        const toggleButton = document.querySelector('[data-anonymous-mode]');
-        return toggleButton?.getAttribute('data-anonymous-mode') === 'true';
-      };
+const getAnonymousModeFromDOM = (): boolean => {
+  const allToggles = document.querySelectorAll('[data-anonymous-mode]');
+  
+  console.log('🔍 [ANON-READ] Found total toggles:', allToggles.length);
+  
+  if (allToggles.length === 0) {
+    console.log('🔍 [ANON-READ] No toggles found, defaulting to false');
+    return false;
+  }
+  
+  // If there are 2 toggles, the SECOND one is the visible/active one
+  // If there's only 1 toggle, use that one
+  const activeToggle = allToggles.length === 2 ? allToggles[1] : allToggles[0];
+  const isAnonymous = activeToggle.getAttribute('data-anonymous-mode') === 'true';
+  
+  console.log('🔍 [ANON-READ] Using toggle:', {
+    totalToggles: allToggles.length,
+    usingIndex: allToggles.length === 2 ? 1 : 0,
+    dataAttribute: activeToggle.getAttribute('data-anonymous-mode'),
+    result: isAnonymous
+  });
+  
+  return isAnonymous;
+};
 
       if (currentQuestion.type === 'text_input') {
-        console.log('🔍 [DEBUG-2] Text input detected - Question ID:', currentQuestion.id);
         //const currentTextarea = document.querySelector('textarea');
         const currentTextarea = Array.from(document.querySelectorAll('textarea')).find(ta => ta.offsetParent !== null);
-        console.log('🔍 [DEBUG-3] Textarea search result:', currentTextarea);
-        console.log('🔍 [DEBUG-3] Textarea value:', currentTextarea?.value);
-        console.log('🔍 [DEBUG-3] Textarea value length:', currentTextarea?.value?.length);
-        console.log('🔍 [DEBUG-3] All textareas on page:', document.querySelectorAll('textarea').length);
-
-        console.log('🔍 [DEBUG-4] Checking all textareas:');
         document.querySelectorAll('textarea').forEach((ta, index) => {
           console.log(`  Textarea #${index}:`, {
             value: ta.value,
@@ -586,6 +599,10 @@ export function QuestNavigation({
                 [fieldName]: currentTextarea.value,
                 isAnonymous: false
               });
+              console.log('🔥 [NAV-DEBUG] About to call submitResponse');
+console.log('🔥 [NAV-DEBUG] Question:', currentQuestion.id);
+console.log('🔥 [NAV-DEBUG] Response being saved:', textOnlyResponse);
+console.log('🔥 [NAV-DEBUG] IsAnonymousMode from DOM:', isAnonymousMode);
               submitResponse(currentQuestion.id, textOnlyResponse, selectedTags);
             }
           } else if (currentQuestion.enableCityAutocomplete) {
@@ -607,7 +624,22 @@ export function QuestNavigation({
             submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
           }
         }
-      } else if (currentQuestion.type === 'multiple_choice') {
+      }
+      else if (currentQuestion.type === 'number_dropdown') {
+        console.log('🔍 [DEBUG-DROPDOWN] Number dropdown detected - Question ID:', currentQuestion.id);
+        const currentSelect = document.querySelector('select') as HTMLSelectElement;
+        console.log('🔍 [DEBUG-DROPDOWN] Select element found:', currentSelect);
+        console.log('🔍 [DEBUG-DROPDOWN] Selected value:', currentSelect?.value);
+        
+        if (currentSelect && currentSelect.value) {
+          const dropdownValue = currentSelect.value;
+          console.log('💾 Saving dropdown value:', dropdownValue);
+          
+          const selectedTags = getSelectedTagsFromQuestionCard();
+          submitResponse(currentQuestion.id, dropdownValue, selectedTags);
+        }
+      } 
+      else if (currentQuestion.type === 'multiple_choice') {
         // Handle multiple choice questions
         const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
         if (selectedRadio) {
@@ -977,6 +1009,13 @@ export function QuestNavigation({
             // Regular text questions without any special features
             submitResponse(currentQuestion.id, currentTextarea.value, selectedTags);
           }
+        }
+      }
+      else if (currentQuestion.type === 'number_dropdown') {
+        const currentSelect = document.querySelector('select') as HTMLSelectElement;
+        if (currentSelect && currentSelect.value) {
+          const selectedTags = getSelectedTagsFromQuestionCard();
+          submitResponse(currentQuestion.id, currentSelect.value, selectedTags);
         }
       }
       else if (currentQuestion.type === 'multiple_choice') {

@@ -106,6 +106,13 @@ export interface ImageChoiceProps extends ResponseInputProps {
   columns?: 2 | 3 | 4;
 }
 
+// Props for number dropdown component
+export interface NumberDropdownProps extends ResponseInputProps {
+  options?: string[];
+  selectedValue?: string;
+  placeholder?: string;
+}
+
 // Props for flexible options component
 export interface FlexibleOptionsProps extends ResponseInputProps {
   options?: string[];

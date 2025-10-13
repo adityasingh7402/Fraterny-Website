@@ -397,6 +397,13 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
     }
   }
 }
+else if (currentQuestion.type === 'number_dropdown') {
+  const currentSelect = document.querySelector('select') as HTMLSelectElement;
+  if (currentSelect && currentSelect.value) {
+    const selectedTags = getSelectedTagsFromQuestionCard();
+    submitResponse(currentQuestion.id, currentSelect.value, selectedTags);
+  }
+}
     else if (currentQuestion.type === 'multiple_choice') {
       const selectedRadio = document.querySelector(`input[name="question-${currentQuestion.id}"]:checked`) as HTMLInputElement;
       if (selectedRadio) {
