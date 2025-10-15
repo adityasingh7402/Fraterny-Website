@@ -85,6 +85,27 @@ export const fetchInfluencers = async (
       };
     }
 
+    // Fetch live stats for each influencer from tracking_events
+    const influencersWithStats = await Promise.all(
+      (data || []).map(async (influencer: any) => {
+        const { data: trackingData } = await supabase
+          .from('tracking_events')
+          .select('event_type')
+          .eq('affiliate_code', influencer.affiliate_code);
+
+        const liveClicks = trackingData?.filter(e => e.event_type === 'click').length || 0;
+        const liveSignups = trackingData?.filter(e => e.event_type === 'signup').length || 0;
+        const livePurchases = trackingData?.filter(e => e.event_type === 'pdf_purchased').length || 0;
+
+        return {
+          ...influencer,
+          total_clicks: liveClicks,
+          total_signups: liveSignups,
+          total_purchases: livePurchases,
+        };
+      })
+    );
+
     // Calculate pagination metadata
     const totalPages = Math.ceil((count || 0) / pageSize);
 
@@ -98,7 +119,7 @@ export const fetchInfluencers = async (
     return {
       success: true,
       data: {
-        influencers: (data as InfluencerData[]) || [],
+        influencers: influencersWithStats as InfluencerData[],
         pagination: paginationMeta,
       },
       error: null,
@@ -118,44 +139,39 @@ export const fetchInfluencers = async (
  */
 export const getInfluencerStats = async (): Promise<InfluencerStats> => {
   try {
-    // Fetch all influencers to calculate statistics
-    const { data, error } = await supabase
+    // Fetch influencer count
+    const { data: influencersData, error: influencersError } = await supabase
       .from('influencers')
-      .select('status, total_earnings, total_clicks, total_signups, total_purchases, conversion_rate');
+      .select('status');
 
-    if (error) {
-      console.error('Error fetching influencer stats:', error);
-      return {
-        totalInfluencers: 0,
-        activeInfluencers: 0,
-        totalRevenue: 0,
-        totalCommissions: 0,
-        totalClicks: 0,
-        totalSignups: 0,
-        totalPurchases: 0,
-        averageConversionRate: 0,
-      };
+    if (influencersError) {
+      console.error('Error fetching influencers:', influencersError);
     }
 
-    const totalInfluencers = data?.length || 0;
-    const activeInfluencers = data?.filter(inf => inf.status === 'active').length || 0;
+    const totalInfluencers = influencersData?.length || 0;
+    const activeInfluencers = influencersData?.filter(inf => inf.status === 'active').length || 0;
     
-    // Calculate total revenue from tracking_events
-    const { data: eventsData } = await supabase
+    // Fetch ALL tracking events
+    const { data: eventsData, error: eventsError } = await supabase
       .from('tracking_events')
-      .select('revenue, commission_earned');
+      .select('event_type, revenue, commission_earned');
     
+    if (eventsError) {
+      console.error('Error fetching tracking events:', eventsError);
+    }
+
+    // Count events by type
+    const totalClicks = eventsData?.filter(e => e.event_type === 'click').length || 0;
+    const totalSignups = eventsData?.filter(e => e.event_type === 'signup').length || 0;
+    const totalPurchases = eventsData?.filter(e => e.event_type === 'pdf_purchased').length || 0;
+    
+    // Calculate totals
     const totalRevenue = eventsData?.reduce((sum, event) => sum + (event.revenue || 0), 0) || 0;
     const totalCommissions = eventsData?.reduce((sum, event) => sum + (event.commission_earned || 0), 0) || 0;
     
-    const totalClicks = data?.reduce((sum, inf) => sum + (inf.total_clicks || 0), 0) || 0;
-    const totalSignups = data?.reduce((sum, inf) => sum + (inf.total_signups || 0), 0) || 0;
-    const totalPurchases = data?.reduce((sum, inf) => sum + (inf.total_purchases || 0), 0) || 0;
-    
     // Calculate average conversion rate
-    const conversionRates = data?.filter(inf => inf.conversion_rate > 0).map(inf => inf.conversion_rate) || [];
-    const averageConversionRate = conversionRates.length > 0 
-      ? conversionRates.reduce((sum, rate) => sum + rate, 0) / conversionRates.length 
+    const averageConversionRate = totalClicks > 0 
+      ? (totalPurchases / totalClicks) * 100 
       : 0;
 
     return {

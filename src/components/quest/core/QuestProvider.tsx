@@ -962,6 +962,7 @@ import questSections, { getAllQuestions, getQuestionsBySection } from './questio
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { usePostHog } from 'posthog-js/react';
 import { getDeviceIdentifier } from '@/utils/deviceFingerprint';
+import { createTrackingEvent, getDeviceInfo, getUserIP } from '@/services/tracking';
 
 interface QuestProviderProps {
   children: React.ReactNode;
@@ -1638,6 +1639,36 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       total_duration: totalDuration,
       questions_completed: questionsCompleted
     });
+    
+    // Track questionnaire_completed event if referred by affiliate
+    const referredBy = submissionData.referred_by;
+    if (referredBy) {
+      try {
+        const deviceInfo = getDeviceInfo();
+        const ipAddress = await getUserIP();
+        
+        await createTrackingEvent({
+          affiliate_code: referredBy,
+          event_type: 'questionnaire_completed',
+          user_id: userId,
+          session_id: sessionId,
+          test_id: testid,
+          ip_address: ipAddress,
+          device_info: deviceInfo,
+          location: null,
+          metadata: {
+            questions_completed: questionsCompleted,
+            total_duration_seconds: totalDuration,
+            completion_time: new Date().toISOString()
+          }
+        });
+        
+        console.log('✅ Questionnaire completion tracked for affiliate:', referredBy);
+      } catch (trackingError) {
+        console.error('❌ Failed to track questionnaire completion:', trackingError);
+        // Don't throw - tracking failure shouldn't break the submission flow
+      }
+    }
     
     // const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
     // navigate(targetUrl);

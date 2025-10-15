@@ -486,8 +486,8 @@ const AdminInfluencerManagement: React.FC = () => {
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Earnings
                       </th>
-                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Clicks/Signups
+                      <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">
+                        Clicks/Signups/Purchases
                       </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
                         Actions
@@ -565,7 +565,7 @@ const AdminInfluencerManagement: React.FC = () => {
                             {formatCurrency(influencer.total_earnings)}
                           </td>
                           <td className="py-4 px-4 text-sm text-gray-900">
-                            {influencer.total_clicks} / {influencer.total_signups}
+                            {influencer.total_clicks} / {influencer.total_signups} / {influencer.total_purchases}
                           </td>
                           <td className="py-4 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">

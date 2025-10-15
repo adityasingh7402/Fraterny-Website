@@ -5,6 +5,7 @@ import type { InfluencerData, UpdateInfluencerInput, SocialLinks, PaymentInfo } 
 import { toast } from 'sonner';
 import { uploadImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
+import { getDashboardStats } from '@/services/influencer-dashboard';
 
 interface ViewInfluencerPopupProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [liveStats, setLiveStats] = useState<{ totalClicks: number; totalSignups: number; totalPurchases: number; conversionRate: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   
   // Form states (initialized with influencer data)
   const [name, setName] = useState(influencer.name);
@@ -39,6 +42,30 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [accountNumber, setAccountNumber] = useState(influencer.payment_info?.account_number || '');
   const [ifsc, setIfsc] = useState(influencer.payment_info?.ifsc || '');
   const [upi, setUpi] = useState(influencer.payment_info?.upi || '');
+
+  // Fetch live stats from tracking_events
+  useEffect(() => {
+    const fetchLiveStats = async () => {
+      setStatsLoading(true);
+      try {
+        const response = await getDashboardStats(influencer.affiliate_code);
+        if (response.success && response.data) {
+          setLiveStats({
+            totalClicks: response.data.totalClicks,
+            totalSignups: response.data.totalSignups,
+            totalPurchases: response.data.totalPurchases,
+            conversionRate: response.data.conversionRate,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching live stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchLiveStats();
+  }, [influencer.affiliate_code]);
 
   // Update form when influencer changes
   useEffect(() => {
@@ -372,7 +399,11 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
                 <span className="text-sm text-gray-600">Total Clicks</span>
                 <MousePointer className="h-4 w-4 text-blue-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{influencer.total_clicks.toLocaleString()}</p>
+              {statsLoading ? (
+                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{liveStats?.totalClicks.toLocaleString() || 0}</p>
+              )}
             </div>
 
             <div className="bg-green-50 rounded-lg p-4">
@@ -380,7 +411,11 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
                 <span className="text-sm text-gray-600">Signups</span>
                 <Users className="h-4 w-4 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{influencer.total_signups.toLocaleString()}</p>
+              {statsLoading ? (
+                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{liveStats?.totalSignups.toLocaleString() || 0}</p>
+              )}
             </div>
 
             <div className="bg-purple-50 rounded-lg p-4">
@@ -388,7 +423,11 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
                 <span className="text-sm text-gray-600">Purchases</span>
                 <DollarSign className="h-4 w-4 text-purple-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{influencer.total_purchases.toLocaleString()}</p>
+              {statsLoading ? (
+                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{liveStats?.totalPurchases.toLocaleString() || 0}</p>
+              )}
             </div>
 
             <div className="bg-orange-50 rounded-lg p-4">
@@ -396,7 +435,11 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
                 <span className="text-sm text-gray-600">Conversion</span>
                 <TrendingUp className="h-4 w-4 text-orange-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{influencer.conversion_rate.toFixed(2)}%</p>
+              {statsLoading ? (
+                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{liveStats?.conversionRate.toFixed(2) || 0}%</p>
+              )}
             </div>
           </div>
 

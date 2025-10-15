@@ -11,6 +11,7 @@ import {
 } from './types';
 
 export * from './types';
+export * from './updateProfile';
 
 /**
  * Get influencer profile by email (used for authentication check)
@@ -65,36 +66,50 @@ export const getDashboardStats = async (
   affiliateCode: string
 ): Promise<DashboardResponse<DashboardStats>> => {
   try {
-    // Get influencer data for basic stats
-    const { data: influencerData, error: influencerError } = await supabase
-      .from('influencers')
-      .select('total_clicks, total_signups, total_purchases, total_earnings, conversion_rate')
-      .eq('affiliate_code', affiliateCode)
-      .single();
+    // Get all tracking events for this affiliate
+    const { data: trackingData, error: trackingError } = await supabase
+      .from('tracking_events')
+      .select('event_type, commission_earned')
+      .eq('affiliate_code', affiliateCode);
 
-    if (influencerError) {
+    if (trackingError) {
       return {
         success: false,
         data: null,
-        error: influencerError.message,
+        error: trackingError.message,
       };
     }
 
+    // Count events by type
+    const totalClicks = trackingData?.filter(e => e.event_type === 'click').length || 0;
+    const totalSignups = trackingData?.filter(e => e.event_type === 'signup').length || 0;
+    const totalQuestionnaires = trackingData?.filter(e => e.event_type === 'questionnaire_completed').length || 0;
+    const totalPurchases = trackingData?.filter(e => e.event_type === 'pdf_purchased').length || 0;
+    
+    // Calculate total earnings from commission_earned
+    const totalEarnings = trackingData
+      ?.filter(e => e.event_type === 'pdf_purchased')
+      .reduce((sum, e) => sum + (e.commission_earned || 0), 0) || 0;
+
     // Calculate conversion rates
-    const clickToSignup = influencerData.total_clicks > 0 
-      ? (influencerData.total_signups / influencerData.total_clicks) * 100 
+    const clickToSignup = totalClicks > 0 
+      ? (totalSignups / totalClicks) * 100 
       : 0;
     
-    const signupToPurchase = influencerData.total_signups > 0 
-      ? (influencerData.total_purchases / influencerData.total_signups) * 100 
+    const signupToPurchase = totalSignups > 0 
+      ? (totalPurchases / totalSignups) * 100 
+      : 0;
+
+    const overallConversion = totalClicks > 0
+      ? (totalPurchases / totalClicks) * 100
       : 0;
 
     const stats: DashboardStats = {
-      totalClicks: influencerData.total_clicks || 0,
-      totalSignups: influencerData.total_signups || 0,
-      totalPurchases: influencerData.total_purchases || 0,
-      totalEarnings: influencerData.total_earnings || 0,
-      conversionRate: influencerData.conversion_rate || 0,
+      totalClicks,
+      totalSignups,
+      totalPurchases,
+      totalEarnings: Number(totalEarnings.toFixed(2)),
+      conversionRate: Number(overallConversion.toFixed(2)),
       clickToSignup: Number(clickToSignup.toFixed(2)),
       signupToPurchase: Number(signupToPurchase.toFixed(2)),
     };
@@ -323,5 +338,5 @@ export const getPerformanceData = async (
  */
 export const generateAffiliateLink = (affiliateCode: string): string => {
   const baseUrl = window.location.origin;
-  return `${baseUrl}?ref=${affiliateCode}`;
+  return `${baseUrl}/quest?ref=${affiliateCode}`;
 };
