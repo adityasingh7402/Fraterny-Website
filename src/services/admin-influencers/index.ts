@@ -1,0 +1,459 @@
+// Export all types
+export * from './types';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  InfluencerFilters,
+  PaginationParams,
+  InfluencersResponse,
+  InfluencerResponse,
+  DeleteInfluencerResponse,
+  InfluencerStats,
+  InfluencerData,
+  PaginationMeta,
+  CreateInfluencerInput,
+  UpdateInfluencerInput,
+} from './types';
+
+/**
+ * Fetch influencers with filtering and pagination
+ */
+export const fetchInfluencers = async (
+  paginationParams: PaginationParams,
+  filters?: InfluencerFilters
+): Promise<InfluencersResponse> => {
+  try {
+    const { page, pageSize } = paginationParams;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    // Build the base query
+    let query = supabase
+      .from('influencers')
+      .select('*', { count: 'exact' });
+
+    // Apply search filter
+    if (filters?.searchTerm && filters.searchTerm.trim()) {
+      const searchTerm = filters.searchTerm.trim();
+      query = query.or(
+        `name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,affiliate_code.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`
+      );
+    }
+
+    // Apply status filter
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+
+    // Apply earnings range filters
+    if (filters?.minEarnings !== null && filters?.minEarnings !== undefined) {
+      query = query.gte('total_earnings', filters.minEarnings);
+    }
+    if (filters?.maxEarnings !== null && filters?.maxEarnings !== undefined) {
+      query = query.lte('total_earnings', filters.maxEarnings);
+    }
+
+    // Apply conversion rate filters
+    if (filters?.minConversionRate !== null && filters?.minConversionRate !== undefined) {
+      query = query.gte('conversion_rate', filters.minConversionRate);
+    }
+    if (filters?.maxConversionRate !== null && filters?.maxConversionRate !== undefined) {
+      query = query.lte('conversion_rate', filters.maxConversionRate);
+    }
+
+    // Apply date range filters
+    if (filters?.dateFrom) {
+      query = query.gte('created_at', filters.dateFrom);
+    }
+    if (filters?.dateTo) {
+      query = query.lte('created_at', filters.dateTo);
+    }
+
+    // Apply pagination and ordering
+    query = query
+      .range(from, to)
+      .order('created_at', { ascending: false });
+
+    // Execute query
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching influencers:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil((count || 0) / pageSize);
+
+    const paginationMeta: PaginationMeta = {
+      currentPage: page,
+      pageSize,
+      totalRecords: count || 0,
+      totalPages,
+    };
+
+    return {
+      success: true,
+      data: {
+        influencers: (data as InfluencerData[]) || [],
+        pagination: paginationMeta,
+      },
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in fetchInfluencers:', error);
+    return {
+      success: false,
+      data: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
+ * Get influencer statistics for dashboard cards
+ */
+export const getInfluencerStats = async (): Promise<InfluencerStats> => {
+  try {
+    // Fetch all influencers to calculate statistics
+    const { data, error } = await supabase
+      .from('influencers')
+      .select('status, total_earnings, total_clicks, total_signups, total_purchases, conversion_rate');
+
+    if (error) {
+      console.error('Error fetching influencer stats:', error);
+      return {
+        totalInfluencers: 0,
+        activeInfluencers: 0,
+        totalRevenue: 0,
+        totalCommissions: 0,
+        totalClicks: 0,
+        totalSignups: 0,
+        totalPurchases: 0,
+        averageConversionRate: 0,
+      };
+    }
+
+    const totalInfluencers = data?.length || 0;
+    const activeInfluencers = data?.filter(inf => inf.status === 'active').length || 0;
+    
+    // Calculate total revenue from tracking_events
+    const { data: eventsData } = await supabase
+      .from('tracking_events')
+      .select('revenue, commission_earned');
+    
+    const totalRevenue = eventsData?.reduce((sum, event) => sum + (event.revenue || 0), 0) || 0;
+    const totalCommissions = eventsData?.reduce((sum, event) => sum + (event.commission_earned || 0), 0) || 0;
+    
+    const totalClicks = data?.reduce((sum, inf) => sum + (inf.total_clicks || 0), 0) || 0;
+    const totalSignups = data?.reduce((sum, inf) => sum + (inf.total_signups || 0), 0) || 0;
+    const totalPurchases = data?.reduce((sum, inf) => sum + (inf.total_purchases || 0), 0) || 0;
+    
+    // Calculate average conversion rate
+    const conversionRates = data?.filter(inf => inf.conversion_rate > 0).map(inf => inf.conversion_rate) || [];
+    const averageConversionRate = conversionRates.length > 0 
+      ? conversionRates.reduce((sum, rate) => sum + rate, 0) / conversionRates.length 
+      : 0;
+
+    return {
+      totalInfluencers,
+      activeInfluencers,
+      totalRevenue,
+      totalCommissions,
+      totalClicks,
+      totalSignups,
+      totalPurchases,
+      averageConversionRate: Number(averageConversionRate.toFixed(2)),
+    };
+  } catch (error) {
+    console.error('Unexpected error in getInfluencerStats:', error);
+    return {
+      totalInfluencers: 0,
+      activeInfluencers: 0,
+      totalRevenue: 0,
+      totalCommissions: 0,
+      totalClicks: 0,
+      totalSignups: 0,
+      totalPurchases: 0,
+      averageConversionRate: 0,
+    };
+  }
+};
+
+/**
+ * Create a new influencer
+ */
+export const createInfluencer = async (input: CreateInfluencerInput): Promise<InfluencerResponse> => {
+  try {
+    console.log('Creating influencer:', input.name);
+
+    // Check if affiliate code already exists
+    const { data: existingCode } = await supabase
+      .from('influencers')
+      .select('id')
+      .eq('affiliate_code', input.affiliate_code)
+      .maybeSingle();
+
+    if (existingCode) {
+      return {
+        success: false,
+        data: null,
+        error: 'Affiliate code already exists',
+      };
+    }
+
+    // Check if email already exists
+    const { data: existingEmail } = await supabase
+      .from('influencers')
+      .select('id')
+      .eq('email', input.email)
+      .maybeSingle();
+
+    if (existingEmail) {
+      return {
+        success: false,
+        data: null,
+        error: 'Email already exists',
+      };
+    }
+
+    // Create the influencer
+    const { data, error } = await supabase
+      .from('influencers')
+      .insert({
+        name: input.name,
+        email: input.email,
+        phone: input.phone || null,
+        profile_image: input.profile_image || null,
+        bio: input.bio || null,
+        social_links: input.social_links || null,
+        affiliate_code: input.affiliate_code,
+        commission_rate: input.commission_rate,
+        payment_info: input.payment_info || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating influencer:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    console.log('Influencer created successfully:', data.id);
+    return {
+      success: true,
+      data: data as InfluencerData,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in createInfluencer:', error);
+    return {
+      success: false,
+      data: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
+ * Update an existing influencer
+ */
+export const updateInfluencer = async (
+  influencerId: string,
+  input: UpdateInfluencerInput
+): Promise<InfluencerResponse> => {
+  try {
+    console.log('Updating influencer:', influencerId);
+
+    // Build update object with only provided fields
+    const updateData: any = { updated_at: new Date().toISOString() };
+    
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.email !== undefined) updateData.email = input.email;
+    if (input.phone !== undefined) updateData.phone = input.phone;
+    if (input.profile_image !== undefined) updateData.profile_image = input.profile_image;
+    if (input.bio !== undefined) updateData.bio = input.bio;
+    if (input.social_links !== undefined) updateData.social_links = input.social_links;
+    if (input.commission_rate !== undefined) updateData.commission_rate = input.commission_rate;
+    if (input.status !== undefined) updateData.status = input.status;
+    if (input.payment_info !== undefined) updateData.payment_info = input.payment_info;
+
+    const { data, error } = await supabase
+      .from('influencers')
+      .update(updateData)
+      .eq('id', influencerId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating influencer:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    console.log('Influencer updated successfully');
+    return {
+      success: true,
+      data: data as InfluencerData,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in updateInfluencer:', error);
+    return {
+      success: false,
+      data: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
+ * Delete an influencer and all related tracking events
+ */
+export const deleteInfluencer = async (influencerId: string): Promise<DeleteInfluencerResponse> => {
+  try {
+    console.log('Starting cascade delete for influencer:', influencerId);
+
+    // Step 1: Delete related tracking events
+    console.log('Deleting tracking events...');
+    const { data: influencerData } = await supabase
+      .from('influencers')
+      .select('affiliate_code')
+      .eq('id', influencerId)
+      .single();
+
+    if (influencerData) {
+      const { error: eventsError } = await supabase
+        .from('tracking_events')
+        .delete()
+        .eq('affiliate_code', influencerData.affiliate_code);
+
+      if (eventsError) {
+        console.error('Error deleting tracking events:', eventsError);
+        return {
+          success: false,
+          message: null,
+          error: `Failed to delete tracking events: ${eventsError.message}`,
+        };
+      }
+      console.log('Deleted tracking events');
+    }
+
+    // Step 2: Delete related payouts
+    console.log('Deleting payout records...');
+    const { error: payoutsError } = await supabase
+      .from('influencer_payouts')
+      .delete()
+      .eq('influencer_id', influencerId);
+
+    if (payoutsError) {
+      console.error('Error deleting payouts:', payoutsError);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete payout records: ${payoutsError.message}`,
+      };
+    }
+    console.log('Deleted payout records');
+
+    // Step 3: Delete the influencer
+    console.log('Deleting influencer record...');
+    const { error } = await supabase
+      .from('influencers')
+      .delete()
+      .eq('id', influencerId);
+
+    if (error) {
+      console.error('Error deleting influencer:', error);
+      return {
+        success: false,
+        message: null,
+        error: `Failed to delete influencer: ${error.message}`,
+      };
+    }
+
+    console.log('Influencer deleted successfully!');
+    return {
+      success: true,
+      message: 'Influencer and all related records deleted successfully',
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in deleteInfluencer:', error);
+    return {
+      success: false,
+      message: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
+ * Get a single influencer by ID
+ */
+export const getInfluencerById = async (influencerId: string): Promise<InfluencerResponse> => {
+  try {
+    const { data, error } = await supabase
+      .from('influencers')
+      .select('*')
+      .eq('id', influencerId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching influencer:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: data as InfluencerData,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in getInfluencerById:', error);
+    return {
+      success: false,
+      data: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
+ * Generate a unique affiliate code
+ */
+export const generateAffiliateCode = (name: string): string => {
+  // Remove spaces and special characters, take first 4 letters, add year
+  const cleanName = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  const namePart = cleanName.substring(0, 4).padEnd(4, 'X');
+  const year = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+  return `${namePart}${year}${random}`;
+};
+
+/**
+ * Update influencer metrics (called by backend when events occur)
+ */
+export const updateInfluencerMetrics = async (affiliateCode: string): Promise<void> => {
+  try {
+    // This function would be called by your backend to update cached metrics
+    // For now, it's a placeholder - you'll update metrics via backend triggers or cron jobs
+    console.log('Updating metrics for:', affiliateCode);
+  } catch (error) {
+    console.error('Error updating influencer metrics:', error);
+  }
+};
