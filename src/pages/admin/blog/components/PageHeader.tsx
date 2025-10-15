@@ -19,7 +19,7 @@ const PageHeader = ({ onNewPostClick }: PageHeaderProps) => {
       </p>
       
       <div className={`${isMobile ? 'flex flex-col w-full' : 'flex flex-row'} gap-2`}>
-        <Link 
+        {/* <Link 
           to="/" 
           className={`flex items-center justify-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all ${isMobile ? 'w-full' : ''}`}
         >
@@ -31,7 +31,7 @@ const PageHeader = ({ onNewPostClick }: PageHeaderProps) => {
           className={`flex items-center justify-center px-4 py-2 border border-navy text-navy rounded-md hover:bg-navy hover:text-white transition-colors ${isMobile ? 'w-full' : ''}`}
         >
           Admin Dashboard
-        </Link>
+        </Link> */}
         <Button 
           onClick={onNewPostClick}
           className={`flex items-center justify-center gap-2 ${isMobile ? 'w-full' : ''}`}
