@@ -107,6 +107,7 @@ export const getDashboardStats = async (
     const stats: DashboardStats = {
       totalClicks,
       totalSignups,
+      totalQuestionnaires,
       totalPurchases,
       totalEarnings: Number(totalEarnings.toFixed(2)),
       conversionRate: Number(overallConversion.toFixed(2)),

@@ -95,12 +95,14 @@ export const fetchInfluencers = async (
 
         const liveClicks = trackingData?.filter(e => e.event_type === 'click').length || 0;
         const liveSignups = trackingData?.filter(e => e.event_type === 'signup').length || 0;
+        const liveQuestionnaires = trackingData?.filter(e => e.event_type === 'questionnaire_completed').length || 0;
         const livePurchases = trackingData?.filter(e => e.event_type === 'pdf_purchased').length || 0;
 
         return {
           ...influencer,
           total_clicks: liveClicks,
           total_signups: liveSignups,
+          total_questionnaires: liveQuestionnaires,
           total_purchases: livePurchases,
         };
       })
@@ -163,6 +165,7 @@ export const getInfluencerStats = async (): Promise<InfluencerStats> => {
     // Count events by type
     const totalClicks = eventsData?.filter(e => e.event_type === 'click').length || 0;
     const totalSignups = eventsData?.filter(e => e.event_type === 'signup').length || 0;
+    const totalQuestionnaires = eventsData?.filter(e => e.event_type === 'questionnaire_completed').length || 0;
     const totalPurchases = eventsData?.filter(e => e.event_type === 'pdf_purchased').length || 0;
     
     // Calculate totals
@@ -181,6 +184,7 @@ export const getInfluencerStats = async (): Promise<InfluencerStats> => {
       totalCommissions,
       totalClicks,
       totalSignups,
+      totalQuestionnaires,
       totalPurchases,
       averageConversionRate: Number(averageConversionRate.toFixed(2)),
     };
@@ -193,6 +197,7 @@ export const getInfluencerStats = async (): Promise<InfluencerStats> => {
       totalCommissions: 0,
       totalClicks: 0,
       totalSignups: 0,
+      totalQuestionnaires: 0,
       totalPurchases: 0,
       averageConversionRate: 0,
     };

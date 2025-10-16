@@ -297,7 +297,7 @@ const AffiliatesDashboard: React.FC = () => {
         {
           name: editName.trim(),
           bio: editBio.trim(),
-          profile_image: influencer.profile_image,
+          profile_image: influencer.profile_image ?? undefined,
           social_links: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
         },
         profileImageFile

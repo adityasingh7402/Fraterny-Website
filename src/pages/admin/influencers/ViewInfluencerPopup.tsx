@@ -18,7 +18,7 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-  const [liveStats, setLiveStats] = useState<{ totalClicks: number; totalSignups: number; totalPurchases: number; conversionRate: number } | null>(null);
+  const [liveStats, setLiveStats] = useState<{ totalClicks: number; totalSignups: number; totalQuestionnaires: number; totalPurchases: number; conversionRate: number } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   
   // Form states (initialized with influencer data)
@@ -53,6 +53,7 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
           setLiveStats({
             totalClicks: response.data.totalClicks,
             totalSignups: response.data.totalSignups,
+            totalQuestionnaires: response.data.totalQuestionnaires || 0,
             totalPurchases: response.data.totalPurchases,
             conversionRate: response.data.conversionRate,
           });
@@ -396,13 +397,13 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">Total Clicks</span>
+                <span className="text-sm text-gray-600">Questionnaires</span>
                 <MousePointer className="h-4 w-4 text-blue-600" />
               </div>
               {statsLoading ? (
                 <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
               ) : (
-                <p className="text-2xl font-bold text-gray-900">{liveStats?.totalClicks.toLocaleString() || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{liveStats?.totalQuestionnaires?.toLocaleString() || 0}</p>
               )}
             </div>
 

@@ -37,6 +37,7 @@ export interface InfluencerProfile {
 export interface DashboardStats {
   totalClicks: number;
   totalSignups: number;
+  totalQuestionnaires?: number;
   totalPurchases: number;
   totalEarnings: number;
   conversionRate: number;

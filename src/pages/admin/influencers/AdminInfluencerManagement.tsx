@@ -22,6 +22,7 @@ const AdminInfluencerManagement: React.FC = () => {
     totalCommissions: 0,
     totalClicks: 0,
     totalSignups: 0,
+    totalQuestionnaires: 0,
     totalPurchases: 0,
     averageConversionRate: 0,
   });
@@ -337,14 +338,14 @@ const AdminInfluencerManagement: React.FC = () => {
 
             {/* Additional Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Total Clicks */}
+              {/* Total Questionnaires */}
               <div className="flex flex-col gap-2 rounded-xl p-6 border border-gray-200 bg-white">
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-600 text-base font-medium leading-normal">Total Clicks</p>
+                  <p className="text-gray-600 text-base font-medium leading-normal">Total Questionnaires</p>
                   <MousePointer className="h-6 w-6 text-indigo-500" />
                 </div>
                 <p className="text-gray-900 tracking-tight text-3xl font-bold leading-tight">
-                  {stats.totalClicks.toLocaleString()}
+                  {stats.totalQuestionnaires.toLocaleString()}
                 </p>
               </div>
 
@@ -487,7 +488,7 @@ const AdminInfluencerManagement: React.FC = () => {
                         Earnings
                       </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">
-                        Clicks/Signups/Purchases
+                        Questionnaires/Signups/Paid
                       </th>
                       <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
                         Actions
@@ -565,7 +566,7 @@ const AdminInfluencerManagement: React.FC = () => {
                             {formatCurrency(influencer.total_earnings)}
                           </td>
                           <td className="py-4 px-4 text-sm text-gray-900">
-                            {influencer.total_clicks} / {influencer.total_signups} / {influencer.total_purchases}
+                            {influencer.total_questionnaires} / {influencer.total_signups} / {influencer.total_purchases}
                           </td>
                           <td className="py-4 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">

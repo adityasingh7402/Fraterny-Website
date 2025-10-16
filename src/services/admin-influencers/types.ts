@@ -76,6 +76,7 @@ export interface InfluencerStats {
   totalCommissions: number;
   totalClicks: number;
   totalSignups: number;
+  totalQuestionnaires: number;
   totalPurchases: number;
   averageConversionRate: number;
 }
