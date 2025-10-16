@@ -1640,35 +1640,9 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       questions_completed: questionsCompleted
     });
     
-    // Track questionnaire_completed event if referred by affiliate
-    const referredBy = submissionData.referred_by;
-    if (referredBy) {
-      try {
-        const deviceInfo = getDeviceInfo();
-        const ipAddress = await getUserIP();
-        
-        await createTrackingEvent({
-          affiliate_code: referredBy,
-          event_type: 'questionnaire_completed',
-          user_id: userId,
-          session_id: sessionId,
-          test_id: testid,
-          ip_address: ipAddress,
-          device_info: deviceInfo,
-          location: null,
-          metadata: {
-            questions_completed: questionsCompleted,
-            total_duration_seconds: totalDuration,
-            completion_time: new Date().toISOString()
-          }
-        });
-        
-        console.log('✅ Questionnaire completion tracked for affiliate:', referredBy);
-      } catch (trackingError) {
-        console.error('❌ Failed to track questionnaire completion:', trackingError);
-        // Don't throw - tracking failure shouldn't break the submission flow
-      }
-    }
+    // Note: questionnaire_completed tracking moved to QuestResult.tsx
+    // It now tracks when the result page successfully loads (after summary generation)
+    // instead of immediately after submission
     
     // const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
     // navigate(targetUrl);

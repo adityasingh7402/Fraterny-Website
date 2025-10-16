@@ -148,7 +148,7 @@ const AffiliatesDashboard: React.FC = () => {
         width: 256,
         margin: 2,
         color: {
-          dark: '#0C45F0',
+          dark: '#121212',
           light: '#FFFFFF',
         },
       });

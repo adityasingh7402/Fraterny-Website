@@ -39,6 +39,7 @@ import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
 import { getUserLocationFlag } from '../../../services/payments/razorpay/config';
+import { createTrackingEvent, getDeviceInfo, getUserIP } from '@/services/tracking';
 
 
 
@@ -2710,6 +2711,35 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         // console.log('validated data:', validatedData)
         setResultData(validatedData);
         setIsLoading(false);
+
+        // Track questionnaire_completed event if referred by affiliate
+        const referredBy = localStorage.getItem('referred_by');
+        if (referredBy) {
+          try {
+            const deviceInfo = getDeviceInfo();
+            const ipAddress = await getUserIP();
+            
+            await createTrackingEvent({
+              affiliate_code: referredBy,
+              event_type: 'questionnaire_completed',
+              user_id: userId,
+              session_id: sessionId,
+              test_id: testId,
+              ip_address: ipAddress,
+              device_info: deviceInfo,
+              location: null,
+              metadata: {
+                result_loaded: true,
+                completion_time: new Date().toISOString()
+              }
+            });
+            
+            console.log('✅ Questionnaire completion tracked for affiliate:', referredBy);
+          } catch (trackingError) {
+            console.error('❌ Failed to track questionnaire completion:', trackingError);
+            // Don't throw - tracking failure shouldn't break the results display
+          }
+        }
       } catch (axiosError: any) {
         if (axiosError.code === 'ECONNABORTED') {
           throw new Error('Request timeout - analysis may still be processing');
