@@ -298,9 +298,52 @@ const sectionAwareProgress = (completedSections * segmentWidth) + ((currentSecti
 
   const handleSectionSelect = (sectionId: string) => {
 
-    const getAnonymousModeFromDOM = (): boolean => {
-  const toggleButton = document.querySelector('[data-anonymous-mode]');
-  return toggleButton?.getAttribute('data-anonymous-mode') === 'true';
+//     const getAnonymousModeFromDOM = (): boolean => {
+//   const toggleButton = document.querySelector('[data-anonymous-mode]');
+//   return toggleButton?.getAttribute('data-anonymous-mode') === 'true';
+// };
+
+const getAnonymousModeFromDOM = (): boolean => {
+  const allToggles = document.querySelectorAll('[data-anonymous-mode]');
+  
+  console.log('🔍 [ANON-READ] Found total toggles:', allToggles.length);
+  
+  if (allToggles.length === 0) {
+    return false;
+  }
+  
+  // If only 1 toggle, use it (mobile case)
+  if (allToggles.length === 1) {
+    const isAnonymous = allToggles[0].getAttribute('data-anonymous-mode') === 'true';
+    console.log('🔍 [ANON-READ] Single toggle found:', {
+      dataAttribute: allToggles[0].getAttribute('data-anonymous-mode'),
+      result: isAnonymous
+    });
+    return isAnonymous;
+  }
+  
+  // If 2+ toggles, find the VISIBLE one (desktop case)
+  let visibleToggle: HTMLElement | null = null;
+  allToggles.forEach((toggle, index) => {
+    const toggleElement = toggle as HTMLElement;
+    const isVisible = toggleElement.offsetParent !== null;
+    console.log(`🔍 [ANON-READ] Toggle #${index}: visible=${isVisible}, data=${toggleElement.getAttribute('data-anonymous-mode')}`);
+    if (isVisible) {
+      visibleToggle = toggleElement;
+    }
+  });
+  
+  // log here visibleToggle result
+  console.log('🔍 [ANON-READ] Visible toggle selected:', visibleToggle);
+
+  
+  const isAnonymous = visibleToggle ? (visibleToggle as any).getAttribute('data-anonymous-mode') === 'true' : false;
+  console.log('🔍 [ANON-READ] Selected visible toggle:', {
+    found: !!visibleToggle,
+    result: isAnonymous
+  });
+  
+  return isAnonymous;
 };
 
   // Save current response before changing section
