@@ -335,9 +335,46 @@ export const getPerformanceData = async (
 };
 
 /**
+ * Update influencer location (is_india field)
+ */
+export const updateInfluencerLocation = async (
+  influencerId: string,
+  isIndia: boolean
+): Promise<DashboardResponse<null>> => {
+  try {
+    const { error } = await supabase
+      .from('influencers')
+      .update({ is_india: isIndia })
+      .eq('id', influencerId);
+
+    if (error) {
+      console.error('Error updating influencer location:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: null,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Unexpected error in updateInfluencerLocation:', error);
+    return {
+      success: false,
+      data: null,
+      error: error?.message || 'An unexpected error occurred',
+    };
+  }
+};
+
+/**
  * Generate affiliate link for the influencer
  */
 export const generateAffiliateLink = (affiliateCode: string): string => {
   const baseUrl = window.location.origin;
-  return `${baseUrl}/quest?ref=${affiliateCode}`;
+  return `${baseUrl}/quest?utm_source=affiliate&utm_medium=hybrid&utm_campaign=affiliate&ref=${affiliateCode}`;
 };

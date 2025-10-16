@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import AddInfluencerPopup from './AddInfluencerPopup';
 import ViewInfluencerPopup from './ViewInfluencerPopup';
 import { supabase } from '@/integrations/supabase/client';
+import { getExchangeRate } from '@/services/commission';
 
 const AdminInfluencerManagement: React.FC = () => {
   // State for data
@@ -49,6 +50,19 @@ const AdminInfluencerManagement: React.FC = () => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerData | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(83.50); // Default fallback
+
+  // Fetch exchange rate from database
+  const fetchExchangeRate = async () => {
+    try {
+      const rate = await getExchangeRate();
+      setExchangeRate(rate);
+      console.log('💱 Exchange rate loaded for admin:', rate);
+    } catch (err: any) {
+      console.error('Error fetching exchange rate:', err);
+      // Fallback rate already set in state
+    }
+  };
 
   // Fetch influencer statistics
   const fetchInfluencerStats = async () => {
@@ -215,6 +229,7 @@ const AdminInfluencerManagement: React.FC = () => {
 
   // Load initial data
   useEffect(() => {
+    fetchExchangeRate();
     fetchInfluencerStats();
     fetchInfluencersData();
   }, []);
@@ -233,12 +248,15 @@ const AdminInfluencerManagement: React.FC = () => {
     }
   }, [appliedFilters]);
 
-  // Format currency
-  const formatCurrency = (amount: number, currency: string = 'INR') => {
-    if (currency === 'INR') {
-      return `₹${amount.toFixed(2)}`;
-    }
-    return `$${amount.toFixed(2)}`;
+  // Convert USD to INR
+  const convertUSDtoINR = (amountInUSD: number): number => {
+    return amountInUSD * exchangeRate;
+  };
+
+  // Format currency (converts USD to INR for display)
+  const formatCurrency = (amountInUSD: number) => {
+    const amountInINR = convertUSDtoINR(amountInUSD);
+    return `₹${amountInINR.toFixed(2)}`;
   };
 
   // Get status badge color

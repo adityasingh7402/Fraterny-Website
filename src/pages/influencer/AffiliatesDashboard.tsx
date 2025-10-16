@@ -18,6 +18,7 @@ import {
 } from '@/services/influencer-dashboard';
 import { uploadImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
+import { getExchangeRate } from '@/services/commission';
 import {
   Users,
   TrendingUp,
@@ -63,6 +64,7 @@ const AffiliatesDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(83.50); // Default fallback
 
   // Edit mode states
   const [editingProfile, setEditingProfile] = useState(false);
@@ -104,6 +106,11 @@ const AffiliatesDashboard: React.FC = () => {
   const loadDashboardData = async (email: string) => {
     setLoading(true);
     try {
+      // Fetch exchange rate
+      const rate = await getExchangeRate();
+      setExchangeRate(rate);
+      console.log('💱 Exchange rate loaded:', rate);
+
       // Get influencer profile
       const influencerResponse = await getInfluencerByEmail(email);
       
@@ -186,7 +193,22 @@ const AffiliatesDashboard: React.FC = () => {
     navigate('/affiliates');
   };
 
-  const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Convert USD to INR
+  const convertUSDtoINR = (amountInUSD: number): number => {
+    return amountInUSD * exchangeRate;
+  };
+
+  // Format currency based on influencer location
+  const formatCurrency = (amountInUSD: number) => {
+    if (influencer?.is_india) {
+      // Indian influencer: Convert USD to INR and show ₹
+      const amountInINR = convertUSDtoINR(amountInUSD);
+      return `₹${amountInINR.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else {
+      // International influencer: Show USD as is
+      return `$${amountInUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+  };
 
   const getTimeAgo = (timestamp: string) => {
     const date = new Date(timestamp);

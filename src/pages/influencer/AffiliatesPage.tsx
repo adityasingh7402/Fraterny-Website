@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { getInfluencerByEmail } from '@/services/influencer-dashboard';
+import { getInfluencerByEmail, updateInfluencerLocation } from '@/services/influencer-dashboard';
+import { getUserLocation } from '@/services/locationService';
 import { Users, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -24,7 +25,26 @@ const AffiliatesPage: React.FC = () => {
       const response = await getInfluencerByEmail(email);
       
       if (response.success && response.data) {
-        // User is an influencer, redirect to dashboard
+        // User is an influencer
+        const influencer = response.data;
+        
+        // Detect and save location if not already set
+        if (influencer.is_india === null || influencer.is_india === undefined) {
+          try {
+            console.log('🌍 Detecting influencer location...');
+            const locationData = await getUserLocation();
+            console.log('🌍 Location detected:', locationData);
+            
+            // Update influencer with location
+            await updateInfluencerLocation(influencer.id, locationData.isIndia);
+            console.log('✅ Influencer location saved:', locationData.isIndia ? 'India' : 'International');
+          } catch (error) {
+            console.error('❌ Failed to detect/save location:', error);
+            // Continue to dashboard even if location detection fails
+          }
+        }
+        
+        // Redirect to dashboard
         navigate('/affiliates/dashboard');
       } else {
         // User is not an influencer

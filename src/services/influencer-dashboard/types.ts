@@ -16,6 +16,7 @@ export interface InfluencerProfile {
   affiliate_code: string;
   commission_rate: number;
   status: 'active' | 'inactive' | 'suspended';
+  is_india: boolean | null;
   payment_info: {
     bank_name?: string;
     account_number?: string;

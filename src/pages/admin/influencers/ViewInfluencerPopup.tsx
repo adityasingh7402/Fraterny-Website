@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { uploadImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
 import { getDashboardStats } from '@/services/influencer-dashboard';
+import { getExchangeRate } from '@/services/commission';
 
 interface ViewInfluencerPopupProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [imageUploading, setImageUploading] = useState(false);
   const [liveStats, setLiveStats] = useState<{ totalClicks: number; totalSignups: number; totalQuestionnaires: number; totalPurchases: number; conversionRate: number } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [exchangeRate, setExchangeRate] = useState<number>(83.50); // Default fallback
   
   // Form states (initialized with influencer data)
   const [name, setName] = useState(influencer.name);
@@ -42,6 +44,20 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [accountNumber, setAccountNumber] = useState(influencer.payment_info?.account_number || '');
   const [ifsc, setIfsc] = useState(influencer.payment_info?.ifsc || '');
   const [upi, setUpi] = useState(influencer.payment_info?.upi || '');
+
+  // Fetch exchange rate
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        const rate = await getExchangeRate();
+        setExchangeRate(rate);
+        console.log('💱 Exchange rate loaded for view popup:', rate);
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+      }
+    };
+    fetchRate();
+  }, []);
 
   // Fetch live stats from tracking_events
   useEffect(() => {
@@ -194,8 +210,16 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
     }
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
+  // Convert USD to INR
+  const convertUSDtoINR = (amountInUSD: number): number => {
+    return amountInUSD * exchangeRate;
+  };
+
+  // Format currency (converts USD to INR for display)
+  const formatCurrency = (amountInUSD: number) => {
+    const amountInINR = convertUSDtoINR(amountInUSD);
+    return `₹${amountInINR.toFixed(2)}`;
+  };
 
   // Get status color
   const getStatusColor = (status: string) => {
