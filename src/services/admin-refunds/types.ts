@@ -135,6 +135,11 @@ export interface RefundStats {
   processingRefunds: number;
   totalRefundAmount: number;
   completedRefundAmount: number;
+  // Separate currency totals
+  totalRefundAmountUSD: number;
+  totalRefundAmountINR: number;
+  completedRefundAmountUSD: number;
+  completedRefundAmountINR: number;
 }
 
 export interface GatewayRefundResult {

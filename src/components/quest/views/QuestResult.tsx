@@ -39,6 +39,8 @@ import { useParams } from 'react-router-dom';
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { questionSummary } from '../core/questions';
 import { getUserLocationFlag } from '../../../services/payments/razorpay/config';
+import { createTrackingEvent, getDeviceInfo, getUserIP } from '@/services/tracking';
+import { trackSignup, trackPayment } from '@/services/affiliate/trackingService';
 
 
 
@@ -91,6 +93,7 @@ interface ResultData {
   completion_date: string;
   pecentile?: string;
   qualityscore?: string;
+  referred_by?: string;
   results: {
     "section 1"?: string;
     "Mind Card"?: MindCardData;
@@ -2603,6 +2606,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         setPaymentSuccess(true);
         setShowSuccessPopup(true);
         setUpsellOpen(false);
+        
         // Track Google Ads conversion for result page payments
         const urlParams = new URLSearchParams(window.location.search);
         const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
@@ -2624,6 +2628,53 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             amount: 950,
             currency: 'INR'
           });
+        }
+
+        // Track affiliate payment with commission
+        const referredBy = resultData?.referred_by || localStorage.getItem('referred_by');
+        if (referredBy && user?.id) {
+          try {
+            // Get payment amount and currency based on gateway and pricing
+            const pricingData = pricing;
+            let paymentAmount: number;
+            let paymentCurrency: 'INR' | 'USD';
+
+            if (selectedGateway === 'razorpay' && pricingData.razorpay.isIndia) {
+              // India Razorpay payment in INR (paise)
+              paymentAmount = pricingData.razorpay.amount * 100; // Convert rupees to paise
+              paymentCurrency = 'INR';
+            } else if (selectedGateway === 'paypal') {
+              // PayPal payment in USD (cents)
+              paymentAmount = pricingData.paypal.numericAmount * 100; // Convert dollars to cents
+              paymentCurrency = 'USD';
+            } else {
+              // International Razorpay in USD (cents)
+              paymentAmount = pricingData.razorpay.amount * 100; // Convert dollars to cents
+              paymentCurrency = 'USD';
+            }
+
+            console.log('💳 Tracking affiliate payment:', {
+              gateway: selectedGateway,
+              amount: paymentAmount,
+              currency: paymentCurrency,
+              referredBy
+            });
+
+            await trackPayment(
+              user.id,
+              sessionId!,
+              testId!,
+              referredBy,
+              selectedGateway,
+              paymentAmount,
+              paymentCurrency
+            );
+
+            console.log('✅ Affiliate payment tracked successfully');
+          } catch (paymentTrackingError) {
+            console.error('❌ Failed to track affiliate payment:', paymentTrackingError);
+            // Don't throw - tracking failure shouldn't break payment flow
+          }
         }
       } else {
         const errorMessage = paymentResult.error || 'Payment failed.';
@@ -2710,6 +2761,35 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         // console.log('validated data:', validatedData)
         setResultData(validatedData);
         setIsLoading(false);
+
+        // Track questionnaire_completed event if referred by affiliate
+        const referredBy = localStorage.getItem('referred_by');
+        if (referredBy) {
+          try {
+            const deviceInfo = getDeviceInfo();
+            const ipAddress = await getUserIP();
+            
+            await createTrackingEvent({
+              affiliate_code: referredBy,
+              event_type: 'questionnaire_completed',
+              user_id: userId,
+              session_id: sessionId,
+              test_id: testId,
+              ip_address: ipAddress,
+              device_info: deviceInfo,
+              location: null,
+              metadata: {
+                result_loaded: true,
+                completion_time: new Date().toISOString()
+              }
+            });
+            
+            console.log('✅ Questionnaire completion tracked for affiliate:', referredBy);
+          } catch (trackingError) {
+            console.error('❌ Failed to track questionnaire completion:', trackingError);
+            // Don't throw - tracking failure shouldn't break the results display
+          }
+        }
       } catch (axiosError: any) {
         if (axiosError.code === 'ECONNABORTED') {
           throw new Error('Request timeout - analysis may still be processing');
@@ -2772,6 +2852,24 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
             });
           }
 
+          // Track signup event if referred by affiliate (with duplicate check)
+          const referredBy = resultData?.referred_by || localStorage.getItem('referred_by');
+          if (referredBy && userId) {
+            try {
+              console.log('🔍 Tracking signup for affiliate:', referredBy);
+              const signupResult = await trackSignup(userId, sessionId, testId, referredBy);
+              
+              if (signupResult.skipped) {
+                console.log('⚠️ Signup tracking skipped:', signupResult.reason);
+              } else {
+                console.log('✅ Signup tracked successfully');
+              }
+            } catch (signupError) {
+              console.error('❌ Failed to track signup:', signupError);
+              // Don't throw - tracking failure shouldn't break the sign-in flow
+            }
+          }
+
         } catch (error) {
           console.error('Failed to associate anonymous data:', error);
           toast.error('Failed to save your result. Please try again.', {
@@ -2817,6 +2915,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               setPaymentSuccess(true);
               setShowSuccessPopup(true);
               setUpsellOpen(false);
+              
               // Track Google Ads conversion for result page payments
               const urlParams = new URLSearchParams(window.location.search);
               const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid') || localStorage.getItem('gclid');
@@ -2838,6 +2937,53 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                   amount: 950,
                   currency: 'INR'
                 });
+              }
+
+              // Track affiliate payment with commission (auto-resumed after sign-in)
+              const referredBy = resultData?.referred_by || localStorage.getItem('referred_by');
+              if (referredBy && user?.id) {
+                try {
+                  // Get payment amount and currency based on gateway and pricing
+                  const pricingData = pricing;
+                  let paymentAmount: number;
+                  let paymentCurrency: 'INR' | 'USD';
+
+                  if (gatewayToUse === 'razorpay' && pricingData.razorpay.isIndia) {
+                    // India Razorpay payment in INR (paise)
+                    paymentAmount = pricingData.razorpay.amount * 100; // Convert rupees to paise
+                    paymentCurrency = 'INR';
+                  } else if (gatewayToUse === 'paypal') {
+                    // PayPal payment in USD (cents)
+                    paymentAmount = pricingData.paypal.numericAmount * 100; // Convert dollars to cents
+                    paymentCurrency = 'USD';
+                  } else {
+                    // International Razorpay in USD (cents)
+                    paymentAmount = pricingData.razorpay.amount * 100; // Convert dollars to cents
+                    paymentCurrency = 'USD';
+                  }
+
+                  console.log('💳 Tracking affiliate payment (auto-resumed):', {
+                    gateway: gatewayToUse,
+                    amount: paymentAmount,
+                    currency: paymentCurrency,
+                    referredBy
+                  });
+
+                  await trackPayment(
+                    user.id,
+                    sessionId!,
+                    testId!,
+                    referredBy,
+                    gatewayToUse,
+                    paymentAmount,
+                    paymentCurrency
+                  );
+
+                  console.log('✅ Affiliate payment tracked successfully (auto-resumed)');
+                } catch (paymentTrackingError) {
+                  console.error('❌ Failed to track affiliate payment:', paymentTrackingError);
+                  // Don't throw - tracking failure shouldn't break payment flow
+                }
               }
             } else {
               const errorMessage = paymentResult.error || 'Payment failed after sign-in.';

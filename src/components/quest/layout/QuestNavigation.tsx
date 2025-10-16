@@ -270,9 +270,13 @@ export function QuestNavigation({
     }
 
 
+    // Get referred_by from localStorage
+    const referredBy = localStorage.getItem('referred_by') || null;
+
     return {
       response: responses,
       user_data: userData,
+      referred_by: referredBy,
       assessment_metadata: {
         session_id: workingSession?.id || '',
         start_time: startTime,

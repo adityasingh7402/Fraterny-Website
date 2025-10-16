@@ -323,7 +323,7 @@ export const getRefundStats = async (): Promise<RefundStats> => {
   try {
     const { data, error } = await supabase
       .from('refund_transactions')
-      .select('refund_status, refund_amount');
+      .select('refund_status, refund_amount, currency');
 
     if (error) {
       console.error('Error fetching refund stats:', error);
@@ -333,7 +333,11 @@ export const getRefundStats = async (): Promise<RefundStats> => {
         failedRefunds: 0,
         processingRefunds: 0,
         totalRefundAmount: 0,
-        completedRefundAmount: 0
+        completedRefundAmount: 0,
+        totalRefundAmountUSD: 0,
+        totalRefundAmountINR: 0,
+        completedRefundAmountUSD: 0,
+        completedRefundAmountINR: 0
       };
     }
 
@@ -348,13 +352,28 @@ export const getRefundStats = async (): Promise<RefundStats> => {
     const completedRefundAmount = data?.filter(r => r.refund_status === 'completed')
       .reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
 
+    // Calculate separate currency totals
+    const totalRefundAmountUSD = data?.filter(r => r.currency === 'USD')
+      .reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+    const totalRefundAmountINR = data?.filter(r => r.currency === 'INR')
+      .reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+    
+    const completedRefundAmountUSD = data?.filter(r => r.refund_status === 'completed' && r.currency === 'USD')
+      .reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+    const completedRefundAmountINR = data?.filter(r => r.refund_status === 'completed' && r.currency === 'INR')
+      .reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+
     return {
       totalRefunds,
       completedRefunds,
       failedRefunds,
       processingRefunds,
       totalRefundAmount,
-      completedRefundAmount
+      completedRefundAmount,
+      totalRefundAmountUSD,
+      totalRefundAmountINR,
+      completedRefundAmountUSD,
+      completedRefundAmountINR
     };
 
   } catch (error) {
@@ -365,7 +384,11 @@ export const getRefundStats = async (): Promise<RefundStats> => {
       failedRefunds: 0,
       processingRefunds: 0,
       totalRefundAmount: 0,
-      completedRefundAmount: 0
+      completedRefundAmount: 0,
+      totalRefundAmountUSD: 0,
+      totalRefundAmountINR: 0,
+      completedRefundAmountUSD: 0,
+      completedRefundAmountINR: 0
     };
   }
 };

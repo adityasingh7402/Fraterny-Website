@@ -48,17 +48,61 @@
 
 "use client"
 import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ScreenContainer from '../../components/quest-landing/sections/ScreenContainer'
 import MotionProvider from '../../components/quest-landing/animations/MotionProvider';
 import { setMeta } from '../../utils/seo';
 import { clearDynamicMetaTags } from '../../utils/seo'; // Import the cleanup function
+import { createTrackingEvent, getDeviceInfo, getUserIP } from '@/services/tracking';
 
 const QuestLandingPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+
   const handleAnalyzeClick = () => {
     console.log('Analyze Me clicked - you can add your logic here');
     // Add any additional logic you need when the button is clicked
   };
   
+  // Track affiliate click event
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    
+    if (refCode) {
+      // Save to localStorage
+      localStorage.setItem('referred_by', refCode);
+      console.log('✅ Affiliate ref saved:', refCode);
+      
+      // Track click event
+      const trackClick = async () => {
+        try {
+          const deviceInfo = getDeviceInfo();
+          const ipAddress = await getUserIP();
+          
+          await createTrackingEvent({
+            affiliate_code: refCode,
+            event_type: 'click',
+            user_id: null,
+            session_id: null,
+            test_id: null,
+            ip_address: ipAddress,
+            device_info: deviceInfo,
+            location: null,
+            metadata: {
+              referrer: document.referrer || 'direct',
+              landing_page: window.location.href
+            }
+          });
+          
+          console.log('✅ Click event tracked for affiliate:', refCode);
+        } catch (error) {
+          console.error('❌ Failed to track click event:', error);
+        }
+      };
+      
+      trackClick();
+    }
+  }, [searchParams]);
+
   useEffect(() => {
   // Clear any existing dynamic meta tags first
   clearDynamicMetaTags();
