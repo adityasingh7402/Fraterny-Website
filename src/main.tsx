@@ -61,6 +61,10 @@ import AdminUserManagement from './pages/admin/users/AdminUserManagement';
 import AdminSummaryManagement from './pages/admin/summaries/AdminSummaryManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
+// INFLUENCER ROUTES
+import AffiliatesPage from './pages/influencer/AffiliatesPage';
+import AffiliatesDashboard from './pages/influencer/AffiliatesDashboard';
+
 // PROFILE ROUTES - Lazy loaded with optimized chunks
 const ProfileRoute = lazy(() => import('./components/ProfileRoute'));
 const ProfilePage = lazy(() => import('./pages/profile'));
@@ -172,6 +176,10 @@ const router = createBrowserRouter([
       { path: 'assessment-list/:userId', element: <AssessmentList /> },
       { path: 'payment-history/:userId', element: <PaymentHistory /> },
       { path: 'quest-paid-feedback', element: <QuestPaidFeedback /> },
+
+      // INFLUENCER/AFFILIATE ROUTES
+      { path: 'affiliates', element: <AffiliatesPage /> },
+      { path: 'affiliates/dashboard', element: <AffiliatesDashboard /> },
 
       // LEGAL PAGES - Lazy loaded with minimal loading
       { path: 'privacy-policy', element: <PrivacyPolicy /> },

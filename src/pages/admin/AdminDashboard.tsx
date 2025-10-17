@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
 import AdminFeedbackManagement from './feedback/AdminFeedbackManagement';
+import Analytics from './Analytics';
+import AdminBlog from './blog';
+import AdminImages from './images/AdminImages';
+import NewsletterSubscribers from './NewsletterSubscribers';
+import WebsiteSettings from './settings/WebsiteSettings';
+import AdminInfluencerManagement from './influencers/AdminInfluencerManagement';
 import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
 import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
 
@@ -14,6 +20,42 @@ const menuItems = [
     label: 'Dashboard Overview',
     icon: BarChart3,
     component: null
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics',
+    icon: PieChart,
+    component: Analytics
+  },
+  {
+    id: 'blog',
+    label: 'Blog Management',
+    icon: FileText,
+    component: AdminBlog
+  },
+  {
+    id: 'images',
+    label: 'Image Management',
+    icon: Image,
+    component: AdminImages
+  },
+  {
+    id: 'newsletter',
+    label: 'Newsletter Subscribers',
+    icon: Mail,
+    component: NewsletterSubscribers
+  },
+  {
+    id: 'settings',
+    label: 'Website Settings',
+    icon: Settings,
+    component: WebsiteSettings
+  },
+  {
+    id: 'influencers',
+    label: 'Influencer Management',
+    icon: UserCheck,
+    component: AdminInfluencerManagement
   },
   {
     id: 'users',

@@ -18,7 +18,7 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
   const [loading, setLoading] = useState(false);
 
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin' },
+    // { name: 'Dashboard', href: '/admin' },
     { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Blog Management', href: '/admin/blog' },
     { name: 'Image Management', href: '/admin/images' },

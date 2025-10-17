@@ -221,11 +221,18 @@ const AdminRefundManagement: React.FC = () => {
                   <p className="text-gray-600 text-base font-medium leading-normal">Total Refunds</p>
                   <DollarSign className="h-6 w-6 text-blue-500" />
                 </div>
-                <p className="text-gray-900 tracking-tight text-4xl font-bold leading-tight">
-                  {stats.totalRefunds.toLocaleString()}
+                <p className="text-gray-900 tracking-tight text-2xl font-bold leading-tight">
+                  {stats.totalRefundAmountINR > 0 && stats.totalRefundAmountUSD > 0
+                    ? `${formatCurrency(stats.totalRefundAmountINR, 'INR')} + ${formatCurrency(stats.totalRefundAmountUSD, 'USD')}`
+                    : stats.totalRefundAmountINR > 0
+                    ? formatCurrency(stats.totalRefundAmountINR, 'INR')
+                    : stats.totalRefundAmountUSD > 0
+                    ? formatCurrency(stats.totalRefundAmountUSD, 'USD')
+                    : '$0.00'
+                  }
                 </p>
                 <p className="text-blue-600 text-xs font-medium">
-                  {formatCurrency(stats.totalRefundAmount, 'USD')} total
+                  {stats.totalRefunds.toLocaleString()} refund{stats.totalRefunds !== 1 ? 's' : ''}
                 </p>
               </div>
 
@@ -244,7 +251,14 @@ const AdminRefundManagement: React.FC = () => {
                   {stats.completedRefunds.toLocaleString()}
                 </p>
                 <p className="text-green-600 text-xs font-medium">
-                  {formatCurrency(stats.completedRefundAmount, 'USD')} refunded
+                  {stats.completedRefundAmountINR > 0 && stats.completedRefundAmountUSD > 0
+                    ? `${formatCurrency(stats.completedRefundAmountINR, 'INR')} + ${formatCurrency(stats.completedRefundAmountUSD, 'USD')} refunded`
+                    : stats.completedRefundAmountINR > 0
+                    ? `${formatCurrency(stats.completedRefundAmountINR, 'INR')} refunded`
+                    : stats.completedRefundAmountUSD > 0
+                    ? `${formatCurrency(stats.completedRefundAmountUSD, 'USD')} refunded`
+                    : 'N/A refunded'
+                  }
                 </p>
               </div>
 

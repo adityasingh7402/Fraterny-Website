@@ -58,7 +58,7 @@ export const signInWithGoogle = async () => {
   const currentOrigin = window.location.origin;
 
   // Decide where to redirect
-  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result')
+  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') || currentUrl.includes('affiliates')
     ? currentUrl
     : currentOrigin;
 

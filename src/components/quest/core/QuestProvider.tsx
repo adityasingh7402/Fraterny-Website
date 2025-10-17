@@ -962,6 +962,7 @@ import questSections, { getAllQuestions, getQuestionsBySection } from './questio
 import { googleAnalytics } from '../../../services/analytics/googleAnalytics';
 import { usePostHog } from 'posthog-js/react';
 import { getDeviceIdentifier } from '@/utils/deviceFingerprint';
+import { createTrackingEvent, getDeviceInfo, getUserIP } from '@/services/tracking';
 
 interface QuestProviderProps {
   children: React.ReactNode;
@@ -1638,6 +1639,10 @@ export function QuestProvider({ children, initialSectionId }: QuestProviderProps
       total_duration: totalDuration,
       questions_completed: questionsCompleted
     });
+    
+    // Note: questionnaire_completed tracking moved to QuestResult.tsx
+    // It now tracks when the result page successfully loads (after summary generation)
+    // instead of immediately after submission
     
     // const targetUrl = `/quest-result/processing/${userId}/${sessionId}/${testid}`;
     // navigate(targetUrl);

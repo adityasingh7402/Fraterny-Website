@@ -14,7 +14,7 @@ const PageHeader = ({ onUploadClick }: PageHeaderProps) => {
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
       <h1 className="text-3xl font-playfair text-navy">Image Management</h1>
       <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-row'} gap-2`}>
-        <Link 
+        {/* <Link 
           to="/" 
           className={`flex items-center justify-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all ${isMobile ? 'w-full' : ''}`}
         >
@@ -26,7 +26,7 @@ const PageHeader = ({ onUploadClick }: PageHeaderProps) => {
           className={`flex items-center justify-center px-4 py-2 border border-navy text-navy rounded-md hover:bg-navy hover:text-white transition-colors ${isMobile ? 'w-full' : ''}`}
         >
           Admin Dashboard
-        </Link>
+        </Link> */}
         <button 
           onClick={onUploadClick}
           className={`flex items-center justify-center gap-2 px-4 py-2 bg-navy text-white rounded-md hover:bg-opacity-90 transition-colors ${isMobile ? 'w-full' : ''}`}

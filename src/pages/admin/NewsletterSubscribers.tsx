@@ -146,13 +146,13 @@ const NewsletterSubscribers = () => {
           </p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
-          <Link 
+          {/* <Link 
             to="/" 
             className="flex items-center gap-2 px-4 py-2 bg-terracotta text-white rounded-lg hover:bg-opacity-90 transition-all"
           >
             <ArrowLeft size={16} />
             Back to Website
-          </Link>
+          </Link> */}
           <Button 
             onClick={exportSubscribers}
             className="flex items-center gap-2"
