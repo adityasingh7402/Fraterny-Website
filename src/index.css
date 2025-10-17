@@ -118,6 +118,17 @@
   @apply bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg border-b border-gray-200;
 }
 
+
+/* Dashboard styling */
+
+.dashboard-card-header {
+  @apply text-2xl md:text-3xl font-['Gilroy-Bold'] mb-2;
+}
+
+.dashboard-card-subheader {
+  @apply text-sm md:text-base font-['Gilroy-Medium'] text-white/80;
+}
+
 @keyframes float {
   0% { transform: translateY(0px); }
   100% { transform: translateY(-10px); }

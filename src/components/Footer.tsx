@@ -92,7 +92,7 @@ const Footer = () => {
     delayChildren: 0.1
   });
 
-  // Copyright section animation - FIXED threshold
+  // Copyright section animation
   const copyrightAnimation = useSectionRevealAnimation({
     variant: 'fade-up',
     once: false,
@@ -219,7 +219,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-navy text-white py-12">
+    <footer className="bg-gradient-to-br from-cyan-700 to-blue-900 text-white py-12">
       <div className="container mx-auto px-6">
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-4 gap-8"
@@ -246,14 +246,13 @@ const Footer = () => {
               />
             </motion.a>
             <motion.p 
-              className="text-gray-400"
+              className="text-white/80 font-['Gilroy-SemiBold']"
               initial={{ opacity: 0, y: 10 }}
               animate={{ 
                 opacity: footerAnimation.isInView ? 1 : 0,
                 y: footerAnimation.isInView ? 0 : 10
               }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               Shared Ambitions
             </motion.p>
@@ -264,14 +263,13 @@ const Footer = () => {
             variants={footerAnimation.childVariants}
           >
             <motion.h3 
-              className="text-lg font-medium mb-4"
+              className="text-lg font-['Gilroy-Bold'] mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: footerAnimation.isInView ? 1 : 0,
                 y: footerAnimation.isInView ? 0 : 20
               }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               Navigate
             </motion.h3>
@@ -296,10 +294,9 @@ const Footer = () => {
                 <motion.li key={link.href} variants={linkVariants}>
                   <motion.a 
                     href={link.href} 
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-white/70 hover:text-white transition-colors font-['Gilroy-Regular']"
                     variants={linkVariants}
                     whileHover="hover"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {link.text}
                   </motion.a>
@@ -313,14 +310,13 @@ const Footer = () => {
             variants={footerAnimation.childVariants}
           >
             <motion.h3 
-              className="text-lg font-medium mb-4"
+              className="text-lg font-['Gilroy-Bold'] mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: footerAnimation.isInView ? 1 : 0,
                 y: footerAnimation.isInView ? 0 : 20
               }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >
               Connect
             </motion.h3>
@@ -343,7 +339,7 @@ const Footer = () => {
                 href="https://www.instagram.com/join.fraterny/?hl=en" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 rounded-lg transition-colors" 
+                className="p-2 rounded-lg transition-colors shadow-md hover:shadow-lg" 
                 style={{
                   background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)'
                 }}
@@ -359,7 +355,7 @@ const Footer = () => {
                 href="https://x.com/frat_erny" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="bg-black p-2 rounded-lg transition-colors flex items-center justify-center" 
+                className="bg-black p-2 rounded-lg transition-colors flex items-center justify-center shadow-md hover:shadow-lg" 
                 style={{
                   width: '36px',
                   height: '36px'
@@ -374,7 +370,7 @@ const Footer = () => {
               {/* Email */}
               <motion.a 
                 href="mailto:support@fraterny.com?subject=User%20Query" 
-                className="bg-[#0EA5E9] p-2 rounded-lg transition-colors"
+                className="bg-cyan-500 hover:bg-cyan-600 p-2 rounded-lg transition-colors shadow-md hover:shadow-lg"
                 variants={socialButtonVariants}
                 whileHover="hover"
                 whileTap="tap"
@@ -404,8 +400,7 @@ const Footer = () => {
                 <motion.li key={link.to} variants={linkVariants}>
                   <Link 
                     to={link.to} 
-                    className="text-gray-400 hover:text-white transition-colors"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                    className="text-white/70 hover:text-white transition-colors font-['Gilroy-Regular']"
                   >
                     <motion.span
                       variants={linkVariants}
@@ -428,13 +423,10 @@ const Footer = () => {
               href="/quest" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="px-8 py-3 bg-white text-navy rounded-lg hover:bg-opacity-90 transition-colors font-medium"
-              variants={ctaVariants}
-              whileHover="hover"
+              className="px-8 py-3 bg-white text-cyan-700 rounded-lg hover:bg-opacity-90 transition-colors font-['Gilroy-Bold'] shadow-md hover:shadow-lg"
               whileTap="tap"
               initial="hidden"
               animate={footerAnimation.isInView ? "visible" : "hidden"}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               Start Quest
             </motion.a>
@@ -443,7 +435,7 @@ const Footer = () => {
         
         {/* Copyright Section */}
         <motion.div 
-          className="text-center mt-12 pt-8 border-t border-gray-800"
+          className="text-center mt-12 pt-8 border-t border-white/20"
           ref={copyrightAnimation.ref}
           variants={copyrightAnimation.parentVariants}
           initial="hidden"
@@ -454,24 +446,21 @@ const Footer = () => {
             variants={copyrightAnimation.childVariants}
           >
             <motion.p 
-              className="py-[9px] text-lg text-slate-50"
+              className="py-[9px] text-lg text-white font-['Gilroy-Bold']"
               variants={copyrightAnimation.childVariants}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               FRATERNY
             </motion.p>
             <motion.p 
-              className="text-gray-400"
+              className="text-white/70 font-['Gilroy-Regular']"
               variants={copyrightAnimation.childVariants}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link> / <Link to="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link> / <Link to="/refund-policy" className="hover:text-white transition-colors">Refund & Cancellation Policy</Link>
             </motion.p>
           </motion.div>
           <motion.p 
-            className="text-gray-400"
+            className="text-white/70 font-['Gilroy-Regular']"
             variants={copyrightAnimation.childVariants}
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             All Rights Reserved 2025
           </motion.p>

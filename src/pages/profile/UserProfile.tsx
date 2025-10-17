@@ -15,6 +15,7 @@ import AccountSettings from '@/components/profile/sections/AccountSettings';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import QuestHistory from '@/components/profile/sections/QuestHistory';
+import VillaApplicationSection from '@/components/profile/sections/VillaApplicationSection';
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -36,15 +37,14 @@ const UserProfile = () => {
         return (
           <div className="">
             <ProfileStatsCard />
-            {/* <EngagementCard />
-            <AchievementsCard /> */}
-            {/* <SubscriptionCard /> */}
           </div>
+        );
+      case 'application':
+        return (
+          <VillaApplicationSection />
         );
       case 'history':
         return <QuestHistory />;
-      // case 'preferences':
-      //   return <PreferencesForm />;
       case 'security':
         return <AccountSettings />;
       default:
