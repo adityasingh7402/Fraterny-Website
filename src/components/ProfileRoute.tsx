@@ -15,7 +15,7 @@ type ProfileContextType = {
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 // Define valid tabs
-const VALID_TABS = ['overview', 'history', 'subscription', 'security'];
+const VALID_TABS = ['overview', 'history', 'application', 'security'];
 
 export function ProfileRoute() {
   const { user, isLoading } = useAuth();

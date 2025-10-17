@@ -568,19 +568,18 @@ export default function ProfileStatsCard({
 
   return (
     <motion.div
-      variants={containerVariants}
       initial="hidden"
       animate="visible"
       className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm overflow-hidden ${className}`}
     >
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-navy to-navy/80 p-6 md:p-8 text-white">
+      <div className="bg-gradient-to-br from-cyan-600 to-blue-800 p-6 md:p-8 text-white">
         <div className="flex justify-between items-start">
           <motion.div variants={itemVariants} className="flex-1">
-            <h2 className="text-2xl md:text-3xl font-playfair font-semibold mb-2">
+            <h2 className="dashboard-card-header text-shadow-lg">
               Account Information
             </h2>
-            <p className="text-sm md:text-base text-white/80">
+            <p className="dashboard-card-subheader text-shadow-lg">
               Your personal details and account status
             </p>
           </motion.div>
@@ -588,7 +587,7 @@ export default function ProfileStatsCard({
           <motion.div variants={itemVariants}>
             <Button 
               size="sm"
-              className="bg-white/10 text-white hover:bg-white/20 transition-colors"
+              className="font-['Gilroy-semiBold'] tracking-[-1px] bg-white/20 hover:bg-white/30 text-white shadow-md hover:shadow-xl"
               onClick = {() => {navigate('/profile?tab=security')}}
             >
               <Edit className="h-4 w-4 mr-2" />
@@ -603,7 +602,7 @@ export default function ProfileStatsCard({
           className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/10"
         >
           <Shield className="h-4 w-4 mr-2" />
-          <span>
+          <span className='font-["Gilroy-Bold"] tracking-[-0.2px]'>
             Account Status: {userMetadata.email_verified ? 'Verified' : 'Awaiting Verification'}
           </span>
           {userMetadata.email_verified ? (
@@ -635,7 +634,7 @@ export default function ProfileStatsCard({
               variants={itemVariants}
               className="space-y-4"
             >
-              <h3 className="font-medium text-lg text-navy border-b border-slate-200 dark:border-slate-700 pb-2">
+              <h3 className="font-['Gilroy-Bold'] text-lg text-navy border-b border-slate-200 dark:border-slate-700 pb-2">
                 {section.title}
               </h3>
               
@@ -650,10 +649,10 @@ export default function ProfileStatsCard({
                     </div>
                     
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-slate-400">
+                      <div className="font-['Gilroy-regular'] text-sm text-gray-500 dark:text-slate-400">
                         {item.label}
                       </div>
-                      <div className="font-medium text-navy dark:text-white">
+                      <div className="font-['Gilroy-semiBold'] text-navy dark:text-white">
                         {item.value}
                       </div>
                       
@@ -685,14 +684,11 @@ export default function ProfileStatsCard({
             className="mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/50"
           >
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-              </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                <h3 className="text-sm font-['Gilroy-regular'] text-amber-800 dark:text-amber-300">
                   Your profile is incomplete
                 </h3>
-                <div className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+                <div className="mt-2 text-sm font-['Gilroy-semiBold'] text-amber-700 dark:text-amber-400">
                   <p>
                     Complete your profile to get the most out of your experience.
                   </p>
@@ -702,7 +698,7 @@ export default function ProfileStatsCard({
                 <Button
                   onClick={() => navigate('/profile?tab=security')}
                   size="sm"
-                  className="bg-amber-100 hover:bg-amber-200 text-amber-800"
+                  className="font-['Gilroy-semiBold'] tracking-[-1px] bg-amber-300 shadow-md border-amber-500 hover:bg-amber-400 hover:shadow-xl text-amber-800"
                 >
                   Complete Profile
                 </Button>

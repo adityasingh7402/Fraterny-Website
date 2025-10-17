@@ -15,7 +15,7 @@ const ProfileNavigation = ({ activeTab }: ProfileNavigationProps) => {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'history', label: 'Quest History' },
-    { id: 'subscription', label: 'Subscription' },
+    { id: 'application', label: 'Application' },
     { id: 'security', label: 'Manage Your Account' },
   ];
   
@@ -26,17 +26,17 @@ const ProfileNavigation = ({ activeTab }: ProfileNavigationProps) => {
   };
   
   return (
-    <div className="border-b border-gray-200 overflow-x-auto sm:px-20">
+    <div className="bg-gradient-to-r from-cyan-600 to-blue-800 border-b border-gray-200 overflow-x-auto sm:px-20">
       <nav className="container mx-auto px-6" aria-label="Profile navigation">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
             className={cn(
-              "py-4 px-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors",
+              "py-4 px-3 text-lg font-['Gilroy-regular'] border-b-2 whitespace-nowrap transition-colors",
               activeTab === tab.id
-                ? "border-navy text-navy"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-navy text-black"
+                : "border-transparent text-white hover:border-gray-300"
             )}
             aria-current={activeTab === tab.id ? "page" : undefined}
           >

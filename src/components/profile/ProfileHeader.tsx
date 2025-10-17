@@ -77,7 +77,7 @@ const ProfileHeader = () => {
   return (
     // In ProfileHeader.tsx, modify the main container div:
       <motion.div 
-        className="bg-gradient-to-r from-navy to-navy/90 text-white py-24"
+        className="bg-gradient-to-br from-cyan-700 to-blue-900 text-white py-24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -86,7 +86,7 @@ const ProfileHeader = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6 max-w-7xl">
             {/* Profile image */}
             <motion.div 
-              className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white flex items-center justify-center text-navy text-2xl font-bold shadow-lg"
+              className="w-24 h-24 font-['Gilroy-Bold'] rounded-full bg-gray-200 border-4 border-white flex items-center justify-center text-navy text-2xl font-bold shadow-lg"
               variants={avatarVariants}
               whileHover="hover"
             >
@@ -96,8 +96,9 @@ const ProfileHeader = () => {
             {/* User info */}
             <div className="flex-1">
               <motion.h1 
-                className="text-4xl font-playfair text-white mb-4"
+                className="text-4xl md:text-5xl lg:text-7xl font-['Gilroy-Bold'] text-white mb-4"
                 variants={itemVariants}
+              
               >
                 Your Profile
               </motion.h1>
@@ -110,7 +111,7 @@ const ProfileHeader = () => {
               </motion.p> */}
               
               <motion.div 
-                className="flex items-center mt-2 text-gray-300 text-lg"
+                className="text-lg md:text-xl lg:text-xl font-['Gilroy-regular'] flex items-center mt-2 text-gray-300"
                 variants={itemVariants}
               >
                 <svg 
