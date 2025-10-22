@@ -586,13 +586,38 @@ export const updatePayoutStatus = async (input: {
 
     // If completed, update influencer's total_paid and remaining_balance
     if (input.status === 'completed' && data) {
-      const { error: updateError } = await supabase.rpc('update_influencer_payout_totals', {
-        p_influencer_id: data.influencer_id,
-        p_payout_amount: data.amount
-      });
+      try {
+        // First, get current influencer data
+        const { data: influencerData, error: fetchError } = await supabase
+          .from('influencers')
+          .select('total_paid, remaining_balance')
+          .eq('id', data.influencer_id)
+          .single();
 
-      if (updateError) {
-        console.warn('Could not update influencer totals:', updateError);
+        if (fetchError) {
+          console.warn('Could not fetch current influencer data:', fetchError);
+        } else {
+          // Update the influencer's totals
+          const newTotalPaid = (influencerData.total_paid || 0) + data.amount;
+          const newRemainingBalance = Math.max(0, (influencerData.remaining_balance || 0) - data.amount);
+
+          const { error: updateError } = await supabase
+            .from('influencers')
+            .update({
+              total_paid: newTotalPaid,
+              remaining_balance: newRemainingBalance,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.influencer_id);
+
+          if (updateError) {
+            console.warn('Could not update influencer totals:', updateError);
+          } else {
+            console.log(`Updated influencer ${data.influencer_id}: total_paid=${newTotalPaid}, remaining_balance=${newRemainingBalance}`);
+          }
+        }
+      } catch (updateError: any) {
+        console.warn('Error updating influencer totals:', updateError);
         // Don't fail the whole operation if this fails
       }
     }
