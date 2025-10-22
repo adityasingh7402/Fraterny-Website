@@ -19,10 +19,10 @@ const UserMenu = ({ isScrolled }: { isScrolled: boolean }) => {
 
   const adminLinks = [
     // { name: 'Dashboard', href: '/admin' },
-    { name: 'Analytics', href: '/admin/analytics' },
-    { name: 'Blog Management', href: '/admin/blog' },
-    { name: 'Image Management', href: '/admin/images' },
-    { name: 'Newsletter', href: '/admin/newsletter' },
+    // { name: 'Analytics', href: '/admin/analytics' },
+    // { name: 'Blog Management', href: '/admin/blog' },
+    // { name: 'Image Management', href: '/admin/images' },
+    // { name: 'Newsletter', href: '/admin/newsletter' },
     { name: 'Admin Dashboard', href: '/admin/dashboard' },
   ];
 

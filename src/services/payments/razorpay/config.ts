@@ -233,20 +233,25 @@ export const getUserLocationFlag = async (): Promise<boolean> => {
 
 export const getPriceForLocation = async () => {
   try {
-    const isIndia = await getUserLocationFlag();
+    // Import the dynamic pricing service
+    const { getPricingForDisplay } = await import('@/services/admin-pricing');
     
+    // Get pricing based on environment configuration
+    const pricingResult = await getPricingForDisplay();
+    
+    if (!pricingResult.success || !pricingResult.data) {
+      throw new Error(pricingResult.error || 'Failed to get pricing data');
+    }
+    
+    console.log(`💰 Using ${pricingResult.source} pricing data`);
+    
+    const isIndia = await getUserLocationFlag();
     console.log('🌍 getPriceForLocation - Location detected:', { isIndia });
-    console.log('🌍 Environment variables check:', {
-      VITE_INDIA_PRICE_PAISE: import.meta.env.VITE_INDIA_PRICE_PAISE,
-      VITE_INDIA_ORIGINAL_PRICE_PAISE: import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE,
-      VITE_INTERNATIONAL_PRICE_CENTS: import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS,
-      VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS: import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS
-    });
     
     if (isIndia) {
-      // Get India pricing from environment variables (paise to rupees)
-      const amountInPaise = Number(import.meta.env.VITE_INDIA_PRICE_PAISE) || 95000; // Default 950 rupees
-      const originalAmountInPaise = Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE) || 120000; // Default 1200 rupees
+      // Use India Razorpay pricing
+      const amountInPaise = pricingResult.data.razorpay.india.price;
+      const originalAmountInPaise = pricingResult.data.razorpay.india.displayPrice;
       
       const amountInRupees = Math.round(amountInPaise / 100);
       const originalAmountInRupees = Math.round(originalAmountInPaise / 100);
@@ -255,7 +260,8 @@ export const getPriceForLocation = async () => {
         amountInPaise,
         originalAmountInPaise,
         amountInRupees,
-        originalAmountInRupees
+        originalAmountInRupees,
+        source: pricingResult.source
       });
       
       return {
@@ -263,13 +269,13 @@ export const getPriceForLocation = async () => {
         original: `₹${originalAmountInRupees}`,
         currency: 'INR',
         symbol: '₹',
-        amount: amountInRupees,
+        amount: amountInPaise, // Return amount in paise for Razorpay
         isIndia: true
       };
     } else {
-      // Get international pricing from environment variables (cents to dollars)
-      const amountInCents = Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS) || 2000; // Default $20
-      const originalAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS) || 2500; // Default $25
+      // Use International Razorpay pricing
+      const amountInCents = pricingResult.data.razorpay.international.price;
+      const originalAmountInCents = pricingResult.data.razorpay.international.displayPrice;
       
       const amountInDollars = Math.round(amountInCents / 100);
       const originalAmountInDollars = Math.round(originalAmountInCents / 100);
@@ -278,7 +284,8 @@ export const getPriceForLocation = async () => {
         amountInCents,
         originalAmountInCents,
         amountInDollars,
-        originalAmountInDollars
+        originalAmountInDollars,
+        source: pricingResult.source
       });
       
       return {
@@ -286,27 +293,47 @@ export const getPriceForLocation = async () => {
         original: `$${originalAmountInDollars}`, 
         currency: 'USD',
         symbol: '$',
-        amount: amountInDollars,
+        amount: amountInCents, // Return amount in cents for Razorpay
         isIndia: false
       };
     }
   } catch (error) {
-    console.error('Error getting location-based price:', error);
-    // Fallback to India pricing from env or default
-    const fallbackAmountInPaise = Number(import.meta.env.VITE_INDIA_PRICE_PAISE) || 95000;
-    const fallbackOriginalAmountInPaise = Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE) || 120000;
+    console.error('Error getting dynamic pricing, falling back to environment:', error);
     
-    const fallbackAmount = Math.round(fallbackAmountInPaise / 100);
-    const fallbackOriginalAmount = Math.round(fallbackOriginalAmountInPaise / 100);
+    // Fallback to environment variables
+    const isIndia = await getUserLocationFlag();
     
-    return {
-      main: `₹${fallbackAmount}`,
-      original: `₹${fallbackOriginalAmount}`,
-      currency: 'INR',
-      symbol: '₹',
-      amount: fallbackAmount,
-      isIndia: true
-    };
+    if (isIndia) {
+      const fallbackAmountInPaise = Number(import.meta.env.VITE_INDIA_PRICE_PAISE) || 95000;
+      const fallbackOriginalAmountInPaise = Number(import.meta.env.VITE_INDIA_ORIGINAL_PRICE_PAISE) || 120000;
+      
+      const fallbackAmount = Math.round(fallbackAmountInPaise / 100);
+      const fallbackOriginalAmount = Math.round(fallbackOriginalAmountInPaise / 100);
+      
+      return {
+        main: `₹${fallbackAmount}`,
+        original: `₹${fallbackOriginalAmount}`,
+        currency: 'INR',
+        symbol: '₹',
+        amount: fallbackAmountInPaise, // Return amount in paise for Razorpay
+        isIndia: true
+      };
+    } else {
+      const fallbackAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_PRICE_CENTS) || 2000;
+      const fallbackOriginalAmountInCents = Number(import.meta.env.VITE_INTERNATIONAL_ORIGINAL_PRICE_CENTS) || 2500;
+      
+      const fallbackAmount = Math.round(fallbackAmountInCents / 100);
+      const fallbackOriginalAmount = Math.round(fallbackOriginalAmountInCents / 100);
+      
+      return {
+        main: `$${fallbackAmount}`,
+        original: `$${fallbackOriginalAmount}`,
+        currency: 'USD',
+        symbol: '$',
+        amount: fallbackAmountInCents, // Return amount in cents for Razorpay
+        isIndia: false
+      };
+    }
   }
 };
 

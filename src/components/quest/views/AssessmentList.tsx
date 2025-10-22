@@ -35,6 +35,7 @@ import {
   type PaymentGateway,
   type UnifiedPricingData
 } from '../../../services/payments/unifiedPaymentService';
+import { trackPayment } from '@/services/affiliate/trackingService';
 
 // Design Tokens
 const tokens = {
@@ -454,6 +455,53 @@ const AssessmentList: React.FC<AssessmentListProps> = ({ className = '' }) => {
             amount: 950,
             currency: 'INR'
           });
+        }
+        
+        // Track affiliate payment with commission (dashboard purchase)
+        const referredBy = localStorage.getItem('referred_by');
+        if (referredBy && user?.id) {
+          try {
+            // Get payment amount and currency based on gateway and pricing
+            const pricingData = pricing;
+            let paymentAmount: number;
+            let paymentCurrency: 'INR' | 'USD';
+
+            if (selectedGateway === 'razorpay' && pricingData.razorpay.isIndia) {
+              // India Razorpay payment in INR (paise)
+              paymentAmount = pricingData.razorpay.amount * 100; // Convert rupees to paise
+              paymentCurrency = 'INR';
+            } else if (selectedGateway === 'paypal') {
+              // PayPal payment in USD (cents)
+              paymentAmount = pricingData.paypal.amount * 100; // Convert dollars to cents
+              paymentCurrency = 'USD';
+            } else {
+              // International Razorpay in USD (cents)
+              paymentAmount = pricingData.razorpay.amount * 100; // Convert dollars to cents
+              paymentCurrency = 'USD';
+            }
+
+            console.log('💳 Tracking affiliate payment (dashboard):', {
+              gateway: selectedGateway,
+              amount: paymentAmount,
+              currency: paymentCurrency,
+              referredBy
+            });
+
+            await trackPayment(
+              user.id,
+              selectedAssessment.sessionid,
+              selectedAssessment.testid,
+              referredBy,
+              selectedGateway,
+              paymentAmount,
+              paymentCurrency
+            );
+
+            console.log('✅ Affiliate payment tracked successfully (dashboard)');
+          } catch (paymentTrackingError) {
+            console.error('❌ Failed to track affiliate payment:', paymentTrackingError);
+            // Don't throw - tracking failure shouldn't break payment flow
+          }
         }
         
       } else {

@@ -154,21 +154,35 @@ async function updateInfluencerStats(
   commissionEarned: number
 ): Promise<void> {
   try {
-    // Fetch current influencer data
+    // Fetch current influencer data with all relevant fields
     const { data: influencer, error: fetchError } = await supabase
       .from('influencers')
-      .select('total_earnings, remaining_balance')
+      .select('total_earnings, remaining_balance, total_purchases, total_signups')
       .eq('affiliate_code', affiliateCode)
       .single();
 
     if (fetchError) {
-      console.error('❌ Error fetching influencer data:', fetchError);
-      return;
+      console.error('❌ Error fetching influencer data for', affiliateCode, ':', fetchError);
+      throw new Error(`Failed to fetch influencer: ${fetchError.message}`);
+    }
+
+    if (!influencer) {
+      throw new Error(`No influencer found with affiliate_code: ${affiliateCode}`);
     }
 
     // Calculate new values
-    const newTotalEarnings = (parseFloat(influencer.total_earnings.toString()) || 0) + commissionEarned;
-    const newRemainingBalance = (parseFloat(influencer.remaining_balance.toString()) || 0) + commissionEarned;
+    const currentTotalEarnings = parseFloat(influencer.total_earnings?.toString() || '0');
+    const currentRemainingBalance = parseFloat(influencer.remaining_balance?.toString() || '0');
+    const currentTotalPurchases = parseInt(influencer.total_purchases?.toString() || '0');
+    const currentTotalSignups = parseInt(influencer.total_signups?.toString() || '0');
+    
+    const newTotalEarnings = currentTotalEarnings + commissionEarned;
+    const newRemainingBalance = currentRemainingBalance + commissionEarned;
+    const newTotalPurchases = currentTotalPurchases + 1;
+    
+    // Calculate conversion rate
+    const newConversionRate = currentTotalSignups > 0 ? 
+      Math.round((newTotalPurchases / currentTotalSignups * 100) * 100) / 100 : 0;
 
     // Update influencer record
     const { error: updateError } = await supabase
@@ -176,22 +190,27 @@ async function updateInfluencerStats(
       .update({
         total_earnings: newTotalEarnings,
         remaining_balance: newRemainingBalance,
+        total_purchases: newTotalPurchases,
+        conversion_rate: newConversionRate,
         updated_at: new Date().toISOString(),
         last_activity_at: new Date().toISOString()
       })
       .eq('affiliate_code', affiliateCode);
 
     if (updateError) {
-      console.error('❌ Error updating influencer stats:', updateError);
-      return;
+      console.error('❌ Error updating influencer stats for', affiliateCode, ':', updateError);
+      throw new Error(`Failed to update influencer: ${updateError.message}`);
     }
 
-    console.log(`✅ Updated influencer ${affiliateCode} earnings:`, {
-      commissionEarned: `$${commissionEarned}`,
-      newTotalEarnings: `$${newTotalEarnings}`,
-      newRemainingBalance: `$${newRemainingBalance}`
+    console.log(`✅ Successfully updated influencer ${affiliateCode}:`, {
+      commissionEarned: `$${commissionEarned.toFixed(2)}`,
+      newTotalEarnings: `$${newTotalEarnings.toFixed(2)}`,
+      newRemainingBalance: `$${newRemainingBalance.toFixed(2)}`,
+      newTotalPurchases,
+      newConversionRate: `${newConversionRate}%`
     });
   } catch (error) {
-    console.error('❌ Failed to update influencer stats:', error);
+    console.error('❌ Failed to update influencer stats for', affiliateCode, ':', error);
+    throw error; // Re-throw so the calling function knows it failed
   }
 }

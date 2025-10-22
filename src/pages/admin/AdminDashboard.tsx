@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck } from 'lucide-react';
+import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, DollarSign } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
@@ -10,6 +10,7 @@ import AdminImages from './images/AdminImages';
 import NewsletterSubscribers from './NewsletterSubscribers';
 import WebsiteSettings from './settings/WebsiteSettings';
 import AdminInfluencerManagement from './influencers/AdminInfluencerManagement';
+import AdminPricingManagement from './pricing/AdminPricingManagement';
 import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
 import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
 
@@ -74,6 +75,12 @@ const menuItems = [
     label: 'Payment Dashboard',
     icon: CreditCard,
     component: AdminQuestPayment
+  },
+  {
+    id: 'pricing',
+    label: 'Pricing Management',
+    icon: DollarSign,
+    component: AdminPricingManagement
   },
   {
     id: 'feedback',
