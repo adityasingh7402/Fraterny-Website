@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, Calendar } from 'lucide-react';
+import { Users, DollarSign, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, Calendar } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
