@@ -752,6 +752,7 @@ const validateResultData = (data: any): ResultData => {
     // Extract root-level properties from API response
     pecentile: data.pecentile,
     qualityscore: data.qualityscore,
+    referred_by: data.referred_by,
     results: {
       "section 1": data.results?.["section 1"] || '',
 
