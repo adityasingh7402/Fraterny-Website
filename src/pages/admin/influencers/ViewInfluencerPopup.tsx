@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit2, Save, User, TrendingUp, MousePointer, DollarSign, Users, Upload } from 'lucide-react';
-import { updateInfluencer } from '@/services/admin-influencers';
-import type { InfluencerData, UpdateInfluencerInput, SocialLinks, PaymentInfo } from '@/services/admin-influencers';
+import { X, Edit2, Save, User, TrendingUp, MousePointer, DollarSign, Users, Upload, Plus, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { updateInfluencer, getInfluencerPayouts, createPayout, updatePayoutStatus } from '@/services/admin-influencers';
+import type { InfluencerData, UpdateInfluencerInput, SocialLinks, PaymentInfo, PayoutRecord } from '@/services/admin-influencers';
 import { toast } from 'sonner';
 import { uploadImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,23 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [liveStats, setLiveStats] = useState<{ totalClicks: number; totalSignups: number; totalQuestionnaires: number; totalPurchases: number; conversionRate: number } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [exchangeRate, setExchangeRate] = useState<number>(83.50); // Default fallback
+  
+  // Payout states
+  const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
+  const [payoutsLoading, setPayoutsLoading] = useState(false);
+  const [showPayoutDialog, setShowPayoutDialog] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'upi' | 'paypal'>('bank_transfer');
+  const [payoutInitialNote, setPayoutInitialNote] = useState('Your payout is initiated');
+  const [processingPayout, setProcessingPayout] = useState(false);
+  
+  // Mark as paid/failed dialog states
+  const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
+  const [showMarkFailedDialog, setShowMarkFailedDialog] = useState(false);
+  const [selectedPayoutId, setSelectedPayoutId] = useState<string | null>(null);
+  const [transactionId, setTransactionId] = useState('');
+  const [completionNote, setCompletionNote] = useState('Your payment is transferred successfully');
+  const [failureReason, setFailureReason] = useState('');
   
   // Form states (initialized with influencer data)
   const [name, setName] = useState(influencer.name);
@@ -83,6 +100,25 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
 
     fetchLiveStats();
   }, [influencer.affiliate_code]);
+
+  // Fetch payouts
+  useEffect(() => {
+    const fetchPayouts = async () => {
+      setPayoutsLoading(true);
+      try {
+        const response = await getInfluencerPayouts(influencer.id);
+        if (response.success && response.data) {
+          setPayouts(response.data as PayoutRecord[]);
+        }
+      } catch (error) {
+        console.error('Error fetching payouts:', error);
+      } finally {
+        setPayoutsLoading(false);
+      }
+    };
+
+    fetchPayouts();
+  }, [influencer.id]);
 
   // Update form when influencer changes
   useEffect(() => {
@@ -228,6 +264,180 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
       case 'inactive': return 'bg-gray-100 text-gray-800';
       case 'suspended': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Get payout status color and icon
+  const getPayoutStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return { color: 'bg-green-100 text-green-800', icon: CheckCircle };
+      case 'failed':
+        return { color: 'bg-red-100 text-red-800', icon: XCircle };
+      case 'pending':
+      default:
+        return { color: 'bg-yellow-100 text-yellow-800', icon: Clock };
+    }
+  };
+
+  // Handle create payout
+  const handleCreatePayout = async () => {
+    const amount = parseFloat(payoutAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    setProcessingPayout(true);
+    try {
+      // Create notes array with initial message (editable by admin)
+      const initialNote = {
+        message: payoutInitialNote.trim() || 'Your payout is initiated',
+        timestamp: new Date().toISOString()
+      };
+      
+      const response = await createPayout({
+        influencer_id: influencer.id,
+        amount,
+        payout_method: payoutMethod,
+        notes: JSON.stringify([initialNote]),
+      });
+
+      if (response.success) {
+        toast.success('Payout created successfully');
+        setShowPayoutDialog(false);
+        setPayoutAmount('');
+        setPayoutInitialNote('Your payout is initiated'); // Reset to default
+        // Refresh payouts
+        const payoutsResponse = await getInfluencerPayouts(influencer.id);
+        if (payoutsResponse.success && payoutsResponse.data) {
+          setPayouts(payoutsResponse.data as PayoutRecord[]);
+        }
+      } else {
+        toast.error(response.error || 'Failed to create payout');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred');
+    } finally {
+      setProcessingPayout(false);
+    }
+  };
+
+  // Open mark as paid dialog
+  const openMarkPaidDialog = (payoutId: string) => {
+    setSelectedPayoutId(payoutId);
+    setTransactionId('');
+    setCompletionNote('Your payment is transferred successfully');
+    setShowMarkPaidDialog(true);
+  };
+
+  // Open mark as failed dialog
+  const openMarkFailedDialog = (payoutId: string) => {
+    setSelectedPayoutId(payoutId);
+    setFailureReason('');
+    setShowMarkFailedDialog(true);
+  };
+
+  // Handle mark as paid
+  const handleMarkAsPaid = async () => {
+    if (!transactionId.trim()) {
+      toast.error('Transaction ID is required');
+      return;
+    }
+    if (!selectedPayoutId) return;
+
+    setProcessingPayout(true);
+    try {
+      // Get current payout to append note
+      const currentPayout = payouts.find(p => p.id === selectedPayoutId);
+      let existingNotes = [];
+      try {
+        existingNotes = currentPayout?.notes ? JSON.parse(currentPayout.notes as any) : [];
+      } catch {
+        existingNotes = [];
+      }
+
+      const newNote = {
+        message: completionNote,
+        timestamp: new Date().toISOString(),
+        transaction_id: transactionId
+      };
+      const updatedNotes = [...existingNotes, newNote];
+
+      const response = await updatePayoutStatus({
+        payout_id: selectedPayoutId,
+        status: 'completed',
+        transaction_id: transactionId,
+        notes: JSON.stringify(updatedNotes),
+      });
+
+      if (response.success) {
+        toast.success('Payout marked as paid');
+        setShowMarkPaidDialog(false);
+        // Refresh payouts
+        const payoutsResponse = await getInfluencerPayouts(influencer.id);
+        if (payoutsResponse.success && payoutsResponse.data) {
+          setPayouts(payoutsResponse.data as PayoutRecord[]);
+        }
+        onUpdate();
+      } else {
+        toast.error(response.error || 'Failed to mark as paid');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred');
+    } finally {
+      setProcessingPayout(false);
+    }
+  };
+
+  // Handle mark as failed
+  const handleMarkAsFailed = async () => {
+    if (!failureReason.trim()) {
+      toast.error('Please provide a reason for failure');
+      return;
+    }
+    if (!selectedPayoutId) return;
+
+    setProcessingPayout(true);
+    try {
+      // Get current payout to append note
+      const currentPayout = payouts.find(p => p.id === selectedPayoutId);
+      let existingNotes = [];
+      try {
+        existingNotes = currentPayout?.notes ? JSON.parse(currentPayout.notes as any) : [];
+      } catch {
+        existingNotes = [];
+      }
+
+      const newNote = {
+        message: failureReason,
+        timestamp: new Date().toISOString(),
+        type: 'failure'
+      };
+      const updatedNotes = [...existingNotes, newNote];
+
+      const response = await updatePayoutStatus({
+        payout_id: selectedPayoutId,
+        status: 'failed',
+        notes: JSON.stringify(updatedNotes),
+      });
+
+      if (response.success) {
+        toast.success('Payout marked as failed');
+        setShowMarkFailedDialog(false);
+        // Refresh payouts
+        const payoutsResponse = await getInfluencerPayouts(influencer.id);
+        if (payoutsResponse.success && payoutsResponse.data) {
+          setPayouts(payoutsResponse.data as PayoutRecord[]);
+        }
+        onUpdate();
+      } else {
+        toast.error(response.error || 'Failed to mark as failed');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred');
+    } finally {
+      setProcessingPayout(false);
     }
   };
 
@@ -622,6 +832,109 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
             )}
           </div>
 
+          {/* Payout History */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Payout History</h3>
+              <button
+                onClick={() => setShowPayoutDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                New Payout
+              </button>
+            </div>
+
+            {payoutsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+              </div>
+            ) : payouts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No payout history yet
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {payouts.map((payout) => {
+                  const statusBadge = getPayoutStatusBadge(payout.status);
+                  const StatusIcon = statusBadge.icon;
+                  return (
+                    <div key={payout.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-lg font-bold text-gray-900">{formatCurrency(payout.amount)}</span>
+                            <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${statusBadge.color}`}>
+                              <StatusIcon className="h-3 w-3" />
+                              {payout.status}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p className='uppercase'><span className="font-medium">Method:</span> {payout.payout_method?.replace('_', ' ') || 'N/A'}</p>
+                            {payout.transaction_id && (
+                              <p><span className="font-medium">Transaction ID:</span> {payout.transaction_id}</p>
+                            )}
+                            {payout.notes && (() => {
+                              try {
+                                const notesArray = typeof payout.notes === 'string' ? JSON.parse(payout.notes) : payout.notes;
+                                if (Array.isArray(notesArray) && notesArray.length > 0) {
+                                  return (
+                                    <div className="mt-2">
+                                      <p className="font-medium text-xs text-gray-700 mb-1">History:</p>
+                                      <div className="space-y-1">
+                                        {notesArray.map((note: any, idx: number) => (
+                                          <div key={idx} className="text-xs bg-gray-50 p-2 rounded">
+                                            <p className="text-gray-800">{note.message}</p>
+                                            {note.transaction_id && (
+                                              <p className="text-gray-600">TXN: {note.transaction_id}</p>
+                                            )}
+                                            <p className="text-gray-500 text-[10px]">
+                                              {new Date(note.timestamp).toLocaleString()}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              } catch {
+                                return <p><span className="font-medium">Notes:</span> {payout.notes}</p>;
+                              }
+                            })()}
+                            <p className="text-xs text-gray-500">
+                              Created: {new Date(payout.created_at).toLocaleString()}
+                            </p>
+                            {payout.payout_date && (
+                              <p className="text-xs text-gray-500">
+                                Processed: {new Date(payout.payout_date).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {payout.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openMarkPaidDialog(payout.id)}
+                              className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                            >
+                              Mark Paid
+                            </button>
+                            <button
+                              onClick={() => openMarkFailedDialog(payout.id)}
+                              className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                            >
+                              Mark Failed
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Timestamps */}
           <div className="border-t border-gray-200 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
@@ -638,6 +951,155 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
           </div>
         </div>
       </div>
+
+      {/* Mark as Paid Dialog */}
+      {showMarkPaidDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Mark Payout as Paid</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Transaction ID <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                  placeholder="Enter transaction ID"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Note</label>
+                <textarea
+                  value={completionNote}
+                  onChange={(e) => setCompletionNote(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowMarkPaidDialog(false)}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkAsPaid}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {processingPayout ? 'Updating...' : 'Mark as Paid'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Failed Dialog */}
+      {showMarkFailedDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Mark Payout as Failed</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Failure <span className="text-red-500">*</span></label>
+                <textarea
+                  value={failureReason}
+                  onChange={(e) => setFailureReason(e.target.value)}
+                  rows={4}
+                  placeholder="Explain why this payout failed..."
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowMarkFailedDialog(false)}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkAsFailed}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {processingPayout ? 'Updating...' : 'Mark as Failed'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Payout Dialog */}
+      {showPayoutDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Payout</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount (USD)</label>
+                <input
+                  type="number"
+                  value={payoutAmount}
+                  onChange={(e) => setPayoutAmount(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                {payoutAmount && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    ≈ {formatCurrency(parseFloat(payoutAmount) || 0)}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                <select
+                  value={payoutMethod}
+                  onChange={(e) => setPayoutMethod(e.target.value as any)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="upi">UPI</option>
+                  <option value="paypal">PayPal</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Initial Note</label>
+                <textarea
+                  value={payoutInitialNote}
+                  onChange={(e) => setPayoutInitialNote(e.target.value)}
+                  rows={3}
+                  placeholder="This note will be saved when payout is created..."
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">This message will be timestamped and saved in payout history</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowPayoutDialog(false)}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreatePayout}
+                disabled={processingPayout}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {processingPayout ? 'Creating...' : 'Create Payout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -77,6 +77,78 @@ export const PAYPAL_ERROR_MESSAGES = {
 // Helper function to get PayPal pricing based on location
 export const getPayPalPricingForLocation = async () => {
   try {
+    // Import the dynamic pricing service
+    const { getPricingForDisplay } = await import('@/services/admin-pricing');
+    
+    // Get pricing based on environment configuration
+    const pricingResult = await getPricingForDisplay();
+    
+    if (!pricingResult.success || !pricingResult.data) {
+      throw new Error(pricingResult.error || 'Failed to get PayPal pricing data');
+    }
+    
+    console.log(`💰 PayPal using ${pricingResult.source} pricing data`);
+    
+    const isIndia = await getUserLocationFlag();
+    console.log('🌍 getPayPalPricingForLocation - Location detected:', { isIndia });
+    
+    if (isIndia) {
+      // Use India PayPal pricing
+      const amountInCents = pricingResult.data.paypal.india.price;
+      const originalAmountInCents = pricingResult.data.paypal.india.displayPrice;
+      
+      const amountInDollars = (amountInCents / 100).toFixed(2);
+      const originalAmountInDollars = (originalAmountInCents / 100).toFixed(2);
+      
+      console.log('🇮🇳 PayPal India pricing calculated:', {
+        amountInCents,
+        originalAmountInCents,
+        amountInDollars,
+        originalAmountInDollars,
+        source: pricingResult.source
+      });
+      
+      return {
+        amount: amountInDollars,
+        originalAmount: originalAmountInDollars,
+        currency: 'USD',
+        description: 'PayPal Payment (India)',
+        displayAmount: `$${Math.round(amountInCents / 100)}`,
+        displayOriginal: `$${Math.round(originalAmountInCents / 100)}`,
+        isIndia: true,
+        numericAmount: parseFloat(amountInDollars)
+      };
+    } else {
+      // Use International PayPal pricing
+      const amountInCents = pricingResult.data.paypal.international.price;
+      const originalAmountInCents = pricingResult.data.paypal.international.displayPrice;
+      
+      const amountInDollars = (amountInCents / 100).toFixed(2);
+      const originalAmountInDollars = (originalAmountInCents / 100).toFixed(2);
+      
+      console.log('🌍 PayPal International pricing calculated:', {
+        amountInCents,
+        originalAmountInCents,
+        amountInDollars,
+        originalAmountInDollars,
+        source: pricingResult.source
+      });
+      
+      return {
+        amount: amountInDollars,
+        originalAmount: originalAmountInDollars,
+        currency: 'USD',
+        description: 'PayPal Payment (International)',
+        displayAmount: `$${Math.round(amountInCents / 100)}`,
+        displayOriginal: `$${Math.round(originalAmountInCents / 100)}`,
+        isIndia: false,
+        numericAmount: parseFloat(amountInDollars)
+      };
+    }
+  } catch (error) {
+    console.error('Error getting PayPal dynamic pricing, falling back to environment:', error);
+    
+    // Fallback to environment variables
     const isIndia = await getUserLocationFlag();
     
     const pricing = isIndia 
@@ -88,15 +160,6 @@ export const getPayPalPricingForLocation = async () => {
       isIndia,
       numericAmount: parseFloat(pricing.amount),
       numericOriginal: parseFloat(pricing.originalAmount)
-    };
-  } catch (error) {
-    console.error('Error getting PayPal pricing for location:', error);
-    // Fallback to international pricing
-    return {
-      ...PAYPAL_PRICING_CONFIG.INTERNATIONAL,
-      isIndia: false,
-      numericAmount: parseFloat(PAYPAL_PRICING_CONFIG.INTERNATIONAL.amount),
-      numericOriginal: parseFloat(PAYPAL_PRICING_CONFIG.INTERNATIONAL.originalAmount)
     };
   }
 };

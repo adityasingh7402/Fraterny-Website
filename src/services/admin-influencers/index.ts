@@ -478,3 +478,153 @@ export const updateInfluencerMetrics = async (affiliateCode: string): Promise<vo
     console.error('Error updating influencer metrics:', error);
   }
 };
+
+// ==================== PAYOUT FUNCTIONS ====================
+
+/**
+ * Fetch all payouts for a specific influencer
+ */
+export const getInfluencerPayouts = async (influencerId: string): Promise<{
+  success: boolean;
+  data: any[] | null;
+  error: string | null;
+}> => {
+  try {
+    const { data, error } = await supabase
+      .from('influencer_payouts')
+      .select('*')
+      .eq('influencer_id', influencerId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching payouts:', error);
+      return { success: false, data: null, error: error.message };
+    }
+
+    return { success: true, data, error: null };
+  } catch (error: any) {
+    console.error('Unexpected error fetching payouts:', error);
+    return { success: false, data: null, error: error?.message || 'An unexpected error occurred' };
+  }
+};
+
+/**
+ * Create a new payout for an influencer
+ */
+export const createPayout = async (input: {
+  influencer_id: string;
+  amount: number;
+  payout_method: 'bank_transfer' | 'upi' | 'paypal';
+  transaction_id?: string;
+  notes?: string;
+  processed_by?: string;
+}): Promise<{
+  success: boolean;
+  data: any | null;
+  error: string | null;
+}> => {
+  try {
+    const { data, error } = await supabase
+      .from('influencer_payouts')
+      .insert({
+        influencer_id: input.influencer_id,
+        amount: input.amount,
+        payout_method: input.payout_method,
+        transaction_id: input.transaction_id || null,
+        status: 'pending',
+        notes: input.notes || null,
+        processed_by: input.processed_by || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating payout:', error);
+      return { success: false, data: null, error: error.message };
+    }
+
+    return { success: true, data, error: null };
+  } catch (error: any) {
+    console.error('Unexpected error creating payout:', error);
+    return { success: false, data: null, error: error?.message || 'An unexpected error occurred' };
+  }
+};
+
+/**
+ * Update payout status (pending → completed/failed)
+ */
+export const updatePayoutStatus = async (input: {
+  payout_id: string;
+  status: 'completed' | 'failed';
+  transaction_id?: string;
+  notes?: string;
+}): Promise<{
+  success: boolean;
+  data: any | null;
+  error: string | null;
+}> => {
+  try {
+    const updateData: any = {
+      status: input.status,
+      payout_date: new Date().toISOString(),
+    };
+
+    if (input.transaction_id) updateData.transaction_id = input.transaction_id;
+    if (input.notes) updateData.notes = input.notes; // Notes is already a stringified JSON array from frontend
+
+    const { data, error } = await supabase
+      .from('influencer_payouts')
+      .update(updateData)
+      .eq('id', input.payout_id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating payout status:', error);
+      return { success: false, data: null, error: error.message };
+    }
+
+    // If completed, update influencer's total_paid and remaining_balance
+    if (input.status === 'completed' && data) {
+      try {
+        // First, get current influencer data
+        const { data: influencerData, error: fetchError } = await supabase
+          .from('influencers')
+          .select('total_paid, remaining_balance')
+          .eq('id', data.influencer_id)
+          .single();
+
+        if (fetchError) {
+          console.warn('Could not fetch current influencer data:', fetchError);
+        } else {
+          // Update the influencer's totals
+          const newTotalPaid = (influencerData.total_paid || 0) + data.amount;
+          const newRemainingBalance = Math.max(0, (influencerData.remaining_balance || 0) - data.amount);
+
+          const { error: updateError } = await supabase
+            .from('influencers')
+            .update({
+              total_paid: newTotalPaid,
+              remaining_balance: newRemainingBalance,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.influencer_id);
+
+          if (updateError) {
+            console.warn('Could not update influencer totals:', updateError);
+          } else {
+            console.log(`Updated influencer ${data.influencer_id}: total_paid=${newTotalPaid}, remaining_balance=${newRemainingBalance}`);
+          }
+        }
+      } catch (updateError: any) {
+        console.warn('Error updating influencer totals:', updateError);
+        // Don't fail the whole operation if this fails
+      }
+    }
+
+    return { success: true, data, error: null };
+  } catch (error: any) {
+    console.error('Unexpected error updating payout status:', error);
+    return { success: false, data: null, error: error?.message || 'An unexpected error occurred' };
+  }
+};

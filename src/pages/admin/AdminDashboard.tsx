@@ -10,6 +10,7 @@ import AdminImages from './images/AdminImages';
 import NewsletterSubscribers from './NewsletterSubscribers';
 import WebsiteSettings from './settings/WebsiteSettings';
 import AdminInfluencerManagement from './influencers/AdminInfluencerManagement';
+import AdminPricingManagement from './pricing/AdminPricingManagement';
 import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
 import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
 import VillaEditionsManagement from './editions/VillaEditionsManagement';
@@ -81,6 +82,12 @@ const menuItems = [
     label: 'Payment Dashboard',
     icon: CreditCard,
     component: AdminQuestPayment
+  },
+  {
+    id: 'pricing',
+    label: 'Pricing Management',
+    icon: DollarSign,
+    component: AdminPricingManagement
   },
   {
     id: 'feedback',

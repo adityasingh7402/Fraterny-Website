@@ -3,8 +3,7 @@ import { paymentAuthService } from '../auth/paymentAuth';
 import { sessionManager } from '../auth/sessionManager';
 import { paymentApiService } from '../api/paymentApi';
 import { validateCreateOrderRequest } from '../utils/validation';
-import { getUserLocationFlag } from './config';
-import { getLocationBasedPricing } from './config';
+import { getUserLocationFlag, getPriceForLocation } from './config';
 import { RAZORPAY_CONFIG, PRICING_CONFIG } from './config';
 
 // Order creation service class
@@ -36,15 +35,15 @@ class OrderCreationService {
       // Step 2: Get or create session start time
       const sessionStartTime = sessionManager.getOrCreateSessionStartTime();
 
-      // Step 3: Get location flag
-      const isIndia = await getUserLocationFlag();
-
-      // Step 4: Choose pricing based on location
-      const locationBasedPricing = getLocationBasedPricing(isIndia);
+      // Step 3: Get dynamic pricing from database (includes location detection)
+      const dynamicPricing = await getPriceForLocation();
+      const isIndia = dynamicPricing.isIndia;
+      
+      // Step 4: Use dynamic pricing from database
       const pricingForOrder = {
         name: 'regular' as const,
-        amount: locationBasedPricing.amount,
-        description: locationBasedPricing.description
+        amount: dynamicPricing.amount,
+        description: `${dynamicPricing.currency} Pricing`
       };
 
       console.log('Razorpay pricing selected:', pricingForOrder, 'User location:', isIndia ? 'India' : 'International');
