@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { log } from 'console';
 import { toast } from 'sonner';
 
 /**
@@ -26,22 +27,25 @@ export const signIn = async (email: string, password: string): Promise<{user: Us
   }
 };
 
+
 // export const signInWithGoogle = async () => {
 //   const currentUrl = window.location.href;
 //   const currentOrigin = window.location.origin;
-  
-//   // If current URL contains 'quest' or 'quest-result', redirect back to the same page
-//   // Otherwise, redirect to the origin
-//   const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') ? currentUrl : currentOrigin;
 
 //   console.log('Current URL:', currentUrl);
-//   console.log('Using redirect URL:', redirectUrl);
-//   const cleanUrl = window.location.origin + window.location.pathname;
+//   console.log('Current Origin:', currentOrigin);
+
+//   // Decide where to redirect
+//   const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') || currentUrl.includes('affiliates')
+//     ? currentUrl
+//     : currentOrigin;
+
+//   console.log('Redirecting to:', redirectUrl);
 
 //   const { data, error } = await supabase.auth.signInWithOAuth({
 //     provider: 'google',
 //     options: {
-//       redirectTo: cleanUrl
+//       redirectTo: redirectUrl  // 👈 use this instead of cleanUrl
 //     }
 //   });
 
@@ -49,7 +53,7 @@ export const signIn = async (email: string, password: string): Promise<{user: Us
 //     console.error('Error signing in with Google:', error);
 //     throw error;
 //   }
-  
+
 //   return data;
 // };
 
@@ -57,17 +61,32 @@ export const signInWithGoogle = async () => {
   const currentUrl = window.location.href;
   const currentOrigin = window.location.origin;
 
-  // Decide where to redirect
-  const redirectUrl = currentUrl.includes('quest') || currentUrl.includes('quest-result') || currentUrl.includes('affiliates')
-    ? currentUrl
-    : currentOrigin;
+  console.log('🔍 Current URL:', currentUrl);
+  console.log('🔍 Current Origin:', currentOrigin);
 
-  console.log('Redirecting to:', redirectUrl);
+  // Check if we have a stored "from" path (set by Auth.tsx)
+  const storedFrom = sessionStorage.getItem('auth_redirect_from');
+  console.log('🔍 Stored from path:', storedFrom);
+
+  
+  const redirectUrl = storedFrom
+    ? `${currentOrigin}${storedFrom}`
+    : (currentUrl.includes('quest') || currentUrl.includes('quest-result') || currentUrl.includes('affiliates')
+        ? currentUrl
+        : currentOrigin);
+
+  console.log('🎯 Final redirect URL:', redirectUrl);
+
+  if (storedFrom) {
+    sessionStorage.removeItem('auth_redirect_from');
+    sessionStorage.removeItem('google_oauth_return_to');
+    console.log('🧹 Cleaned up sessionStorage before OAuth redirect');
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: redirectUrl  // 👈 use this instead of cleanUrl
+      redirectTo: redirectUrl
     }
   });
 
@@ -81,17 +100,44 @@ export const signInWithGoogle = async () => {
 
 
 // export const signInWithGoogle = async () => {
+//   // Add console logs for debugging
+//   console.log('🔍 Google OAuth starting...');
+  
+//   // Store the intended destination before OAuth redirect
+//   const from = sessionStorage.getItem('auth_redirect_from');
+//   console.log('🔍 Retrieved auth_redirect_from:', from);
+  
+//   if (from) {
+//     sessionStorage.setItem('google_oauth_return_to', from);
+//     console.log('✅ Set google_oauth_return_to:', from);
+//   }
+  
+//   const currentUrl = window.location.href;
+//   const currentOrigin = window.location.origin;
+
+//   // Use stored destination or fall back to current URL logic
+//   const storedDestination = sessionStorage.getItem('google_oauth_return_to');
+//   console.log('🔍 storedDestination:', storedDestination);
+  
+//   const redirectUrl = storedDestination 
+//     ? `${currentOrigin}${storedDestination}`
+//     : (currentUrl.includes('quest') || currentUrl.includes('quest-result') || currentUrl.includes('affiliates')
+//         ? currentUrl
+//         : currentOrigin);
+
+//   console.log('🎯 Final redirectUrl:', redirectUrl);
+
 //   const { data, error } = await supabase.auth.signInWithOAuth({
 //     provider: 'google',
 //     options: {
-//       redirectTo: `${window.location.origin}/auth`
+//       redirectTo: redirectUrl
 //     }
 //   });
-  
+
 //   if (error) {
 //     console.error('Error signing in with Google:', error);
 //     throw error;
 //   }
-  
+
 //   return data;
 // };

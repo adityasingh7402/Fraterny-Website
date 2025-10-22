@@ -2,13 +2,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useSectionRevealAnimation } from '../home/useSectionRevealAnimation';
 
+const experiences = [
+    {
+      title: "Exclusive and Curated:",
+      description: "Fratvilla is an invitation-only experience, ensuring that every attendee is a genuine and authentic individual committed to personal growth."
+    },
+    {
+      title: "Holistic Approach:",
+      description: "We focus on a holistic approach to soft skills, providing not just tactics and hacks, but a deep understanding of the underlying principles of success."
+    },
+    {
+      title: "Secret Events:",
+      description: "Members who have been a part of the Fratvilla experience will have access to exclusive, secret events, further expanding their network and opportunities."
+    }
+  ];
+
+
 // Timeline events data
-const timelineEvents = [
-  { time: "11:30 AM", title: "Brainstorming Breakfasts", description: "Start your day with engaging discussions" },
-  { time: "1:00 PM", title: "Team Activity Afternoons", description: "Collaborative sessions and workshops" },
-  { time: "6:00 PM", title: "Simulation Sunsets", description: "Apply learnings in practical scenarios" },
-  { time: "12:00 AM", title: "Midnight Momentum", description: "Deep conversations and connections" },
-];
+// const timelineEvents = [
+//   { time: "11:30 AM", title: "Brainstorming Breakfasts", description: "Start your day with engaging discussions" },
+//   { time: "1:00 PM", title: "Team Activity Afternoons", description: "Collaborative sessions and workshops" },
+//   { time: "6:00 PM", title: "Simulation Sunsets", description: "Apply learnings in practical scenarios" },
+//   { time: "12:00 AM", title: "Midnight Momentum", description: "Deep conversations and connections" },
+// ];
 
 const TimelineSection = () => {
   // Section title animation
@@ -61,105 +77,41 @@ const TimelineSection = () => {
   // Time badge animation variants - REMOVED
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-6">
-        
-        {/* Section Header with scroll animations */}
-        <motion.div
-          ref={titleAnimation.ref}
-          variants={titleAnimation.parentVariants}
-          initial="hidden"
-          animate={titleAnimation.controls}
-          className="text-center mb-8"
-        >
-          <motion.h2 
-            className="text-3xl md:text-4xl text-navy mb-4"
-            variants={titleAnimation.childVariants}
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
-          >
-            A Day in the Villa
-          </motion.h2>
-          
-          <motion.p 
-            className="text-center sm:text-xl text-gray-600 text-base"
-            variants={titleAnimation.childVariants}
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
-          >
-            We create the perfect conditions for you to have the most insightful conversations, amazing memories and take action towards your goals
-          </motion.p>
-        </motion.div>
-        
-        {/* Timeline Cards Grid with enhanced animations */}
-        <motion.div 
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
-          ref={cardsAnimation.ref}
-          variants={cardsAnimation.parentVariants}
-          initial="hidden"
-          animate={cardsAnimation.controls}
-        >
-          {timelineEvents.map((event, index) => (
-            <motion.div 
-              key={index} 
-              className="bg-gray-50 p-6 rounded-lg group cursor-pointer"
-              variants={cardVariants}
-              whileHover="hover"
+    <section className=" bg-blue-200">
+      <section className="py-4 md:py-8">
+        <div className="container mx-auto">
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 
+              className="section-header mb-6 text-neutral-800"
             >
-              
-              {/* Time with simple reveal */}
-              <motion.div 
-                className="text-black font-mono mb-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: cardsAnimation.isInView ? 1 : 0,
-                  y: cardsAnimation.isInView ? 0 : 20
-                }}
-                transition={{ 
-                  delay: 0.3 + (index * 0.15),
-                  duration: 0.5
-                }}
-                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
-              >
-                {event.time}
-              </motion.div>
-              
-              {/* Title with staggered reveal */}
-              <motion.h3 
-                className="font-medium text-navy mb-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: cardsAnimation.isInView ? 1 : 0,
-                  y: cardsAnimation.isInView ? 0 : 20
-                }}
-                transition={{ 
-                  delay: 0.4 + (index * 0.15),
-                  duration: 0.5
-                }}
-                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
-              >
-                {event.title}
-              </motion.h3>
-              
-              {/* Description with final reveal */}
-              <motion.p 
-                className="text-gray-600 text-sm"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: cardsAnimation.isInView ? 1 : 0,
-                  y: cardsAnimation.isInView ? 0 : 20
-                }}
-                transition={{ 
-                  delay: 0.5 + (index * 0.15),
-                  duration: 0.5
-                }}
-                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
-              >
-                {event.description}
-              </motion.p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
+              The Fratvilla Experience
+            </h2>
+
+            {/* Feature Boxes */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {experiences.map((experience, index) => (
+                <div 
+                  key={index}
+                  className="bg-gradient-to-br from-cyan-400 to-blue-900 backdrop-blur-md rounded-xl p-6 md:p-8 text-left border border-cyan-700/20 shadow-lg hover:shadow-xl transition-all duration-500"
+                >
+                  <h3 
+                    className="text-xl md:text-2xl lg:text-3xl font-['Gilroy-Bold'] text-neutral-700 mb-6 h-8 md:h-16 lg:h-20"
+                  >
+                    {experience.title}
+                  </h3>
+                  <p 
+                    className="text-lg md:text-xl font-['Gilroy-Regular']"
+                  >
+                    {experience.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
+
   );
 };
 

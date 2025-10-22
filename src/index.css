@@ -118,6 +118,28 @@
   @apply bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg border-b border-gray-200;
 }
 
+/* Main website Styling */
+
+.herosection-header {
+  @apply text-3xl md:text-5xl lg:text-7xl font-['Gilroy-regular'] mb-4;
+}
+.herosection-subheader {
+  @apply text-lg md:text-xl lg:text-2xl font-['Gilroy-Medium'] text-neutral-300;
+}
+.herosection-subsubheader {
+  @apply text-sm md:text-base lg:text-lg font-['Gilroy-Medium'] text-neutral-300;
+}
+
+
+/* Experience Page Styling */
+.section-header {
+  @apply text-4xl md:text-5xl lg:text-7xl font-['Gilroy-semiBold'] mb-6 text-left md:text-left;
+}
+.section-p {
+  @apply text-xl md:text-xl lg:text-2xl font-['Gilroy-Medium'] text-left;
+}
+
+
 
 /* Dashboard styling */
 

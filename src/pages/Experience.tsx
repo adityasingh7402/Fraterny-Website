@@ -7,10 +7,16 @@ import HeroSection from '../components/experience/HeroSection';
 import { useIsMobile } from '../hooks/use-mobile';
 
 // Lazy load components that are below the fold
-const TimelineSection = lazy(() => import('../components/experience/TimelineSection'));
-const ImageGallery = lazy(() => import('../components/experience/ImageGallery'));
-const TribeSection = lazy(() => import('../components/experience/TribeSection'));
-const DepthSection = lazy(() => import('../components/experience/DepthSection'));
+// const TimelineSection = lazy(() => import('../components/experience/TimelineSection'));
+// const ImageGallery = lazy(() => import('../components/experience/ImageGallery'));
+// const TribeSection = lazy(() => import('../components/experience/TribeSection'));
+// const DepthSection = lazy(() => import('../components/experience/DepthSection'));
+
+import TimelineSection from '../components/experience/TimelineSection';
+import ImageGallery from '../components/experience/ImageGallery';
+import TribeSection from '../components/experience/TribeSection';
+import DepthSection from '../components/experience/DepthSection';
+import AboutFratVilla from '@/components/experience/AboutFratVilla';
 
 // Better loading fallback
 const LoadingFallback = () => (
@@ -37,11 +43,8 @@ const Experience = () => {
       
       {/* Hero Section - Critical path, load eagerly */}
       <HeroSection />
-
-      {/* Timeline Section */}
-      <Suspense fallback={<LoadingFallback />}>
-        <TimelineSection />
-      </Suspense>
+      <AboutFratVilla />
+      <TimelineSection />
 
       {/* Image Gallery - hidden on mobile */}
       {!isMobile && (
@@ -49,15 +52,15 @@ const Experience = () => {
           <ImageGallery />
         </Suspense>
       )}
-      
-      {/* Depth Section */}
-      <Suspense fallback={<LoadingFallback />}>
-        <DepthSection />
-      </Suspense>
 
       {/* Tribe Section */}
       <Suspense fallback={<LoadingFallback />}>
         <TribeSection />
+      </Suspense>
+
+      {/* Depth Section */}
+      <Suspense fallback={<LoadingFallback />}>
+        <DepthSection />
       </Suspense>
 
       <Footer />

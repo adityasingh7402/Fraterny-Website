@@ -39,6 +39,20 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
     }
   };
 
+  // Helper function to parse PostgreSQL array strings
+const parsePostgresArray = (value: any): string[] => {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  if (typeof value === 'string') {
+    // Remove curly braces and parse
+    const cleaned = value.replace(/^\{|\}$/g, '');
+    if (!cleaned) return [];
+    // Split by comma, handle quoted strings
+    return cleaned.match(/(?:[^,"]+|"[^"]*")+/g)?.map(s => s.replace(/^"|"$/g, '').trim()) || [];
+  }
+  return [];
+};
+
   // Status labels for blog posts
   const getStatusLabel = (post: BlogPost) => {
     if (!post.published) return <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded">Draft</span>;
@@ -59,6 +73,18 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
         ) : blogPosts?.length === 0 ? (
           <div className="p-6 text-center text-gray-500">No blog posts yet</div>
         ) : (
+
+          (() => {
+    console.log('🔍 [DEBUG] All blog posts:', blogPosts);
+    // map over blogPosts array to log each post
+    blogPosts?.forEach((post) => {
+      console.log('🔍 [DEBUG] Post tags:', {
+        parsedTags: parsePostgresArray(post.tags)
+});
+    });
+    return null;
+  })(),
+          
           blogPosts?.map((post) => (
             <div key={post.id} className="p-6">
               <div className="flex gap-4">
@@ -94,9 +120,9 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      {post.tags && post.tags.length > 0 && (
+                      {post.tags && parsePostgresArray(post.tags).length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
-                          {post.tags.map(tag => (
+                          {parsePostgresArray(post.tags).map(tag => (
                             <span key={tag} className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
                               {tag}
                             </span>

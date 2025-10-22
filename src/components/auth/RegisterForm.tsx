@@ -56,7 +56,7 @@ export const RegisterForm = ({ onRegistrationSuccess }: RegisterFormProps) => {
         <Button 
           type="submit" 
           disabled={isLoading} 
-          className="w-full bg-terracotta hover:bg-terracotta/90"
+          className="w-full bg-gradient-to-br from-cyan-700 to-blue-900"
         >
           {isLoading ? 'Signing up...' : 'Sign Up'}
         </Button>

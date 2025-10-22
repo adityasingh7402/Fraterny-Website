@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, DollarSign } from 'lucide-react';
+import { Users, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, Calendar } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
@@ -13,6 +13,7 @@ import AdminInfluencerManagement from './influencers/AdminInfluencerManagement';
 import AdminPricingManagement from './pricing/AdminPricingManagement';
 import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
 import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
+import VillaEditionsManagement from './editions/VillaEditionsManagement';
 
 // Define menu items
 const menuItems = [
@@ -51,6 +52,12 @@ const menuItems = [
     label: 'Website Settings',
     icon: Settings,
     component: WebsiteSettings
+  },
+  {
+    id: 'editions',
+    label: 'Villa Editions',
+    icon: Calendar,
+    component: VillaEditionsManagement  // We'll create this component next
   },
   {
     id: 'influencers',

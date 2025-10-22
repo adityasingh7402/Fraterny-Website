@@ -15,6 +15,20 @@ export interface WebsiteSettings {
   executive_escape_original_price: string;
   // New field for applications received
   applications_received?: string;
+  upcoming_editions: VillaEdition[];
+}
+
+export interface VillaEdition {
+  id: string;
+  startDate: string;        // ISO format: "2025-09-14"
+  endDate: string;          // ISO format: "2025-09-20"
+  timeFrame?: string | null; // Optional: "Morning: 9 AM - 12 PM"
+  isActive: boolean;
+  allocationStatus: 'available' | 'limited' | 'sold_out';
+  allotedSeats: number;
+  totalSeats: number;
+  displayOrder: number;
+  createdAt?: string;
 }
 
 // Define the shape of the data returned from the database

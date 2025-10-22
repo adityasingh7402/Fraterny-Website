@@ -35,7 +35,7 @@ interface ProfileFormData {
   phone: string;
   bio: string;
   location: string;
-  jobTitle: string;
+  currentOccupationStatus: string;
   company: string;
   notificationPreference: 'all' | 'important' | 'none';
 }
@@ -54,7 +54,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
     phone: '',
     bio: '',
     location: '',
-    jobTitle: '',
+    currentOccupationStatus: '',
     company: '',
     notificationPreference: 'all'
   });
@@ -103,7 +103,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           phone: userMetadata.phone || '',
           bio: userMetadata.bio || '',
           location: userMetadata.location || '',
-          jobTitle: userMetadata.job_title || '',
+          currentOccupationStatus: userMetadata.job_title || '',
           company: userMetadata.company || '',
           notificationPreference: userMetadata.notification_preference || 'all'
         });
@@ -209,7 +209,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           phone: formData.phone,
           bio: formData.bio,
           location: formData.location,
-          job_title: formData.jobTitle,
+          job_title: formData.currentOccupationStatus,
           company: formData.company,
           notification_preference: formData.notificationPreference
         }
@@ -432,7 +432,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
                 <Input
                   id="jobTitle"
                   name="jobTitle"
-                  value={formData.jobTitle}
+                  value={formData.currentOccupationStatus}
                   onChange={handleInputChange}
                   placeholder="Your job title (optional)"
                   disabled={isLoading}

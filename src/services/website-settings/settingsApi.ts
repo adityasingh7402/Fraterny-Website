@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { WebsiteSettings, WebsiteSettingRow } from './types';
+import { WebsiteSettings, WebsiteSettingRow, VillaEdition } from './types';
 import { getSettingsFromCache, updateSettingsCache, invalidateSettingsCache } from './settingsCache';
 import { calculateDaysLeft } from './dateUtils';
 
@@ -18,7 +18,58 @@ const DEFAULT_SETTINGS: WebsiteSettings = {
   executive_escape_price: "₹1,50,000+",
   executive_escape_original_price: "₹1,85,000+",
   // Set default for applications received
-  applications_received: "42"
+  applications_received: "42",
+  // ADD THIS NEW FIELD
+  upcoming_editions: [
+    {
+      id: "edition-1",
+      startDate: "2025-09-14",
+      endDate: "2025-09-20",
+      timeFrame: null,
+      isActive: true,
+      allocationStatus: 'available',
+      allotedSeats: 0,
+      totalSeats: 20,
+      displayOrder: 1,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "edition-2",
+      startDate: "2025-10-01",
+      endDate: "2025-10-07",
+      timeFrame: null,
+      isActive: true,
+      allocationStatus: 'available',
+      allotedSeats: 0,
+      totalSeats: 20,
+      displayOrder: 2,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "edition-3",
+      startDate: "2025-10-09",
+      endDate: "2025-10-15",
+      timeFrame: null,
+      isActive: true,
+      allocationStatus: 'available',
+      allotedSeats: 0,
+      totalSeats: 20,
+      displayOrder: 3,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "edition-4",
+      startDate: "2025-10-17",
+      endDate: "2025-10-23",
+      timeFrame: null,
+      isActive: true,
+      allocationStatus: 'available',
+      allotedSeats: 0,
+      totalSeats: 20,
+      displayOrder: 4,
+      createdAt: new Date().toISOString()
+    }
+  ]
 };
 
 /**
@@ -61,7 +112,11 @@ export const fetchWebsiteSettings = async (): Promise<WebsiteSettings> => {
         executive_escape_price: settings.executive_escape_price || DEFAULT_SETTINGS.executive_escape_price,
         executive_escape_original_price: settings.executive_escape_original_price || DEFAULT_SETTINGS.executive_escape_original_price,
         // Include applications_received field
-        applications_received: settings.applications_received || DEFAULT_SETTINGS.applications_received
+        applications_received: settings.applications_received || DEFAULT_SETTINGS.applications_received,
+        // ADD THIS - Parse upcoming editions from JSON
+        upcoming_editions: settings.upcoming_editions 
+          ? JSON.parse(settings.upcoming_editions) 
+          : DEFAULT_SETTINGS.upcoming_editions
       };
       
       // Update cache
@@ -153,4 +208,86 @@ export const updateDaysLeftCount = async (): Promise<boolean> => {
     console.error('Error updating days left count:', error);
     return false;
   }
+};
+
+
+
+/**
+ * Get all upcoming editions
+ */
+export const fetchUpcomingEditions = async (): Promise<VillaEdition[]> => {
+  const settings = await fetchWebsiteSettings();
+  return settings.upcoming_editions || [];
+};
+
+/**
+ * Update the entire editions array
+ */
+export const updateUpcomingEditions = async (
+  editions: VillaEdition[]
+): Promise<boolean> => {
+  return await updateWebsiteSetting(
+    'upcoming_editions', 
+    JSON.stringify(editions)
+  );
+};
+
+/**
+ * Add a new edition
+ */
+export const addEdition = async (
+  edition: Omit<VillaEdition, 'id' | 'createdAt'>
+): Promise<boolean> => {
+  const editions = await fetchUpcomingEditions();
+  
+  const newEdition: VillaEdition = {
+    ...edition,
+    id: `edition-${Date.now()}`,
+    createdAt: new Date().toISOString()
+  };
+  
+  editions.push(newEdition);
+  return await updateUpcomingEditions(editions);
+};
+
+/**
+ * Update a specific edition
+ */
+export const updateEdition = async (
+  id: string,
+  updates: Partial<VillaEdition>
+): Promise<boolean> => {
+  const editions = await fetchUpcomingEditions();
+  const index = editions.findIndex(e => e.id === id);
+  
+  if (index === -1) return false;
+  
+  editions[index] = { ...editions[index], ...updates };
+  return await updateUpcomingEditions(editions);
+};
+
+/**
+ * Delete an edition
+ */
+export const deleteEdition = async (id: string): Promise<boolean> => {
+  const editions = await fetchUpcomingEditions();
+  const filtered = editions.filter(e => e.id !== id);
+  
+  return await updateUpcomingEditions(filtered);
+};
+
+/**
+ * Reorder editions
+ */
+export const reorderEditions = async (
+  editionIds: string[]
+): Promise<boolean> => {
+  const editions = await fetchUpcomingEditions();
+  
+  const reordered = editionIds.map((id, index) => {
+    const edition = editions.find(e => e.id === id);
+    return edition ? { ...edition, displayOrder: index + 1 } : null;
+  }).filter(Boolean) as VillaEdition[];
+  
+  return await updateUpcomingEditions(reordered);
 };

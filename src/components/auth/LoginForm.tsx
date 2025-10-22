@@ -34,6 +34,7 @@
 //   );
 // };
 
+// ----------------------------------------------------------------
 
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,12 @@ import { PasswordFieldLogin } from './components/PasswordFieldLogin';
 import { useLoginForm } from './hooks/useLoginForm';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const LoginForm = () => {
+
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export const LoginForm = ({ redirectTo }: LoginFormProps) => {
   const { signInWithGoogle } = useAuth(); // Add this line
   const {
     form,
@@ -50,7 +56,7 @@ export const LoginForm = () => {
     showPassword,
     togglePasswordVisibility,
     onSubmit,
-  } = useLoginForm();
+  } = useLoginForm(redirectTo);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -72,7 +78,7 @@ export const LoginForm = () => {
         <Button 
           type="submit" 
           disabled={isLoading} 
-          className="w-full bg-terracotta hover:bg-terracotta/90"
+          className="w-full bg-gradient-to-br from-cyan-700 to-blue-900"
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
         </Button>
@@ -105,3 +111,6 @@ export const LoginForm = () => {
     </Form>
   );
 };
+
+// ----------------------------------------------------------------
+

@@ -48,6 +48,10 @@ import {
   FormDescription,
 } from '@/components/ui/form';
 
+import { fetchUpcomingEditions, VillaEdition } from '@/services/website-settings';
+import { format } from 'date-fns';
+import { log } from 'console';
+
 // Types
 interface DashboardTest {
   userid: string;
@@ -73,35 +77,53 @@ const villaApplicationSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   location: z.string().min(2, 'Location is required'),
   dob: z.string().optional(),
-  jobTitle: z.string().optional(),
+  currentOccupationStatus: z.string().min(1, 'Current Occupation Status is required'),
   company: z.string().optional(),
   
   // Emergency Contact
-  emergencyName: z.string().min(2, 'Emergency contact name is required'),
-  emergencyPhone: z.string().min(10, 'Emergency contact phone is required'),
+  emergencyName: z.string().min(0, 'Emergency contact name is required'),
+  emergencyPhone: z.string().min(0, 'Emergency contact phone is required'),
+
+  // social media
+  socialPlatform: z.string().min(1, 'Please select a platform'),
+  socialLink: z.string().min(1, 'Social link is required'),
   
   // Quest Data
   selectedTestId: z.string().min(1, 'Please select a Quest assessment'),
   
   // Villa Booking Details
-  checkInDate: z.string().min(1, 'Check-in date is required'),
-  checkOutDate: z.string().min(1, 'Check-out date is required'),
+  // checkInDate: z.string().min(1, 'Check-in date is required'),
+  // checkOutDate: z.string().min(1, 'Check-out date is required'),
   numberOfGuests: z.number().min(1, 'At least 1 guest is required').max(20, 'Maximum 20 guests'),
   numberOfRooms: z.number().min(1, 'At least 1 room is required').max(10, 'Maximum 10 rooms'),
+  selectedEditionId: z.string().min(1, 'Please select a villa edition'),
+  numberOfAccompanyingPersons: z.number().min(0).max(10),
+  accompanyingPersons: z.array(
+    z.object({
+      name: z.string().min(1, 'Name is required'),
+      dob: z.string().min(1, 'Date of birth is required'),
+      socialLink: z.string().url('Please enter a valid URL')
+    })
+  ).optional(),
   
   // Additional Info
   purposeOfVisit: z.string().min(1, 'Purpose of visit is required'),
   specialRequests: z.string().optional(),
   dietaryRequirements: z.string().optional(),
   referralSource: z.string().optional(),
-}).refine((data) => {
-  const checkIn = new Date(data.checkInDate);
-  const checkOut = new Date(data.checkOutDate);
-  return checkOut > checkIn;
-}, {
-  message: 'Check-out date must be after check-in date',
-  path: ['checkOutDate'],
-});
+
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the terms and conditions',
+  }),
+})
+// .refine((data) => {
+//   const checkIn = new Date(data.checkInDate);
+//   const checkOut = new Date(data.checkOutDate);
+//   return checkOut > checkIn;
+// }, {
+//   message: 'Check-out date must be after check-in date',
+//   path: ['checkOutDate'],
+// });
 
 type VillaApplicationFormData = z.infer<typeof villaApplicationSchema>;
 
@@ -118,6 +140,10 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
   const [selectedTest, setSelectedTest] = useState<DashboardTest | null>(null);
   const [copiedTestId, setCopiedTestId] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editions, setEditions] = useState<VillaEdition[]>([]);
+  const [loadingEditions, setLoadingEditions] = useState(true);
+  const [selectedEdition, setSelectedEdition] = useState<VillaEdition | null>(null);
+  const [accompanyingCount, setAccompanyingCount] = useState(0);
 
   const totalSteps = 4;
 
@@ -131,19 +157,25 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
       phone: '',
       location: '',
       dob: '',
-      jobTitle: '',
+      currentOccupationStatus: '',
       company: '',
       emergencyName: '',
       emergencyPhone: '',
+      socialPlatform: '',
+      socialLink: '',
       selectedTestId: '',
-      checkInDate: '',
-      checkOutDate: '',
+      // checkInDate: '',
+      // checkOutDate: '',
+      selectedEditionId: '',
+      numberOfAccompanyingPersons: 0,
+      accompanyingPersons: [],
       numberOfGuests: 1,
       numberOfRooms: 1,
       purposeOfVisit: '',
       specialRequests: '',
       dietaryRequirements: '',
       referralSource: '',
+      termsAccepted: false,
     },
   });
 
@@ -201,6 +233,47 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
     fetchQuestData();
   }, [user?.id]);
 
+  // Fetch available villa editions
+  useEffect(() => {
+    const loadEditions = async () => {
+      setLoadingEditions(true);
+      try {
+        const data = await fetchUpcomingEditions();
+        console.log('Fetched villa editions:', data);
+        
+        // Filter only active editions that are not sold out and are in the future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const availableEditions = data.filter(edition => {
+  const isActive = edition.isActive;
+  const notSoldOut = edition.allocationStatus !== 'sold_out';
+  
+  console.log('Edition check:', {
+    dates: `${edition.startDate} to ${edition.endDate}`,
+    isActive,
+    notSoldOut,
+    passed: isActive && notSoldOut
+  });
+  
+  // Removed date check for now - showing all active editions
+  return isActive && notSoldOut;
+}).sort((a, b) => a.displayOrder - b.displayOrder);
+
+console.log('Filtered available editions:', availableEditions);
+        
+        setEditions(availableEditions);
+      } catch (error) {
+        console.error('Error loading editions:', error);
+        toast.error('Failed to load available editions');
+      } finally {
+        setLoadingEditions(false);
+      }
+    };
+
+    loadEditions();
+  }, []);
+
   // Auto-populate user data
   useEffect(() => {
     if (user) {
@@ -213,11 +286,11 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
         phone: metadata.phone || '',
         location: metadata.location || '',
         dob: metadata.dob || '',
-        jobTitle: metadata.job_title || '',
+        currentOccupationStatus: '',
         company: metadata.company || '',
       });
     }
-  }, [user, form]);
+  }, [user]);
 
   // Format date for display
   const formatDate = (dateString: string): string => {
@@ -259,8 +332,11 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
         fieldsToValidate = ['selectedTestId'];
         break;
       case 3:
-        fieldsToValidate = ['checkInDate', 'checkOutDate', 'numberOfGuests', 'numberOfRooms', 'purposeOfVisit'];
+        fieldsToValidate = ['selectedEditionId', 'numberOfAccompanyingPersons', 'numberOfGuests', 'numberOfRooms', 'purposeOfVisit'];
         break;
+      case 4:
+        fieldsToValidate = ['termsAccepted'];
+      break;
     }
 
     const isValid = await form.trigger(fieldsToValidate);
@@ -275,39 +351,128 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
 
   // Form submission
   const onSubmit = async (data: VillaApplicationFormData) => {
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    try {
-      // Prepare submission data
-      const submissionData = {
-        ...data,
-        userId: user?.id,
+  try {
+    // Prepare comprehensive submission data
+    const submissionData = {
+      // User Information
+      userId: user?.id,
+      userEmail: user?.email,
+      
+      // Personal Details
+      personalDetails: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        location: data.location,
+        dob: data.dob || null,
+        currentOccupationStatus: data.currentOccupationStatus,
+        company: data.company || null,
+      },
+      
+      // Emergency Contact
+      emergencyContact: {
+        name: data.emergencyName,
+        phone: data.emergencyPhone,
+      },
+      
+      // Social Media
+      socialMedia: {
+        platform: data.socialPlatform,
+        link: data.socialLink,
+      },
+      
+      // Quest Assessment
+      questAssessment: {
+        selectedTestId: data.selectedTestId,
+        testDetails: selectedTest ? {
+          testId: selectedTest.testid,
+          sessionId: selectedTest.sessionid,
+          testTaken: selectedTest.testtaken,
+          paymentStatus: selectedTest.ispaymentdone,
+          questPdf: selectedTest.quest_pdf,
+          questStatus: selectedTest.quest_status,
+        } : null,
+      },
+      
+      // Villa Edition Selection
+      villaEdition: {
+        selectedEditionId: data.selectedEditionId,
+        editionDetails: selectedEdition ? {
+          id: selectedEdition.id,
+          startDate: selectedEdition.startDate,
+          endDate: selectedEdition.endDate,
+          timeFrame: selectedEdition.timeFrame,
+          allocationStatus: selectedEdition.allocationStatus,
+          totalSeats: selectedEdition.totalSeats,
+          allotedSeats: selectedEdition.allotedSeats,
+        } : null,
+      },
+      
+      // Accompanying Persons
+      accompanyingPersons: {
+        count: data.numberOfAccompanyingPersons,
+        persons: data.accompanyingPersons || [],
+      },
+      
+      // Booking Details
+      bookingDetails: {
+        numberOfGuests: data.numberOfGuests,
+        numberOfRooms: data.numberOfRooms,
+        purposeOfVisit: data.purposeOfVisit,
+        specialRequests: data.specialRequests || null,
+        dietaryRequirements: data.dietaryRequirements || null,
+        referralSource: data.referralSource || null,
+      },
+      
+      // Metadata
+      metadata: {
         submittedAt: new Date().toISOString(),
         status: 'pending',
-      };
+        applicationVersion: '1.0',
+        submissionSource: 'web',
+      },
+    };
 
-      console.log('Villa Application Data:', submissionData);
+    // Console log formatted JSON
+    console.log('='.repeat(80));
+    console.log('VILLA APPLICATION SUBMISSION DATA');
+    console.log('='.repeat(80));
+    console.log(JSON.stringify(submissionData, null, 2));
+    console.log('='.repeat(80));
+    
+    // Also log as a single line for easy copying
+    console.log('JSON (single line):', JSON.stringify(submissionData));
+    console.log('='.repeat(80));
 
-      // TODO: Replace with actual API endpoint
-      // await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/villa-application`, submissionData);
+    // TODO: Replace with actual API endpoint when ready
+    // await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/villa-application`, submissionData);
 
-      toast.success('Application submitted successfully!');
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Reset form
-      form.reset();
-      setCurrentStep(1);
-      setSelectedTest(null);
-    } catch (error) {
-      console.error('Application submission error:', error);
-      toast.error('Failed to submit application. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    toast.success('✅ Application submitted successfully! Check console for data.');
+    
+    if (onSuccess) {
+      onSuccess();
     }
-  };
+
+    // Reset form
+    // form.reset();
+    // setCurrentStep(1);
+    // setSelectedTest(null);
+    // setSelectedEdition(null);
+    // setAccompanyingCount(0);
+    
+    // Comment out reset for now so you can see the data in the form
+    console.log('Form reset disabled for testing - uncomment to enable');
+    
+  } catch (error) {
+    console.error('Application submission error:', error);
+    toast.error('Failed to submit application. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Step content renderer
   const renderStepContent = () => {
@@ -423,7 +588,7 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <FormField
+        {/* <FormField
           control={form.control}
           name="dob"
           render={({ field }) => (
@@ -438,24 +603,77 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}
-          name="jobTitle"
+          name="currentOccupationStatus"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='font-["Gilroy-Bold"] text-lg'>Job Title</FormLabel>
-              <FormControl>
-                <div className="relative font-['Gilroy-regular']">
-                  <Briefcase className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input {...field} className="pl-10" placeholder="Software Engineer" />
-                </div>
-              </FormControl>
+              <FormLabel className='font-["Gilroy-Bold"] text-lg'>Current Occupation Status <span className="text-red-500">*</span></FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl className='relative font-["Gilroy-regular"]'>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your occupation status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Running/Starting a Business">Running/Starting a Business</SelectItem>
+                  <SelectItem value="Self Employed/Freelancer">Self Employed/Freelancer</SelectItem>
+                  <SelectItem value="Student">Student</SelectItem>
+                  <SelectItem value="Employed">Employed</SelectItem>
+                  <SelectItem value="Looking for Employment">Looking for Employment</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="socialPlatform"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className='font-["Gilroy-Bold"] text-lg'>Social Platform <span className="text-red-500">*</span></FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl className="relative font-['Gilroy-regular']">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select platform" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                    <SelectItem value="Instagram">Instagram</SelectItem>
+                    <SelectItem value="Twitter/X">Twitter/X</SelectItem>
+                    <SelectItem value="Facebook">Facebook</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="socialLink"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className='font-["Gilroy-Bold"] text-lg'>Profile Link <span className="text-red-500">*</span></FormLabel>
+                <FormControl className='relative font-["Gilroy-regular"]'>
+                  <Input 
+                    {...field} 
+                    type="url"
+                    placeholder="https://..." 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -623,7 +841,7 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
       className="space-y-6"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
+        {/* <FormField
           control={form.control}
           name="checkInDate"
           render={({ field }) => (
@@ -665,10 +883,267 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
+
+        {/* Villa Edition Selection */}
+        {loadingEditions ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-navy" />
+            <span className="ml-2 text-gray-600">Loading available editions...</span>
+          </div>
+        ) : editions.length === 0 ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Editions Available</h3>
+            <p className="text-gray-600">
+              No villa editions are currently available. Please check back later or contact support.
+            </p>
+          </div>
+        ) : (
+          <FormField
+            control={form.control}
+            name="selectedEditionId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className='font-["Gilroy-Bold"] text-lg'>
+                  Select Villa Edition <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl className="mb-2 relative font-['Gilroy-regular']">
+                  <div className="space-y-3">
+                    {editions.map((edition) => {
+                      const isSelected = field.value === edition.id;
+                      const daysCount = Math.ceil(
+                        (new Date(edition.endDate).getTime() - new Date(edition.startDate).getTime()) / 
+                        (1000 * 60 * 60 * 24)
+                      );
+                      const seatsLeft = edition.totalSeats - edition.allotedSeats;
+                      
+                      return (
+                        <div
+                          key={edition.id}
+                          onClick={() => {
+                            field.onChange(edition.id);
+                            setSelectedEdition(edition);
+                          }}
+                          className={`
+                            relative border-2 rounded-lg p-4 cursor-pointer transition-all
+                            ${isSelected 
+                              ? 'border-navy bg-navy/5' 
+                              : 'border-gray-200 hover:border-navy/50 bg-white'
+                            }
+                          `}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center h-6 mt-1">
+                              <input
+                                type="radio"
+                                checked={isSelected}
+                                onChange={() => {
+                                  field.onChange(edition.id);
+                                  setSelectedEdition(edition);
+                                }}
+                                className="w-4 h-4 text-navy border-gray-300 focus:ring-navy"
+                              />
+                            </div>
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="w-4 h-4 text-gray-500" />
+                                  <h4 className="font-medium text-gray-900">
+                                    {format(new Date(edition.startDate), 'do MMMM')} - {format(new Date(edition.endDate), 'do MMMM yyyy')}
+                                  </h4>
+                                </div>
+                                <span className="text-sm text-gray-500">({daysCount} days)</span>
+                              </div>
+                              
+                              {edition.timeFrame && (
+                                <p className="text-sm text-gray-600 mb-2">
+                                  {edition.timeFrame}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-3">
+                                <span className={`
+                                  px-2 py-1 text-xs font-medium rounded-full
+                                  ${edition.allocationStatus === 'available' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                  }
+                                `}>
+                                  {edition.allocationStatus === 'available' ? 'Available' : 'Limited'}
+                                </span>
+                                
+                                <span className="text-sm text-gray-600 flex items-center gap-1">
+                                  <Users className="w-4 h-4" />
+                                  {seatsLeft} seats remaining
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Number of Accompanying Persons */}
+      <FormField
+        control={form.control}
+        name="numberOfAccompanyingPersons"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className='font-["Gilroy-Bold"] text-lg'>
+              Number of Accompanying Persons <span className="text-red-500">*</span>
+            </FormLabel>
+            <Select 
+              onValueChange={(value) => {
+                const count = parseInt(value);
+                field.onChange(count);
+                setAccompanyingCount(count);
+                
+                // Initialize empty array for accompanying persons
+                if (count > 0) {
+                  const emptyPersons = Array.from({ length: count }, () => ({
+                    name: '',
+                    dob: '',
+                    socialLink: ''
+                  }));
+                  form.setValue('accompanyingPersons', emptyPersons);
+                } else {
+                  form.setValue('accompanyingPersons', []);
+                }
+              }} 
+              value={field.value?.toString()}
+            >
+              <FormControl className='relative font-["Gilroy-regular"]'>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select number of persons" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className='absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg font-["Gilroy-regular"]'>
+                <SelectItem value="0">0 (Just me)</SelectItem>
+                <SelectItem value="1">1 person</SelectItem>
+                <SelectItem value="2">2 people</SelectItem>
+                <SelectItem value="3">3 people</SelectItem>
+                <SelectItem value="4">4 people</SelectItem>
+                <SelectItem value="5">5 people</SelectItem>
+                <SelectItem value="6">6 people</SelectItem>
+                <SelectItem value="7">7 people</SelectItem>
+                <SelectItem value="8">8 people</SelectItem>
+                <SelectItem value="9">9 people</SelectItem>
+                <SelectItem value="10">10 people</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Dynamic Forms for Accompanying Persons */}
+      {accompanyingCount > 0 && (
+        <div className="space-y-6 mt-6">
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-['Gilroy-Bold'] mb-2">
+              Accompanying Persons Details
+            </h3>
+            <p className="text-sm text-gray-600 font-['Gilroy-semiBold']">
+              Please provide details for each person accompanying you
+            </p>
+          </div>
+          
+          {Array.from({ length: accompanyingCount }).map((_, index) => (
+            <div 
+              key={index} 
+              className="border border-gray-200 rounded-lg p-6 bg-gray-50"
+            >
+              <h4 className="text-md font-['Gilroy-Bold'] text-navy mb-4 flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Accompanying Person {index + 1}
+              </h4>
+              
+              <div className="space-y-4">
+                {/* Name Field */}
+                <FormField
+                  control={form.control}
+                  name={`accompanyingPersons.${index}.name`}
+
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='font-["Gilroy-Bold"]'>
+                        Full Name <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          className='font-["Gilroy-regular"]'
+                          {...field} 
+                          placeholder="Enter full name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Date of Birth Field */}
+                <FormField
+                  control={form.control}
+                  name={`accompanyingPersons.${index}.dob`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='font-["Gilroy-Bold"]'>
+                        Date of Birth <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          className='font-["Gilroy-regular"]'
+                          {...field} 
+                          type="date"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Social Link Field */}
+                <FormField
+                  control={form.control}
+                  name={`accompanyingPersons.${index}.socialLink`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='font-["Gilroy-Bold"]'>
+                        Public Social Link <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="url"
+                          placeholder="https://linkedin.com/in/... or https://instagram.com/..."
+                          className='font-["Gilroy-regular"]'
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs text-gray-500">
+                        LinkedIn, Instagram, Twitter, or any other public social profile
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="numberOfGuests"
@@ -717,8 +1192,8 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
               <FormMessage />
             </FormItem>
           )}
-        />
-      </div>
+        />        
+      </div> */}
 
       <FormField
         control={form.control}
@@ -855,10 +1330,10 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
               <span className="text-gray-600 font-['Gilroy-Regular']">Location:</span>
               <p className="font-['Gilroy-semiBold']">{values.location}</p>
             </div>
-            {values.jobTitle && (
+            {values.currentOccupationStatus && (
               <div>
-                <span className="text-gray-600 font-['Gilroy-Regular']">Job Title:</span>
-                <p className="font-['Gilroy-semiBold']">{values.jobTitle}</p>
+                <span className="text-gray-600 font-['Gilroy-Regular']">Current Occupation Status:</span>
+                <p className="font-['Gilroy-semiBold']">{values.currentOccupationStatus}</p>
               </div>
             )}
             {values.company && (
@@ -898,14 +1373,41 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
             Booking Details
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
+            {/* <div>
               <span className="text-gray-600 font-['Gilroy-regular']">Check-in:</span>
               <p className="font-['Gilroy-semiBold']">{new Date(values.checkInDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <div>
               <span className="text-gray-600 font-['Gilroy-regular']">Check-out:</span>
               <p className="font-['Gilroy-semiBold']">{new Date(values.checkOutDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            </div>
+            </div> */}
+            {selectedEdition && (
+              <div className="col-span-2">
+                <span className="text-gray-600 font-['Gilroy-regular']">Selected Edition:</span>
+                <p className="font-['Gilroy-semiBold']">
+                  {format(new Date(selectedEdition.startDate), 'do MMMM')} - {format(new Date(selectedEdition.endDate), 'do MMMM yyyy')}
+                </p>
+                {selectedEdition.timeFrame && (
+                  <p className="text-sm text-gray-600 mt-1">{selectedEdition.timeFrame}</p>
+                )}
+              </div>
+            )}
+            {values.numberOfAccompanyingPersons > 0 && (
+              <div className="col-span-2 mt-3 pt-3 border-t">
+                <span className="text-gray-600 font-['Gilroy-regular']">Accompanying Persons:</span>
+                <p className="font-['Gilroy-semiBold']">{values.numberOfAccompanyingPersons} person(s)</p>
+                {values.accompanyingPersons && values.accompanyingPersons.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {values.accompanyingPersons.map((person, index) => (
+                      <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                        <p className="font-medium">{index + 1}. {person.name}</p>
+                        <p className="text-gray-600 text-xs">DOB: {person.dob}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <span className="text-gray-600 font-['Gilroy-regular']">Number of Guests:</span>
               <p className="font-['Gilroy-semiBold']">{values.numberOfGuests}</p>
@@ -940,23 +1442,34 @@ export function VillaApplicationForm({ className = '', onSuccess }: VillaApplica
         </div>
 
         {/* Terms & Conditions */}
-        <div className="bg-gray-50 rounded-lg border p-4">
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="terms"
-              className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-              required
-            />
-            <label htmlFor="terms" className="text-sm text-gray-700 font-['Gilroy-Bold']">
-              I confirm that all the information provided is accurate and I agree to the{' '}
-              <a href="/terms" className="text-cyan-600 hover:underline" target="_blank">
-                terms and conditions
-              </a>{' '}
-              of Fratvilla.
-            </label>
-          </div>
-        </div>
+        {/* Terms & Conditions */}
+        <FormField
+          control={form.control}
+          name="termsAccepted"
+          render={({ field }) => (
+            <FormItem className="bg-gray-50 rounded-lg border p-4">
+              <div className="flex items-start space-x-3">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                  />
+                </FormControl>
+                <label htmlFor="terms" className="text-sm text-gray-700 font-['Gilroy-Bold']">
+                  I confirm that all the information provided is accurate and I agree to the{' '}
+                  <a href="/terms" className="text-cyan-600 hover:underline" target="_blank">
+                    terms and conditions
+                  </a>{' '}
+                  of Fratvilla.
+                </label>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </motion.div>
     );
   };
