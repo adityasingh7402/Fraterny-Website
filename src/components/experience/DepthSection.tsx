@@ -655,7 +655,7 @@ const DepthSection = () => {
 
   return (
     <section className={`${isMobile ? 'pt-6 pb-16' : 'py-4 md:py-8'} bg-blue-200`}>
-      <div className="container mx-auto px-6">
+      <div className="container max-w-5xl mx-auto px-6">
         
         {/* Section Title */}
         <motion.div
@@ -665,7 +665,7 @@ const DepthSection = () => {
           animate={titleAnimation.controls}
         >
           <motion.h2 
-            className="section-header mb-6 bg-gradient-to-b from-cyan-900 to-neutral-300 bg-clip-text text-transparent"
+            className="section-header mb-6 text-gray-800"
             variants={titleAnimation.childVariants}
           >
             Designed for Depth
@@ -696,7 +696,7 @@ const DepthSection = () => {
                     initial="hidden"
                     animate={mobileCardsAnimation.isInView ? "visible" : "hidden"}
                   >
-                    <div className="text-blue-800">{feature.icon}</div>
+                    <div className="text-blue-800 text-left">{feature.icon}</div>
                   </motion.div>
                   
                   {/* Text content */}
@@ -716,7 +716,7 @@ const DepthSection = () => {
                   </motion.h3>
                   
                   <motion.p 
-                    className="text-lg text-left font-['Gilroy-Regular'] md:text-xl lg:text-xl text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400"
+                    className="text-lg text-left font-['Gilroy-Regular'] md:text-xl lg:text-xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ 
                       opacity: mobileCardsAnimation.isInView ? 1 : 0,
@@ -802,7 +802,7 @@ const DepthSection = () => {
             {depthFeatures.map((feature, index) => (
               <motion.div 
                 key={index} 
-                className="flex flex-col items-start bg-gradient-to-br from-cyan-400 to-blue-900 backdrop-blur-md rounded-xl p-6 md:p-8 text-center border border-cyan-700/20 shadow-lg hover:shadow-xl transition-all duration-500"
+                className={`flex flex-col items-start bg-gradient-to-br from-cyan-400 to-blue-900 backdrop-blur-md rounded-xl p-6 md:p-8 text-center border border-cyan-700/20 shadow-lg hover:shadow-xl transition-all duration-500`}
               >
                 {/* Icon with animation */}
                 <motion.div 
@@ -815,7 +815,7 @@ const DepthSection = () => {
                 
                 {/* Text content */}
                 <motion.h3 
-                  className="text-xl md:text-2xl lg:text-3xl font-['Gilroy-Bold'] text-neutral-300 sm:h-16 md:h-28 lg:h-12 lg:mb-4"
+                  className={`text-xl md:text-2xl lg:text-3xl font-['Gilroy-Bold'] text-neutral-300 text-left sm:h-16 md:h-28 lg:h-12 lg:mb-4 ${index === 6 ? 'lg:mb-24' : ''}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ 
                     opacity: desktopGridAnimation.isInView ? 1 : 0,
@@ -830,7 +830,7 @@ const DepthSection = () => {
                 </motion.h3>
                 
                 <motion.p 
-                  className="text-lg font-['Gilroy-Regular'] md:text-xl lg:text-xl text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400 text-left"
+                  className="text-lg font-['Gilroy-Regular'] md:text-xl lg:text-xl text-left"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ 
                     opacity: desktopGridAnimation.isInView ? 1 : 0,

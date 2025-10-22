@@ -171,7 +171,7 @@ const TribeSection = () => {
         <div className="container mx-auto">
           <div className="max-w-5xl mx-auto text-center">
             <h2 
-              className="section-header mb-6 bg-gradient-to-b from-cyan-900 to-neutral-300 bg-clip-text text-transparent"
+              className="section-header mb-6 text-neutral-800"
             >
               The Integrated Fraterny Journey
             </h2>
@@ -191,7 +191,7 @@ const TribeSection = () => {
                     </h3>
                   </div>
                   <p 
-                    className="text-lg md:text-xl font-['Gilroy-Regular'] text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400"
+                    className="text-lg md:text-xl font-['Gilroy-Regular']"
                   >
                     {step.description}
                   </p>
@@ -213,9 +213,9 @@ const TribeSection = () => {
       <section className="bg-blue-200">
         <section className="py-4 md:py-8">
           <div className="container mx-auto">
-            <div className="max-w-full text-center">
+            <div className="max-w-5xl mx-auto text-center">
               <h2 
-                className="section-header mb-6 bg-gradient-to-b from-cyan-900 to-neutral-300 bg-clip-text text-transparent"
+                className="section-header mb-6 text-neutral-800"
               >
                 A Day at Fratvilla
               </h2>
@@ -238,7 +238,7 @@ const TribeSection = () => {
                       {event.title}
                     </h3>
                     <p 
-                      className="text-xl lg:text-2xl md:text-xl font-['Gilroy-Regular'] text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400"
+                      className="text-xl lg:text-2xl md:text-xl font-['Gilroy-Regular']"
                     >
                       {event.description}
                     </p>
@@ -252,7 +252,7 @@ const TribeSection = () => {
       
       {/*  */}
       <section className="py-4 md:py-8 bg-gradient-to-br from-cyan-800 to-blue-900">
-        <div className="container mx-auto px-6">
+        <div className="container max-w-5xl mx-auto px-6">
           
           {/* Section Title with scroll animation */}
           <motion.div
@@ -262,7 +262,7 @@ const TribeSection = () => {
             animate={titleAnimation.controls}
           >
             <motion.h2 
-              className="section-header mb-8 bg-gradient-to-b from-cyan-400 to-neutral-300 bg-clip-text text-transparent"
+              className="section-header mb-8 text-white"
               variants={titleAnimation.childVariants}
             >
               Play Your Ideal Archetype

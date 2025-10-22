@@ -8,14 +8,14 @@ export const ProtectedRoute = () => {
   const authData = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('ProtectedRoute - Full Auth Data:', authData);
-  console.log('ProtectedRoute - Auth State:', { 
-    user: !!user, 
-    session: !!session, 
-    isLoading,
-    authReady: authData.authReady,
-    error: authData.error 
-  });
+  // console.log('ProtectedRoute - Full Auth Data:', authData);
+  // console.log('ProtectedRoute - Auth State:', { 
+  //   user: !!user, 
+  //   session: !!session, 
+  //   isLoading,
+  //   authReady: authData.authReady,
+  //   error: authData.error 
+  // });
 
   // useEffect(() => {
   //   if (!isLoading && !user) {
@@ -80,13 +80,13 @@ export const AdminRoute = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user || !session) {
-        navigate('/auth', { replace: true });
-      } else if (!isAdmin) {
-        navigate('/', { replace: true });
-      }
-    }
+    // if (!isLoading) {
+    //   if (!user || !session) {
+    //     navigate('/auth', { replace: true });
+    //   } else if (!isAdmin) {
+    //     navigate('/', { replace: true });
+    //   }
+    // }
     
     // Handle verification redirects similar to ProtectedRoute
     const handleVerificationRedirect = () => {
@@ -102,6 +102,17 @@ export const AdminRoute = () => {
     
     handleVerificationRedirect();
   }, [user, isAdmin, isLoading, navigate, session, location]);
+
+  // If not authenticated, redirect to auth page
+  if (!user || !session) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // If not admin, redirect to home page
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
 
   // Show loading state if still checking authentication
   if (isLoading) {

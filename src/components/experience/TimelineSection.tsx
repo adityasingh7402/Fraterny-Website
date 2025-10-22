@@ -82,7 +82,7 @@ const TimelineSection = () => {
         <div className="container mx-auto">
           <div className="max-w-5xl mx-auto text-center">
             <h2 
-              className="section-header mb-6 bg-gradient-to-b from-cyan-900 to-neutral-300 bg-clip-text text-transparent"
+              className="section-header mb-6 text-neutral-800"
             >
               The Fratvilla Experience
             </h2>
@@ -100,7 +100,7 @@ const TimelineSection = () => {
                     {experience.title}
                   </h3>
                   <p 
-                    className="text-lg md:text-xl font-['Gilroy-Regular'] text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400"
+                    className="text-lg md:text-xl font-['Gilroy-Regular']"
                   >
                     {experience.description}
                   </p>

@@ -133,7 +133,7 @@
 
 /* Experience Page Styling */
 .section-header {
-  @apply text-4xl md:text-5xl lg:text-7xl font-['Gilroy-Bold'] mb-6 text-left md:text-left lg:text-center;
+  @apply text-4xl md:text-5xl lg:text-7xl font-['Gilroy-semiBold'] mb-6 text-left md:text-left;
 }
 .section-p {
   @apply text-xl md:text-xl lg:text-2xl font-['Gilroy-Medium'] text-left;

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { loginSchema, LoginFormValues } from '../schemas/loginSchema';
 
-export const useLoginForm = () => {
+export const useLoginForm = (redirectTo?: string) => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -22,17 +22,29 @@ export const useLoginForm = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
+  // const onSubmit = async (data: LoginFormValues) => {
+  //   setIsLoading(true);
+  //   try {
+  //     await signIn(data.email, data.password);
+  //     navigate('/');
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
-    try {
-      await signIn(data.email, data.password);
-      navigate('/');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    await signIn(data.email, data.password);
+    navigate(redirectTo || '/');
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return {
     form,

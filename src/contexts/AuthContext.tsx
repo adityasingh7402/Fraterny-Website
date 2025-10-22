@@ -94,53 +94,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [initialLoading, initialUser, initialSession, initialIsAdmin]);
 
+
+  
+
   // Retry function for verification
   const retryVerification = useCallback(() => {
     handleVerificationRedirect();
   }, [handleVerificationRedirect]);
 
-  // Sign in function
-  // const signIn = async (email: string, password: string) => {
-  //   const result = await authSignIn(email, password);
-  //   console.log(result)
-    
-  //   if (navigate && location?.pathname === '/auth') {
-  //     navigate('/');
-  //   }
-  //   const { data } = await supabase.auth.getUser();
-  //   console.log(`data is`, data);
-    
-  //   setAuthState(s => ({ 
-  //     ...s, 
-  //     user: result.user || null, 
-  //     session: result.session,
-  //     isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user?.email) : false 
-  //   }));
-  //   console.log(authState)
-  // };
-  const signIn = async (email: string, password: string) => {
-  const result = await authSignIn(email, password);
+
+//   const signIn = async (email: string, password: string) => {
+//   const result = await authSignIn(email, password);
   
-  if (navigate && location?.pathname === '/auth') {
-    navigate('/');
-  }
+//   // if (navigate && location?.pathname === '/auth') {
+//   //   navigate('/');
+//   // }
+  
+//   const { data } = await supabase.auth.getUser();
+  
+//   setAuthState(s => ({ 
+//     ...s, 
+//     user: result.user,  // ✅ Use the full user object, not just first_name
+//     session: result.session,  // ✅ This is correct
+//     isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user.email) : false  // ✅ Use result.user.email
+//   }));
+
+//   // Clean up stored redirect paths
+// sessionStorage.removeItem('auth_redirect_from');
+// sessionStorage.removeItem('google_oauth_return_to');
+// };
+
+const signIn = async (email: string, password: string) => {
+  const result = await authSignIn(email, password);
   
   const { data } = await supabase.auth.getUser();
   
   setAuthState(s => ({ 
     ...s, 
-    user: result.user,  // ✅ Use the full user object, not just first_name
-    session: result.session,  // ✅ This is correct
-    isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user.email) : false  // ✅ Use result.user.email
+    user: result.user,
+    session: result.session,
+    isAdmin: result.user?.email ? ['malhotrayash1900@gmail.com'].includes(result.user.email) : false
   }));
-};
+  
+  // Add console.log here
+  console.log('🧹 Cleaning up sessionStorage...');
+  sessionStorage.removeItem('auth_redirect_from');
+  sessionStorage.removeItem('google_oauth_return_to');
+  console.log('✅ Cleanup done');
+};  
 
-  const signUp = authSignUp;
+
+const signUp = authSignUp;
   
   const signOut = async () => {
     await authSignOut();
     if (navigate) {
-      navigate('/auth');
+      navigate('/');
     }
     setAuthState(s => ({ ...s, user: null, session: null, isAdmin: false }));
   };

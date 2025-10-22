@@ -4,6 +4,7 @@ import NavigationLink from './NavigationLink';
 import UserMenu from './UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 interface DesktopNavigationProps {
   isScrolled: boolean;
@@ -27,6 +28,7 @@ const DesktopNavigation = ({ isScrolled, navLinks, user, onSignOut }: DesktopNav
     opacity: 0,
   });
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const location = useLocation();
 
   // Helper to update pill position/size
   const updatePill = useCallback((idx: number | null) => {
@@ -160,10 +162,14 @@ const DesktopNavigation = ({ isScrolled, navLinks, user, onSignOut }: DesktopNav
       ) : (
         <a
           href="/auth"
-          className={buttonBaseClasses}
-        >
-          Sign In
-        </a>
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = `/auth?from=${encodeURIComponent(location.pathname)}`;
+            }}
+            className={buttonBaseClasses}
+          >
+            Sign In
+          </a>
       )}
       {/* <a
         href="https://docs.google.com/forms/d/1TTHQN3gG2ZtC26xlh0lU8HeiMc3qDJhfoU2tOh9qLQM/edit"
