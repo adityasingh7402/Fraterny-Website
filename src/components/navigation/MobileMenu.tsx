@@ -202,11 +202,11 @@ const MobileMenu = ({
   
   // Admin links - following Navigation 1 structure
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin' },
-    { name: 'Analytics', href: '/admin/analytics' },
-    { name: 'Blog Management', href: '/admin/blog' },
-    { name: 'Image Management', href: '/admin/images' },
-    { name: 'Newsletter', href: '/admin/newsletter' },
+    // { name: 'Dashboard', href: '/admin' },
+    // { name: 'Analytics', href: '/admin/analytics' },
+    // { name: 'Blog Management', href: '/admin/blog' },
+    // { name: 'Image Management', href: '/admin/images' },
+    // { name: 'Newsletter', href: '/admin/newsletter' },
     { name: 'Admin Dashboard', href: '/admin/dashboard' }, // Added this line
   ];
 
