@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { updateImage, WebsiteImage, getImageUrlByKey, uploadImage } from '@/services/images';
+import { updateImage, WebsiteImage, getImageUrlByKey, uploadImage, invalidateImageCache } from '@/services/images';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
   const queryClient = useQueryClient();
@@ -10,6 +11,7 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
   const [file, setFile] = useState<File | null>(null);
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const [isReplacing, setIsReplacing] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   
   const [editForm, setEditForm] = useState({
     key: image.key,
@@ -18,26 +20,112 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
     category: image.category || ''
   });
   
-  // Load the original image on mount
+  // Load the original image on mount and when image changes
   useEffect(() => {
     const fetchImageUrl = async () => {
       try {
-        const url = await getImageUrlByKey(image.key);
-        setPreviewUrl(url);
+        console.log(`🖼️ Loading image preview for key: ${image.key}`);
+        setImageLoading(true);
+        
+        // AGGRESSIVE APPROACH: Fetch image metadata directly and build URL manually
+        console.log('🧹 Fetching fresh image data directly from database...');
+        
+        // Fetch image data directly from Supabase
+        const { data: imageData, error } = await supabase
+          .from('website_images')
+          .select('storage_path, metadata')
+          .eq('key', image.key)
+          .maybeSingle();
+          
+        if (error || !imageData || !imageData.storage_path) {
+          console.error('Failed to fetch image data:', error);
+          setPreviewUrl(null);
+          setImageLoading(false);
+          return;
+        }
+        
+        console.log(`📋 Fresh image data:`, imageData);
+        
+        // Get fresh public URL directly from Supabase storage
+        const { data: urlData } = supabase.storage
+          .from('website-images')
+          .getPublicUrl(imageData.storage_path);
+          
+        if (!urlData || !urlData.publicUrl) {
+          console.error('Failed to get public URL');
+          setPreviewUrl(null);
+          setImageLoading(false);
+          return;
+        }
+        
+        // Add AGGRESSIVE cache busting with multiple parameters
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substr(2, 9);
+        const cacheBustedUrl = urlData.publicUrl.includes('?') 
+          ? `${urlData.publicUrl}&_t=${timestamp}&_r=${randomId}&_modal=1` 
+          : `${urlData.publicUrl}?_t=${timestamp}&_r=${randomId}&_modal=1`;
+        
+        console.log(`🔗 Generated AGGRESSIVE cache-busted URL:`, cacheBustedUrl);
+        
+        // Add a longer delay to ensure the image is ready
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        setPreviewUrl(cacheBustedUrl);
+        setImageLoading(false);
+        console.log(`✅ Image preview loaded for: ${image.key}`);
       } catch (error) {
         console.error('Failed to load image preview:', error);
+        setPreviewUrl(null);
+        setImageLoading(false);
       }
     };
     
+    // Reset all state when image changes (important for modal reopening)
+    setFile(null);
+    setCroppedFile(null);
+    setIsReplacing(false);
+    
+    // Update form with current image data
+    setEditForm({
+      key: image.key,
+      description: image.description,
+      alt_text: image.alt_text,
+      category: image.category || ''
+    });
+    
     fetchImageUrl();
     
-    // Clean up any blob URLs when unmounting
+    // Clean up any blob URLs when unmounting or image changes
     return () => {
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
     };
-  }, [image.key]);
+  }, [image.key, image.id]); // Added image.id to dependencies to detect updates
+  
+  // Cleanup function to reset all state
+  const resetAllState = () => {
+    console.log('🧹 Resetting all edit state...');
+    
+    // Clean up any blob URLs
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
+    // Reset all state
+    setFile(null);
+    setCroppedFile(null);
+    setIsReplacing(false);
+    setPreviewUrl(null);
+    
+    // Reset form to original values
+    setEditForm({
+      key: image.key,
+      description: image.description,
+      alt_text: image.alt_text,
+      category: image.category || ''
+    });
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -110,19 +198,29 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
         data.category
       );
     },
-    onSuccess: () => {
-      // Clean up any blob URLs
+    onSuccess: (data) => {
+      console.log('✅ Image replacement successful, cleaning up state...');
+      
+      // Clean up all blob URLs to prevent memory leaks and 404 errors
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
       
+      // Invalidate image cache for this specific key to ensure fresh URLs
+      console.log(`🧹 Invalidating cache for replaced image: ${image.key}`);
+      invalidateImageCache(image.key);
+      
+      // Invalidate cache to refresh the image list - this will update the parent component
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
-      onClose();
+      
       toast.success('Image replaced successfully');
+      
+      // Close modal immediately - the parent will handle refreshing the data
+      onClose();
     },
     onError: (error) => {
+      console.error('❌ Image replacement failed:', error);
       toast.error('Failed to replace image');
-      console.error(error);
     }
   });
   
@@ -130,13 +228,18 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
     mutationFn: (data: { id: string, updates: Partial<WebsiteImage> }) => 
       updateImage(data.id, data.updates),
     onSuccess: () => {
+      console.log('✅ Image metadata update successful');
+      
+      // Invalidate cache to refresh the image list
       queryClient.invalidateQueries({ queryKey: ['website-images'] });
+      
+      // Close modal
       onClose();
       toast.success('Image updated successfully');
     },
     onError: (error) => {
+      console.error('❌ Image metadata update failed:', error);
       toast.error('Failed to update image');
-      console.error(error);
     }
   });
   
@@ -183,6 +286,8 @@ export const useEditImage = (image: WebsiteImage, onClose: () => void) => {
     handleFileChange,
     handleCroppedFile,
     setIsReplacing,
-    cancelReplacement
+    cancelReplacement,
+    resetAllState,
+    imageLoading
   };
 };

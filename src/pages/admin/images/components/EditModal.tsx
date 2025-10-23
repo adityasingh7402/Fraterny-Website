@@ -28,8 +28,16 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
     handleEditSubmit,
     handleFileChange,
     handleCroppedFile,
-    cancelReplacement
+    cancelReplacement,
+    resetAllState,
+    imageLoading
   } = useEditImage(image, onClose);
+  
+  // Enhanced close handler with cleanup
+  const handleClose = () => {
+    resetAllState();
+    onClose();
+  };
   
   const isPending = updateMutation.isPending || replaceImageMutation.isPending;
   const isMobile = useIsMobile();
@@ -38,8 +46,8 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className={`bg-white rounded-lg ${isMobile ? 'w-full' : 'max-w-2xl w-full'} max-h-[90vh] overflow-y-auto`}>
-        <EditModalHeader onClose={onClose} />
+      <div className={`bg-white rounded-lg ${isMobile ? 'w-full' : 'max-w-[90rem] w-full'} max-h-[90vh] overflow-y-auto`}>
+        <EditModalHeader onClose={handleClose} />
         
         <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
           <ImagePreview 
@@ -50,6 +58,7 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
             onFileChange={handleFileChange}
             onCroppedFile={handleCroppedFile}
             onCancelReplace={cancelReplacement}
+            imageLoading={imageLoading}
           />
           
           {!isReplacing && (
@@ -61,7 +70,7 @@ const EditModal = ({ isOpen, onClose, image }: EditModalProps) => {
           )}
           
           <EditModalFooter 
-            onClose={onClose}
+            onClose={handleClose}
             isPending={isPending}
           />
         </form>
