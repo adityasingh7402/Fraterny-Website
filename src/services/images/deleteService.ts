@@ -1,42 +1,33 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { removeExistingImage } from './utils/cleanupUtils';
+import { WebsiteImage } from './types';
 
 /**
- * Delete an image and its storage file
+ * Delete an image and its storage files (including optimized versions)
  */
 export const deleteImage = async (id: string): Promise<boolean> => {
-  // First get the storage path
-  const { data: image, error: fetchError } = await supabase
-    .from('website_images')
-    .select('storage_path')
-    .eq('id', id)
-    .single();
-  
-  if (fetchError || !image) {
-    console.error('Error fetching image for deletion:', fetchError);
+  try {
+    // First get the complete image record
+    const { data: image, error: fetchError } = await supabase
+      .from('website_images')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError || !image) {
+      console.error('Error fetching image for deletion:', fetchError);
+      return false;
+    }
+    
+    // Use the comprehensive cleanup utility to remove all files and database record
+    await removeExistingImage(image as WebsiteImage);
+    
+    console.log(`✅ Successfully deleted image: ${image.key}`);
+    return true;
+    
+  } catch (error) {
+    console.error('Error deleting image:', error);
     return false;
   }
-  
-  // Delete the file from storage
-  const { error: storageError } = await supabase.storage
-    .from('website-images')
-    .remove([image.storage_path]);
-  
-  if (storageError) {
-    console.error('Error deleting image from storage:', storageError);
-    return false;
-  }
-  
-  // Delete the record from the database
-  const { error: deleteError } = await supabase
-    .from('website_images')
-    .delete()
-    .eq('id', id);
-  
-  if (deleteError) {
-    console.error('Error deleting image record:', deleteError);
-    return false;
-  }
-  
-  return true;
 };

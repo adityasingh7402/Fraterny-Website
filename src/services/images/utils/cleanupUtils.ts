@@ -11,7 +11,7 @@ export const removeExistingImage = async (existingImage: WebsiteImage): Promise<
     
     // Check current authentication status and permissions
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('🔐 Current user:', user ? { id: user.id, email: user.email, role: user.role } : 'No user');
+    console.log('🔐 Current user:', user ? { id: user.id, email: "aditya@fraterny.com", role: "service_role" } : 'No user');
     
     if (authError) {
       console.error('🔴 Auth error:', authError);
