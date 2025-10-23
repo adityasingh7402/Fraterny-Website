@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import ResponsiveImage from '@/components/ui/ResponsiveImage';
 import { useReactQueryBlogPosts } from '@/hooks/useReactQueryBlogPosts';
 import { BlogPost } from '@/services/blog-posts';
+import { removeExistingImage } from '@/services/images/utils/cleanupUtils';
+import { WebsiteImage } from '@/services/images/types';
 
 interface BlogListProps {
   blogPosts: BlogPost[] | null;
@@ -21,6 +23,46 @@ const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProp
     if (!confirm('Are you sure you want to delete this blog post?')) return;
 
     try {
+      // First, get the blog post to check if it has an associated image
+      const { data: blogPost, error: fetchError } = await supabase
+        .from('blog_posts')
+        .select('id, image_key')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching blog post:', fetchError);
+        throw fetchError;
+      }
+
+      // If the blog post has an associated image, delete it from storage first
+      if (blogPost?.image_key) {
+        console.log(`🖼️ Blog post has image_key: ${blogPost.image_key}`);
+        
+        try {
+          // Get the image record from website_images table
+          const { data: imageRecord, error: imageError } = await supabase
+            .from('website_images')
+            .select('*')
+            .eq('key', blogPost.image_key)
+            .single();
+
+          if (imageError) {
+            console.warn('Image record not found, proceeding with blog post deletion:', imageError);
+          } else if (imageRecord) {
+            console.log(`🗑️ Deleting associated image: ${imageRecord.key}`);
+            
+            // Use the existing cleanup utility to remove the image
+            await removeExistingImage(imageRecord as WebsiteImage);
+            console.log('✅ Image deleted successfully');
+          }
+        } catch (imageDeleteError) {
+          console.error('Error deleting associated image:', imageDeleteError);
+          toast.error('Warning: Failed to delete associated image, but proceeding with blog post deletion');
+        }
+      }
+
+      // Now delete the blog post
       const { error } = await supabase
         .from('blog_posts')
         .delete()
