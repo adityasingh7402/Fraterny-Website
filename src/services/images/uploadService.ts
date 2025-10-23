@@ -52,7 +52,13 @@ export const uploadImage = async (
       
     if (existingImage) {
       console.log(`Found existing image with key: ${key}, will replace it`);
-      await removeExistingImage(existingImage as WebsiteImage);
+      try {
+        await removeExistingImage(existingImage as WebsiteImage);
+      } catch (cleanupError) {
+        console.error(`Failed to cleanup existing image with key: ${key}`, cleanupError);
+        // Still continue with upload, but log the error
+        // This ensures we don't block new uploads due to cleanup issues
+      }
     }
     
     // Generate placeholders for better loading experience (especially on mobile)
