@@ -290,7 +290,7 @@ export function QuestIntro({
         <div className='w-full pr-3 pb-5'>
           <button
             onClick={handleStart}
-            className="pt-2 w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
+            className="w-full h-14 mix-blend-luminosity bg-gradient-to-br from-white/20 to-white/20 rounded-[30px] border-2 border-white flex items-center justify-center leading-[1px]">
             <div className='flex gap-0 items-center'>
               <div className="w-full text-white text-2xl font-normal font-['Gilroy-Bold'] tracking-tighter">{buttonText}</div>
               <ChevronRight className="w-8 h-8 text-white" />
