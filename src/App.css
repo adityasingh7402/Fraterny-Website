@@ -52,6 +52,16 @@
 
 
 /* Blog post content styling */
+.max-w-none h1 {
+  font-size: 2.5em;
+  line-height: 1.2;
+  font-weight: 800;
+  margin-top: 0.5em;
+  margin-bottom: 0.75em;
+  color: #0A1A2F;
+  font-family: 'Playfair Display', serif;
+}
+
 .max-w-none h2 {
   font-size: 2em;
   font-weight: 700;

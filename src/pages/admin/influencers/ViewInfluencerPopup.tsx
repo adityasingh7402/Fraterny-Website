@@ -7,6 +7,7 @@ import { uploadImage } from '@/services/images';
 import { supabase } from '@/integrations/supabase/client';
 import { getDashboardStats } from '@/services/influencer-dashboard';
 import { getExchangeRate } from '@/services/commission';
+import ImageZoom from '@/components/ui/ImageZoom';
 
 interface ViewInfluencerPopupProps {
   isOpen: boolean;
@@ -39,6 +40,9 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
   const [transactionId, setTransactionId] = useState('');
   const [completionNote, setCompletionNote] = useState('Your payment is transferred successfully');
   const [failureReason, setFailureReason] = useState('');
+  
+  // Track failed image loads to show default avatar
+  const [hasImageFailed, setHasImageFailed] = useState(false);
   
   // Form states (initialized with influencer data)
   const [name, setName] = useState(influencer.name);
@@ -137,6 +141,8 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
     setAccountNumber(influencer.payment_info?.account_number || '');
     setIfsc(influencer.payment_info?.ifsc || '');
     setUpi(influencer.payment_info?.upi || '');
+    // Reset image error state when influencer changes
+    setHasImageFailed(false);
   }, [influencer]);
 
   // Handle image upload
@@ -441,6 +447,11 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
     }
   };
 
+  // Handle image load error
+  const handleImageError = () => {
+    setHasImageFailed(true);
+  };
+
   // Get public URL for profile image
   const getProfileImageUrl = (storagePath: string | null): string | null => {
     if (!storagePath) return null;
@@ -510,22 +521,26 @@ const ViewInfluencerPopup: React.FC<ViewInfluencerPopupProps> = ({ isOpen, influ
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Profile Image */}
             <div className="relative">
-              {profileImagePreview && getProfileImageUrl(profileImagePreview) ? (
-                <img
+              {profileImagePreview && getProfileImageUrl(profileImagePreview) && !hasImageFailed ? (
+                <ImageZoom
                   src={getProfileImageUrl(profileImagePreview)!}
                   alt={name}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                  className="w-32 h-32 rounded-full border-4 border-gray-200"
+                >
+                  <img
+                    src={getProfileImageUrl(profileImagePreview)!}
+                    alt={name}
+                    className="w-32 h-32 rounded-full object-cover"
+                    onError={handleImageError}
+                  />
+                </ImageZoom>
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-200">
-                  <User className="h-16 w-16 text-gray-400" />
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center border-4 border-white shadow-lg text-white font-bold text-4xl">
+                  {name.charAt(0).toUpperCase()}
                 </div>
               )}
               {editMode && (
-                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors z-10">
                   <Upload className="h-4 w-4" />
                   <input
                     type="file"
