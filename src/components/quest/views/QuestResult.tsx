@@ -2646,7 +2646,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               paymentCurrency = 'INR';
             } else if (selectedGateway === 'paypal') {
               // PayPal payment in USD (cents)
-              paymentAmount = pricingData.paypal.numericAmount * 100; // Convert dollars to cents
+              paymentAmount = pricingData.paypal.amount * 100; // Convert dollars to cents
               paymentCurrency = 'USD';
             } else {
               // International Razorpay in USD (cents)
@@ -3291,7 +3291,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
         </SectionFrame>
 
         {/* Quotes Section */}
-        <SectionFrame
+        {/* <SectionFrame
           id="quotes"
           title="Philosophical Quotes That Mirrors Your Psyche"
           sub="Save the ones that hit"
@@ -3318,10 +3318,10 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               </li>
             ))}
           </ul>
-        </SectionFrame>
+        </SectionFrame> */}
 
         {/* Films Section */}
-        <SectionFrame
+        {/* <SectionFrame
           id="films"
           title="Films That Will Hit Closer Than Expected"
           sub="Weekend cues"
@@ -3342,7 +3342,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                     setFilmModalOpen(true);
                   }}
                 >
-                  {/* Film Card */}
+                 
                   <div className="w-40 h-48 relative rounded-lg shadow-[0px_8px_20px_0px_rgba(12,69,240,0.22)] overflow-hidden bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center">
                     {film.imageUrl ? (
                       // <img 
@@ -3367,7 +3367,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
                     )}
                   </div>
 
-                  {/* Film Title */}
+                
                   <div className="flex gap-2">
                     <div className="text-white w-28 text-center text-lg font-bold font-['Inter'] leading-normal">
                       {film.title}
@@ -3378,7 +3378,7 @@ const QuestResult: React.FC<QuestResultFullscreenProps> = ({
               ))}
             </div>
           </div>
-        </SectionFrame>
+        </SectionFrame> */}
 
 
         {/* Astrology Section - TEMPORARILY HIDDEN */}
