@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isEmailAdmin } from '@/services/admin-emails';
 
-// Define admin emails in a separate array for easier management
-const ADMIN_EMAILS = ['malhotrayash1900@gmail.com', 'indranilmaiti16@gmail.com', 'adityasingh7402@gmail.com']; 
+// Fallback admin emails in case database is unavailable
+const FALLBACK_ADMIN_EMAILS = ['malhotrayash1900@gmail.com', 'indranilmaiti16@gmail.com', 'adityasingh7402@gmail.com'];
 
 /**
  * Hook to manage auth state with Supabase
@@ -15,6 +16,21 @@ export function useAuthState() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Function to check if user is admin
+  const checkAdminStatus = async (email: string | undefined): Promise<boolean> => {
+    if (!email) return false;
+    
+    try {
+      // Try to check from database first
+      const isAdmin = await isEmailAdmin(email);
+      return isAdmin;
+    } catch (error) {
+      console.warn('Failed to check admin status, using fallback:', error);
+      // Fallback to hardcoded emails if anything fails
+      return FALLBACK_ADMIN_EMAILS.includes(email);
+    }
+  };
+
   useEffect(() => {
     // Get initial session first
     const getInitialSession = async () => {
@@ -23,7 +39,8 @@ export function useAuthState() {
         if (initialSession) {
           setSession(initialSession);
           setUser(initialSession.user);
-          setIsAdmin(initialSession.user?.email ? ADMIN_EMAILS.includes(initialSession.user.email) : false);
+          const adminStatus = await checkAdminStatus(initialSession.user?.email);
+          setIsAdmin(adminStatus);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -37,7 +54,18 @@ export function useAuthState() {
       // console.log('Auth state change event:', event);
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      setIsAdmin(newSession?.user?.email ? ADMIN_EMAILS.includes(newSession.user.email) : false);
+      
+      // Check admin status asynchronously without blocking
+      if (newSession?.user?.email) {
+        checkAdminStatus(newSession.user.email).then(adminStatus => {
+          setIsAdmin(adminStatus);
+        }).catch(error => {
+          console.warn('Admin status check failed:', error);
+          setIsAdmin(FALLBACK_ADMIN_EMAILS.includes(newSession.user.email!));
+        });
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     // Get initial session

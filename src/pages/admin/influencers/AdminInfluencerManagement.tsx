@@ -51,6 +51,9 @@ const AdminInfluencerManagement: React.FC = () => {
   const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerData | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [exchangeRate, setExchangeRate] = useState<number>(83.50); // Default fallback
+  
+  // Track failed image loads to show default avatar
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   // Fetch exchange rate from database
   const fetchExchangeRate = async () => {
@@ -288,6 +291,16 @@ const AdminInfluencerManagement: React.FC = () => {
       .getPublicUrl(storagePath);
     
     return data?.publicUrl || null;
+  };
+
+  // Handle image load error
+  const handleImageError = (influencerId: string) => {
+    setFailedImages(prev => new Set([...prev, influencerId]));
+  };
+
+  // Check if image failed to load
+  const hasImageFailed = (influencerId: string) => {
+    return failedImages.has(influencerId);
   };
 
   return (
@@ -549,18 +562,16 @@ const AdminInfluencerManagement: React.FC = () => {
                         <tr key={influencer.id} className="hover:bg-gray-50">
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
-                              {influencer.profile_image && getProfileImageUrl(influencer.profile_image) ? (
+                              {influencer.profile_image && getProfileImageUrl(influencer.profile_image) && !hasImageFailed(influencer.id) ? (
                                 <img 
                                   src={getProfileImageUrl(influencer.profile_image)!} 
                                   alt={influencer.name}
                                   className="w-10 h-10 rounded-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                  }}
+                                  onError={() => handleImageError(influencer.id)}
                                 />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <Users className="h-5 w-5 text-gray-500" />
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                                  {influencer.name.charAt(0).toUpperCase()}
                                 </div>
                               )}
                               <span className="text-sm font-medium text-gray-900">{influencer.name}</span>
