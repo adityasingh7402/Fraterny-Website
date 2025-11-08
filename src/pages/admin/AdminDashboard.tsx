@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, Calendar, Shield } from 'lucide-react';
+import { Users, DollarSign, FileText, CreditCard, BarChart3, Menu, X, MessageCircle, TrendingUp, AlertCircle, Image, Mail, PieChart, Settings, UserCheck, Calendar, Shield, Send } from 'lucide-react';
 import AdminUserManagement from './users/AdminUserManagement';
 import AdminSummaryManagement from './summaries/AdminSummaryManagement';
 import AdminQuestPayment from './payments/AdminQuestPayment';
@@ -12,6 +12,7 @@ import WebsiteSettings from './settings/WebsiteSettings';
 import AdminInfluencerManagement from './influencers/AdminInfluencerManagement';
 import AdminPricingManagement from './pricing/AdminPricingManagement';
 import AdminEmailManagement from './emails/AdminEmailManagement';
+import AdminBulkEmailManagement from './emails/AdminBulkEmailManagement';
 import { fetchDashboardStats, formatQuickStats, getDashboardInsights } from '@/services/admin-dashboard';
 import type { DashboardStats, QuickStats } from '@/services/admin-dashboard';
 import VillaEditionsManagement from './editions/VillaEditionsManagement';
@@ -59,6 +60,12 @@ const menuItems = [
     label: 'Admin Emails',
     icon: Shield,
     component: AdminEmailManagement
+  },
+  {
+    id: 'bulk-emails',
+    label: 'Bulk Email Management',
+    icon: Send,
+    component: AdminBulkEmailManagement
   },
   {
     id: 'editions',
