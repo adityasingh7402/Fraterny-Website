@@ -1,5 +1,5 @@
 
-import { Image, FileText, BarChart, Users, UserCog, FileStack, MessageSquare } from 'lucide-react';
+import { Image, FileText, BarChart, Users, UserCog, FileStack, MessageSquare, Mail } from 'lucide-react';
 import AdminMenuCard from './AdminMenuCard';
 
 const AdminMenu = () => {
@@ -39,6 +39,12 @@ const AdminMenu = () => {
       title: 'Summary Management',
       description: 'Manage summary generations and tests',
       link: '/admin/summaries'
+    },
+    {
+      icon: Mail,
+      title: 'Bulk Email Management',
+      description: 'Send personalized emails to users',
+      link: '/admin/bulk-emails'
     }
   ];
 

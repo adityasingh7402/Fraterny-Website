@@ -60,6 +60,7 @@ import AdminRefundManagement from './pages/admin/payments/AdminRefundManagement'
 import AdminUserManagement from './pages/admin/users/AdminUserManagement';
 import AdminSummaryManagement from './pages/admin/summaries/AdminSummaryManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminBulkEmailManagement from './pages/admin/emails/AdminBulkEmailManagement';
 
 // INFLUENCER ROUTES
 import AffiliatesPage from './pages/influencer/AffiliatesPage';
@@ -211,6 +212,7 @@ const router = createBrowserRouter([
           { path: 'quest-payment', element:<AdminQuestPayment /> },
           { path: 'payments/refunds', element:<AdminRefundManagement /> },
           { path: 'dashboard', element:<AdminDashboard /> }, // Added this route
+          { path: 'bulk-emails', element:<AdminBulkEmailManagement /> },
         ],
       },
     ],
