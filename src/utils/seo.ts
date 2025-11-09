@@ -1,4 +1,6 @@
 // src/utils/seo.ts
+import { getCurrentDomain } from './seo/domainUtils';
+
 export function setMeta({
   title,
   description,

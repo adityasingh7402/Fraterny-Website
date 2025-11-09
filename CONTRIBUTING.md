@@ -79,7 +79,7 @@ Once you have the repo cloned, you can begin working on your issue:
 4. Push your branch to the repo, replacing the `<your branch name>` with the branch you've been working on locally:
 
     ```bash
-    git push origin <your branch name>
+    git push origin <your branch name> 
 
     # An example:
     git push origin fix/hero-section-typo
