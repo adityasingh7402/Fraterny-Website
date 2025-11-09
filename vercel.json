@@ -12,7 +12,38 @@
       "permanent": true
     }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow"
+        }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "fraterny.us"
+        }
+      ],
+      "destination": "/robots-us.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "fraterny.us"
+        }
+      ],
+      "destination": "/sitemap-us.xml"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

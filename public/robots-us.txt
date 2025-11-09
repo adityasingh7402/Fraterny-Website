@@ -1,0 +1,49 @@
+# Fraterny.us - Robots.txt for SEO Optimization
+# Website: https://fraterny.us
+# Generated: 2025-01-09
+
+# Host specification
+Host: fraterny.us
+
+# Allow all web crawlers with crawl delay
+User-agent: *
+Allow: /
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Sitemap locations
+Sitemap: https://fraterny.us/sitemap.xml
+Sitemap: https://fraterny.us/sitemap-enhanced.xml
+
+# Prevent crawling of private routes
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_vite/
+Disallow: /node_modules/
+
+# Prevent crawling of tracking URLs and parameters
+Disallow: /*?*utm_*
+Disallow: /*?*fbclid=*
+Disallow: /*?*gclid=*
+Disallow: /*?*msclkid=*
+Disallow: /*?*ref=*
+
+# Allow crawling of important static assets
+Allow: /assets/
+Allow: /images/
+Allow: /static/
+Allow: *.css
+Allow: *.js
+Allow: *.webp
+Allow: *.jpg
+Allow: *.png
+Allow: *.svg
