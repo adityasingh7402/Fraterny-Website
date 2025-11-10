@@ -14,10 +14,55 @@ interface BlogListProps {
   error: Error | unknown | null;
   onEdit: (post: BlogPost) => void;
   refetch: () => void;
+  activeTab?: 'published' | 'draft';
 }
 
-const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch }: BlogListProps) => {
+const BlogList = ({ blogPosts, isLoading, error, onEdit, refetch, activeTab }: BlogListProps) => {
   const { invalidateBlogPosts } = useReactQueryBlogPosts();
+
+  const handlePublish = async (id: string) => {
+    if (!confirm('Publish this blog post?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Refresh data
+      await refetch();
+      await invalidateBlogPosts();
+      
+      toast.success('Blog post published successfully');
+    } catch (error) {
+      console.error('Error publishing blog post:', error);
+      toast.error('Failed to publish blog post');
+    }
+  };
+
+  const handleUnpublish = async (id: string) => {
+    if (!confirm('Move this blog post to drafts?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ published: false, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Refresh data
+      await refetch();
+      await invalidateBlogPosts();
+      
+      toast.success('Blog post moved to drafts');
+    } catch (error) {
+      console.error('Error unpublishing blog post:', error);
+      toast.error('Failed to move blog post to drafts');
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
@@ -173,6 +218,22 @@ const parsePostgresArray = (value: any): string[] => {
                       )}
                     </div>
                     <div className="flex space-x-3">
+                      {!post.published && (
+                        <button
+                          onClick={() => handlePublish(post.id)}
+                          className="text-green-600 hover:underline font-medium"
+                        >
+                          Publish
+                        </button>
+                      )}
+                      {post.published && (
+                        <button
+                          onClick={() => handleUnpublish(post.id)}
+                          className="text-orange-600 hover:underline"
+                        >
+                          Unpublish
+                        </button>
+                      )}
                       <button
                         onClick={() => onEdit(post)}
                         className="text-navy hover:underline"
